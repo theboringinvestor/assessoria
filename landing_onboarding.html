@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Boring Investor — Descobreix el teu perfil inversor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#0A0A0A; --white:#FAFAF8;
+  --g100:#F4F3F0; --g200:#E8E6E1; --g300:#C8C5BE; --g400:#9A9690; --g500:#6B6762;
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',system-ui,sans-serif;
+  --fm:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--black);color:var(--white);-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.8)}
+.nav-cta{padding:8px 18px;border:1px solid rgba(255,255,255,.25);border-radius:7px;font-size:12px;color:rgba(255,255,255,.7);cursor:pointer;background:transparent;font-family:var(--fb);transition:all .15s;text-decoration:none;display:inline-block}
+.nav-cta:hover{border-color:var(--white);color:var(--white)}
+
+/* HERO */
+.hero{max-width:680px;margin:0 auto;padding:80px 40px 60px;text-align:center}
+.hero-eyebrow{font-size:11px;font-weight:500;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:20px}
+.hero-title{font-family:var(--fd);font-size:clamp(36px,6vw,60px);font-weight:400;line-height:1.1;letter-spacing:-.5px;margin-bottom:20px}
+.hero-title em{font-style:italic;color:rgba(255,255,255,.55)}
+.hero-desc{font-size:15px;color:rgba(255,255,255,.55);line-height:1.7;max-width:480px;margin:0 auto 36px}
+.btn-hero{display:inline-block;padding:14px 36px;background:var(--white);color:var(--black);border-radius:8px;font-size:14px;font-weight:500;font-family:var(--fb);cursor:pointer;border:none;text-decoration:none;transition:all .15s}
+.btn-hero:hover{background:var(--g100);transform:translateY(-1px)}
+.btn-hero-sub{display:block;font-size:11px;color:rgba(255,255,255,.25);margin-top:12px}
+
+/* PERSONATGES PREVIEW */
+.personatges{max-width:860px;margin:0 auto;padding:0 40px 60px}
+.p-title{font-size:10px;font-weight:500;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;text-align:center;margin-bottom:20px}
+.p-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.p-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;text-align:center}
+.p-card-num{font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.2);margin-bottom:6px}
+.p-card-nom{font-family:var(--fd);font-size:14px;color:rgba(255,255,255,.75);margin-bottom:2px;line-height:1.2}
+.p-card-ep{font-size:9px;color:rgba(255,255,255,.25);font-style:italic;margin-bottom:6px}
+.p-card-tag{display:inline-block;font-size:9px;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.35)}
+
+/* COM FUNCIONA */
+.steps{max-width:680px;margin:0 auto;padding:0 40px 72px}
+.steps-title{font-family:var(--fd);font-size:24px;font-weight:400;text-align:center;color:rgba(255,255,255,.8);margin-bottom:32px;letter-spacing:-.3px}
+.step-list{display:flex;flex-direction:column;gap:0}
+.step-item{display:flex;gap:20px;align-items:flex-start;padding:20px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.step-item:last-child{border-bottom:none}
+.step-num{font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.2);min-width:24px;padding-top:2px}
+.step-body{}
+.step-name{font-size:14px;font-weight:500;color:var(--white);margin-bottom:4px}
+.step-desc{font-size:12px;color:rgba(255,255,255,.4);line-height:1.6}
+
+/* GARANTIES */
+.garanties{max-width:680px;margin:0 auto;padding:0 40px 72px}
+.g-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g-card{padding:16px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.g-icon{font-size:18px;margin-bottom:8px}
+.g-title{font-size:12px;font-weight:500;color:rgba(255,255,255,.7);margin-bottom:4px}
+.g-desc{font-size:11px;color:rgba(255,255,255,.35);line-height:1.5}
+
+/* CTA FINAL */
+.cta-final{text-align:center;padding:48px 40px 64px;border-top:1px solid rgba(255,255,255,.06)}
+.cta-final-title{font-family:var(--fd);font-size:clamp(22px,4vw,34px);font-weight:400;color:var(--white);margin-bottom:12px;letter-spacing:-.3px}
+.cta-final-sub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:28px}
+
+/* FOOTER */
+footer{padding:24px 40px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center}
+footer .f-left{font-size:11px;color:rgba(255,255,255,.2)}
+footer .f-right{font-size:10px;color:rgba(255,255,255,.15);font-style:italic}
+
+/* DIVIDER LINE */
+.divider{max-width:40px;height:1px;background:rgba(255,255,255,.15);margin:0 auto 40px}
+
+@media(max-width:600px){
+  nav{padding:16px 20px}
+  .hero,.steps,.garanties,.personatges{padding-left:20px;padding-right:20px}
+  .p-grid{grid-template-columns:repeat(2,1fr)}
+  .g-grid{grid-template-columns:1fr}
+  .hero{padding-top:48px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+      <circle cx="8.5" cy="10" r="2" fill="white"/>
+      <circle cx="8.5" cy="17" r="2" fill="white"/>
+      <rect x="12" y="12.5" width="6" height="1.5" rx=".75" fill="white"/>
+      <rect x="20.5" y="8" width="1.5" height="12" rx=".75" fill="white"/>
+    </svg>
+    <span class="nav-name">The Boring Investor</span>
+  </div>
+  <a href="client_onboarding_v3.html" class="nav-cta">Fer el qüestionari →</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Perfil d'inversor · Beta</div>
+  <h1 class="hero-title">Descobreix quin<br>personatge <em>ets</em><br>com a inversor</h1>
+  <p class="hero-desc">8 preguntes per dimensió. 5 minuts. Cap número visible mentre respons. Al final descobreixes el teu personatge històric i la cartera que t'escau.</p>
+  <a href="client_onboarding_v3.html" class="btn-hero">Descobrir el meu perfil</a>
+  <span class="btn-hero-sub">Gratuït · Sense registre · 5 minuts</span>
+</div>
+
+<div class="personatges">
+  <div class="p-title">Podries ser un d'aquests 8 personatges</div>
+  <div class="p-grid">
+    <div class="p-card">
+      <div class="p-card-num">I</div>
+      <div class="p-card-nom">L'Estoic</div>
+      <div class="p-card-ep">Marc Aureli</div>
+      <div class="p-card-tag">V · Capitalització</div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-num">II</div>
+      <div class="p-card-nom">L'Explorador</div>
+      <div class="p-card-ep">Shackleton</div>
+      <div class="p-card-tag">IV · Expansió</div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-num">III</div>
+      <div class="p-card-nom">El Navegant</div>
+      <div class="p-card-ep">Zheng He</div>
+      <div class="p-card-tag">III · Trajecte</div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-num">IV</div>
+      <div class="p-card-nom">L'Arquitecte</div>
+      <div class="p-card-ep">Brunelleschi</div>
+      <div class="p-card-tag">III · Trajecte</div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-num">V</div>
+      <div class="p-card-nom">El Tresorer</div>
+      <div class="p-card-ep">Jakob Fugger</div>
+      <div class="p-card-tag">I · Fonament</div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-num">VI</div>
+      <div class="p-card-nom">El Cronista</div>
+      <div class="p-card-ep">Heròdot</div>
+      <div class="p-card-tag">I · Fonament</div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-num">VII</div>
+      <div class="p-card-nom">L'Alquimista</div>
+      <div class="p-card-ep">Paracels</div>
+      <div class="p-card-tag">II · Collita</div>
+    </div>
+    <div class="p-card">
+      <div class="p-card-num">VIII</div>
+      <div class="p-card-nom">L'Ermità</div>
+      <div class="p-card-ep">Diògenes</div>
+      <div class="p-card-tag">I · Fonament</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="steps">
+  <div class="steps-title">Com funciona</div>
+  <div class="step-list">
+    <div class="step-item">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <div class="step-name">Respons 23 preguntes, una per pantalla</div>
+        <div class="step-desc">Les 7 dimensions del teu perfil inversor: objectius, situació financera, horitzó, coneixement, tolerància al risc financer i emocional, i preferències. No veus cap puntuació mentre respons — per evitar que el resultat intermedi condicioni les respostes.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <div class="step-name">Expliques el que tens ara (opcional)</div>
+        <div class="step-desc">Dipòsits, fons, accions, criptomonedes... El que sigui. No cal ser precís, una aproximació és suficient. Si no tens res, simplement ho saltes.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <div class="step-name">Descobreixes el teu personatge i la cartera recomanada</div>
+        <div class="step-desc">Un resultat visual amb el personatge, el lema, la descripció del teu comportament com a inversor i la cartera que millor s'adapta al teu perfil real.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <div class="step-name">Descarregues el teu perfil i l'envies a l'assessor</div>
+        <div class="step-desc">Un fitxer JSON amb totes les teves respostes i el perfil generat. L'assessor l'importa a l'app i el teu expedient queda llest per a la primera sessió — sense haver d'explicar res des de zero.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="garanties">
+  <div class="g-grid">
+    <div class="g-card">
+      <div class="g-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5"><rect x="2" y="2" width="14" height="14" rx="3"/><path d="M6 9l2 2 4-4"/></svg>
+      </div>
+      <div class="g-title">Les dades es queden al teu dispositiu</div>
+      <div class="g-desc">Cap dada s'envia a cap servidor. Tot es processa localment al teu navegador.</div>
+    </div>
+    <div class="g-card">
+      <div class="g-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5"><circle cx="9" cy="9" r="7"/><path d="M9 6v3l2 2"/></svg>
+      </div>
+      <div class="g-title">5 minuts, sense interrupcions</div>
+      <div class="g-desc">Una pregunta per pantalla. Pots aturar-te i continuar quan vulguis — el progrés es guarda.</div>
+    </div>
+    <div class="g-card">
+      <div class="g-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5"><path d="M9 2l1.8 5h5.2l-4.2 3 1.6 5L9 12l-4.4 3 1.6-5L2 7h5.2z"/></svg>
+      </div>
+      <div class="g-title">Resultat honest, no optimista</div>
+      <div class="g-desc">El perfil reflecteix el teu comportament real com a inversor, no el que voldries ser. Inclou els riscos i les incoherències.</div>
+    </div>
+  </div>
+</div>
+
+<div class="cta-final">
+  <div class="cta-final-title">Comença el qüestionari</div>
+  <div class="cta-final-sub">Gratuït · Sense registre · Les teves dades es queden al teu dispositiu</div>
+  <a href="client_onboarding_v3.html" class="btn-hero">Descobrir el meu perfil →</a>
+</div>
+
+<footer>
+  <span class="f-left">Guillem Puig · The Boring Investor · Assessoria Financera Independent · 2026</span>
+  <span class="f-right">Eina d'anàlisi i educació. No és assessorament regulat MiFID II.</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Boring Investor — Assessoria</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --black: #0A0A0A;
+  --white: #FAFAF8;
+  --gray-100: #F4F3F0;
+  --gray-200: #E8E6E1;
+  --gray-300: #C8C5BE;
+  --gray-400: #9A9690;
+  --gray-500: #6B6762;
+  --gray-700: #3A3835;
+  --accent: #1B3A6B;
+  --accent-light: #EBF0FA;
+  --accent-mid: #4A7CC7;
+  --green: #1A5C3A;
+  --green-light: #EAF3DE;
+  --amber: #7A4A00;
+  --amber-light: #FEF5E7;
+  --red: #8B1A1A;
+  --red-light: #FDF0F0;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+  --sidebar-w: 220px;
+  --topbar-h: 56px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--gray-100);
+  color: var(--black);
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LAYOUT ── */
+.app { display: flex; height: 100vh; }
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--black);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  z-index: 10;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.logo-wrap {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.logo-symbol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.logo-box {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--white);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-face {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+
+.logo-colon { display: flex; flex-direction: column; gap: 5px; position: absolute; left: 0; top: 2px; }
+.logo-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--white); }
+.logo-dash { width: 7px; height: 2px; background: var(--white); position: absolute; left: 6px; top: 10px; }
+.logo-pipe { width: 2px; height: 16px; background: var(--white); position: absolute; right: 0; top: 3px; }
+
+.logo-text { font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--white); letter-spacing: -.2px; }
+.logo-sub { font-size: 10px; color: rgba(255,255,255,.4); letter-spacing: .02em; font-weight: 300; }
+
+.nav { padding: 12px 0; flex: 1; }
+.nav-section { padding: 8px 18px 4px; font-size: 9px; font-weight: 500; color: rgba(255,255,255,.25); letter-spacing: .1em; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px; cursor: pointer;
+  color: rgba(255,255,255,.55); font-size: 12px; font-weight: 400;
+  border-left: 2px solid transparent;
+  transition: all .12s;
+  user-select: none;
+}
+.nav-item:hover { color: rgba(255,255,255,.9); background: rgba(255,255,255,.04); }
+.nav-item.active { color: var(--white); border-left-color: var(--white); background: rgba(255,255,255,.07); }
+.nav-item.disabled { opacity: .3; cursor: default; }
+.nav-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.nav-badge { font-size: 9px; padding: 1px 5px; border-radius: 99px; background: rgba(255,255,255,.1); color: rgba(255,255,255,.4); margin-left: auto; }
+
+.sidebar-bottom {
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.user-row { display: flex; align-items: center; gap: 10px; }
+.user-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; color: var(--white);
+  flex-shrink: 0;
+}
+.user-name { font-size: 12px; color: var(--white); font-weight: 400; }
+.user-role { font-size: 10px; color: rgba(255,255,255,.35); }
+
+/* ── TOPBAR ── */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center;
+  padding: 0 24px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.topbar-breadcrumb { font-size: 11px; color: var(--gray-400); display: flex; align-items: center; gap: 6px; }
+.topbar-breadcrumb span { cursor: pointer; transition: color .1s; }
+.topbar-breadcrumb span:hover { color: var(--accent); }
+.topbar-breadcrumb .sep { color: var(--gray-300); }
+.topbar-breadcrumb .current { color: var(--gray-700); font-weight: 500; }
+.topbar-title { font-family: var(--font-display); font-size: 17px; font-weight: 400; color: var(--black); letter-spacing: -.3px; }
+.topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 7px 14px; border-radius: var(--radius);
+  font-size: 12px; font-family: var(--font-body); font-weight: 400;
+  cursor: pointer; border: 1px solid var(--gray-200);
+  background: var(--white); color: var(--gray-700);
+  transition: all .12s; white-space: nowrap;
+}
+.btn:hover { background: var(--gray-100); border-color: var(--gray-300); }
+.btn:active { transform: scale(.98); }
+.btn-primary {
+  background: var(--black); border-color: var(--black); color: var(--white);
+}
+.btn-primary:hover { background: var(--gray-700); border-color: var(--gray-700); }
+.btn-sm { padding: 5px 11px; font-size: 11px; }
+.btn-danger { border-color: #F09595; color: var(--red); }
+.btn-danger:hover { background: var(--red-light); }
+
+/* ── CONTENT ── */
+.content {
+  flex: 1; overflow-y: auto; padding: 24px;
+  background: var(--gray-100);
+}
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── KPI ROW ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi {
+  background: var(--white); border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200); padding: 16px;
+  box-shadow: var(--shadow);
+}
+.kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--gray-400); margin-bottom: 6px; font-weight: 500; }
+.kpi-value { font-family: var(--font-mono); font-size: 24px; font-weight: 500; color: var(--black); letter-spacing: -.5px; line-height: 1; }
+.kpi-sub { font-size: 10px; color: var(--gray-400); margin-top: 4px; }
+.kpi-value.accent { color: var(--accent); }
+.kpi-value.amber { color: var(--amber); }
+.kpi-value.red { color: var(--red); }
+.kpi-value.green { color: var(--green); }
+
+/* ── SECTION HEADER ── */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-title { font-size: 11px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: .07em; }
+
+/* ── TABLE ── */
+.table-wrap { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); overflow: hidden; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 10px 16px; font-size: 10px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; letter-spacing: .07em; border-bottom: 1px solid var(--gray-200); background: var(--gray-100); }
+td { padding: 12px 16px; border-bottom: 1px solid var(--gray-200); font-size: 12px; color: var(--gray-700); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr.clickable { cursor: pointer; transition: background .1s; }
+tr.clickable:hover td { background: var(--gray-100); }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 500; white-space: nowrap; }
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-blue { background: var(--accent-light); color: var(--accent); }
+.badge-gray { background: var(--gray-200); color: var(--gray-500); }
+
+/* ── AVATAR ── */
+.av { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+.av-blue { background: var(--accent-light); color: var(--accent); }
+.av-amber { background: var(--amber-light); color: var(--amber); }
+.av-red { background: var(--red-light); color: var(--red); }
+.av-green { background: var(--green-light); color: var(--green); }
+.av-gray { background: var(--gray-200); color: var(--gray-500); }
+
+/* ── SCORE BAR ── */
+.score-cell { display: flex; align-items: center; gap: 8px; }
+.score-track { width: 56px; height: 4px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 99px; }
+.score-num { font-family: var(--font-mono); font-size: 12px; font-weight: 500; min-width: 28px; }
+
+/* ── CARD ── */
+.card { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); padding: 18px 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.card-title { font-size: 11px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-200); }
+
+/* ── PROFILE HEADER ── */
+.profile-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+.profile-av { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; flex-shrink: 0; }
+.profile-name { font-family: var(--font-display); font-size: 20px; font-weight: 400; color: var(--black); letter-spacing: -.3px; }
+.profile-arch { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.profile-score { margin-left: auto; text-align: right; }
+.profile-score-num { font-family: var(--font-mono); font-size: 32px; font-weight: 500; line-height: 1; }
+.profile-score-label { font-size: 10px; color: var(--gray-400); margin-top: 2px; text-align: right; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gray-200); margin-bottom: 18px; }
+.tab { padding: 9px 16px; font-size: 12px; cursor: pointer; color: var(--gray-400); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .1s; font-weight: 400; }
+.tab:hover { color: var(--gray-700); }
+.tab.active { color: var(--black); border-bottom-color: var(--black); font-weight: 500; }
+
+/* ── PANEL DE CAMP ── */
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group-title { font-size: 10px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 2px; }
+.field-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--gray-200); }
+.field-row:last-child { border-bottom: none; }
+.field-label { font-size: 11px; color: var(--gray-500); }
+.field-val { font-size: 12px; font-weight: 500; color: var(--black); }
+.field-val.accent { color: var(--accent); }
+.field-val.red { color: var(--red); }
+.field-val.green { color: var(--green); }
+.field-val.amber { color: var(--amber); }
+
+/* ── NOTA ASSESSOR ── */
+.nota-box { background: var(--accent-light); border-radius: var(--radius); padding: 10px 14px; margin-top: 12px; }
+.nota-label { font-size: 10px; font-weight: 500; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .06em; }
+.nota-text { font-size: 12px; color: var(--accent); line-height: 1.5; font-style: italic; }
+
+/* ── ALLOC BARS ── */
+.alloc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.alloc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.alloc-name { font-size: 11px; color: var(--gray-500); flex: 1; }
+.alloc-track { flex: 2; height: 4px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+.alloc-fill { height: 100%; border-radius: 99px; }
+.alloc-pct { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--black); min-width: 32px; text-align: right; }
+
+/* ── PROJECTION BOX ── */
+.proj-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.proj-card { border-radius: var(--radius); padding: 10px; text-align: center; }
+.proj-label { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+.proj-val { font-family: var(--font-mono); font-size: 16px; font-weight: 500; }
+.proj-sub { font-size: 9px; margin-top: 2px; opacity: .75; }
+.proj-p { background: var(--red-light); color: var(--red); }
+.proj-m { background: var(--accent-light); color: var(--accent); }
+.proj-o { background: var(--green-light); color: var(--green); }
+
+/* ── HISTORIAL ── */
+.hist-list { display: flex; flex-direction: column; gap: 6px; }
+.hist-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius); background: var(--gray-100); }
+.hist-date { font-family: var(--font-mono); font-size: 10px; color: var(--gray-400); min-width: 54px; padding-top: 1px; }
+.hist-body { flex: 1; }
+.hist-title { font-size: 12px; font-weight: 500; color: var(--black); }
+.hist-desc { font-size: 11px; color: var(--gray-500); margin-top: 2px; line-height: 1.4; }
+.hist-item.pendent { background: var(--amber-light); }
+.hist-item.pendent .hist-date { color: var(--amber); }
+.hist-item.alerta { background: var(--red-light); }
+.hist-item.alerta .hist-date { color: var(--red); }
+
+/* ── SCORING ── */
+.scoring-layout { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+.mod-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.mod-label { font-size: 11px; color: var(--gray-500); width: 140px; flex-shrink: 0; }
+.mod-track { flex: 1; height: 5px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+.mod-fill { height: 100%; border-radius: 99px; transition: width .3s ease; }
+.mod-val { font-family: var(--font-mono); font-size: 11px; font-weight: 500; min-width: 30px; text-align: right; }
+.score-hero { text-align: center; padding: 20px 0 14px; }
+.score-big { font-family: var(--font-mono); font-size: 56px; font-weight: 500; line-height: 1; letter-spacing: -2px; }
+.score-gauge { height: 6px; background: var(--gray-200); border-radius: 99px; overflow: hidden; margin: 10px 0 8px; }
+.score-gauge-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+.verdict-box { border-radius: var(--radius); padding: 12px 14px; }
+.verdict-title { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+.verdict-text { font-size: 11px; line-height: 1.5; }
+.improve-item { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: var(--radius); margin-bottom: 6px; }
+.improve-num { width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.improve-text { font-size: 11px; color: var(--black); line-height: 1.5; }
+.improve-sub { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+/* ── MODAL ── */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.4); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: var(--radius-lg);
+  padding: 24px; width: 440px; max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15);
+  animation: modal-in .15s ease;
+}
+@keyframes modal-in { from { transform: scale(.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-title { font-family: var(--font-display); font-size: 18px; font-weight: 400; margin-bottom: 16px; color: var(--black); }
+.form-field { margin-bottom: 12px; }
+.form-label { font-size: 11px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; display: block; }
+.form-input {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--gray-200);
+  border-radius: var(--radius); font-size: 13px; font-family: var(--font-body);
+  color: var(--black); background: var(--white); outline: none;
+  transition: border-color .1s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-select { width: 100%; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: var(--radius); font-size: 13px; font-family: var(--font-body); color: var(--black); background: var(--white); outline: none; }
+.form-textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: var(--radius); font-size: 12px; font-family: var(--font-body); color: var(--black); background: var(--white); outline: none; resize: vertical; min-height: 70px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--black); color: var(--white);
+  padding: 10px 16px; border-radius: var(--radius);
+  font-size: 12px; z-index: 200;
+  animation: toast-in .2s ease;
+  display: none;
+}
+.toast.show { display: block; }
+@keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 48px 24px; color: var(--gray-400); }
+.empty-title { font-family: var(--font-display); font-size: 18px; color: var(--gray-300); margin-bottom: 6px; }
+.empty-sub { font-size: 12px; }
+
+/* ── SLIDER ── */
+input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: var(--gray-200); border-radius: 99px; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--black); border: 2px solid var(--white); box-shadow: 0 0 0 1px var(--gray-300); cursor: pointer; }
+input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--black); border: 2px solid var(--white); cursor: pointer; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-wrap { position: relative; width: 100%; height: 200px; }
+.disclaimer { font-size: 10px; color: var(--gray-400); font-style: italic; margin-top: 6px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar">
+    <div class="logo-wrap">
+      <div class="logo-symbol">
+        <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+        <circle cx="8.5" cy="10" r="2" fill="white"/>
+        <circle cx="8.5" cy="17" r="2" fill="white"/>
+        <rect x="12" y="13" width="6" height="1.5" rx=".75" fill="white"/>
+        <rect x="20" y="8" width="1.5" height="12" rx=".75" fill="white"/>
+      </svg>
+        <div>
+          <div class="logo-text">The Boring Investor</div>
+        </div>
+      </div>
+      <div class="logo-sub">Assessoria Financera · MVP 2026</div>
+    </div>
+
+    <div class="nav">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        Dashboard
+        <span class="nav-badge" id="nav-alert-badge" style="display:none"></span>
+      </div>
+
+      <div class="nav-section">Clients</div>
+      <div class="nav-item" id="nav-fitxa" onclick="navigate('fitxa')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+        Fitxa client
+      </div>
+      <div class="nav-item" id="nav-scoring" onclick="navigate('scoring')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
+        Scoring
+      </div>
+
+      <div class="nav-section">Pròximament</div>
+      <div class="nav-item disabled">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M8 3l5 5-5 5"/></svg>
+        Constructor cartera
+        <span class="nav-badge">V1</span>
+      </div>
+      <div class="nav-item disabled">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><path d="M2 4l6-2 6 2"/></svg>
+        Informes PDF
+        <span class="nav-badge">V1</span>
+      </div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="user-av">GP</div>
+        <div>
+          <div class="user-name">Guillem Puig</div>
+          <div class="user-role">Assessor · EFA juny 2026</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)">
+        <div style="font-size:9px;color:rgba(255,255,255,.25);line-height:1.5;margin-bottom:8px">
+          Dades guardades localment.<br>Exporta per fer còpia o canviar d'ordinador.
+        </div>
+        <button onclick="exportarDades()" style="width:100%;padding:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:var(--font-body);transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+          Exportar dades ↓
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div id="topbar-left">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+      </div>
+      <div class="topbar-actions" id="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">+ Nou client</button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ════ P1 DASHBOARD ════ -->
+      <div class="screen active" id="screen-dashboard">
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="section-header">
+          <span class="section-title">Tots els clients</span>
+          <span class="section-title" id="kpi-count" style="color:var(--gray-300)"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Arquetip</th>
+                <th>Cartera</th>
+                <th>Scoring</th>
+                <th>Última revisió</th>
+                <th>Estat</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="clients-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════ P2 FITXA CLIENT ════ -->
+      <div class="screen" id="screen-fitxa">
+        <div class="card" style="margin-bottom:14px">
+          <div class="profile-header" id="profile-header"></div>
+          <div class="tabs" id="fitxa-tabs">
+            <div class="tab active" onclick="switchTab(0)">Perfil</div>
+            <div class="tab" onclick="switchTab(1)">Cartera</div>
+            <div class="tab" onclick="switchTab(2)">Historial</div>
+          </div>
+          <div id="tab-perfil"></div>
+          <div id="tab-cartera" style="display:none"></div>
+          <div id="tab-historial" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- ════ P3 SCORING ════ -->
+      <div class="screen" id="screen-scoring">
+        <div class="scoring-layout">
+          <div>
+            <div class="card">
+              <div class="card-title">Puntuació global</div>
+              <div class="score-hero">
+                <div class="score-big" id="score-total">--</div>
+                <div style="font-size:11px;color:var(--gray-400);margin-top:4px">sobre 100</div>
+              </div>
+              <div class="score-gauge"><div class="score-gauge-fill" id="score-gauge"></div></div>
+              <div class="verdict-box" id="verdict-box">
+                <div class="verdict-title" id="verdict-title"></div>
+                <div class="verdict-text" id="verdict-text"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Pla de millora</div>
+              <div id="improve-list"></div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveScoring()">Desar scoring al client</button>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-title">Avaluació per mòdul</div>
+              <div id="sliders-container"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Radar per mòdul</div>
+              <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+<div class="modal-bg" id="modal-nou-client">
+  <div class="modal">
+    <div class="modal-title">Nou client</div>
+    <div class="form-field"><label class="form-label">Nom complet</label><input class="form-input" id="nc-nom" placeholder="Ex: Guillem Morales" /></div>
+    <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@exemple.com" /></div>
+    <div class="form-field"><label class="form-label">Arquetip</label>
+      <select class="form-select" id="nc-arquetip">
+        <option value="">— Selecciona —</option>
+        <option>Prudent Disciplinat</option><option>Racional Ansiós</option>
+        <option>Entusiasta Sense Procés</option><option>Constructor Metòdic</option>
+        <option>Delegador Confiat</option><option>Conservador Per Inèrcia</option>
+        <option>Inversor de Renda</option><option>Sofisticat Complex</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-label">Cartera assignada</label>
+      <select class="form-select" id="nc-cartera">
+        <option value="">— Sense definir —</option>
+        <option>Conservadora</option><option>Balancejada</option>
+        <option>Dinàmica</option><option>Creixement</option><option>Renda</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('nou-client')">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="crearClient()">Crear client</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-nova-entrada">
+  <div class="modal">
+    <div class="modal-title">Nova entrada a l'historial</div>
+    <div class="form-field"><label class="form-label">Títol</label><input class="form-input" id="he-titol" placeholder="Ex: Revisió trimestral Q1 2026" /></div>
+    <div class="form-field"><label class="form-label">Descripció</label><textarea class="form-textarea" id="he-desc" placeholder="Resum de la sessió, decisions preses, accions acordades..."></textarea></div>
+    <div class="form-field"><label class="form-label">Tipus</label>
+      <select class="form-select" id="he-tipus">
+        <option value="normal">Normal</option>
+        <option value="pendent">Pendent / Programada</option>
+        <option value="alerta">Alerta</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('nova-entrada')">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="afegirEntrada()">Afegir entrada</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// DADES INICIALS
+// ══════════════════════════════════════════════
+const CLIENTS_INICIALS = [
+  {
+    id: 'gm001', nom: 'Guillem Morales', email: 'guillem.morales@email.com',
+    arquetip: 'Prudent Disciplinat', cartera: 'Conservadora', avColor: 'av-blue',
+    scoring: 76, dataRevisio: '2026-03-01', estat: 'ok',
+    perfil: {
+      capitalInicial: '2.000 €', aportacioMensual: '300 €/mes', horitzo: '10 anys',
+      objectiu: 'Acumulació + complement jubilació', segment: 'Classe mitjana inversora',
+      riscFinancer: 'Baix · 3/10', riscEmocional: 'Estable · 7/10',
+      coneixement: 'Bàsic-iniciació', volTolerable: '3-6% anual', drawdownMax: '-15%'
+    },
+    nota: 'Primer any d\'inversió. Prioritat: construir confiança en el procés. Revisar perfil al desembre 2026 un cop hagi viscut un primer cicle de volatilitat.',
+    carteraComposicio: [
+      {nom:'Fons monetaris (Finizens)', pct:95, color:'#3B6D11'},
+      {nom:'Fons indexat RV global', pct:4, color:'#185FA5'},
+      {nom:'Renda fixa', pct:1, color:'#0F6E56'}
+    ],
+    ter: '~0,15%', liquiditat: '100%',
+    projeccions: {p10:'~20.000 €', p50:'~52.000 €', p90:'~80.000 €', totalAportat:'38.000 €'},
+    historial: [
+      {data:'Mar 2026', titol:'Sessió inicial + disseny cartera', desc:'Scoring: 76/100. Cartera conservadora aprovada. Aportació automàtica de 300€/mes configurada a Finizens.', tipus:'normal'},
+      {data:'Abr 2026', titol:'Primer mes d\'aportació completat', desc:'300€ aportats. Cartera: 2.310€. Retorn mensual: +0,4%. Sense incidències.', tipus:'normal'},
+      {data:'Jun 2026', titol:'Revisió trimestral Q2', desc:'Programada per juny. Primer cicle complet. Valorar augment gradual exposició RV.', tipus:'pendent'}
+    ],
+    scoringMods: [8, 5, 7, 9, 9, 9, 7]
+  },
+  {
+    id: 'jv002', nom: 'Joan Vidal', email: 'joan.vidal@email.com',
+    arquetip: 'Entusiasta Sense Procés', cartera: 'Per definir', avColor: 'av-red',
+    scoring: 22, dataRevisio: '2026-01-15', estat: 'critic',
+    perfil: {
+      capitalInicial: '45.000 €', aportacioMensual: 'Variable', horitzo: '5-10 anys',
+      objectiu: 'Creixement agressiu', segment: 'Classe mitjana inversora',
+      riscFinancer: 'Alt · 8/10', riscEmocional: 'Molt reactiu · 2/10',
+      coneixement: 'Mig (sobreestimació)', volTolerable: 'Desconeguda', drawdownMax: 'No definit'
+    },
+    nota: 'Diagnòstic urgent. 15 posicions sense estructura. Crypto >40% de la cartera. Cal sessió de contenció i simplificació progressiva. NO actuar en calent.',
+    carteraComposicio: [
+      {nom:'Crypto (BTC, ETH, altres)', pct:42, color:'#E24B4A'},
+      {nom:'Accions individuals', pct:28, color:'#BA7517'},
+      {nom:'ETFs temàtics solapats', pct:22, color:'#534AB7'},
+      {nom:'Liquiditat', pct:8, color:'#888780'}
+    ],
+    ter: '~1,8% (estimat)', liquiditat: '85%',
+    projeccions: {p10:'~18.000 €', p50:'~65.000 €', p90:'~180.000 €', totalAportat:'45.000 €'},
+    historial: [
+      {data:'Jan 2026', titol:'Primera sessió de diagnòstic', desc:'Scoring inicial: 22/100. Cartera molt concentrada en crypto. Client no era conscient del nivell de risc real.', tipus:'alerta'},
+      {data:'Feb 2026', titol:'Pla de transició acordat', desc:'S\'acorda no fer canvis bruscos. Primer pas: establir límit del 10% per posició individual.', tipus:'normal'},
+      {data:'Abr 2026', titol:'Revisió pla de transició', desc:'Verificar si s\'ha reduït la posició crypto. Valorar primers passos cap a nucli indexat.', tipus:'pendent'}
+    ],
+    scoringMods: [3, 2, 1, 2, 2, 1, 2]
+  },
+  {
+    id: 'ap003', nom: 'Anna Puig', email: 'anna.puig@email.com',
+    arquetip: 'Racional Ansiós', cartera: 'Balancejada', avColor: 'av-amber',
+    scoring: 68, dataRevisio: '2025-12-01', estat: 'revisio',
+    perfil: {
+      capitalInicial: '30.000 €', aportacioMensual: '600 €/mes', horitzo: '8-12 anys',
+      objectiu: 'Creixement + tranquil·litat emocional', segment: 'Classe mitjana inversora',
+      riscFinancer: 'Mig · 5/10', riscEmocional: 'Alt · 3/10',
+      coneixement: 'Mig-avançat', volTolerable: '7-10% anual', drawdownMax: '-20%'
+    },
+    nota: 'Excel·lent coneixement teòric però alta angoixa emocional. En caigudes del mercat tendeix a voler actuar. Kit anti-pànic acordat. Contactar proactivament si el mercat cau >10%.',
+    carteraComposicio: [
+      {nom:'Fons indexat global', pct:40, color:'#185FA5'},
+      {nom:'Renda fixa curta durada', pct:25, color:'#3B6D11'},
+      {nom:'Or ETP físic', pct:10, color:'#BA7517'},
+      {nom:'Dividend ETF', pct:15, color:'#0F6E56'},
+      {nom:'Fons monetari', pct:10, color:'#888780'}
+    ],
+    ter: '~0,22%', liquiditat: '95%',
+    projeccions: {p10:'~42.000 €', p50:'~98.000 €', p90:'~165.000 €', totalAportat:'102.000 €'},
+    historial: [
+      {data:'Sep 2025', titol:'Sessió inicial + scoring', desc:'Scoring: 68/100. Cartera balancejada dissenyada. Kit anti-pànic redactat i signat.', tipus:'normal'},
+      {data:'Nov 2025', titol:'Alerta: mercat -8%', desc:'Client contacta per correu mostrant preocupació. Resposta immediata: recordar el pla. No s\'ha actuat. Bona gestió.', tipus:'alerta'},
+      {data:'Mar 2026', titol:'Revisió anual (PENDENT)', desc:'Revisió anual deguda. Valorar augment a cartera dinàmica si la tolerància emocional ha millorat.', tipus:'pendent'}
+    ],
+    scoringMods: [8, 7, 7, 6, 4, 7, 7]
+  },
+  {
+    id: 'nb004', nom: 'Client Nou', email: '',
+    arquetip: '—', cartera: '—', avColor: 'av-gray',
+    scoring: null, dataRevisio: null, estat: 'nou',
+    perfil: {
+      capitalInicial: '—', aportacioMensual: '—', horitzo: '—',
+      objectiu: '—', segment: '—',
+      riscFinancer: '—', riscEmocional: '—',
+      coneixement: '—', volTolerable: '—', drawdownMax: '—'
+    },
+    nota: 'Client pendent de sessió inicial. Omplir el perfil un cop completat el qüestionari de les 7 dimensions.',
+    carteraComposicio: [],
+    ter: '—', liquiditat: '—',
+    projeccions: {p10:'—', p50:'—', p90:'—', totalAportat:'—'},
+    historial: [
+      {data:'Avui', titol:'Client creat', desc:'Expedient creat. Pendent de sessió inicial i qüestionari de perfil.', tipus:'pendent'}
+    ],
+    scoringMods: [5,5,5,5,5,5,5]
+  }
+];
+
+const MODULES = [
+  {id:'s1', label:'S1 · Costos', weight:.20, color:'#E24B4A'},
+  {id:'s2', label:'S2 · Diversificació', weight:.20, color:'#185FA5'},
+  {id:'s3', label:'S3 · Concentració', weight:.15, color:'#BA7517'},
+  {id:'s4', label:'S4 · Coherència', weight:.20, color:'#3B6D11'},
+  {id:'s5', label:'S5 · Robustesa', weight:.10, color:'#534AB7'},
+  {id:'s6', label:'S6 · Simplicitat', weight:.05, color:'#888780'},
+  {id:'s7', label:'S7 · Procés', weight:.10, color:'#0F6E56'},
+];
+
+// ══════════════════════════════════════════════
+// ESTAT DE L'APP
+// ══════════════════════════════════════════════
+let clients = [];
+let currentClientId = null;
+let currentTab = 0;
+let radarChart = null;
+
+function loadData() {
+  const saved = localStorage.getItem('tbi_clients');
+  if (saved) {
+    try { clients = JSON.parse(saved); return; } catch(e) {}
+  }
+  clients = JSON.parse(JSON.stringify(CLIENTS_INICIALS));
+  saveData();
+}
+
+function saveData() {
+  localStorage.setItem('tbi_clients', JSON.stringify(clients));
+}
+
+function getClient(id) { return clients.find(c => c.id === id); }
+function getCurrentClient() { return getClient(currentClientId); }
+
+// ══════════════════════════════════════════════
+// NAVEGACIÓ
+// ══════════════════════════════════════════════
+function navigate(screen, clientId) {
+  if (clientId) currentClientId = clientId;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  const nav = document.getElementById('nav-' + screen);
+  if (nav) nav.classList.add('active');
+
+  const topbarTitle = document.getElementById('topbar-title');
+  const topbarActions = document.getElementById('topbar-actions');
+
+  if (screen === 'dashboard') {
+    topbarTitle.textContent = 'Dashboard';
+    topbarActions.innerHTML = `
+      <button class="btn btn-sm" onclick="importarDades()" title="Importar backup o perfil onboarding d'un client">Importar ↑</button>
+      <button class="btn btn-sm" onclick="exportarDades()" title="Descarregar totes les dades en JSON">Exportar dades</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">+ Nou client</button>
+    `;
+    renderDashboard();
+  } else if (screen === 'fitxa') {
+    const c = getCurrentClient();
+    topbarTitle.textContent = c ? c.nom : 'Fitxa client';
+    topbarActions.innerHTML = `
+      <button class="btn btn-sm" onclick="navigate('dashboard')">← Dashboard</button>
+      <button class="btn btn-sm" onclick="navigate('scoring', currentClientId)">Scoring ↗</button>
+      <button class="btn btn-sm btn-primary" onclick="toast('Funció de PDF disponible a V1')">Generar informe</button>
+    `;
+    renderFitxa();
+  } else if (screen === 'scoring') {
+    const c = getCurrentClient();
+    topbarTitle.textContent = 'Scoring · ' + (c ? c.nom : 'Diagnòstic');
+    topbarActions.innerHTML = `
+      <button class="btn btn-sm" onclick="navigate('fitxa', currentClientId)">← Fitxa</button>
+    `;
+    renderScoring();
+  }
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const total = clients.length;
+  const amb_scoring = clients.filter(c => c.scoring !== null);
+  const scoringMig = amb_scoring.length ? Math.round(amb_scoring.reduce((s,c) => s+c.scoring, 0) / amb_scoring.length) : '--';
+  const pendents = clients.filter(c => c.estat === 'revisio').length;
+  const critics = clients.filter(c => c.estat === 'critic').length;
+
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Clients actius</div><div class="kpi-value">${total}</div><div class="kpi-sub">MVP · objectiu 20</div></div>
+    <div class="kpi"><div class="kpi-label">Scoring mitjà</div><div class="kpi-value accent">${scoringMig}/100</div><div class="kpi-sub">Cartera global</div></div>
+    <div class="kpi"><div class="kpi-label">Revisions pendents</div><div class="kpi-value ${pendents>0?'amber':''}">${pendents}</div><div class="kpi-sub">Revisió anual deguda</div></div>
+    <div class="kpi"><div class="kpi-label">Alertes crítiques</div><div class="kpi-value ${critics>0?'red':''}">${critics}</div><div class="kpi-sub">Scoring &lt;30</div></div>
+  `;
+
+  const badge = document.getElementById('nav-alert-badge');
+  if (critics > 0) { badge.textContent = critics; badge.style.display = 'block'; }
+  else badge.style.display = 'none';
+
+  document.getElementById('kpi-count').textContent = total + ' client' + (total !== 1 ? 's' : '');
+
+  const tbody = document.getElementById('clients-tbody');
+  tbody.innerHTML = [...clients]
+    .sort((a,b) => (a.scoring||999) - (b.scoring||999))
+    .map(c => {
+      const scorePct = c.scoring !== null ? c.scoring : 50;
+      const scoreColor = c.scoring === null ? '#C8C5BE' : c.scoring>=70?'#1A5C3A':c.scoring>=50?'#1B3A6B':c.scoring>=30?'#7A4A00':'#8B1A1A';
+      const estatBadge = {
+        'ok': '<span class="badge badge-green">OK</span>',
+        'revisio': '<span class="badge badge-amber">Revisió</span>',
+        'critic': '<span class="badge badge-red">Crític</span>',
+        'nou': '<span class="badge badge-gray">Nou</span>'
+      }[c.estat] || '';
+      const scoreDisplay = c.scoring !== null
+        ? `<div class="score-cell"><div class="score-track"><div class="score-fill" style="width:${scorePct}%;background:${scoreColor}"></div></div><span class="score-num" style="color:${scoreColor}">${c.scoring}</span></div>`
+        : '<span style="color:var(--gray-300);font-size:11px">—</span>';
+      const dataDisplay = c.dataRevisio
+        ? new Date(c.dataRevisio).toLocaleDateString('ca-ES', {day:'numeric',month:'short',year:'numeric'})
+        : '—';
+      return `<tr class="clickable" onclick="navigate('fitxa','${c.id}')">
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <div class="av ${c.avColor}">${c.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+          <div><div style="font-weight:500;color:var(--black)">${c.nom}</div><div style="font-size:10px;color:var(--gray-400)">${c.email||'—'}</div></div>
+        </div></td>
+        <td><span class="badge ${c.arquetip==='—'?'badge-gray':'badge-blue'}">${c.arquetip}</span></td>
+        <td style="color:${c.cartera==='—'?'var(--gray-300)':'var(--gray-700)'}"><span style="font-size:11px">${c.cartera}</span></td>
+        <td>${scoreDisplay}</td>
+        <td style="color:var(--gray-400);font-size:11px">${dataDisplay}</td>
+        <td>${estatBadge}</td>
+        <td><button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','${c.id}')" style="font-size:10px;padding:3px 8px">Scoring</button></td>
+      </tr>`;
+    }).join('');
+}
+
+// ══════════════════════════════════════════════
+// FITXA CLIENT
+// ══════════════════════════════════════════════
+function renderFitxa() {
+  const c = getCurrentClient();
+  if (!c) return;
+  currentTab = 0;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===0));
+
+  const scoreColor = c.scoring === null ? '#C8C5BE' : c.scoring>=70?'#1A5C3A':c.scoring>=50?'#1B3A6B':c.scoring>=30?'#7A4A00':'#8B1A1A';
+  document.getElementById('profile-header').innerHTML = `
+    <div class="profile-av ${c.avColor}" style="width:52px;height:52px;font-size:18px">${c.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+    <div>
+      <div class="profile-name">${c.nom}</div>
+      <div class="profile-arch">${c.arquetip} &nbsp;·&nbsp; ${c.cartera}</div>
+    </div>
+    <div class="profile-score">
+      <div class="profile-score-num" style="color:${scoreColor}">${c.scoring !== null ? c.scoring : '—'}<span style="font-size:14px;font-weight:400;color:var(--gray-400)">/100</span></div>
+      <div class="profile-score-label">Scoring actual</div>
+    </div>
+  `;
+  renderTab();
+}
+
+function switchTab(idx) {
+  currentTab = idx;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  renderTab();
+}
+
+function renderTab() {
+  const c = getCurrentClient();
+  if (!c) return;
+  ['tab-perfil','tab-cartera','tab-historial'].forEach((id,i) => {
+    document.getElementById(id).style.display = i===currentTab ? 'block' : 'none';
+  });
+  if (currentTab === 0) renderTabPerfil(c);
+  if (currentTab === 1) renderTabCartera(c);
+  if (currentTab === 2) renderTabHistorial(c);
+}
+
+function renderTabPerfil(c) {
+  document.getElementById('tab-perfil').innerHTML = `
+    <div class="fields-grid">
+      <div class="field-group">
+        <div class="field-group-title">Dades financeres</div>
+        ${Object.entries({
+          'Capital inicial': c.perfil.capitalInicial,
+          'Aportació mensual': c.perfil.aportacioMensual,
+          'Horitzó': c.perfil.horitzo,
+          'Objectiu': c.perfil.objectiu,
+          'Segment': c.perfil.segment
+        }).map(([k,v]) => `<div class="field-row"><span class="field-label">${k}</span><span class="field-val">${v}</span></div>`).join('')}
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Perfil de risc</div>
+        ${Object.entries({
+          'Risc financer': [c.perfil.riscFinancer, 'accent'],
+          'Risc emocional': [c.perfil.riscEmocional, 'green'],
+          'Coneixement': [c.perfil.coneixement, ''],
+          'Vol. tolerable': [c.perfil.volTolerable, ''],
+          'Drawdown màx.': [c.perfil.drawdownMax, 'red']
+        }).map(([k,[v,cls]]) => `<div class="field-row"><span class="field-label">${k}</span><span class="field-val ${cls}">${v}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="nota-box">
+      <div class="nota-label">Nota de l'assessor</div>
+      <div class="nota-text">${c.nota}</div>
+    </div>
+  `;
+}
+
+function renderTabCartera(c) {
+  const allocs = c.carteraComposicio.map(a => `
+    <div class="alloc-row">
+      <div class="alloc-dot" style="background:${a.color}"></div>
+      <div class="alloc-name">${a.nom}</div>
+      <div class="alloc-track"><div class="alloc-fill" style="width:${a.pct}%;background:${a.color}"></div></div>
+      <div class="alloc-pct">${a.pct}%</div>
+    </div>
+  `).join('') || '<div style="color:var(--gray-400);font-size:12px;font-style:italic">Cartera pendent de definir</div>';
+
+  document.getElementById('tab-cartera').innerHTML = `
+    <div class="two-col">
+      <div>
+        <div class="field-group-title" style="margin-bottom:10px">Composició actual</div>
+        ${allocs}
+        <div style="margin-top:10px;font-size:10px;color:var(--gray-400)">TER estimat: ${c.ter} &nbsp;·&nbsp; Liquiditat immediata: ${c.liquiditat}</div>
+      </div>
+      <div>
+        <div class="field-group-title" style="margin-bottom:10px">Projecció a 10 anys (Montecarlo)</div>
+        <div class="proj-grid" style="margin-bottom:12px">
+          <div class="proj-card proj-p"><div class="proj-label">Pessimista P10</div><div class="proj-val">${c.projeccions.p10}</div><div class="proj-sub">Pitjor 10%</div></div>
+          <div class="proj-card proj-m"><div class="proj-label">Equilibrat P50</div><div class="proj-val">${c.projeccions.p50}</div><div class="proj-sub">Mediana</div></div>
+          <div class="proj-card proj-o"><div class="proj-label">Optimista P90</div><div class="proj-val">${c.projeccions.p90}</div><div class="proj-sub">Millor 10%</div></div>
+        </div>
+        ${Object.entries({
+          'Total aportat': c.projeccions.totalAportat,
+          'TER estimat': c.ter,
+          'Liquiditat': c.liquiditat
+        }).map(([k,v]) => `<div class="field-row"><span class="field-label">${k}</span><span class="field-val">${v}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="disclaimer">Simulació Montecarlo orientativa. Retorns basats en estimacions históriques. No garanteixen resultats futurs.</div>
+  `;
+}
+
+function renderTabHistorial(c) {
+  const entrades = c.historial.map(e => `
+    <div class="hist-item ${e.tipus}">
+      <div class="hist-date">${e.data}</div>
+      <div class="hist-body">
+        <div class="hist-title">${e.titol}</div>
+        <div class="hist-desc">${e.desc}</div>
+      </div>
+    </div>
+  `).join('') || '<div style="color:var(--gray-400);font-size:12px;font-style:italic;padding:8px 0">Sense entrades.</div>';
+
+  document.getElementById('tab-historial').innerHTML = `
+    <div class="hist-list">${entrades}</div>
+    <button class="btn btn-sm" style="margin-top:12px" onclick="openModal('nova-entrada')">+ Afegir entrada</button>
+  `;
+}
+
+// ══════════════════════════════════════════════
+// SCORING
+// ══════════════════════════════════════════════
+function renderScoring() {
+  const c = getCurrentClient();
+  const initScores = (c && c.scoringMods) ? c.scoringMods : [5,5,5,5,5,5,5];
+
+  document.getElementById('sliders-container').innerHTML = MODULES.map((m,i) => `
+    <div class="mod-row">
+      <div class="mod-label">${m.label}<br><span style="font-size:9px;color:var(--gray-300)">${Math.round(m.weight*100)}%</span></div>
+      <input type="range" min="0" max="10" step="1" value="${initScores[i]}" id="sl-${m.id}" oninput="updateScoring()">
+      <div class="mod-val" id="sv-${m.id}" style="color:${m.color}">${initScores[i]}/10</div>
+    </div>
+  `).join('');
+
+  updateScoring();
+}
+
+function getScores() {
+  return MODULES.map(m => parseInt(document.getElementById('sl-'+m.id)?.value || 5));
+}
+
+function updateScoring() {
+  const scores = getScores();
+  MODULES.forEach((m,i) => {
+    const el = document.getElementById('sv-'+m.id);
+    if (el) el.textContent = scores[i]+'/10';
+  });
+
+  const total = Math.round(scores.reduce((s,v,i) => s+v*MODULES[i].weight*10, 0));
+  const scoreEl = document.getElementById('score-total');
+  const gaugeEl = document.getElementById('score-gauge');
+  if (!scoreEl) return;
+
+  const color = total>=85?'#1A5C3A':total>=70?'#1B3A6B':total>=50?'#7A4A00':total>=30?'#BA7517':'#8B1A1A';
+  scoreEl.textContent = total;
+  scoreEl.style.color = color;
+  gaugeEl.style.width = total+'%';
+  gaugeEl.style.background = color;
+
+  const verdicts = [
+    [85,'Excel·lent','La cartera és eficient i ben construïda. Mantenir el rumb és la decisió correcta.','background:var(--green-light);color:var(--green)'],
+    [70,'Bona base','Estructura sòlida amb àrees de millora. Canvis graduals sense urgència.','background:var(--accent-light);color:var(--accent)'],
+    [50,'Millorable','Ineficiències identificables. Pla de transició gradual recomanat.','background:var(--amber-light);color:var(--amber)'],
+    [30,'Feble','Problemes significatius en múltiples dimensions. Revisió prioritzada.','background:var(--red-light);color:var(--red)'],
+    [0,'Crítica','Riscos importants. Revisió urgent i pla de transició estructurat.','background:var(--red-light);color:var(--red)'],
+  ];
+  const [,vt,vd,vs] = verdicts.find(([min]) => total>=min);
+  const vbox = document.getElementById('verdict-box');
+  vbox.setAttribute('style', vs);
+  document.getElementById('verdict-title').textContent = vt;
+  document.getElementById('verdict-text').textContent = vd;
+
+  // Millores
+  const sorted = scores.map((s,i) => ({...MODULES[i], score:s})).sort((a,b)=>a.score-b.score);
+  const improveDescs = {
+    's1':['Substituir fons >0,5% TER per indexats equivalents. Impacte: +0,5-1,5% net anual.','Revisar productes de major cost i valorar alternatives més eficients.','Cost eficient. Monitorar anualment.'],
+    's2':['Ampliar diversificació geogràfica. Objectiu: cobertura 50+ països.','Ampliar sectorial. Reduir pes excessiu en mercats domèstics.','Bona diversificació. Mantenir.'],
+    's3':['Cap posició >10%. Límit estricte. Reduir progressivament les sobredimensionades.','Revisar concentracions i diversificar progressivament.','Distribució equilibrada. Mantenir.'],
+    's4':['Revisió urgent: risc real no s\'alinea amb perfil declarat. Risc de pànic en crisi.','Ajustar algunes posicions per millorar coherència.','Bona coherència. Revisar anualment.'],
+    's5':['Simplificar i preparar kit anti-pànic escrit. Menys posicions = millors decisions en crisi.','Preparar kit anti-pànic documentat.','Robustesa bona. Kit anti-pànic documentat?'],
+    's6':['Reduir a màxim 5-7 productes. Consolidar plataformes.','Valorar consolidar posicions solapades.','Bona simplicitat. Mantenir-la.'],
+    's7':['Aportació automàtica mensual + protocol de rebalanceig anual. Sense procés no hi ha disciplina.','Formalitzar protocol de rebalanceig amb data i criteris.','Bon procés. Documentar-lo anualment.'],
+  };
+  document.getElementById('improve-list').innerHTML = sorted.slice(0,4).map((m,i) => {
+    const bg = i<2?'var(--red-light)':'var(--amber-light)';
+    const tc = i<2?'var(--red)':'var(--amber)';
+    const desc = improveDescs[m.id][m.score<=3?0:m.score<=6?1:2];
+    return `<div class="improve-item" style="background:${bg}">
+      <div class="improve-num" style="background:${tc};color:#fff">${i+1}</div>
+      <div class="improve-text">${m.label} — ${m.score}/10<div class="improve-sub">${desc}</div></div>
+    </div>`;
+  }).join('');
+
+  // Radar
+  if (radarChart) radarChart.destroy();
+  radarChart = new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+      labels: MODULES.map(m => m.label.replace(/S\d · /,'')),
+      datasets: [{
+        data: scores,
+        borderColor: '#0A0A0A', backgroundColor: 'rgba(10,10,10,0.06)',
+        borderWidth: 1.5, pointBackgroundColor: '#0A0A0A', pointRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { r: {
+        min: 0, max: 10,
+        ticks: { stepSize: 2, font: { size: 10 }, color: '#9A9690', backdropColor: 'transparent' },
+        grid: { color: 'rgba(0,0,0,.08)' },
+        pointLabels: { font: { size: 10 }, color: '#6B6762' }
+      }}
+    }
+  });
+}
+
+function saveScoring() {
+  const c = getCurrentClient();
+  if (!c) return;
+  const scores = getScores();
+  const total = Math.round(scores.reduce((s,v,i) => s+v*MODULES[i].weight*10, 0));
+  c.scoringMods = scores;
+  c.scoring = total;
+  c.dataRevisio = new Date().toISOString().split('T')[0];
+  if (total < 30) c.estat = 'critic';
+  else if (total < 70) c.estat = 'revisio';
+  else c.estat = 'ok';
+  c.historial.unshift({
+    data: new Date().toLocaleDateString('ca-ES', {day:'numeric',month:'short',year:'numeric'}),
+    titol: 'Scoring actualitzat: ' + total + '/100',
+    desc: 'Scoring revisat manualment. ' + MODULES.map((m,i)=>m.label+': '+scores[i]).join(' · '),
+    tipus: total < 30 ? 'alerta' : 'normal'
+  });
+  saveData();
+  toast('Scoring desat correctament');
+}
+
+// ══════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════
+function openModal(id) {
+  document.getElementById('modal-'+id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById('modal-'+id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+function crearClient() {
+  const nom = document.getElementById('nc-nom').value.trim();
+  if (!nom) { toast('El nom és obligatori'); return; }
+  const nou = {
+    id: 'c_' + Date.now(),
+    nom, email: document.getElementById('nc-email').value.trim(),
+    arquetip: document.getElementById('nc-arquetip').value || '—',
+    cartera: document.getElementById('nc-cartera').value || '—',
+    avColor: 'av-gray', scoring: null,
+    dataRevisio: new Date().toISOString().split('T')[0],
+    estat: 'nou',
+    perfil: { capitalInicial:'—', aportacioMensual:'—', horitzo:'—', objectiu:'—', segment:'—', riscFinancer:'—', riscEmocional:'—', coneixement:'—', volTolerable:'—', drawdownMax:'—' },
+    nota: 'Client nou. Pendent de sessió inicial i qüestionari de les 7 dimensions.',
+    carteraComposicio: [], ter:'—', liquiditat:'—',
+    projeccions: {p10:'—', p50:'—', p90:'—', totalAportat:'—'},
+    historial: [{data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}), titol:'Client creat', desc:'Expedient creat. Pendent de sessió inicial.', tipus:'pendent'}],
+    scoringMods: [5,5,5,5,5,5,5]
+  };
+  clients.push(nou);
+  saveData();
+  closeModal('nou-client');
+  ['nc-nom','nc-email'].forEach(id => document.getElementById(id).value = '');
+  ['nc-arquetip','nc-cartera'].forEach(id => document.getElementById(id).selectedIndex = 0);
+  toast('Client ' + nom + ' creat correctament');
+  renderDashboard();
+}
+
+function afegirEntrada() {
+  const c = getCurrentClient();
+  if (!c) return;
+  const titol = document.getElementById('he-titol').value.trim();
+  if (!titol) { toast('El títol és obligatori'); return; }
+  c.historial.unshift({
+    data: new Date().toLocaleDateString('ca-ES', {day:'numeric',month:'short',year:'numeric'}),
+    titol, desc: document.getElementById('he-desc').value.trim(),
+    tipus: document.getElementById('he-tipus').value
+  });
+  saveData();
+  closeModal('nova-entrada');
+  document.getElementById('he-titol').value = '';
+  document.getElementById('he-desc').value = '';
+  document.getElementById('he-tipus').selectedIndex = 0;
+  toast('Entrada afegida');
+  renderTab();
+}
+
+// ══════════════════════════════════════════════
+// EXPORTAR / IMPORTAR DADES
+// ══════════════════════════════════════════════
+function exportarDades() {
+  const dades = {
+    versio: '1.0',
+    exportat: new Date().toISOString(),
+    app: 'The Boring Investor MVP',
+    clients: clients
+  };
+  const json = JSON.stringify(dades, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const data = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = 'tbi_dades_' + data + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Dades exportades correctament — ' + clients.length + ' clients');
+}
+
+function importarDades() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const dades = JSON.parse(ev.target.result);
+        // Fitxer onboarding del client
+        if (dades.tipus === 'client_onboarding') { importarOnboarding(dades); return; }
+        // Backup complet
+        if (!dades.clients || !Array.isArray(dades.clients)) { toast('Fitxer no vàlid'); return; }
+        const n = dades.clients.length;
+        if (!confirm(`Importar ${n} client${n!==1?'s':''} des de "${file.name}"?\n\nAixò SUBSTITUIRÀ totes les dades actuals.`)) return;
+        clients = dades.clients;
+        saveData(); navigate('dashboard');
+        toast(`${n} client${n!==1?'s':''} importats correctament`);
+      } catch(err) { toast('Error llegint el fitxer JSON'); }
+    };
+    reader.readAsText(file);
+  };
+  document.body.appendChild(input);
+  input.click();
+  document.body.removeChild(input);
+}
+
+function calcularScoringMods(p) {
+  const dims = p.perDimensio || [];
+  const toScore = (dim) => dim ? Math.round(dim.sum / dim.max * 10) : 5;
+  return [5, toScore(dims[0]), toScore(dims[1]), toScore(dims[4]), toScore(dims[5]), toScore(dims[6]), toScore(dims[2])];
+}
+
+function importarOnboarding(dades) {
+  const c = dades.client, p = dades.perfil, ca = dades.carteraActual;
+  const avColors = ['av-blue','av-green','av-amber','av-red','av-gray'];
+  const existeix = clients.find(cl => cl.email && cl.email === c.email);
+  const perfil = {
+    capitalInicial: c.capitalInicial, aportacioMensual: c.aportacioMensual,
+    horitzo: c.horitzo, objectiu: c.objectiu, segment: 'Classe mitjana inversora',
+    riscFinancer: `D5: ${p.perDimensio[4]?.sum||'—'}/12`,
+    riscEmocional: `D6: ${p.perDimensio[5]?.sum||'—'}/12`,
+    coneixement: `D4: ${p.perDimensio[3]?.sum||'—'}/12`,
+    volTolerable: '—', drawdownMax: '—'
+  };
+  const carteraComposicio = (ca.actius||[]).filter(a=>a.nom).map(a=>({nom:a.nom,pct:parseFloat(a.pct)||0,color:'#888780'}));
+  const entradaHist = {
+    data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}),
+    titol: 'Onboarding completat', 
+    desc: `Arquetip: ${p.arquetip} · Score: ${p.scoreTotal}/${p.scoreMax}. Actius declarats: ${carteraComposicio.length}. ${ca.observacions&&ca.observacions!=='—'?'Obs: '+ca.observacions:''}`,
+    tipus: 'normal'
+  };
+  if (existeix) {
+    if (!confirm(`Ja existeix ${c.nom}. Actualitzar les dades?`)) return;
+    Object.assign(existeix, {arquetip:p.arquetip, perfil, carteraComposicio, scoringMods:calcularScoringMods(p), scoring:Math.round(p.scoreTotal/p.scoreMax*100), nota:`${p.arquetip}. ${p.desc}`});
+    existeix.historial.unshift(entradaHist);
+    saveData(); currentClientId = existeix.id;
+    navigate('fitxa', existeix.id);
+    toast(`Perfil de ${c.nom} actualitzat`);
+  } else {
+    const nou = {
+      id:'c_'+Date.now(), nom:c.nom, email:c.email, arquetip:p.arquetip,
+      cartera:p.carteraRecomanada||'—', avColor:avColors[Math.floor(Math.random()*5)],
+      scoring:Math.round(p.scoreTotal/p.scoreMax*100), dataRevisio:new Date().toISOString().split('T')[0],
+      estat:'ok', perfil, nota:`${p.arquetip}. ${p.desc}`, carteraComposicio,
+      ter:'—', liquiditat:'—', projeccions:{p10:'—',p50:'—',p90:'—',totalAportat:'—'},
+      historial:[entradaHist], scoringMods:calcularScoringMods(p)
+    };
+    clients.push(nou); saveData(); currentClientId = nou.id;
+    navigate('fitxa', nou.id);
+    toast(`Client ${c.nom} importat des de l'onboarding`);
+  }
+}
+
+function resetarDades() {
+  if (!confirm('Vols restaurar les dades inicials de demo?\n\nAixò ELIMINARÀ tots els canvis actuals. Exporta primer si vols conservar-los.')) return;
+  clients = JSON.parse(JSON.stringify(CLIENTS_INICIALS));
+  saveData();
+  navigate('dashboard');
+  toast('Dades restaurades als valors inicials');
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+loadData();
+navigate('dashboard');
+</script>
+</body>
+</html>

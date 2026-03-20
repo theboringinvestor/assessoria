@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>The Boring Investor — El teu perfil</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#0A0A0A; --white:#FAFAF8;
+  --g100:#F4F3F0; --g200:#E8E6E1; --g300:#C8C5BE; --g400:#9A9690; --g500:#6B6762; --g700:#3A3835;
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',system-ui,sans-serif;
+  --fm:'DM Mono',monospace;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--fb);background:var(--black);color:var(--white);font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.hdr{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(10,10,10,.9);backdrop-filter:blur(8px)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:50px}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-box{width:26px;height:26px;border:1.5px solid rgba(255,255,255,.45);border-radius:3px;display:flex;align-items:center;justify-content:center}
+.logo-face{position:relative;width:18px;height:14px}
+.ld{width:3px;height:3px;border-radius:50%;background:var(--white);position:absolute;left:0}
+.ld:first-child{top:1px}.ld:last-child{top:9px}
+.ldash{width:6px;height:1.5px;background:var(--white);position:absolute;left:4px;top:6px}
+.lpipe{width:1.5px;height:12px;background:var(--white);position:absolute;right:0;top:1px}
+.logo-name{font-size:12px;font-weight:500;color:rgba(255,255,255,.75)}
+
+.prog-info{display:flex;align-items:center;gap:12px}
+.prog-pct{font-family:var(--fm);font-size:14px;font-weight:500;color:var(--white);min-width:36px;text-align:right}
+.prog-label{font-size:11px;color:rgba(255,255,255,.3)}
+.time-pill{font-size:11px;color:rgba(255,255,255,.3);font-family:var(--fm)}
+
+/* Barra de progrés completa sota el header */
+.prog-bar-wrap{height:3px;background:rgba(255,255,255,.08);position:relative}
+.prog-bar-fill{height:100%;background:var(--white);border-radius:0 99px 99px 0;transition:width .5s var(--ease);min-width:0}
+.prog-dim-marks{position:absolute;top:0;left:0;right:0;height:100%;display:flex}
+.prog-dim-mark{flex:1;border-right:1px solid rgba(0,0,0,.4)}
+.prog-dim-mark:last-child{border-right:none}
+
+/* ── MAIN ── */
+.main{height:100vh;padding-top:53px;display:flex;flex-direction:column;overflow:hidden}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 40px;overflow:hidden}
+.q-wrap{max-width:580px;width:100%;transition:transform .3s var(--ease),opacity .22s var(--ease)}
+.q-wrap.out-l{transform:translateX(-44px);opacity:0}
+.q-wrap.out-r{transform:translateX(44px);opacity:0}
+.q-wrap.in-r{transform:translateX(44px);opacity:0}
+
+/* ── PREGUNTA ── */
+.dim-tag{font-size:10px;font-weight:500;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.q-text{font-family:var(--fd);font-size:clamp(17px,2.8vw,25px);font-weight:400;line-height:1.45;color:var(--white);margin-bottom:26px;letter-spacing:-.3px}
+
+/* ── OPCIONS ── */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:14px;cursor:pointer;transition:background .13s,border-color .13s,transform .1s;display:flex;align-items:flex-start;gap:11px;-webkit-tap-highlight-color:transparent;user-select:none}
+.opt:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22)}
+.opt:active{transform:scale(.98)}
+.opt.sel{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.9)}
+.opt-sym{width:34px;height:34px;border-radius:7px;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;font-family:var(--fm);font-weight:500;color:rgba(255,255,255,.5);transition:background .13s,color .13s}
+.opt.sel .opt-sym{background:rgba(255,255,255,.18);color:var(--white)}
+.opt-lbl{font-size:9px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;transition:color .13s}
+.opt.sel .opt-lbl{color:rgba(255,255,255,.5)}
+.opt-txt{font-size:12px;color:rgba(255,255,255,.6);line-height:1.45;transition:color .13s}
+.opt.sel .opt-txt{color:var(--white)}
+
+/* ── SLIDER ── */
+.slider-wrap{padding:4px 0 20px}
+.slider-lbls{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.25);margin-bottom:12px}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:rgba(255,255,255,.15);border-radius:99px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--white);cursor:pointer;transition:transform .12s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
+.slider-readout{display:flex;align-items:baseline;gap:8px;margin-top:14px}
+.slider-num{font-family:var(--fm);font-size:32px;font-weight:500;color:var(--white)}
+.slider-unit{font-size:14px;color:rgba(255,255,255,.4)}
+.slider-desc{font-size:12px;color:rgba(255,255,255,.35);margin-top:4px;min-height:18px;transition:all .18s}
+
+/* ── TEXT INPUT ── */
+.form-inp{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:12px 16px;font-size:16px;font-family:var(--fb);color:var(--white);outline:none;transition:border-color .15s;width:100%;max-width:420px}
+.form-inp::placeholder{color:rgba(255,255,255,.18)}
+.form-inp:focus{border-color:rgba(255,255,255,.4)}
+.form-sel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:11px 14px;font-size:14px;font-family:var(--fb);color:var(--white);outline:none;width:100%;-webkit-appearance:none}
+.form-sel:focus{border-color:rgba(255,255,255,.4)}
+.form-sel option{background:var(--black)}
+.form-lbl{font-size:10px;font-weight:500;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;display:block}
+.personal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-field{display:flex;flex-direction:column}
+
+/* ── CARTERA ── */
+.actiu-hdr{display:grid;grid-template-columns:1fr 60px 1fr 32px;gap:8px;margin-bottom:5px}
+.actiu-row{display:grid;grid-template-columns:1fr 60px 1fr 32px;gap:8px;margin-bottom:7px;align-items:center}
+.inp-sm{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:8px 10px;font-size:13px;font-family:var(--fb);color:var(--white);outline:none;width:100%;transition:border-color .15s}
+.inp-sm::placeholder{color:rgba(255,255,255,.18)}
+.inp-sm:focus{border-color:rgba(255,255,255,.35)}
+.inp-sm.center{text-align:center}
+.btn-rm{background:transparent;border:none;color:rgba(255,255,255,.2);font-size:18px;cursor:pointer;padding:0 4px;transition:color .15s;line-height:1}
+.btn-rm:hover{color:rgba(255,255,255,.6)}
+.btn-add{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px;border:1px dashed rgba(255,255,255,.18);border-radius:8px;background:transparent;color:rgba(255,255,255,.3);font-size:12px;font-family:var(--fb);cursor:pointer;width:100%;margin-top:6px;transition:all .15s}
+.btn-add:hover{border-color:rgba(255,255,255,.38);color:rgba(255,255,255,.6)}
+
+/* ── NAV ── */
+.nav{padding:18px 40px 26px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.btn-back{padding:8px 16px;border-radius:7px;font-size:13px;font-family:var(--fb);cursor:pointer;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.4);transition:all .15s}
+.btn-back:hover{border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.75)}
+.btn-next{padding:10px 26px;border-radius:7px;font-size:13px;font-family:var(--fb);font-weight:500;cursor:pointer;border:1.5px solid var(--white);background:var(--white);color:var(--black);transition:all .15s}
+.btn-next:hover:not(:disabled){background:var(--g100)}
+.btn-next:disabled{opacity:.22;cursor:default}
+.kb-hint{font-size:11px;color:rgba(255,255,255,.18)}
+
+/* ── RESULTAT ── */
+.result-outer{width:100%;max-width:620px}
+.result-eyebrow{font-size:10px;font-weight:500;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.result-nom{font-family:var(--fd);font-size:clamp(32px,5vw,52px);font-weight:400;line-height:1.1;letter-spacing:-.5px;margin-bottom:4px}
+.result-ep{font-family:var(--fd);font-size:14px;font-style:italic;color:rgba(255,255,255,.35);margin-bottom:6px}
+.result-score-row{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.result-score-num{font-family:var(--fm);font-size:13px;color:rgba(255,255,255,.3)}
+.result-score-track{flex:1;max-width:120px;height:3px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+.result-score-fill{height:100%;background:rgba(255,255,255,.6);border-radius:99px}
+.result-lema{border-left:2px solid rgba(255,255,255,.15);padding-left:14px;font-family:var(--fd);font-style:italic;font-size:14px;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:18px}
+.result-desc{font-size:13px;color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:20px}
+.result-cartera-lbl{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.result-cartera-tag{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border:1px solid rgba(255,255,255,.28);border-radius:99px;font-size:13px;color:var(--white);margin-bottom:22px}
+.result-dims{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:24px}
+.rdim{text-align:center}
+.rdim-bar{height:38px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;display:flex;align-items:flex-end;margin-bottom:3px}
+.rdim-fill{width:100%;border-radius:3px;background:rgba(255,255,255,.45);transition:height 1s var(--ease)}
+.rdim-lbl{font-size:9px;color:rgba(255,255,255,.25);line-height:1.3}
+.result-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn-dl{padding:11px 24px;border-radius:7px;font-size:13px;font-family:var(--fb);font-weight:500;cursor:pointer;border:1.5px solid var(--white);background:var(--white);color:var(--black);transition:all .15s}
+.btn-dl:hover{background:var(--g100)}
+.btn-reset{padding:11px 18px;border-radius:7px;font-size:13px;font-family:var(--fb);cursor:pointer;border:1px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.5);transition:all .15s}
+.btn-reset:hover{border-color:rgba(255,255,255,.35);color:var(--white)}
+.result-note{font-size:11px;color:rgba(255,255,255,.2);margin-top:14px;line-height:1.6}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.14);backdrop-filter:blur(8px);color:var(--white);padding:9px 20px;border-radius:99px;font-size:12px;display:none;z-index:200;border:1px solid rgba(255,255,255,.18);white-space:nowrap}
+.toast.show{display:block}
+
+@media(max-width:640px){
+  .opts{grid-template-columns:1fr}
+  .personal-grid{grid-template-columns:1fr}
+  .actiu-row,.actiu-hdr{grid-template-columns:1fr 52px 1fr 28px}
+  .stage{padding:20px 20px}
+  .nav{padding:14px 20px 22px}
+  .kb-hint{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-top">
+    <div class="logo">
+      <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="24" height="24" rx="3" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+        <circle cx="8" cy="9" r="1.8" fill="white"/>
+        <circle cx="8" cy="16" r="1.8" fill="white"/>
+        <rect x="11" y="12" width="5.5" height="1.5" rx=".75" fill="white"/>
+        <rect x="18.5" y="7" width="1.5" height="12" rx=".75" fill="white"/>
+      </svg>
+      <span class="logo-name">The Boring Investor</span>
+    </div>
+    <div class="prog-info">
+      <span class="time-pill" id="time-pill">~5 min</span>
+      <span class="prog-label" id="prog-label">0 de 23</span>
+      <span class="prog-pct" id="prog-pct">0%</span>
+    </div>
+  </div>
+  <div class="prog-bar-wrap">
+    <div class="prog-bar-fill" id="prog-fill" style="width:0%"></div>
+    <div class="prog-dim-marks">
+      <div class="prog-dim-mark"></div><div class="prog-dim-mark"></div>
+      <div class="prog-dim-mark"></div><div class="prog-dim-mark"></div>
+      <div class="prog-dim-mark"></div><div class="prog-dim-mark"></div>
+      <div class="prog-dim-mark"></div><div class="prog-dim-mark"></div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="stage" id="stage">
+    <div class="q-wrap" id="q-wrap"></div>
+  </div>
+  <div class="nav">
+    <button class="btn-back" id="btn-back" onclick="prev()">← Enrere</button>
+    <span class="kb-hint">Prem Enter per continuar</span>
+    <button class="btn-next" id="btn-next" onclick="next()" disabled>Continuar →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+// 8 ARQUETIPS — PERSONATGES HISTÒRICS
+// ════════════════════════════════════════════
+const ARQUETIPS = [
+  {
+    min:70, id:'estoic',
+    nom:'L\'Estoic', ep:'Marc Aureli · 121-180 d.C.',
+    lema:'La disciplina és llibertat. El mercat fluctua; el pla no.',
+    desc:'Com l\'emperador filòsof, actues sobre el que controla i ignores el que no. La volatilitat no t\'altera perquè tens el pla clar i la convicció sòlida. La teva disciplina és el teu avantatge competitiu real.',
+    cartera:'V · Capitalització', perfil:'Creixement',
+    traits:['Alta tolerància al risc','Horitzó molt llarg','Control emocional excel·lent']
+  },
+  {
+    min:60, id:'explorador',
+    nom:'L\'Explorador', ep:'Ernest Shackleton · 1874-1922',
+    lema:'Qualsevol terreny és navegable amb el pla adequat.',
+    desc:'Com Shackleton, t\'adaptes a l\'entorn sense perdre el rumb. Prens riscos calculats i saps gestionar la incertesa. El teu actiu és la capacitat d\'adaptar l\'estratègia mantenint l\'objectiu final clar.',
+    cartera:'IV · Expansió', perfil:'Dinàmica',
+    traits:['Bona tolerància al risc','Adaptable','Pla clar amb flexibilitat tàctica']
+  },
+  {
+    min:50, id:'navegant',
+    nom:'El Navegant', ep:'Zheng He · 1371-1433',
+    lema:'Amb bon mapa i paciència, tot port és assolible.',
+    desc:'Com l\'almirall xinès que va explorar el món sense GPS ni certeses, confies en el rumb calculat. El teu repte és no mirar massa el baròmetre quan el cel s\'ennuvola — la brúixola és el pla, no el temps del moment.',
+    cartera:'III · Trajecte', perfil:'Balancejada',
+    traits:['Risc mig-alt','Bon equilibri emocional','Objectiu clar a llarg termini']
+  },
+  {
+    min:42, id:'arquitecte',
+    nom:'L\'Arquitecte', ep:'Filippo Brunelleschi · 1377-1446',
+    lema:'Tota gran obra comença amb uns fonaments sòlids.',
+    desc:'Com l\'home que va construir la cúpula de Florència quan tothom deia que era impossible, treballes amb precisió i visió. El teu risc és la complexitat — de vegades el millor disseny és el més simple.',
+    cartera:'III · Trajecte', perfil:'Balancejada',
+    traits:['Risc mig','Metòdic i precís','Tendeix a sobrecomplicar']
+  },
+  {
+    min:34, id:'tresorer',
+    nom:'El Tresorer', ep:'Jakob Fugger · 1459-1525',
+    lema:'La prudència és l\'inici de tota saviesa financera.',
+    desc:'Com el banquer més ric de la història renaixentista, valores la preservació i la consistència per sobre de l\'especulació. Saps que un cèntim guardat val més que un ducat arriscat. El teu repte és que la prudència extrema té el seu propi cost: la inflació silenciosa.',
+    cartera:'I · Fonament', perfil:'Conservadora',
+    traits:['Baixa tolerància al risc','Alta disciplina','Risc d\'erosió per inflació']
+  },
+  {
+    min:26, id:'cronista',
+    nom:'El Cronista', ep:'Heròdot · 484-425 a.C.',
+    lema:'El qui coneix la història rara vegada la repeteix.',
+    desc:'Com el pare de la historiografia, observes i documentes abans d\'actuar. Valores el coneixement per damunt de la rapidesa. El teu repte és que l\'anàlisi excel·lent sense execució sistemàtica no genera retorn.',
+    cartera:'I · Fonament', perfil:'Conservadora',
+    traits:['Molt conservador','Alt coneixement teòric','Dificultat per executar']
+  },
+  {
+    min:18, id:'alquimista',
+    nom:'L\'Alquimista', ep:'Paracels · 1493-1541',
+    lema:'L\'or no es transforma amb pressa, sinó amb procés.',
+    desc:'Com els alquimistes que cercaven la pedra filosofal, creus en la transformació i el potencial ocult de les coses. La teva energia és un actiu. El que necessites és un laboratori ordenat: un procés clar que canalitzi l\'entusiasme en resultats consistents.',
+    cartera:'II · Collita', perfil:'Balancejada',
+    traits:['Entusiasta però reactiu','Necessita estructura','Alta energia inversora']
+  },
+  {
+    min:0, id:'eremita',
+    nom:'L\'Ermità', ep:'Diògenes · 412-323 a.C.',
+    lema:'El millor patrimoni és no necessitar massa.',
+    desc:'Com el filòsof que vivia en un barril i rebutjava les convencions, valores la simplicitat i la seguretat per davant de tot. La inversió et genera desconfiança natural. El punt de partida és construir confiança en el procés pas a pas.',
+    cartera:'I · Fonament', perfil:'Conservadora',
+    traits:['Molt conservador','Desconfiança cap a la inversió','Necessita pedagogia primer']
+  },
+];
+
+const CARTERES_DESC = {
+  'I · Fonament':'Sòlida, defensiva, orientada a preservar el capital.',
+  'II · Collita':'Generadora de renda periòdica i creixement moderat.',
+  'III · Trajecte':'Equilibrada, avança constant cap a l\'objectiu.',
+  'IV · Expansió':'Dinàmica, creixement moderat-alt a llarg termini.',
+  'V · Capitalització':'Màxim creixement, horitzó molt llarg, alta convicció.',
+};
+
+// ════════════════════════════════════════════
+// PREGUNTES (23: 2 personals + 21 perfil)
+// ════════════════════════════════════════════
+const QS = [
+  {type:'text',id:'nom',dim:'Benvingut',dn:0,
+    text:'Comencem. Com et diuen?',ph:'El teu nom',req:true},
+  {type:'text',id:'email',dim:'Contacte',dn:0,
+    text:'I el teu email?',ph:'email@exemple.com',req:true,isEmail:true},
+
+  {type:'choice',id:'D1P1',dim:'D1 · Objectius',dn:1,
+    text:'Quin és el teu objectiu principal en invertir?',
+    opts:[
+      {sym:'🛡',lbl:'Protecció',txt:'No perdre el valor dels meus estalvis.',s:1},
+      {sym:'⚖',lbl:'Estabilitat',txt:'Créixer moderadament i dormir tranquil.',s:2},
+      {sym:'📈',lbl:'Creixement',txt:'Fer créixer el capital a llarg termini.',s:3},
+      {sym:'🚀',lbl:'Màxim',txt:'Maximitzar el retorn, assumeixo la volatilitat.',s:4},
+    ]},
+  {type:'choice',id:'D1P2',dim:'D1 · Objectius',dn:1,
+    text:'Quin resultat concret voldries assolir?',
+    opts:[
+      {sym:'◼',lbl:'Preservació',txt:'Que els estalvis no perdin poder adquisitiu.',s:1},
+      {sym:'◻',lbl:'Coixí',txt:'Acumular 2-3 anys de despeses de reserva.',s:2},
+      {sym:'△',lbl:'Fita concreta',txt:'Una xifra concreta: casa, jubilació, fills.',s:3},
+      {sym:'∞',lbl:'Llibertat',txt:'Independència financera o renda mensual passiva.',s:4},
+    ]},
+  {type:'choice',id:'D1P3',dim:'D1 · Objectius',dn:1,
+    text:'Accés als diners o creixement — quin prioritzes?',
+    opts:[
+      {sym:'⚡',lbl:'Immediatesa',txt:'Necessito poder accedir-hi en qualsevol moment.',s:1},
+      {sym:'〜',lbl:'Flexibilitat',txt:'Preferiria liquiditat però puc esperar setmanes.',s:2},
+      {sym:'◯',lbl:'Paciència',txt:'Puc bloquejar-los uns anys si fa falta.',s:3},
+      {sym:'∞',lbl:'Compromís',txt:'No necessito tocar-los en molt de temps.',s:4},
+    ]},
+
+  {type:'choice',id:'D2P1',dim:'D2 · Situació',dn:2,
+    text:'Tens un fons d\'emergència cobert (3-6 mesos de despeses)?',
+    opts:[
+      {sym:'✗',lbl:'No',txt:'Les meves reserves són molt justes.',s:1},
+      {sym:'½',lbl:'Parcialment',txt:'Tinc 1-2 mesos coberts.',s:2},
+      {sym:'✓',lbl:'Sí',txt:'Tinc 3-4 mesos coberts.',s:3},
+      {sym:'✓+',lbl:'Sòlid',txt:'Tinc 6 mesos o més. Em sento segur.',s:4},
+    ]},
+  {type:'slider',id:'D2P2',dim:'D2 · Situació',dn:2,
+    text:'Quin % dels teus ingressos pots estalviar cada mes de forma consistent?',
+    min:0,max:50,step:5,unit:'%',
+    lbls:['0%','25%','50%+'],
+    toScore:v=>v<=5?1:v<=15?2:v<=30?3:4,
+    describe:v=>v<=5?'Molt ajustat — cada euro compta':v<=15?'Moderat — tens algun marge':v<=30?'Bon marge — pots invertir còmodament':'Excel·lent capacitat d\'estalvi'},
+  {type:'choice',id:'D2P3',dim:'D2 · Situació',dn:2,
+    text:'Tens deutes importants que condicionen la teva liquiditat?',
+    opts:[
+      {sym:'↓↓',lbl:'Alt impacte',txt:'Sí, em deixa poc marge financer.',s:1},
+      {sym:'↓',lbl:'Gestionable',txt:'Sí, però els gestiono bé i no em preocupen.',s:2},
+      {sym:'→',lbl:'Estable',txt:'Pocs deutes, situació estable.',s:3},
+      {sym:'↑',lbl:'Lliure',txt:'Sense deutes significatius.',s:4},
+    ]},
+
+  {type:'choice',id:'D3P1',dim:'D3 · Horitzó',dn:3,
+    text:'Quan necessitaries disposar d\'una part important d\'aquest capital?',
+    opts:[
+      {sym:'1-2',lbl:'Molt aviat',txt:'En menys de 2 anys.',s:1},
+      {sym:'3-5',lbl:'Mig termini',txt:'Entre 2 i 5 anys.',s:2},
+      {sym:'5-10',lbl:'Llarg',txt:'Entre 5 i 10 anys.',s:3},
+      {sym:'+10',lbl:'Molt llarg',txt:'Més de 10 anys, o potser mai del tot.',s:4},
+    ]},
+  {type:'choice',id:'D3P2',dim:'D3 · Horitzó',dn:3,
+    text:'Hi ha algun event vital que pugui requerir liquiditat important?',
+    opts:[
+      {sym:'!',lbl:'Imminent',txt:'Sí, en els propers 1-2 anys.',s:1},
+      {sym:'~',lbl:'Probable',txt:'Probablement sí, en 3-5 anys.',s:2},
+      {sym:'?',lbl:'Possible',txt:'No res concret però potser en 5-10 anys.',s:3},
+      {sym:'—',lbl:'Cap',txt:'No veig cap necessitat important a mig termini.',s:4},
+    ]},
+  {type:'choice',id:'D3P3',dim:'D3 · Horitzó',dn:3,
+    text:'Si la inversió caigués un 20%, podries esperar sense necessitar els diners?',
+    opts:[
+      {sym:'✗',lbl:'No puc',txt:'No, necessitaria els diners igualment.',s:1},
+      {sym:'~',lbl:'Difícil',txt:'Seria molt difícil però ho intentaria.',s:2},
+      {sym:'✓',lbl:'Puc esperar',txt:'Sí, podria esperar 1-2 anys sense problema.',s:3},
+      {sym:'∞',lbl:'Sense límit',txt:'Sí, podria esperar tot el temps que calgués.',s:4},
+    ]},
+
+  {type:'choice',id:'D4P1',dim:'D4 · Coneixement',dn:4,
+    text:'Quin és el teu nivell real de coneixement sobre inversió?',
+    opts:[
+      {sym:'I',lbl:'Inicial',txt:'Sé que existeixen dipòsits i fons, poc més.',s:1},
+      {sym:'II',lbl:'Iniciació',txt:'Entenc RV vs RF i sé el que és un ETF.',s:2},
+      {sym:'III',lbl:'Mig',txt:'Faig servir plataformes i entenc la diversificació.',s:3},
+      {sym:'IV',lbl:'Avançat',txt:'Comprenc fiscalitat, derivats i estratègies complexes.',s:4},
+    ]},
+  {type:'choice',id:'D4P2',dim:'D4 · Coneixement',dn:4,
+    text:'Havies invertit per compte propi abans?',
+    opts:[
+      {sym:'○',lbl:'Mai',txt:'Primera vegada que ho considero seriosament.',s:1},
+      {sym:'◑',lbl:'Poc',txt:'Tinc algun producte però ho va gestionar el banc.',s:2},
+      {sym:'◕',lbl:'Sí',txt:'Sí, he triat i gestionat inversions jo mateix.',s:3},
+      {sym:'●',lbl:'Expert',txt:'Sí, amb experiència en diversos mercats.',s:4},
+    ]},
+  {type:'choice',id:'D4P3',dim:'D4 · Coneixement',dn:4,
+    text:'Quanta complexitat vols a la teva cartera?',
+    opts:[
+      {sym:'1',lbl:'Molt simple',txt:'1-2 productes. Que sigui fàcil d\'entendre.',s:1},
+      {sym:'3',lbl:'Simple',txt:'3-5 productes. Simple però diversificat.',s:2},
+      {sym:'7',lbl:'Moderat',txt:'Fins a 10 productes. Puc gestionar complexitat.',s:3},
+      {sym:'∞',lbl:'Complet',txt:'Sense límit. Com més diversificada millor.',s:4},
+    ]},
+
+  {type:'choice',id:'D5P1',dim:'D5 · Risc financer',dn:5,
+    text:'Quina caiguda màxima podries assumir sense canviar el pla?',
+    opts:[
+      {sym:'-5%',lbl:'Molt baix',txt:'Menys del 5%. Qualsevol caiguda gran em preocupa.',s:1},
+      {sym:'-15%',lbl:'Moderat',txt:'Entre el 5-15%. Un any dolent és assumible.',s:2},
+      {sym:'-30%',lbl:'Alt',txt:'Entre el 15-30%. Entenc que és temporal.',s:3},
+      {sym:'-50%',lbl:'Molt alt',txt:'Més del 30%. Part del procés a llarg termini.',s:4},
+    ]},
+  {type:'choice',id:'D5P2',dim:'D5 · Risc financer',dn:5,
+    text:'La teva cartera cau de 10.000€ a 8.000€ en 3 mesos. Què fas?',
+    opts:[
+      {sym:'EXIT',lbl:'Venc tot',txt:'Venc immediatament. No puc permetre\'m seguir perdent.',s:1},
+      {sym:'↓',lbl:'Redueixo',txt:'Ho pensaria molt. Probablement reduiria la posició.',s:2},
+      {sym:'◼',lbl:'Espero',txt:'Espero. Sé que els mercats es recuperen.',s:3},
+      {sym:'↑+',lbl:'Compro més',txt:'Compro més. Les caigudes són oportunitats.',s:4},
+    ]},
+  {type:'choice',id:'D5P3',dim:'D5 · Risc financer',dn:5,
+    text:'Quant pots perdre sense que afecti el teu nivell de vida?',
+    opts:[
+      {sym:'0%',lbl:'Cap pèrdua',txt:'Cap pèrdua. Necessito tots aquests diners.',s:1},
+      {sym:'-10%',lbl:'Poc',txt:'Fins a un 10% del total invertit.',s:2},
+      {sym:'-30%',lbl:'Moderat',txt:'Fins a un 30%, si és temporal.',s:3},
+      {sym:'tot',lbl:'El que calgui',txt:'Podria perdre-ho tot si fos part del procés.',s:4},
+    ]},
+
+  {type:'choice',id:'D6P1',dim:'D6 · Comportament',dn:6,
+    text:'Amb quina freqüència mires el saldo d\'un producte que fluctua?',
+    opts:[
+      {sym:'∞',lbl:'Contínuament',txt:'Diverses vegades al dia. No puc evitar-ho.',s:1},
+      {sym:'↺',lbl:'Cada dia',txt:'Cada dia o cada dos dies.',s:2},
+      {sym:'◯',lbl:'Setmanal',txt:'Una vegada a la setmana o al mes.',s:3},
+      {sym:'—',lbl:'Gens',txt:'Poc o gens. Confio en el procés.',s:4},
+    ]},
+  {type:'choice',id:'D6P2',dim:'D6 · Comportament',dn:6,
+    text:'Com et sents quan el mercat cau i veus notícies financeres negatives?',
+    opts:[
+      {sym:'!!',lbl:'Molt ansiós',txt:'Penso que hauria d\'haver sortit abans.',s:1},
+      {sym:'!',lbl:'Preocupat',txt:'Reviso la meva cartera repetidament.',s:2},
+      {sym:'~',lbl:'Tranquil',txt:'Una mica incòmode, però ho veig com temporal.',s:3},
+      {sym:'—',lbl:'Indiferent',txt:'Normal. Comportament habitual dels mercats.',s:4},
+    ]},
+  {type:'choice',id:'D6P3',dim:'D6 · Comportament',dn:6,
+    text:'Has pres alguna vegada una decisió financera impulsiva per por o eufòria?',
+    opts:[
+      {sym:'↑↑',lbl:'Sovint',txt:'Sí, més d\'una vegada. Difícil de controlar.',s:1},
+      {sym:'↑',lbl:'Alguna',txt:'Alguna vegada, i em va pesar.',s:2},
+      {sym:'~',lbl:'Rarament',txt:'Gairebé mai. Soc bastant racional.',s:3},
+      {sym:'—',lbl:'Mai',txt:'Mai. Decideixo basat en el pla.',s:4},
+    ]},
+
+  {type:'choice',id:'D7P1',dim:'D7 · Preferències',dn:7,
+    text:'Tens restriccions fortes sobre determinats tipus d\'inversió?',
+    opts:[
+      {sym:'!',lbl:'Moltes',txt:'Vull inversió garantida o dipòsits exclusivament.',s:1},
+      {sym:'~',lbl:'Algunes',txt:'Evitaria crypto, start-ups i productes especulatius.',s:2},
+      {sym:'◯',lbl:'Poques',txt:'Obert a qualsevol cosa racional i justificada.',s:3},
+      {sym:'∅',lbl:'Cap',txt:'Cap restricció. Considero qualsevol opció.',s:4},
+    ]},
+  {type:'choice',id:'D7P2',dim:'D7 · Preferències',dn:7,
+    text:'Quant vols implicar-te en la gestió de la teva cartera?',
+    opts:[
+      {sym:'→',lbl:'Delego',txt:'Vull que algú ho gestioni completament.',s:1},
+      {sym:'◯',lbl:'Poc',txt:'Revisió anual i res més.',s:2},
+      {sym:'◕',lbl:'Moderat',txt:'Vull entendre-ho i participar en decisions.',s:3},
+      {sym:'●',lbl:'Actiu',txt:'M\'agrada gestionar activament les meves finances.',s:4},
+    ]},
+  {type:'choice',id:'D7P3',dim:'D7 · Preferències',dn:7,
+    text:'Com valores la inversió responsable (ESG) a la teva cartera?',
+    opts:[
+      {sym:'—',lbl:'No prioritari',txt:'Prefereixo el millor retorn possible.',s:1},
+      {sym:'~',lbl:'Una mica',txt:'Evitaria els sectors més controvertits.',s:2},
+      {sym:'◕',lbl:'Important',txt:'Prefereixo ESG si el retorn és similar.',s:3},
+      {sym:'●',lbl:'Fonamental',txt:'Molt important. Puc sacrificar retorn pels valors.',s:4},
+    ]},
+
+  {type:'cartera',id:'cartera',dim:'Cartera actual',dn:8,
+    text:'Tens alguna inversió o estalvi en marxa? Afegeix el que tens (opcional).'},
+
+  {type:'result',id:'result',dn:9},
+];
+
+const TOTAL = QS.length;
+
+// ════════════════════════════════════════════
+// ESTAT
+// ════════════════════════════════════════════
+let cur = 0;
+let ans = {};
+let txt = {};
+let actius = [{nom:'',pct:'',plat:''}];
+let going = false;
+
+function calcScore(){ return Object.keys(ans).filter(k=>!k.includes('_raw')).reduce((s,k)=>s+ans[k],0); }
+function getArquetip(sc){ return ARQUETIPS.find(a=>sc>=a.min)||ARQUETIPS[ARQUETIPS.length-1]; }
+
+// ════════════════════════════════════════════
+// PROGRÉS
+// ════════════════════════════════════════════
+function updateProg(){
+  const pct = Math.round(cur/TOTAL*100);
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-pct').textContent = pct+'%';
+  document.getElementById('prog-label').textContent = cur+' de '+TOTAL;
+  const mins = Math.max(1, Math.ceil((TOTAL-cur)*0.18));
+  document.getElementById('time-pill').textContent = cur===0?'~5 min':mins===1?'<1 min':mins+' min';
+}
+
+// ════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════
+function render(dir){
+  const wrap = document.getElementById('q-wrap');
+  if(dir!=='none'){
+    wrap.classList.add(dir==='fwd'?'out-l':'out-r');
+    setTimeout(()=>{
+      wrap.classList.remove('out-l','out-r');
+      wrap.classList.add('in-r');
+      wrap.innerHTML = buildQ(QS[cur]);
+      requestAnimationFrame(()=>{ wrap.classList.remove('in-r'); });
+      finish();
+    },170);
+  } else {
+    wrap.innerHTML = buildQ(QS[cur]);
+    finish();
+  }
+  function finish(){
+    updateProg();
+    updateNav();
+    attachEv(QS[cur]);
+  }
+}
+
+function buildQ(q){
+  if(q.type==='result') return buildResult();
+  const d=`<div class="dim-tag">${q.dim}</div>`;
+
+  if(q.type==='text') return `${d}
+    <div class="q-text">${q.text}</div>
+    <input class="form-inp" id="inp-${q.id}" type="${q.isEmail?'email':'text'}"
+      placeholder="${q.ph}" value="${txt[q.id]||''}"
+      autocomplete="${q.id==='nom'?'given-name':'email'}">`;
+
+  if(q.type==='choice') return `${d}
+    <div class="q-text">${q.text}</div>
+    <div class="opts">${q.opts.map((o,i)=>`
+      <div class="opt${ans[q.id]===o.s?' sel':''}" onclick="pick(this,'${q.id}',${o.s})">
+        <div class="opt-sym">${o.sym}</div>
+        <div><div class="opt-lbl">${o.lbl}</div><div class="opt-txt">${o.txt}</div></div>
+      </div>`).join('')}</div>`;
+
+  if(q.type==='slider'){
+    const raw = ans[q.id+'_raw']!==undefined ? ans[q.id+'_raw'] : q.min;
+    return `${d}
+      <div class="q-text">${q.text}</div>
+      <div class="slider-wrap">
+        <div class="slider-lbls">${q.lbls.map(l=>`<span>${l}</span>`).join('')}</div>
+        <input type="range" min="${q.min}" max="${q.max}" step="${q.step}" value="${raw}" id="sl-${q.id}" oninput="onSl(this,'${q.id}')">
+        <div class="slider-readout">
+          <span class="slider-num" id="sv-${q.id}">${raw}</span>
+          <span class="slider-unit">${q.unit}</span>
+        </div>
+        <div class="slider-desc" id="sd-${q.id}">${q.describe(raw)}</div>
+      </div>`;
+  }
+
+  if(q.type==='cartera') return `${d}
+    <div class="q-text">${q.text}</div>
+    <div class="actiu-hdr">
+      <span class="form-lbl" style="padding:0 2px">Producte</span>
+      <span class="form-lbl" style="text-align:center">%</span>
+      <span class="form-lbl" style="padding:0 2px">Plataforma</span>
+      <span></span>
+    </div>
+    <div id="aw">${renderActius()}</div>
+    <button class="btn-add" onclick="addA()">+ Afegir producte</button>
+    <textarea class="inp-sm" id="obs" placeholder="Observacions sobre la teva cartera actual (opcional)..." style="margin-top:10px;min-height:58px;resize:none;width:100%;" oninput="txt.obs=this.value">${txt.obs||''}</textarea>`;
+
+  return '';
+}
+
+function renderActius(){
+  return actius.map((a,i)=>`
+    <div class="actiu-row">
+      <input class="inp-sm" placeholder="Ex: Fons MSCI World" value="${a.nom}" oninput="actius[${i}].nom=this.value">
+      <input class="inp-sm center" type="number" placeholder="%" min="0" max="100" value="${a.pct}" oninput="actius[${i}].pct=this.value">
+      <input class="inp-sm" placeholder="Ex: Finizens" value="${a.plat}" oninput="actius[${i}].plat=this.value">
+      <button class="btn-rm" onclick="rmA(${i})" ${actius.length<=1?'disabled style="opacity:.15"':''}>×</button>
+    </div>`).join('');
+}
+
+function buildResult(){
+  const sc = calcScore();
+  const ar = getArquetip(sc);
+  const maxSc = 84;
+  const pct = Math.round(sc/maxSc*100);
+  const dims=[1,2,3,4,5,6,7].map(dn=>{
+    const qs=QS.filter(q=>q.dn===dn);
+    const sum=qs.reduce((s,q)=>s+(ans[q.id]||0),0);
+    const max=qs.length*4;
+    return {sum,max,pct:max?Math.round(sum/max*100):0};
+  });
+  const dlbls=['Obj','Sit','Hor','Con','Risc F','Risc E','Pref'];
+  const cd = CARTERES_DESC[ar.cartera]||'';
+  return `<div class="result-outer">
+    <div class="result-eyebrow">El teu perfil inversor</div>
+    <div class="result-nom">${ar.nom}</div>
+    <div class="result-ep">${ar.ep}</div>
+    <div class="result-score-row">
+      <span class="result-score-num">${sc} / ${maxSc} pts</span>
+      <div class="result-score-track"><div class="result-score-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="result-lema">"${ar.lema}"</div>
+    <div class="result-desc">${ar.desc}</div>
+    <div class="result-cartera-lbl">Cartera recomanada</div>
+    <div class="result-cartera-tag">
+      <span style="font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.45)">${ar.cartera}</span>
+      <span style="width:1px;height:12px;background:rgba(255,255,255,.2)"></span>
+      <span style="font-size:12px;color:rgba(255,255,255,.6)">${cd}</span>
+    </div>
+    <div style="font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">Perfil per dimensió</div>
+    <div class="result-dims">${dims.map((d,i)=>`
+      <div class="rdim">
+        <div class="rdim-bar"><div class="rdim-fill" style="height:${d.pct}%"></div></div>
+        <div class="rdim-lbl">${dlbls[i]}</div>
+      </div>`).join('')}</div>
+    <div class="result-btns">
+      <button class="btn-dl" onclick="descarregar()">Descarregar perfil →</button>
+      <button class="btn-reset" onclick="reiniciar()">Tornar a començar</button>
+    </div>
+    <div class="result-note">Descarrega el fitxer i envia'l per email a Guillem Puig.<br>L'assessor l'importarà i el teu expedient estarà llest per a la primera sessió.</div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════
+// INTERACCIONS
+// ════════════════════════════════════════════
+function pick(el,qid,score){
+  document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  ans[qid]=score;
+  document.getElementById('btn-next').disabled=false;
+  setTimeout(()=>{ if(ans[qid]===score) next(); },460);
+}
+
+function onSl(el,qid){
+  const v=parseInt(el.value);
+  const q=QS.find(x=>x.id===qid);
+  if(!q) return;
+  ans[qid]=q.toScore(v);
+  ans[qid+'_raw']=v;
+  document.getElementById('sv-'+qid).textContent=v;
+  document.getElementById('sd-'+qid).textContent=q.describe(v);
+  document.getElementById('btn-next').disabled=false;
+}
+
+function addA(){ actius.push({nom:'',pct:'',plat:''}); document.getElementById('aw').innerHTML=renderActius(); }
+function rmA(i){ if(actius.length<=1) return; actius.splice(i,1); document.getElementById('aw').innerHTML=renderActius(); }
+
+function attachEv(q){
+  if(q.type==='text'){
+    const inp=document.getElementById('inp-'+q.id);
+    if(!inp) return;
+    inp.focus();
+    inp.addEventListener('input',()=>{
+      txt[q.id]=inp.value.trim();
+      document.getElementById('btn-next').disabled=(q.req&&!inp.value.trim());
+    });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') next(); });
+  }
+  if(q.type==='slider'){
+    document.getElementById('btn-next').disabled=false;
+    if(ans[q.id]===undefined){
+      const sl=document.getElementById('sl-'+q.id);
+      if(sl){ const v=parseInt(sl.value); ans[q.id]=q.toScore(v); ans[q.id+'_raw']=v; }
+    }
+  }
+}
+
+function updateNav(){
+  const q=QS[cur];
+  const nb=document.getElementById('btn-next');
+  const bb=document.getElementById('btn-back');
+  bb.style.visibility=cur===0?'hidden':'visible';
+  if(q.type==='result'){ nb.textContent='Tornar a la web →'; nb.disabled=false; return; }
+  nb.textContent='Continuar →';
+  if(q.type==='choice') nb.disabled=ans[q.id]===undefined;
+  else if(q.type==='text') nb.disabled=(q.req&&!txt[q.id]);
+  else nb.disabled=false;
+}
+
+// ════════════════════════════════════════════
+// NAVEGACIÓ
+// ════════════════════════════════════════════
+function next(){
+  if(going) return;
+  const q=QS[cur];
+  if(q.type==='text'){
+    const v=txt[q.id]||'';
+    if(q.req&&!v){ toast('Aquest camp és obligatori'); return; }
+    if(q.isEmail&&v&&!v.includes('@')){ toast('L\'email no sembla vàlid'); return; }
+  }
+  if(q.type==='result') return;
+  going=true;
+  cur++;
+  render('fwd');
+  setTimeout(()=>going=false,280);
+}
+
+function prev(){
+  if(going||cur===0) return;
+  going=true;
+  cur--;
+  render('bwd');
+  setTimeout(()=>going=false,280);
+}
+
+// ════════════════════════════════════════════
+// DESCÀRREGA
+// ════════════════════════════════════════════
+function descarregar(){
+  const sc=calcScore();
+  const ar=getArquetip(sc);
+  const dims=[1,2,3,4,5,6,7].map(dn=>{
+    const qs=QS.filter(q=>q.dn===dn);
+    return {dimensio:dn,sum:qs.reduce((s,q)=>s+(ans[q.id]||0),0),max:qs.length*4};
+  });
+  const data={
+    versio:'3.0',tipus:'client_onboarding',
+    data:new Date().toISOString(),
+    app:'The Boring Investor — Qüestionari v3',
+    client:{
+      nom:txt.nom||'—',email:txt.email||'—',
+      capitalInicial:'—',aportacioMensual:'—',horitzo:'—',objectiu:'—'
+    },
+    perfil:{
+      scoreTotal:sc,scoreMax:84,
+      arquetip:ar.nom,carteraRecomanada:ar.perfil,
+      cartLabel:ar.cartera,desc:ar.desc,lema:ar.lema,
+      perDimensio:dims,respostesDetall:ans
+    },
+    carteraActual:{
+      actius:actius.filter(a=>a.nom),
+      observacions:txt.obs||'—'
+    }
+  };
+  const nom=(txt.nom||'client').replace(/\s+/g,'_').toLowerCase();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`perfil_${nom}_${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast('Fitxer descarregat. Envia\'l al teu assessor!');
+}
+
+function reiniciar(){
+  if(!confirm('Vols esborrar totes les respostes i tornar a començar?')) return;
+  [ans,txt].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
+  actius=[{nom:'',pct:'',plat:''}];
+  cur=0; render('none');
+}
+
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  if(toastT) clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){
+    if(['TEXTAREA'].includes(document.activeElement.tagName)) return;
+    if(document.activeElement.type==='range') return;
+    if(!document.getElementById('btn-next').disabled) next();
+  }
+  if(e.key==='ArrowLeft'&&document.activeElement.tagName!=='INPUT') prev();
+});
+
+render('none');
+</script>
+</body>
+</html>
