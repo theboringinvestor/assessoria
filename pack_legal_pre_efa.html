@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Boring Investor — Pack Legal · Pre-EFA 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0A0A0A;--white:#FAFAF8;--g100:#F4F3F0;--g200:#E8E6E1;--g300:#C8C5BE;--g400:#9A9690;--g500:#6B6762;--accent:#1B3A6B;--acc-l:#EBF0FA;--amber:#7A4A00;--amber-l:#FEF5E7;--fd:'Playfair Display',Georgia,serif;--fb:'DM Sans',system-ui,sans-serif;--fm:'DM Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--g100);color:var(--black);font-size:13px;-webkit-font-smoothing:antialiased}
+
+/* NAV */
+.nav{background:var(--black);display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:52px}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.8)}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;color:rgba(255,255,255,.4);border:none;background:transparent;font-family:var(--fb);transition:all .12s}
+.nav-tab:hover{color:rgba(255,255,255,.7)}
+.nav-tab.on{background:rgba(255,255,255,.12);color:var(--white)}
+.print-btn{padding:7px 16px;background:var(--white);color:var(--black);border:none;border-radius:7px;font-size:12px;font-family:var(--fb);font-weight:500;cursor:pointer}
+
+/* LAYOUT */
+.wrap{max-width:760px;margin:0 auto;padding:36px 24px 80px}
+
+/* DOCUMENT */
+.doc{background:var(--white);border-radius:14px;border:1px solid var(--g200);overflow:hidden;display:none}
+.doc.show{display:block}
+.doc-header{padding:36px 48px 28px;border-bottom:2px solid var(--black)}
+.doc-logo-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.doc-logo{display:flex;align-items:center;gap:10px}
+.doc-logo-name{font-size:13px;font-weight:500}
+.doc-logo-sub{font-size:10px;color:var(--g400);margin-top:1px}
+.doc-ref{font-family:var(--fm);font-size:11px;color:var(--g400);text-align:right}
+.doc-title{font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px}
+.doc-subtitle{font-size:13px;color:var(--g500)}
+
+.doc-body{padding:36px 48px}
+.clause{margin-bottom:24px}
+.clause-num{font-family:var(--fm);font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.clause-title{font-size:14px;font-weight:500;color:var(--black);margin-bottom:8px}
+.clause-text{font-size:12px;color:var(--g700);line-height:1.8}
+.clause-text ul{margin-top:6px;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.clause-text li{font-size:12px;color:var(--g700);line-height:1.6}
+.highlight{background:var(--amber-l);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--amber);line-height:1.6;margin-top:10px;border-left:3px solid #FAC775}
+.info-box{background:var(--acc-l);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--accent);line-height:1.6;margin-top:10px;border-left:3px solid #B5D4F4}
+.divider{height:1px;background:var(--g200);margin:28px 0}
+
+/* PREU */
+.price-box{background:var(--black);border-radius:10px;padding:20px 24px;margin:16px 0}
+.price-item{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.price-item:last-child{border-bottom:none}
+.price-name{font-size:13px;color:rgba(255,255,255,.7)}
+.price-val{font-family:var(--fm);font-size:16px;font-weight:500;color:var(--white)}
+.price-sub{font-size:10px;color:rgba(255,255,255,.3);margin-top:2px}
+
+/* SIGNATURE */
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:32px}
+.sig-box{border-top:1px solid var(--g300);padding-top:10px}
+.sig-label{font-size:10px;color:var(--g400);margin-bottom:4px}
+.sig-name{font-size:12px;font-weight:500;color:var(--black);margin-bottom:2px}
+.sig-role{font-size:11px;color:var(--g500)}
+.sig-date{font-family:var(--fm);font-size:11px;color:var(--g400);margin-top:8px}
+.sig-blank{height:40px;border-bottom:1px dashed var(--g300);margin-bottom:8px}
+
+/* BADGES */
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.badge{padding:3px 10px;border-radius:99px;font-size:10px;font-weight:500}
+.badge-amber{background:var(--amber-l);color:var(--amber)}
+.badge-blue{background:var(--acc-l);color:var(--accent)}
+
+/* PREUS GUIA */
+.preu-card{background:var(--white);border:1px solid var(--g200);border-radius:10px;padding:16px;margin-bottom:10px}
+.preu-card-nom{font-size:14px;font-weight:500;margin-bottom:3px}
+.preu-card-desc{font-size:12px;color:var(--g500);margin-bottom:8px;line-height:1.5}
+.preu-card-preu{font-family:var(--fm);font-size:20px;font-weight:500;color:var(--black)}
+.preu-card-inclou{margin-top:8px}
+.preu-card-inclou li{font-size:11px;color:var(--g500);list-style:none;padding:2px 0;display:flex;gap:6px}
+.preu-card-inclou li::before{content:"✓";color:var(--accent);font-weight:500;flex-shrink:0}
+
+@media print{
+  .nav,.print-btn{display:none!important}
+  body{background:white}
+  .doc{border:none;border-radius:0}
+  .doc-body{padding:24px 32px}
+  .doc-header{padding:24px 32px 20px}
+}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="logo">
+    <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="24" height="24" rx="3" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+      <circle cx="8" cy="9" r="1.8" fill="white"/><circle cx="8" cy="16" r="1.8" fill="white"/>
+      <rect x="11" y="12" width="5.5" height="1.5" rx=".75" fill="white"/>
+      <rect x="18.5" y="7" width="1.5" height="12" rx=".75" fill="white"/>
+    </svg>
+    <span class="logo-name">The Boring Investor · Pack Legal Pre-EFA</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab on" onclick="showDoc('contracte',this)">Contracte</button>
+    <button class="nav-tab" onclick="showDoc('disclaimer',this)">Disclaimer</button>
+    <button class="nav-tab" onclick="showDoc('preus',this)">Preus guia</button>
+  </div>
+  <button class="print-btn" onclick="window.print()">Imprimir</button>
+</div>
+
+<div class="wrap">
+
+<!-- ══════════════════════════════════
+     DOCUMENT 1: CONTRACTE
+══════════════════════════════════ -->
+<div class="doc show" id="doc-contracte">
+  <div class="doc-header">
+    <div class="doc-logo-row">
+      <div class="doc-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="30" height="30" rx="3" fill="none" stroke="#0A0A0A" stroke-width="2"/>
+          <circle cx="10" cy="11" r="2.2" fill="#0A0A0A"/>
+          <circle cx="10" cy="19" r="2.2" fill="#0A0A0A"/>
+          <rect x="14" y="14.2" width="7" height="2" rx="1" fill="#0A0A0A"/>
+          <rect x="23" y="9" width="2" height="14" rx="1" fill="#0A0A0A"/>
+        </svg>
+        <div>
+          <div class="doc-logo-name">The Boring Investor</div>
+          <div class="doc-logo-sub">Assessoria Financera Independent</div>
+        </div>
+      </div>
+      <div class="doc-ref">
+        <div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Referència</div>
+        <div style="font-family:var(--fm);font-size:12px">TBI-CONTR-001</div>
+        <div style="font-family:var(--fm);font-size:11px;color:var(--g400);margin-top:2px">Versió 1.0 · 2026</div>
+      </div>
+    </div>
+    <div class="doc-title">Contracte de prestació de serveis<br>d'anàlisi i educació financera</div>
+    <div class="doc-subtitle">Acord entre assessor i client — Serveis pre-EFA · No regulat MiFID II</div>
+    <div class="badge-row">
+      <span class="badge badge-amber">⚠ Pre-EFA · No és assessorament regulat</span>
+      <span class="badge badge-blue">Eina d'anàlisi i educació</span>
+    </div>
+  </div>
+
+  <div class="doc-body">
+
+    <div class="clause">
+      <div class="clause-num">Clàusula 01</div>
+      <div class="clause-title">Parts del contracte</div>
+      <div class="clause-text">
+        <p>D'una part, <strong>Guillem Puig</strong> (en endavant, "l'Assessor"), amb DNI [XXXXXX] i domicili a [adreça], que actua com a professional independent en procés d'obtenció de la certificació EFA (European Financial Advisor) per a l'examen de juny de 2026.</p>
+        <p style="margin-top:8px">De l'altra, el/la client/a (en endavant, "el Client"), identificat/da a la signatura d'aquest document, que ha sol·licitat voluntàriament els serveis descrits a continuació.</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">Clàusula 02</div>
+      <div class="clause-title">Objecte del contracte i naturalesa del servei</div>
+      <div class="clause-text">
+        <p>El present contracte té per objecte la prestació dels serveis d'<strong>anàlisi financera personal i educació financera</strong>, que inclouen:</p>
+        <ul>
+          <li>Elaboració d'un diagnòstic del perfil inversor del Client (arquetip, dimensions de risc, comportament).</li>
+          <li>Anàlisi de la cartera actual del Client i identificació d'ineficiències.</li>
+          <li>Proposta d'una estructura de cartera adequada al perfil identificat.</li>
+          <li>Educació sobre productes d'inversió, costos, fiscalitat i gestió del risc.</li>
+          <li>Seguiment periòdic acordat entre les parts.</li>
+        </ul>
+        <div class="highlight">
+          <strong>Important:</strong> Els serveis prestats en el marc d'aquest contracte constitueixen una eina d'anàlisi i educació financera, i <strong>no</strong> constitueixen assessorament d'inversió regulat en els termes de la Directiva 2014/65/UE (MiFID II) ni de la Llei 6/2023, de 17 de març, dels Mercats de Valors i dels Serveis d'Inversió. L'Assessor no és un Empresa de Serveis d'Inversió (ESI) ni disposa d'autorització de la CNMV. L'Assessor es troba en procés d'obtenció de la certificació EFA.
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">Clàusula 03</div>
+      <div class="clause-title">Responsabilitat i limitació de responsabilitat</div>
+      <div class="clause-text">
+        <p>El Client reconeix i accepta expressament que:</p>
+        <ul>
+          <li>Les anàlisis i propostes de l'Assessor no constitueixen recomanacions d'inversió vinculants.</li>
+          <li>Qualsevol decisió d'inversió és responsabilitat exclusiva del Client.</li>
+          <li>Els rendiments passats dels instruments analitzats no garanteixen rendiments futurs.</li>
+          <li>Tota inversió comporta risc de pèrdua parcial o total del capital invertit.</li>
+          <li>L'Assessor no custòdia, gestiona ni opera amb fons del Client en cap moment.</li>
+        </ul>
+        <div class="info-box">El Client és l'únic responsable de les decisions d'inversió que prengui. L'Assessor proporciona informació i educació, no instruccions d'inversió.</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">Clàusula 04</div>
+      <div class="clause-title">Remuneració i condicions de pagament</div>
+      <div class="clause-text">
+        <p>Les parts acorden la següent remuneració pels serveis prestats:</p>
+        <div class="price-box">
+          <div class="price-item">
+            <div>
+              <div class="price-name">Servei contractat</div>
+              <div class="price-sub">Segons servei acordat a l'annex</div>
+            </div>
+            <div class="price-val">___________ €</div>
+          </div>
+          <div class="price-item">
+            <div>
+              <div class="price-name">Forma de pagament</div>
+              <div class="price-sub">Transferència bancària / Bizum</div>
+            </div>
+            <div class="price-val">Prepagament</div>
+          </div>
+          <div class="price-item">
+            <div>
+              <div class="price-name">IVA</div>
+              <div class="price-sub">Activitat exempta d'IVA fins a alta d'autònom</div>
+            </div>
+            <div class="price-val">0%</div>
+          </div>
+        </div>
+        <div class="highlight"><strong>Nota fiscal:</strong> Si Guillem Puig no és autònom donat d'alta, els primers ingressos (fins a ~1.000€/any) es declaren com a rendiments d'activitats econòmiques a l'IRPF. Consultar l'obligació d'alta a partir de regularitat i volum. Recomanem demanar assessorament fiscal quan els ingressos superin els 3.000€ anuals.</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">Clàusula 05</div>
+      <div class="clause-title">Confidencialitat i protecció de dades</div>
+      <div class="clause-text">
+        <p>L'Assessor es compromet a tractar amb la màxima confidencialitat tota la informació financera i personal facilitada pel Client. Les dades recollides s'utilitzen exclusivament per a la prestació dels serveis contractats i no es compartiran amb tercers sense consentiment exprés del Client, excepte per obligació legal.</p>
+        <p style="margin-top:8px">El tractament de dades es realitza d'acord amb el Reglament (UE) 2016/679 (RGPD) i la Llei Orgànica 3/2018 de Protecció de Dades Personals.</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">Clàusula 06</div>
+      <div class="clause-title">Durada, resolució i llei aplicable</div>
+      <div class="clause-text">
+        <p>El present contracte té una vigència des de la data de signatura fins a la finalització del servei contractat. Qualsevol de les parts pot resoldre'l amb un preavís de 7 dies naturals. En cas de resolució anticipada per part de l'Assessor, es retornarà la part proporcional no executada. El present contracte se sotmet a la legislació espanyola i als jutjats de Barcelona.</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">Clàusula 07</div>
+      <div class="clause-title">Conformitat i signatures</div>
+      <div class="clause-text">
+        <p>Les parts, llegit i entès el present document, el signen lliurement en senyal de conformitat, declarant haver rebut una còpia del mateix.</p>
+      </div>
+      <div class="sig-grid" style="margin-top:24px">
+        <div class="sig-box">
+          <div class="sig-label">L'assessor</div>
+          <div class="sig-blank"></div>
+          <div class="sig-name">Guillem Puig</div>
+          <div class="sig-role">Assessor financer independent · The Boring Investor</div>
+          <div class="sig-date">Data: ________________________</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-label">El client / La clienta</div>
+          <div class="sig-blank"></div>
+          <div class="sig-name">________________________</div>
+          <div class="sig-role">DNI: ________________________</div>
+          <div class="sig-date">Data: ________________________</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     DOCUMENT 2: DISCLAIMER
+══════════════════════════════════ -->
+<div class="doc" id="doc-disclaimer">
+  <div class="doc-header">
+    <div class="doc-logo-row">
+      <div class="doc-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="30" height="30" rx="3" fill="none" stroke="#0A0A0A" stroke-width="2"/>
+          <circle cx="10" cy="11" r="2.2" fill="#0A0A0A"/>
+          <circle cx="10" cy="19" r="2.2" fill="#0A0A0A"/>
+          <rect x="14" y="14.2" width="7" height="2" rx="1" fill="#0A0A0A"/>
+          <rect x="23" y="9" width="2" height="14" rx="1" fill="#0A0A0A"/>
+        </svg>
+        <div>
+          <div class="doc-logo-name">The Boring Investor</div>
+          <div class="doc-logo-sub">Assessoria Financera Independent</div>
+        </div>
+      </div>
+      <div class="doc-ref">
+        <div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Referència</div>
+        <div style="font-family:var(--fm);font-size:12px">TBI-DISCL-001</div>
+        <div style="font-family:var(--fm);font-size:11px;color:var(--g400);margin-top:2px">Versió 1.0 · 2026</div>
+      </div>
+    </div>
+    <div class="doc-title">Avís legal i declaració<br>de limitació de responsabilitat</div>
+    <div class="doc-subtitle">Document d'informació precontractual — Obligatori lliurar al client abans de qualsevol servei</div>
+    <div class="badge-row">
+      <span class="badge badge-amber">Lliurar SEMPRE abans de la primera sessió</span>
+    </div>
+  </div>
+
+  <div class="doc-body">
+
+    <div class="clause">
+      <div class="clause-num">§ 1</div>
+      <div class="clause-title">Qui sóc i què faig</div>
+      <div class="clause-text">
+        <p>Sóc <strong>Guillem Puig</strong>, professional independent especialitzat en educació i anàlisi financera personal. Estic en procés d'obtenció de la certificació <strong>EFA (European Financial Advisor)</strong>, prevista per a juny de 2026. Fins a l'obtenció d'aquesta certificació i d'una eventual autorització regulatòria, els serveis que presto es limiten a l'àmbit de l'educació i l'anàlisi financera.</p>
+        <div class="highlight">No sóc un assessor d'inversions regulat per la CNMV. No gestiono diners de clients. No prenc decisions d'inversió en nom de ningú.</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">§ 2</div>
+      <div class="clause-title">Què NO és el que faig</div>
+      <div class="clause-text">
+        <p>Els serveis de The Boring Investor <strong>no constitueixen</strong>:</p>
+        <ul>
+          <li>Assessorament d'inversió en el sentit de la Directiva MiFID II (2014/65/UE).</li>
+          <li>Gestió discrecional de carteres.</li>
+          <li>Recomanació personalitzada d'inversió amb caràcter vinculant.</li>
+          <li>Servei d'una Empresa de Serveis d'Inversió (ESI) autoritzada per la CNMV.</li>
+          <li>Garantia de rendibilitat ni protecció del capital invertit.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">§ 3</div>
+      <div class="clause-title">Riscos que has de conèixer</div>
+      <div class="clause-text">
+        <ul>
+          <li><strong>Risc de mercat:</strong> El valor dels instruments d'inversió pot pujar i baixar. Pots recuperar menys del que has invertit.</li>
+          <li><strong>Risc de liquiditat:</strong> Alguns actius no es poden vendre ràpidament al preu desitjat.</li>
+          <li><strong>Risc de crèdit:</strong> L'emissor d'un bó o fons pot incomplir les seves obligacions.</li>
+          <li><strong>Risc de divisa:</strong> Les inversions en monedes estrangeres estan exposades a variacions del tipus de canvi.</li>
+          <li><strong>Risc de concentració:</strong> Invertir molt en un sol actiu o sector augmenta el risc total.</li>
+          <li><strong>Risc emocional:</strong> Les decisions precipitades en moments de caiguda de mercat solen generar pitjors resultats.</li>
+        </ul>
+        <div class="highlight">Els rendiments passats no garanteixen rendiments futurs. Qualsevol simulació o projecció és orientativa i no és una promesa de resultats.</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">§ 4</div>
+      <div class="clause-title">La meva responsabilitat</div>
+      <div class="clause-text">
+        <p>Em comprometo a actuar amb la màxima honestedat, diligència i en el teu interès. Tanmateix:</p>
+        <ul>
+          <li>No responc de les pèrdues derivades de decisions d'inversió que hagis pres basant-te en les meves anàlisis.</li>
+          <li>La responsabilitat màxima és equivalent als honoraris cobrats pel servei concret.</li>
+          <li>No tinc cap conflicte d'interès amb productes o plataformes que pugui recomanar — no cobro comissions de tercers.</li>
+        </ul>
+        <div class="info-box"><strong>Conflicte d'interessos:</strong> The Boring Investor és un servei d'honoraris directes (fee-only). No cobro retrocessió, comissió ni cap compensació de cap entitat financera, plataforma o producte. Els meus interessos estan alineats amb els teus.</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">§ 5</div>
+      <div class="clause-title">Declaració de recepció i conformitat</div>
+      <div class="clause-text">
+        <p>He llegit, entès i accepto el contingut d'aquest document d'avís legal. Sóc conscient que els serveis de The Boring Investor constitueixen una eina d'anàlisi i educació financera, i no assessorament regulat. Assumeixo la responsabilitat de les meves decisions d'inversió.</p>
+      </div>
+      <div class="sig-grid" style="margin-top:24px">
+        <div class="sig-box">
+          <div class="sig-label">El client / La clienta</div>
+          <div class="sig-blank"></div>
+          <div class="sig-name">________________________</div>
+          <div class="sig-role">DNI: ________________________</div>
+          <div class="sig-date">Data: ________________________</div>
+        </div>
+        <div class="sig-box">
+          <div class="sig-label">L'assessor — conformitat</div>
+          <div class="sig-blank"></div>
+          <div class="sig-name">Guillem Puig</div>
+          <div class="sig-role">The Boring Investor</div>
+          <div class="sig-date">Data: ________________________</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     DOCUMENT 3: PREUS GUIA
+══════════════════════════════════ -->
+<div class="doc" id="doc-preus">
+  <div class="doc-header">
+    <div class="doc-logo-row">
+      <div class="doc-logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="30" height="30" rx="3" fill="none" stroke="#0A0A0A" stroke-width="2"/>
+          <circle cx="10" cy="11" r="2.2" fill="#0A0A0A"/>
+          <circle cx="10" cy="19" r="2.2" fill="#0A0A0A"/>
+          <rect x="14" y="14.2" width="7" height="2" rx="1" fill="#0A0A0A"/>
+          <rect x="23" y="9" width="2" height="14" rx="1" fill="#0A0A0A"/>
+        </svg>
+        <div>
+          <div class="doc-logo-name">The Boring Investor</div>
+          <div class="doc-logo-sub">Assessoria Financera Independent</div>
+        </div>
+      </div>
+      <div class="doc-ref">
+        <div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Document intern</div>
+        <div style="font-family:var(--fm);font-size:12px">TBI-PREUS-001</div>
+        <div style="font-family:var(--fm);font-size:11px;color:var(--g400);margin-top:2px">Versió 1.0 · 2026</div>
+      </div>
+    </div>
+    <div class="doc-title">Tarifes de serveis 2026</div>
+    <div class="doc-subtitle">Preus orientatius pre-EFA · Fee-only · Sense comissions de tercers</div>
+  </div>
+
+  <div class="doc-body">
+
+    <div class="highlight" style="margin-bottom:24px">
+      <strong>Model fee-only:</strong> The Boring Investor cobra exclusivament honoraris directes del client. Cap comissió, retrocessió ni compensació de plataformes o productes financers. El teu interès és el meu únic interès.
+    </div>
+
+    <div class="preu-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="preu-card-nom">Pack Diagnòstic</div>
+          <div class="preu-card-desc">Primera sessió + informe complet de perfil i cartera actual. Ideal per a clients nous que volen saber on estan i cap on haurien d'anar.</div>
+        </div>
+        <div class="preu-card-preu">300 – 500 €</div>
+      </div>
+      <ul class="preu-card-inclou">
+        <li>Qüestionari de perfil (7 dimensions, 21 preguntes)</li>
+        <li>Assignació d'arquetip i cartera personalitzada</li>
+        <li>Anàlisi de la cartera actual (costos, eficiència, incoherències)</li>
+        <li>Informe escrit amb diagnòstic i pla d'acció</li>
+        <li>Sessió de 60-90 min per revisar l'informe junts</li>
+      </ul>
+    </div>
+
+    <div class="preu-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="preu-card-nom">Pack Disseny de Cartera</div>
+          <div class="preu-card-desc">Disseny complet de la nova cartera amb selecció de productes concrets, plataformes i pla d'implementació pas a pas.</div>
+        </div>
+        <div class="preu-card-preu">800 – 1.500 €</div>
+      </div>
+      <ul class="preu-card-inclou">
+        <li>Tot el Pack Diagnòstic inclòs</li>
+        <li>Selecció de productes concrets (ETFs, fons indexats, ETP d'or...)</li>
+        <li>Pla d'implementació amb ordre d'execució i plataformes recomanades</li>
+        <li>Simulació Montecarlo personalitzada (3 escenaris a 10 anys)</li>
+        <li>Kit anti-pànic personalitzat per a crisis de mercat</li>
+        <li>Sessió de revisió als 3 mesos inclosa</li>
+      </ul>
+    </div>
+
+    <div class="preu-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="preu-card-nom">Seguiment Recurrent</div>
+          <div class="preu-card-desc">Revisió trimestral de la cartera, rebalanceig si cal i resposta a dubtes. Per a clients que ja han fet el Pack Disseny.</div>
+        </div>
+        <div class="preu-card-preu">100 – 200 € / trim.</div>
+      </div>
+      <ul class="preu-card-inclou">
+        <li>Revisió de la cartera cada 3 mesos</li>
+        <li>Informe breu de seguiment</li>
+        <li>Resposta a preguntes per email entre sessions</li>
+        <li>Alerta si cal rebalanceig per desviació >5%</li>
+      </ul>
+    </div>
+
+    <div class="preu-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="preu-card-nom">Consultoria Puntual</div>
+          <div class="preu-card-desc">Resposta a una pregunta específica: "Hauria de canviar de plataforma?", "Com tributa la venda d'aquest fons?", "Té sentit contractar un pla de pensions?".</div>
+        </div>
+        <div class="preu-card-preu">150 – 250 € / hora</div>
+      </div>
+      <ul class="preu-card-inclou">
+        <li>Sessió d'1 hora amb resposta documentada per escrit</li>
+        <li>Sense compromís de continuïtat</li>
+        <li>Ideal per a clients que ja saben el que fan i volen una segona opinió</li>
+      </ul>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clause">
+      <div class="clause-num">Notes importants</div>
+      <div class="clause-title">Criteris de preus i condicions</div>
+      <div class="clause-text">
+        <ul>
+          <li><strong>Rang de preus:</strong> El preu final dins del rang depèn de la complexitat de la situació financera del client i del temps necessari.</li>
+          <li><strong>Pagament:</strong> 100% prepagament per transferència bancària o Bizum. Factura en PDF enviada per email.</li>
+          <li><strong>Fiscal (assessor):</strong> Mentre no hi hagi alta d'autònom, ingressos declarats a l'IRPF com a rendiments d'activitats econòmiques. Revisar obligació d'alta a partir de regularitat i volum d'ingressos.</li>
+          <li><strong>Post-EFA (juny 2026):</strong> Els preus es revisaran a l'alça un cop obtinguda la certificació i l'eventual registre com a agent vinculat o EAFI.</li>
+          <li><strong>Pro bono:</strong> Es pot oferir un descompte del 50% o servei gratuït per a persones en situació de vulnerabilitat financera, a criteri de l'assessor.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+function showDoc(id, btn) {
+  document.querySelectorAll('.doc').forEach(d => d.classList.remove('show'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('on'));
+  document.getElementById('doc-' + id).classList.add('show');
+  if (btn) btn.classList.add('on');
+}
+</script>
+</body>
+</html>
