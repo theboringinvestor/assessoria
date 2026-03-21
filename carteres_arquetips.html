@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Boring Investor — 8 Carteres per 8 Arquetips</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --black:#0A0A0A;--white:#FAFAF8;--g100:#F4F3F0;--g200:#E8E6E1;--g300:#C8C5BE;--g400:#9A9690;--g500:#6B6762;--g700:#3A3835;
+  --accent:#1B3A6B;--acc-l:#EBF0FA;--green:#1A5C3A;--green-l:#EAF3DE;--amber:#7A4A00;--amber-l:#FEF5E7;--red:#8B1A1A;--red-l:#FDF0F0;
+  --fd:'Playfair Display',Georgia,serif;--fb:'DM Sans',system-ui,sans-serif;--fm:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--g100);color:var(--black);font-size:13px;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.hdr{background:var(--black);padding:16px 32px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-name{font-size:13px;font-weight:500;color:rgba(255,255,255,.8)}
+.hdr-title{font-size:11px;color:rgba(255,255,255,.3);font-family:var(--fm)}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:28px 24px 64px}
+.page-title{font-family:var(--fd);font-size:28px;font-weight:400;margin-bottom:6px;letter-spacing:-.3px}
+.page-sub{font-size:13px;color:var(--g500);margin-bottom:28px;line-height:1.6;max-width:600px}
+
+/* ARQUETIP CARDS */
+.arq-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:48px}
+.arq-card{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:16px;cursor:pointer;transition:all .12s}
+.arq-card:hover{border-color:var(--g300);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.arq-card.active{border-color:var(--black);box-shadow:0 2px 12px rgba(0,0,0,.1)}
+.arq-ep{font-size:9px;color:var(--g400);font-style:italic;margin-bottom:3px}
+.arq-nom{font-family:var(--fd);font-size:14px;margin-bottom:6px;line-height:1.2}
+.arq-cart-nom{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--g500);margin-bottom:8px}
+.mini-bars{display:flex;flex-direction:column;gap:3px}
+.mini-bar-row{display:flex;align-items:center;gap:5px}
+.mini-bar-lbl{font-size:9px;color:var(--g400);width:70px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-bar-track{flex:1;height:3px;background:var(--g200);border-radius:99px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:99px}
+.mini-bar-pct{font-size:9px;color:var(--g400);font-family:var(--fm);min-width:24px;text-align:right}
+
+/* DETALL */
+.detall{background:var(--white);border:1px solid var(--g200);border-radius:14px;overflow:hidden;display:none}
+.detall.show{display:block}
+.detall-inner{display:grid;grid-template-columns:1fr 340px;gap:0}
+.detall-left{padding:28px 28px 28px 32px;border-right:1px solid var(--g200)}
+.detall-right{padding:24px}
+
+.det-eyebrow{font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.det-nom{font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:3px}
+.det-ep{font-size:12px;color:var(--g400);font-style:italic;margin-bottom:16px}
+.det-cart-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:4px}
+.det-cart-nom{font-family:var(--fd);font-size:20px;font-weight:400;margin-bottom:4px}
+.det-cart-sub{font-size:12px;color:var(--g500);margin-bottom:14px}
+.det-rationale{font-size:12px;color:var(--g700);line-height:1.7;padding:12px 14px;background:var(--g100);border-radius:8px;border-left:3px solid var(--g300);margin-bottom:16px}
+
+.alloc-table{width:100%;border-collapse:collapse;margin-bottom:14px}
+.alloc-table th{font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-bottom:1px solid var(--g200);text-align:left}
+.alloc-table td{padding:7px 8px;border-bottom:1px solid var(--g100);font-size:12px;color:var(--g500)}
+.alloc-table td:first-child{color:var(--black);font-weight:500;display:flex;align-items:center;gap:7px}
+.alloc-table td:nth-child(2){font-family:var(--fm);color:var(--accent)}
+.color-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.kpi{background:var(--g100);border-radius:8px;padding:10px;text-align:center}
+.kpi-lbl{font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.kpi-val{font-family:var(--fm);font-size:15px;font-weight:500;color:var(--black)}
+
+.diff-box{padding:10px 12px;border-radius:8px;font-size:11px;line-height:1.6}
+.diff-green{background:var(--green-l);color:var(--green)}
+.diff-amber{background:var(--amber-l);color:var(--amber)}
+.diff-red{background:var(--red-l);color:var(--red)}
+
+/* RIGHT PANEL */
+.chart-lbl{font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.donut-wrap{position:relative;width:100%;height:200px;margin-bottom:16px}
+.radar-wrap{position:relative;width:100%;height:180px;margin-bottom:12px}
+.legend{display:flex;flex-direction:column;gap:4px}
+.legend-item{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--g500)}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* NAV */
+.nav-row{display:flex;align-items:center;justify-content:space-between;padding:12px 32px;border-top:1px solid var(--g200);background:var(--g100)}
+.nav-btn{padding:7px 16px;border-radius:7px;font-size:12px;font-family:var(--fb);cursor:pointer;border:1px solid var(--g300);background:var(--white);color:var(--g700);transition:all .12s}
+.nav-btn:hover{background:var(--g100);border-color:var(--g400)}
+.nav-pos{font-size:11px;color:var(--g400);font-family:var(--fm)}
+
+@media(max-width:700px){
+  .arq-grid{grid-template-columns:repeat(2,1fr)}
+  .detall-inner{grid-template-columns:1fr}
+  .detall-right{border-top:1px solid var(--g200)}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="logo">
+    <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="24" height="24" rx="3" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+      <circle cx="8" cy="9" r="1.8" fill="white"/><circle cx="8" cy="16" r="1.8" fill="white"/>
+      <rect x="11" y="12" width="5.5" height="1.5" rx=".75" fill="white"/>
+      <rect x="18.5" y="7" width="1.5" height="12" rx=".75" fill="white"/>
+    </svg>
+    <span class="logo-name">The Boring Investor</span>
+  </div>
+  <span class="hdr-title">8 Arquetips · 8 Carteres · Document intern v1.0</span>
+</div>
+
+<div class="container">
+  <div class="page-title">Una cartera per a cada arquetip</div>
+  <div class="page-sub">Cada inversor té un comportament real diferent. No n'hi ha prou amb el risc declarat — cal dissenyar la cartera per al comportament real, no per al teòric. 8 arquetips, 8 carteres amb lògica i rationale diferent.</div>
+
+  <div class="arq-grid" id="arq-grid"></div>
+  <div class="detall" id="detall">
+    <div class="detall-inner" id="detall-inner"></div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="nav(-1)">← Anterior</button>
+      <span class="nav-pos" id="nav-pos"></span>
+      <button class="nav-btn" onclick="nav(1)">Següent →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ARQS=[
+  {
+    id:'estoic',nom:"L'Estoic",ep:"Marc Aureli · 121–180 d.C.",
+    cartNom:"I · Convicció Absoluta",cartSub:"Màxima RV, mínim fricció, horitzó il·limitat",
+    rationale:"Alta tolerància al risc real (no declarada), control emocional excel·lent i horitzó +20 anys. No necessita àncores de RF — cada euro en monetari és un cost d'oportunitat. Cartera de màxima convicció: indexació global pura amb petit toc de RV emergent i small cap per capturar la prima de risc completa.",
+    alloc:[{n:"RV Global (MSCI World)",p:70,c:"#185FA5"},{n:"RV Emergents",p:15,c:"#378ADD"},{n:"RV Small Cap Global",p:10,c:"#85B7EB"},{n:"Crypto (BTC/ETH)",p:5,c:"#B5D4F4"}],
+    ter:"~0.12%",retorn:"7–9%",risc:"Alt",riscT:"diff-amber",
+    diff:"Cap component defensiu. Justificat per horitzó i control emocional excel·lent. Drawdown màxim esperat: -45% en crisi severa. El risc és assumit conscientment.",
+    dims:[11,9,11,10,11,10,9]
+  },
+  {
+    id:'explorador',nom:"L'Explorador",ep:"Shackleton · 1874–1922",
+    cartNom:"II · Terreny Explorat",cartSub:"RV diversificada amb cobertura sistèmica activa",
+    rationale:"Adaptabilitat alta i tolerància real al risc, però amb tendència a decisions tàctiques impulsives. Necessita diversificació activa per canalitzar l'energia en decisions racionals. L'or i les alternatives donen opcionalitat en escenaris inesperats i eviten el 'turisme d'actius' quan el mercat s'avorreix.",
+    alloc:[{n:"RV Global (MSCI World)",p:55,c:"#185FA5"},{n:"RV Temàtica (sectors)",p:15,c:"#378ADD"},{n:"Or físic ETP",p:10,c:"#BA7517"},{n:"REITs Global",p:10,c:"#3B6D11"},{n:"RF Curta (Gov)",p:10,c:"#888780"}],
+    ter:"~0.18%",retorn:"6–8%",risc:"Mig-Alt",riscT:"diff-amber",
+    diff:"La RF curta i l'or no són por — són disciplina. Eviten que l'Explorador busqui 'el proper Shackleton' en actius especulatius quan el mercat s'avorreix.",
+    dims:[10,8,10,9,10,8,8]
+  },
+  {
+    id:'navegant',nom:"El Navegant",ep:"Zheng He · 1371–1433",
+    cartNom:"III · Rumb Constant",cartSub:"Equilibri entre creixement i estabilitat emocional",
+    rationale:"Bon coneixement i horitzó llarg però risc emocional moderat-baix. La cartera ha de tenir suficient component estable perquè no abandoni el pla en la primera crisi de -20%. El dividend ETF serveix d'ancoratge psicològic: genera flux visible que demostra que el pla funciona cada mes.",
+    alloc:[{n:"RV Global Indexada",p:45,c:"#185FA5"},{n:"Dividend ETF Global",p:20,c:"#3B6D11"},{n:"RF Diversificada",p:20,c:"#888780"},{n:"Or físic ETP",p:10,c:"#BA7517"},{n:"REITs Global",p:5,c:"#639922"}],
+    ter:"~0.15%",retorn:"5–7%",risc:"Mig",riscT:"diff-green",
+    diff:"El dividend mensual visible és la clau. El Navegant necessita veure que el pla funciona. Els cupons i dividends fan de brúixola psicològica quan la RV cau.",
+    dims:[9,7,9,9,9,6,8]
+  },
+  {
+    id:'arquitecte',nom:"L'Arquitecte",ep:"Brunelleschi · 1377–1446",
+    cartNom:"IV · Estructura Mestra",cartSub:"Complex però coherent — cada bloc té funció estructural",
+    rationale:"Alt coneixement i meticulositat. Pot gestionar complexitat real però el risc és sobrecomplicar. Cal imposar una regla de 7 blocs màxim, cadascun amb funció estructural clara. La cartera ha de ser com la cúpula de Santa Maria del Fiore: cada peça té un rol definit i inamovible.",
+    alloc:[{n:"RV Global Core",p:40,c:"#185FA5"},{n:"RV Factor (Value+Quality)",p:15,c:"#378ADD"},{n:"RF Corporativa IG",p:15,c:"#888780"},{n:"REITs Global",p:10,c:"#3B6D11"},{n:"Or físic ETP",p:10,c:"#BA7517"},{n:"Private Equity/Crowd",p:5,c:"#534AB7"},{n:"Liquiditat estratègica",p:5,c:"#B4B2A9"}],
+    ter:"~0.25%",retorn:"5–7%",risc:"Mig",riscT:"diff-amber",
+    diff:"El PE/Crowd és opcional i mai >5%. Si l'Arquitecte vol afegir un 8è bloc, ha d'eliminar un altre primer. La regla de 7 blocs màxims és innegociable.",
+    dims:[8,7,8,8,7,7,8]
+  },
+  {
+    id:'tresorer',nom:"El Tresorer",ep:"Jakob Fugger · 1459–1525",
+    cartNom:"V · Cofre Fort",cartSub:"Preservació del capital real contra la inflació",
+    rationale:"Prioritat absoluta: no perdre. Però el Tresorer ha d'entendre que el cofre tancat perd valor cada any. La RF de curta durada i l'or protegeixen el poder adquisitiu real. La RV és mínima però imprescindible — sense ella, el Tresorer s'empobreix silenciosament amb la inflació.",
+    alloc:[{n:"RF Curta (Gov AAA)",p:40,c:"#888780"},{n:"Or físic ETP",p:25,c:"#BA7517"},{n:"RV Global Defensiva",p:20,c:"#185FA5"},{n:"Liquiditat (remunerat)",p:10,c:"#B4B2A9"},{n:"REITs defensiu",p:5,c:"#3B6D11"}],
+    ter:"~0.14%",retorn:"3–5%",risc:"Baix",riscT:"diff-green",
+    diff:"L'or al 25% és inusualment alt però justificat: és l'actiu que el Tresorer 'entén' com a dipòsit de valor tangible. Sense ell abandona la cartera en la primera caiguda de RV.",
+    dims:[6,6,6,7,5,7,6]
+  },
+  {
+    id:'cronista',nom:"El Cronista",ep:"Heròdot · 484–425 a.C.",
+    cartNom:"VI · Arxiu Viu",cartSub:"Cartera pedagògica que genera aprenentatge i execució",
+    rationale:"Alt coneixement teòric però baixa execució sistemàtica. El Cronista ha de veure la seva cartera com un experiment documentat. La diversificació per tipus d'actiu li permet entendre com funciona cada bloc — i executar millor en cada revisió. El procés de revisió és el seu avantatge competitiu.",
+    alloc:[{n:"RV Global Indexada",p:35,c:"#185FA5"},{n:"RF Diversificada",p:30,c:"#888780"},{n:"Or físic ETP",p:15,c:"#BA7517"},{n:"Dividend ETF",p:10,c:"#3B6D11"},{n:"REITs",p:10,c:"#639922"}],
+    ter:"~0.14%",retorn:"4–6%",risc:"Mig-Baix",riscT:"diff-green",
+    diff:"Cada revisió trimestral és una 'entrada al diari' amb aprenentatge documentat. El Cronista no canvia la cartera — documenta per què no la canvia. Aquesta disciplina és el seu retorn real.",
+    dims:[5,5,5,8,4,6,5]
+  },
+  {
+    id:'alquimista',nom:"L'Alquimista",ep:"Paracels · 1493–1541",
+    cartNom:"VII · Pedra Filosofal",cartSub:"Energia canalitzada amb procés estricte i vàlvula de vapor",
+    rationale:"Alta energia i entusiasme però risc emocional molt baix i decisions impulsives. Necessita una vàlvula de vapor controlada: un 10% de satèl·lit per experimentar. Però el 90% ha d'estar en el procés sistemàtic. Sense vàlvula, l'Alquimista vendrà tot en la primera crisi cercant 'la propera oportunitat'.",
+    alloc:[{n:"RV Global Core",p:50,c:"#185FA5"},{n:"RF Curta",p:20,c:"#888780"},{n:"Or físic ETP",p:10,c:"#BA7517"},{n:"REITs",p:10,c:"#3B6D11"},{n:"Satèl·lit lliure (crypto/temàtic)",p:10,c:"#534AB7"}],
+    ter:"~0.20%",retorn:"4–6%",risc:"Mig",riscT:"diff-amber",
+    diff:"El 10% satèl·lit és deliberat i inamovible. Si l'Alquimista vol més exposició a 'oportunitats', ha de vendre del satèl·lit per comprar al nucli. Mai a l'inrevés.",
+    dims:[8,4,7,6,8,3,4]
+  },
+  {
+    id:'eremita',nom:"L'Ermità",ep:"Diògenes · 412–323 a.C.",
+    cartNom:"VIII · Mínim Viable",cartSub:"La cartera més simple possible que realment funcioni",
+    rationale:"Desconfiança profunda cap a la inversió i la complexitat. El pas 1 no és la cartera — és el procés d'automatitzar. Un sol fons indexat global amb aportació automàtica mensual és millor que qualsevol cartera de 10 blocs que l'Ermità abandonarà en 3 mesos. La simplicitat és la seva fortalesa real.",
+    alloc:[{n:"Fons indexat global (1 sol)",p:60,c:"#185FA5"},{n:"Compte remunerat/Monetari",p:40,c:"#888780"}],
+    ter:"~0.10%",retorn:"3–5%",risc:"Baix",riscT:"diff-green",
+    diff:"2 productes màxim. La complexitat és l'enemic de l'Ermità. Quan porti 12 mesos sense tocar-ho, es pot parlar d'afegir un 3r bloc. Però mai abans.",
+    dims:[3,4,4,5,3,5,4]
+  }
+];
+
+const DLBLS=['Obj','Sit','Hor','Con','Risc F','Risc E','Pref'];
+let cur=0, charts={};
+
+function renderGrid(){
+  document.getElementById('arq-grid').innerHTML=ARQS.map((a,i)=>`
+    <div class="arq-card${i===cur?' active':''}" onclick="select(${i})">
+      <div class="arq-ep">${a.ep.split('·')[0].trim()}</div>
+      <div class="arq-nom">${a.nom}</div>
+      <div class="arq-cart-nom">${a.cartNom}</div>
+      <div class="mini-bars">
+        ${a.alloc.map(b=>`
+          <div class="mini-bar-row">
+            <div class="mini-bar-lbl">${b.n.split(' ')[0]}</div>
+            <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${b.p}%;background:${b.c}"></div></div>
+            <div class="mini-bar-pct">${b.p}%</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function renderDetail(i){
+  const a=ARQS[i];
+  document.getElementById('detall-inner').innerHTML=`
+    <div class="detall-left">
+      <div class="det-eyebrow">Arquetip ${i+1} de 8</div>
+      <div class="det-nom">${a.nom}</div>
+      <div class="det-ep">${a.ep}</div>
+      <div class="det-cart-label">Cartera assignada</div>
+      <div class="det-cart-nom">${a.cartNom}</div>
+      <div class="det-cart-sub">${a.cartSub}</div>
+      <div class="det-rationale">${a.rationale}</div>
+      <table class="alloc-table">
+        <thead><tr><th>Bloc d'actiu</th><th>Pes</th></tr></thead>
+        <tbody>${a.alloc.map(b=>`
+          <tr>
+            <td><span class="color-dot" style="background:${b.c}"></span>${b.n}</td>
+            <td>${b.p}%</td>
+          </tr>`).join('')}</tbody>
+      </table>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-lbl">TER estimat</div><div class="kpi-val">${a.ter}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Retorn esperat</div><div class="kpi-val">${a.retorn}</div></div>
+        <div class="kpi"><div class="kpi-lbl">Risc</div><div class="kpi-val" style="font-size:13px">${a.risc}</div></div>
+      </div>
+      <div class="diff-box ${a.riscT}">${a.diff}</div>
+    </div>
+    <div class="detall-right">
+      <div class="chart-lbl">Distribució de cartera</div>
+      <div class="donut-wrap"><canvas id="donut${i}"></canvas></div>
+      <div class="legend">${a.alloc.map(b=>`
+        <div class="legend-item"><span class="legend-dot" style="background:${b.c}"></span>${b.n} — ${b.p}%</div>`).join('')}
+      </div>
+      <div style="margin-top:16px" class="chart-lbl">Perfil dimensional</div>
+      <div class="radar-wrap"><canvas id="radar${i}"></canvas></div>
+    </div>`;
+
+  document.getElementById('nav-pos').textContent=`${i+1} / ${ARQS.length}`;
+  document.getElementById('detall').classList.add('show');
+
+  setTimeout(()=>{
+    const dc=document.getElementById(`donut${i}`);
+    if(dc){
+      if(charts['d'+i]) charts['d'+i].destroy();
+      charts['d'+i]=new Chart(dc,{type:'doughnut',data:{labels:a.alloc.map(b=>b.n),datasets:[{data:a.alloc.map(b=>b.p),backgroundColor:a.alloc.map(b=>b.c),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'60%'}});
+    }
+    const rc=document.getElementById(`radar${i}`);
+    if(rc){
+      if(charts['r'+i]) charts['r'+i].destroy();
+      charts['r'+i]=new Chart(rc,{type:'radar',data:{labels:DLBLS,datasets:[{data:a.dims,borderColor:'#1B3A6B',backgroundColor:'rgba(27,58,107,.08)',borderWidth:1.5,pointBackgroundColor:'#1B3A6B',pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:12,ticks:{stepSize:4,display:false},grid:{color:'#E8E6E1'},pointLabels:{color:'#9A9690',font:{size:9}},angleLines:{color:'#E8E6E1'}}}}});
+    }
+  },60);
+}
+
+function select(i){
+  cur=i;
+  renderGrid();
+  renderDetail(i);
+  document.getElementById('detall').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function nav(d){
+  cur=(cur+d+ARQS.length)%ARQS.length;
+  renderGrid();
+  renderDetail(cur);
+}
+
+renderGrid();
+select(0);
+</script>
+</body>
+</html>
