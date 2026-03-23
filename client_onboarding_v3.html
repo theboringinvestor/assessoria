@@ -617,6 +617,7 @@ const PORTRAITS={
 function buildResult(){
   const sc = calcScore();
   const ar = getArquetip(sc);
+  const pSrc = PORTRAITS[ar.id] || null;
   const maxSc = 84;
   const pct = Math.round(sc/maxSc*100);
   const dims=[1,2,3,4,5,6,7].map(dn=>{
