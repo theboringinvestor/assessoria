@@ -599,8 +599,8 @@ function renderActius(){
       <input class="inp-sm" placeholder="Ex: Fons MSCI World" value="${a.nom}" oninput="actius[${i}].nom=this.value">
       <input class="inp-sm center" type="number" placeholder="%" min="0" max="100" value="${a.pct}" oninput="actius[${i}].pct=this.value">
       <input class="inp-sm" placeholder="Ex: Finizens" value="${a.plat}" oninput="actius[${i}].plat=this.value">
-      <button class="btn-rm" onclick="rmA(${i})" ${actius.length<=1?"disabled":""} style="${actius.length<=1?"opacity:.15":""}">×</button>
-    </div>`).join(''));
+      <button class='btn-rm' id='rm-${i}' onclick='rmA(${i})'>×</button>
+    </div>`).join('');
 }
 
 const PORTRAITS={
@@ -665,7 +665,7 @@ function buildResult(){
     <div class="radar-section">
       <div class="radar-lbl">Perfil per dimensió</div>
       <div class="radar-wrap"><canvas id="radarChart"></canvas></div>
-      <div class="dim-bars">\${dims.map((d,i)=>`
+      <div class="dim-bars">${dims.map((d,i)=>`
         <div class="dim-row">
           <div class="dim-lbl-s">${dlbls[i]}</div>
           <div class="dim-track"><div class="dim-fill-s" style="width:${d.pct}%"></div></div>
