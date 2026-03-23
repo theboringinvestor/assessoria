@@ -815,40 +815,212 @@ function renderTabPerfil(c) {
   `;
 }
 
+
+// ══════════════════════════════════════════════
+// DADES DE MÈTRIQUES PER ARQUETIP
+// ══════════════════════════════════════════════
+const METRICS_BY_ARQUETIP = {
+  "L'Estoic":     {drawdown:"-45%",recuperacio:"3-5 anys",horitzo:"10+ anys",volatilitat:"18%",sharpe:"0.52",correlacio:"97%",mClass:{drawdown:"danger",recuperacio:"warn",horitzo:"warn",volatilitat:"warn",sharpe:"good",correlacio:"warn"}},
+  "L'Explorador": {drawdown:"-35%",recuperacio:"2-3 anys",horitzo:"7+ anys",volatilitat:"14%",sharpe:"0.55",correlacio:"88%",mClass:{drawdown:"danger",recuperacio:"warn",horitzo:"warn",volatilitat:"warn",sharpe:"good",correlacio:"warn"}},
+  "El Navegant":  {drawdown:"-25%",recuperacio:"18-24 m",horitzo:"5+ anys",volatilitat:"10%",sharpe:"0.58",correlacio:"78%",mClass:{drawdown:"warn",recuperacio:"warn",horitzo:"warn",volatilitat:"",sharpe:"good",correlacio:""}},
+  "L'Arquitecte": {drawdown:"-28%",recuperacio:"20-28 m",horitzo:"5+ anys",volatilitat:"11%",sharpe:"0.55",correlacio:"80%",mClass:{drawdown:"warn",recuperacio:"warn",horitzo:"warn",volatilitat:"",sharpe:"good",correlacio:""}},
+  "El Tresorer":  {drawdown:"-12%",recuperacio:"6-10 m",horitzo:"3+ anys",volatilitat:"5%",sharpe:"0.45",correlacio:"52%",mClass:{drawdown:"good",recuperacio:"good",horitzo:"good",volatilitat:"good",sharpe:"",correlacio:"good"}},
+  "El Cronista":  {drawdown:"-18%",recuperacio:"12-18 m",horitzo:"4+ anys",volatilitat:"7%",sharpe:"0.54",correlacio:"65%",mClass:{drawdown:"warn",recuperacio:"",horitzo:"good",volatilitat:"good",sharpe:"good",correlacio:"good"}},
+  "L'Alquimista": {drawdown:"-30%",recuperacio:"18-24 m",horitzo:"5+ anys",volatilitat:"12%",sharpe:"0.48",correlacio:"82%",mClass:{drawdown:"warn",recuperacio:"warn",horitzo:"warn",volatilitat:"warn",sharpe:"",correlacio:"warn"}},
+  "L'Ermità":     {drawdown:"-18%",recuperacio:"12-15 m",horitzo:"3+ anys",volatilitat:"6%",sharpe:"0.42",correlacio:"60%",mClass:{drawdown:"warn",recuperacio:"",horitzo:"good",volatilitat:"good",sharpe:"",correlacio:"good"}},
+};
+
+const METRIC_LABELS = {
+  drawdown:    {lbl:"Màxima caiguda",    sub:"Pitjor escenari"},
+  recuperacio: {lbl:"Temps recuperació", sub:"Per recuperar el màxim"},
+  horitzo:     {lbl:"Horitzó mínim",     sub:"Per probabilitat alta"},
+  volatilitat: {lbl:"Volatilitat anual", sub:"Moviment diari amplificat"},
+  sharpe:      {lbl:"Retorn/Risc",       sub:"Sharpe >0.5 = eficient"},
+  correlacio:  {lbl:"Correlació mercat", sub:"% que cau amb el mercat"},
+};
+
+const METRIC_COLORS = {good:"var(--green)", warn:"var(--amber)", danger:"var(--red)", "":"var(--gray-500)"};
+const METRIC_BG     = {good:"var(--green-light)", warn:"var(--amber-light)", danger:"var(--red-light)", "":"var(--gray-100)"};
+
+let _carteraChart = null;
+let _carteraActius = [];
+let _carteraClientId = null;
+
 function renderTabCartera(c) {
-  const allocs = c.carteraComposicio.map(a => `
-    <div class="alloc-row">
-      <div class="alloc-dot" style="background:${a.color}"></div>
-      <div class="alloc-name">${a.nom}</div>
-      <div class="alloc-track"><div class="alloc-fill" style="width:${a.pct}%;background:${a.color}"></div></div>
-      <div class="alloc-pct">${a.pct}%</div>
-    </div>
-  `).join('') || '<div style="color:var(--gray-400);font-size:12px;font-style:italic">Cartera pendent de definir</div>';
+  _carteraClientId = c.id;
+  _carteraActius = (c.carteraComposicio && c.carteraComposicio.length)
+    ? c.carteraComposicio.map(a => ({nom:a.nom, pct:a.pct, color:a.color}))
+    : [];
+
+  const m = METRICS_BY_ARQUETIP[c.arquetip] || METRICS_BY_ARQUETIP["El Navegant"];
+
+  const metricsHTML = Object.entries(METRIC_LABELS).map(([k,ml]) => {
+    const cls = m.mClass[k] || "";
+    const col = METRIC_COLORS[cls];
+    const bg  = METRIC_BG[cls];
+    return `<div style="background:${bg};border-radius:var(--radius);padding:10px 12px">
+      <div style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">${ml.lbl}</div>
+      <div style="font-size:18px;font-weight:500;color:${col};font-family:var(--font-mono)">${m[k]}</div>
+      <div style="font-size:10px;color:var(--gray-400);margin-top:2px">${ml.sub}</div>
+    </div>`;
+  }).join('');
+
+  const allocsHTML = _carteraActius.length
+    ? _carteraActius.map((a,i) => `
+      <div style="display:grid;grid-template-columns:1fr 48px 1fr 24px;gap:8px;align-items:center;padding:7px 0;border-bottom:.5px solid var(--gray-200)">
+        <div style="font-size:12px;font-weight:500;color:var(--black)">${a.nom}</div>
+        <div style="font-size:12px;font-family:var(--font-mono);color:var(--accent);text-align:right">${a.pct}%</div>
+        <input type="range" min="0" max="100" step="1" value="${a.pct}"
+          style="width:100%" oninput="updateCarteraActiu(${i},+this.value)">
+        <button onclick="removeCarteraActiu(${i})" style="background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:15px;line-height:1;padding:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-400)'">×</button>
+      </div>`).join('')
+    : `<div style="color:var(--gray-400);font-size:12px;font-style:italic;padding:12px 0">Cartera pendent de definir</div>`;
+
+  const total = _carteraActius.reduce((s,a) => s+a.pct, 0);
+  const totalColor = total===100 ? 'var(--green)' : 'var(--red)';
 
   document.getElementById('tab-cartera').innerHTML = `
-    <div class="two-col">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+      ${metricsHTML}
+    </div>
+
+    <div class="two-col" style="margin-bottom:14px">
       <div>
-        <div class="field-group-title" style="margin-bottom:10px">Composició actual</div>
-        ${allocs}
-        <div style="margin-top:10px;font-size:10px;color:var(--gray-400)">TER estimat: ${c.ter} &nbsp;·&nbsp; Liquiditat immediata: ${c.liquiditat}</div>
+        <div class="field-group-title" style="margin-bottom:10px">Distribució de cartera</div>
+        <div style="position:relative;width:100%;height:160px"><canvas id="cartera-donut"></canvas></div>
+        <div id="cartera-legend" style="margin-top:8px;display:flex;flex-direction:column;gap:3px"></div>
       </div>
       <div>
-        <div class="field-group-title" style="margin-bottom:10px">Projecció a 10 anys (Montecarlo)</div>
-        <div class="proj-grid" style="margin-bottom:12px">
-          <div class="proj-card proj-p"><div class="proj-label">Pessimista P10</div><div class="proj-val">${c.projeccions.p10}</div><div class="proj-sub">Pitjor 10%</div></div>
-          <div class="proj-card proj-m"><div class="proj-label">Equilibrat P50</div><div class="proj-val">${c.projeccions.p50}</div><div class="proj-sub">Mediana</div></div>
-          <div class="proj-card proj-o"><div class="proj-label">Optimista P90</div><div class="proj-val">${c.projeccions.p90}</div><div class="proj-sub">Millor 10%</div></div>
+        <div class="field-group-title" style="margin-bottom:10px">Projecció Montecarlo (10 anys)</div>
+        <div class="proj-grid" style="margin-bottom:10px">
+          <div class="proj-card proj-p"><div class="proj-label">P10 Pessimista</div><div class="proj-val">${c.projeccions.p10}</div></div>
+          <div class="proj-card proj-m"><div class="proj-label">P50 Equilibrat</div><div class="proj-val">${c.projeccions.p50}</div></div>
+          <div class="proj-card proj-o"><div class="proj-label">P90 Optimista</div><div class="proj-val">${c.projeccions.p90}</div></div>
         </div>
-        ${Object.entries({
-          'Total aportat': c.projeccions.totalAportat,
-          'TER estimat': c.ter,
-          'Liquiditat': c.liquiditat
-        }).map(([k,v]) => `<div class="field-row"><span class="field-label">${k}</span><span class="field-val">${v}</span></div>`).join('')}
+        <div class="field-row"><span class="field-label">Total aportat</span><span class="field-val">${c.projeccions.totalAportat}</span></div>
+        <div class="field-row"><span class="field-label">TER estimat</span><span class="field-val">${c.ter}</span></div>
+        <div class="field-row"><span class="field-label">Liquiditat</span><span class="field-val">${c.liquiditat}</span></div>
       </div>
     </div>
-    <div class="disclaimer">Simulació Montecarlo orientativa. Retorns basats en estimacions históriques. No garanteixen resultats futurs.</div>
+
+    <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="field-group-title" style="margin:0">Ajustar pesos per a aquest client</div>
+        <button onclick="toggleAfegirActiu()" style="padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:.5px solid var(--gray-300);background:transparent;color:var(--gray-500);font-family:var(--font-body)">+ Afegir actiu</button>
+      </div>
+      <div id="nou-actiu-form" style="display:none;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+        <input id="nou-actiu-nom" placeholder="Nom del actiu" style="flex:1;min-width:120px;padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;font-family:var(--font-body);background:var(--white);color:var(--black)">
+        <input id="nou-actiu-pct" type="number" placeholder="%" min="0" max="100" style="width:56px;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;font-family:var(--font-mono);background:var(--white);color:var(--black)">
+        <button onclick="afegirActiu()" style="padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--black);background:var(--black);color:var(--white);font-family:var(--font-body)">Afegir</button>
+        <button onclick="toggleAfegirActiu()" style="padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--gray-200);background:transparent;color:var(--gray-500);font-family:var(--font-body)">Cancel</button>
+      </div>
+      <div id="cartera-actius-list">${allocsHTML}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 0;border-top:.5px solid var(--gray-200);margin-top:4px">
+        <span style="font-size:12px;color:var(--gray-500)">Total assignat</span>
+        <span id="cartera-total" style="font-size:13px;font-weight:500;font-family:var(--font-mono);color:${totalColor}">${total}%</span>
+      </div>
+      <div id="cartera-warn" style="display:${total!==100?'block':'none'};padding:6px 10px;background:var(--red-light);border-radius:6px;font-size:11px;color:var(--red);margin-top:8px">El total ha de ser exactament 100% per desar.</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button onclick="desarCarteraClient()" style="padding:8px 18px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--black);background:var(--black);color:var(--white);font-family:var(--font-body)">Desar cartera personalitzada</button>
+        <button onclick="restaurarCarteraModel()" style="padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--gray-200);background:transparent;color:var(--gray-500);font-family:var(--font-body)">Restaurar model</button>
+      </div>
+    </div>
+    <div class="disclaimer">Mètriques basades en dades históriques orientatives. No garanteixen resultats futurs.</div>
   `;
+
+  renderCarteraChart();
 }
+
+function renderCarteraChart() {
+  if(_carteraChart) { _carteraChart.destroy(); _carteraChart=null; }
+  const canvas = document.getElementById('cartera-donut');
+  if(!canvas || !_carteraActius.length) return;
+  _carteraChart = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: _carteraActius.map(a=>a.nom),
+      datasets: [{
+        data: _carteraActius.map(a=>a.pct),
+        backgroundColor: _carteraActius.map(a=>a.color||'#888780'),
+        borderWidth: 1, borderColor: '#fff'
+      }]
+    },
+    options: {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'58%'}
+  });
+  const leg = document.getElementById('cartera-legend');
+  if(leg) leg.innerHTML = _carteraActius.map(a=>`
+    <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--gray-500)">
+      <span style="width:8px;height:8px;border-radius:2px;background:${a.color||'#888780'};flex-shrink:0;display:inline-block"></span>
+      ${a.nom} — ${a.pct}%
+    </div>`).join('');
+}
+
+function updateCarteraActiu(i, v) {
+  _carteraActius[i].pct = v;
+  const total = _carteraActius.reduce((s,a)=>s+a.pct,0);
+  const el = document.getElementById('cartera-total');
+  if(el){ el.textContent=total+'%'; el.style.color=total===100?'var(--green)':'var(--red)'; }
+  const w = document.getElementById('cartera-warn');
+  if(w) w.style.display = total!==100?'block':'none';
+  renderCarteraChart();
+}
+
+function removeCarteraActiu(i) {
+  if(_carteraActius.length<=1) return;
+  _carteraActius.splice(i,1);
+  const c = getCurrentClient();
+  if(c) renderTabCartera(c);
+}
+
+function toggleAfegirActiu() {
+  const f = document.getElementById('nou-actiu-form');
+  if(f){ f.style.display = f.style.display==='none'?'flex':'none'; }
+  const inp = document.getElementById('nou-actiu-nom');
+  if(inp && document.getElementById('nou-actiu-form').style.display==='flex') inp.focus();
+}
+
+const PALETTE_COLORS = ['#185FA5','#3B6D11','#BA7517','#534AB7','#888780','#E24B4A','#0F6E56','#854F0B','#D4537E'];
+
+function afegirActiu() {
+  const nom = document.getElementById('nou-actiu-nom').value.trim();
+  const pct = Math.round(parseFloat(document.getElementById('nou-actiu-pct').value)||0);
+  if(!nom) { toast('El nom és obligatori'); return; }
+  const color = PALETTE_COLORS[_carteraActius.length % PALETTE_COLORS.length];
+  _carteraActius.push({nom, pct, color});
+  document.getElementById('nou-actiu-nom').value='';
+  document.getElementById('nou-actiu-pct').value='';
+  document.getElementById('nou-actiu-form').style.display='none';
+  const c = getCurrentClient();
+  if(c) renderTabCartera(c);
+}
+
+function desarCarteraClient() {
+  const total = _carteraActius.reduce((s,a)=>s+a.pct,0);
+  if(total!==100){ toast('El total ha de ser 100%'); return; }
+  const c = getCurrentClient();
+  if(!c) return;
+  c.carteraComposicio = _carteraActius.map(a=>({nom:a.nom,pct:a.pct,color:a.color}));
+  saveData();
+  c.historial.unshift({
+    data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}),
+    titol: 'Cartera personalitzada desada',
+    desc: _carteraActius.map(a=>a.nom+' '+a.pct+'%').join(' · '),
+    tipus: 'normal'
+  });
+  saveData();
+  toast('Cartera desada correctament');
+}
+
+function restaurarCarteraModel() {
+  const c = getCurrentClient();
+  if(!c) return;
+  _carteraActius = (c.carteraComposicio && c.carteraComposicio.length)
+    ? c.carteraComposicio.map(a=>({...a}))
+    : [];
+  renderTabCartera(c);
+  toast('Cartera restaurada');
+}
+
 
 function renderTabHistorial(c) {
   const entrades = c.historial.map(e => `
