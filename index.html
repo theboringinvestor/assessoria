@@ -1384,6 +1384,32 @@ function generarInforme() {
   else if (sc >= 50) { diagColor='#7A4A00'; diagBg='#FEF5E7'; diagText='Cartera acceptable amb marge de millora. Revisar coherència i costos.'; }
   else { diagColor='#8B1A1A'; diagBg='#FDF0F0'; diagText='Cartera amb problemes estructurals. Revisió urgent recomanada.'; }
 
+  // Mètriques de la cartera
+  const mData = (typeof METRICS_BY_ARQUETIP !== 'undefined' && METRICS_BY_ARQUETIP[c.arquetip])
+    ? METRICS_BY_ARQUETIP[c.arquetip]
+    : null;
+
+  const metricColors = {good:'#1A5C3A', warn:'#7A4A00', danger:'#8B1A1A', '':'#6B6762'};
+  const metricBg     = {good:'#EAF3DE', warn:'#FEF5E7', danger:'#FDF0F0', '':'#F4F3F0'};
+  const metricLabels = {
+    drawdown:    {lbl:'Màxima caiguda',    sub:'Pitjor escenari històric'},
+    recuperacio: {lbl:'Temps recuperació', sub:'Per recuperar el màxim'},
+    horitzo:     {lbl:'Horitzó mínim',     sub:'Per probabilitat alta'},
+    volatilitat: {lbl:'Volatilitat anual', sub:'Moviment diari'},
+    sharpe:      {lbl:'Retorn/Risc',       sub:'Sharpe >0.5 = eficient'},
+    correlacio:  {lbl:'Correlació mercat', sub:'% que cau amb mercat'},
+  };
+
+  const metricsSection = mData ? '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">' +
+    Object.entries(metricLabels).map(([k,ml]) => {
+      const cls = mData.mClass[k] || '';
+      return '<div style="background:' + (metricBg[cls]||'#F4F3F0') + ';border-radius:8px;padding:10px 12px">' +
+        '<div style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">' + ml.lbl + '</div>' +
+        '<div style="font-size:16px;font-weight:500;color:' + (metricColors[cls]||'#6B6762') + ';font-family:var(--fm)">' + mData[k] + '</div>' +
+        '<div style="font-size:10px;color:#9A9690;margin-top:2px">' + ml.sub + '</div>' +
+        '</div>';
+    }).join('') + '</div>' : '';
+
   const html = `<!DOCTYPE html>
 <html lang="ca">
 <head>
@@ -1494,12 +1520,13 @@ td:first-child{color:var(--black);font-weight:500}
   </div>
 
   <div class="section">
-    <div class="section-title">Cartera assignada — ${c.cartera}</div>
+ iv class="section-title">Cartera assignada \u2014 ${c.cartera}</div>
     <div class="kpi-row">
-      <div class="kpi"><div class="lbl">TER estimat</div><div class="val">${c.ter || '—'}</div></div>
-      <div class="kpi"><div class="lbl">Liquiditat</div><div class="val">${c.liquiditat || '—'}</div></div>
-      <div class="kpi"><div class="lbl">Risc financer</div><div class="val">${c.perfil?.riscFinancer || '—'}</div></div>
+      <div class="kpi"><div class="lbl">TER estimat</div><div class="val">${c.ter || '\u2014'}</div></div>
+      <div class="kpi"><div class="lbl">Liquiditat</div><div class="val">${c.liquiditat || '\u2014'}</div></div>
+      <div class="kpi"><div class="lbl">Risc financer</div><div class="val">${c.perfil?.riscFinancer || '\u2014'}</div></div>
     </div>
+    ${metricsSection}
     <table>
       <thead><tr><th>Bloc d'actiu</th><th style="text-align:center">Pes</th><th>Distribució</th></tr></thead>
       <tbody>${carteraRows}</tbody>
