@@ -419,17 +419,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         Scoring
       </div>
 
-      <div class="nav-section">Pròximament</div>
-      <div class="nav-item disabled">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M8 3l5 5-5 5"/></svg>
-        Constructor cartera
-        <span class="nav-badge">V1</span>
-      </div>
-      <div class="nav-item disabled">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/><path d="M2 4l6-2 6 2"/></svg>
-        Informes PDF
-        <span class="nav-badge">V1</span>
-      </div>
+
     </div>
 
     <div class="sidebar-bottom">
@@ -852,24 +842,37 @@ function renderTabCartera(c) {
     ? c.carteraComposicio.map(a => ({nom:a.nom, pct:a.pct, color:a.color}))
     : [];
 
-  const m = METRICS_BY_ARQUETIP[c.arquetip] || METRICS_BY_ARQUETIP["El Navegant"];
+  // Mètriques calculades amb el motor
+  const m = calcMetriques(_carteraActius);
+  const mFallback = (typeof METRICS_BY_ARQUETIP !== 'undefined' && METRICS_BY_ARQUETIP[c.arquetip])
+    ? METRICS_BY_ARQUETIP[c.arquetip] : null;
+  const mData = m || mFallback;
 
-  const metricsHTML = Object.entries(METRIC_LABELS).map(([k,ml]) => {
-    const cls = m.mClass[k] || "";
-    const col = METRIC_COLORS[cls];
-    const bg  = METRIC_BG[cls];
-    return `<div style="background:${bg};border-radius:var(--radius);padding:10px 12px">
-      <div style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">${ml.lbl}</div>
-      <div style="font-size:18px;font-weight:500;color:${col};font-family:var(--font-mono)">${m[k]}</div>
+  const metricLabels = {
+    drawdown:    {lbl:'Màxima caiguda',    sub:'Pitjor escenari'},
+    recuperacio: {lbl:'Temps recuperació', sub:'Per recuperar el màxim'},
+    horitzo:     {lbl:'Horitzó mínim',     sub:'Per probabilitat alta'},
+    volatilitat: {lbl:'Volatilitat anual', sub:'Moviment diari'},
+    sharpe:      {lbl:'Retorn/Risc',       sub:'Sharpe >0.5 = eficient'},
+    correlacio:  {lbl:'Correlació mercat', sub:'% que cau amb mercat'},
+  };
+  const metricBg    = {good:'var(--green-light)',warn:'var(--amber-light)',danger:'var(--red-light)','':'var(--gray-100)'};
+  const metricColor = {good:'var(--green)',      warn:'var(--amber)',      danger:'var(--red)',      '':'var(--gray-500)'};
+
+  const metricsHTML = mData ? Object.entries(metricLabels).map(([k,ml]) => {
+    const cls = (mData.mClass||{})[k] || '';
+    return `<div style="background:${metricBg[cls]};border-radius:var(--radius);padding:10px 12px">
+      <div style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">${ml.lbl}</div>
+      <div style="font-size:17px;font-weight:500;color:${metricColor[cls]};font-family:var(--font-mono)">${mData[k]||'—'}</div>
       <div style="font-size:10px;color:var(--gray-400);margin-top:2px">${ml.sub}</div>
     </div>`;
-  }).join('');
+  }).join('') : '';
 
   const allocsHTML = _carteraActius.length
     ? _carteraActius.map((a,i) => `
       <div style="display:grid;grid-template-columns:1fr 48px 1fr 24px;gap:8px;align-items:center;padding:7px 0;border-bottom:.5px solid var(--gray-200)">
         <div style="font-size:12px;font-weight:500;color:var(--black)">${a.nom}</div>
-        <div style="font-size:12px;font-family:var(--font-mono);color:var(--accent);text-align:right">${a.pct}%</div>
+        <div id="pct-${i}" style="font-size:12px;font-family:var(--font-mono);color:var(--accent);text-align:right">${a.pct}%</div>
         <input type="range" min="0" max="100" step="1" value="${a.pct}"
           style="width:100%" oninput="updateCarteraActiu(${i},+this.value)">
         <button onclick="removeCarteraActiu(${i})" style="background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:15px;line-height:1;padding:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-400)'">×</button>
@@ -880,7 +883,9 @@ function renderTabCartera(c) {
   const totalColor = total===100 ? 'var(--green)' : 'var(--red)';
 
   document.getElementById('tab-cartera').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+    <div id="gap-alerts" style="margin-bottom:10px;display:none"></div>
+
+    <div id="metriques-live" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
       ${metricsHTML}
     </div>
 
@@ -903,9 +908,11 @@ function renderTabCartera(c) {
       </div>
     </div>
 
+    <div id="alternatius-sugs" style="margin-bottom:12px;padding:12px 14px;background:var(--gray-100);border-radius:var(--radius);display:none"></div>
+
     <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="field-group-title" style="margin:0">Ajustar pesos per a aquest client</div>
+        <div class="field-group-title" style="margin:0">Ajustar pesos — mètriques en temps real</div>
         <button onclick="toggleAfegirActiu()" style="padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:.5px solid var(--gray-300);background:transparent;color:var(--gray-500);font-family:var(--font-body)">+ Afegir actiu</button>
       </div>
       <div id="nou-actiu-form" style="display:none;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
@@ -919,16 +926,18 @@ function renderTabCartera(c) {
         <span style="font-size:12px;color:var(--gray-500)">Total assignat</span>
         <span id="cartera-total" style="font-size:13px;font-weight:500;font-family:var(--font-mono);color:${totalColor}">${total}%</span>
       </div>
-      <div id="cartera-warn" style="display:${total!==100?'block':'none'};padding:6px 10px;background:var(--red-light);border-radius:6px;font-size:11px;color:var(--red);margin-top:8px">El total ha de ser exactament 100% per desar.</div>
+      <div id="cartera-warn" style="display:${total!==100?'block':'none'};padding:6px 10px;background:var(--red-light);border-radius:6px;font-size:11px;color:var(--red);margin-top:8px">El total ha de ser 100% per desar.</div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <button onclick="desarCarteraClient()" style="padding:8px 18px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--black);background:var(--black);color:var(--white);font-family:var(--font-body)">Desar cartera personalitzada</button>
         <button onclick="restaurarCarteraModel()" style="padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--gray-200);background:transparent;color:var(--gray-500);font-family:var(--font-body)">Restaurar model</button>
       </div>
     </div>
-    <div class="disclaimer">Mètriques basades en dades históriques orientatives. No garanteixen resultats futurs.</div>
+    <div class="disclaimer">Mètriques calculades en temps real amb model MPT simplificat. Basades en correlacions i retorns històrics orientatius.</div>
   `;
 
   renderCarteraChart();
+  renderGapAlerts(c);
+  renderSuggeriments(c, _carteraActius);
 }
 
 function renderCarteraChart() {
@@ -958,10 +967,19 @@ function renderCarteraChart() {
 function updateCarteraActiu(i, v) {
   _carteraActius[i].pct = v;
   const total = _carteraActius.reduce((s,a)=>s+a.pct,0);
+
+  // Actualitzar display % de la fila
+  const pctEl = document.getElementById('pct-'+i);
+  if(pctEl) pctEl.textContent = v+'%';
+
+  // Actualitzar total
   const el = document.getElementById('cartera-total');
   if(el){ el.textContent=total+'%'; el.style.color=total===100?'var(--green)':'var(--red)'; }
   const w = document.getElementById('cartera-warn');
   if(w) w.style.display = total!==100?'block':'none';
+
+  // Recalcular mètriques en temps real (motor capa 6)
+  actualitzarMetriquesTempsReal(_carteraActius);
   renderCarteraChart();
 }
 
@@ -1572,6 +1590,307 @@ td:first-child{color:var(--black);font-weight:500}
   win.document.close();
   toast('Informe generat — usa Imprimir/PDF per guardar-lo');
 }
+
+// ══════════════════════════════════════════════
+// MOTOR DE CARTERES v2.0
+// 7 capes: dimensions → conductual → MPT → model → alternatius → mètriques → overrides
+// ══════════════════════════════════════════════
+
+// ── CAPA 3: Límits MPT per horitzó i classe d'actiu ──
+const MPT_LIMITS = {
+  rvMax:    {0:0.10, 3:0.30, 5:0.55, 7:0.70, 10:0.85, 15:1.00},
+  altMax:   0.15,  // total actius alternatius
+  cryptoMax:0.05,
+  metalMax: 0.25,
+  peMax:    0.05,
+  crowdMax: 0.10,
+};
+
+// ── Dades per classe d'actiu (per càlcul de mètriques) ──
+const ASSET_DATA = {
+  'rv_global':    {ret:0.075, vol:0.18, dd:0.50, corr_rv:1.00},
+  'rv_emergents': {ret:0.080, vol:0.22, dd:0.55, corr_rv:0.85},
+  'rv_small':     {ret:0.085, vol:0.24, dd:0.55, corr_rv:0.90},
+  'rv_defensiva': {ret:0.055, vol:0.12, dd:0.35, corr_rv:0.70},
+  'rv_factor':    {ret:0.078, vol:0.19, dd:0.48, corr_rv:0.92},
+  'rf_curta':     {ret:0.035, vol:0.03, dd:0.05, corr_rv:-0.10},
+  'rf_llarga':    {ret:0.045, vol:0.09, dd:0.20, corr_rv:-0.30},
+  'rf_corp':      {ret:0.042, vol:0.07, dd:0.18, corr_rv:0.10},
+  'rf_div':       {ret:0.040, vol:0.05, dd:0.12, corr_rv:-0.05},
+  'or':           {ret:0.040, vol:0.15, dd:0.30, corr_rv:-0.10},
+  'reits':        {ret:0.065, vol:0.20, dd:0.50, corr_rv:0.70},
+  'liquiditat':   {ret:0.030, vol:0.01, dd:0.00, corr_rv:0.00},
+  'dividend_etf': {ret:0.060, vol:0.14, dd:0.38, corr_rv:0.75},
+  'crowdlending': {ret:0.080, vol:0.12, dd:0.25, corr_rv:0.05},
+  'metalls':      {ret:0.038, vol:0.17, dd:0.35, corr_rv:-0.08},
+  'crypto':       {ret:0.120, vol:0.70, dd:0.80, corr_rv:0.40},
+  'private_eq':   {ret:0.110, vol:0.25, dd:0.45, corr_rv:0.60},
+  'default':      {ret:0.050, vol:0.12, dd:0.25, corr_rv:0.50},
+};
+
+// Map de nom d'actiu → classe per càlcul
+function classifyActiu(nom) {
+  const n = nom.toLowerCase();
+  if(n.includes('crypto')||n.includes('btc')||n.includes('eth')||n.includes('bitcoin')) return 'crypto';
+  if(n.includes('crowdlend')||n.includes('mintos')||n.includes('october')) return 'crowdlending';
+  if(n.includes('private equity')||n.includes('private eq')||n.includes('start-up')) return 'private_eq';
+  if(n.includes('or físic')||n.includes('or etp')||n.includes('gold')) return 'or';
+  if(n.includes('metall')||n.includes('plata')||n.includes('silver')) return 'metalls';
+  if(n.includes('reits')||n.includes('reit')||n.includes('immobili')) return 'reits';
+  if(n.includes('dividend')) return 'dividend_etf';
+  if(n.includes('liquiditat')||n.includes('remunerat')||n.includes('monetari')) return 'liquiditat';
+  if(n.includes('rf curta')||n.includes('rf corta')||n.includes('rf curt')||n.includes('gov aaa')) return 'rf_curta';
+  if(n.includes('rf llarga')||n.includes('rf llar')||n.includes('treasury')) return 'rf_llarga';
+  if(n.includes('rf corp')||n.includes('corporat')) return 'rf_corp';
+  if(n.includes('rf ')||n.includes('renda fixa')||n.includes('bonos')||n.includes('bons')) return 'rf_div';
+  if(n.includes('emergent')||n.includes('emerging')) return 'rv_emergents';
+  if(n.includes('small cap')||n.includes('small')||n.includes('valor petit')) return 'rv_small';
+  if(n.includes('factor')||n.includes('value')||n.includes('quality')) return 'rv_factor';
+  if(n.includes('defensi')||n.includes('low volatil')) return 'rv_defensiva';
+  if(n.includes('rv ')||n.includes('rv g')||n.includes('msci')||n.includes('indexat')||n.includes('fons indexat')||n.includes('world')||n.includes('s&p')) return 'rv_global';
+  return 'default';
+}
+
+// ── CAPA 6: Càlcul de mètriques en temps real ──
+function calcMetriques(actius) {
+  if(!actius || actius.length === 0) return null;
+  const total = actius.reduce((s,a) => s + a.pct, 0);
+  if(total === 0) return null;
+
+  let retorn = 0, vol2 = 0, dd = 0;
+  const RF = 0.035;
+
+  actius.forEach(a => {
+    const w = a.pct / 100;
+    const d = ASSET_DATA[classifyActiu(a.nom)] || ASSET_DATA['default'];
+    retorn += w * d.ret;
+    dd     += w * d.dd;
+    // volatilitat simplificada (ignora covariàncies creuades per legibilitat)
+    vol2   += w * w * d.vol * d.vol;
+    // afegir terme de covariància amb RV global
+    actius.forEach(b => {
+      if(a.nom !== b.nom) {
+        const wb = b.pct / 100;
+        const db = ASSET_DATA[classifyActiu(b.nom)] || ASSET_DATA['default'];
+        const rho = d.corr_rv * db.corr_rv * 0.6; // correlació estimada
+        vol2 += w * wb * d.vol * db.vol * rho;
+      }
+    });
+  });
+
+  const vol = Math.max(0.005, Math.sqrt(Math.abs(vol2)));
+  const sharpe = ((retorn - RF) / vol);
+  const recovMesos = dd > 0 && retorn > 0 ? Math.ceil((dd / retorn) * 12) : 0;
+
+  // Correlació mercat (mitjana ponderada corr_rv)
+  let corrMercat = 0;
+  actius.forEach(a => {
+    const w = a.pct / 100;
+    const d = ASSET_DATA[classifyActiu(a.nom)] || ASSET_DATA['default'];
+    corrMercat += w * Math.abs(d.corr_rv);
+  });
+
+  // Horitzó mínim (basat en drawdown vs retorn)
+  let horMin = 3;
+  if(dd > 0.40) horMin = 10;
+  else if(dd > 0.30) horMin = 7;
+  else if(dd > 0.20) horMin = 5;
+  else if(dd > 0.10) horMin = 4;
+  else horMin = 3;
+
+  return {
+    drawdown:    '-' + Math.round(dd * 100) + '%',
+    recuperacio: recovMesos >= 24
+      ? Math.round(recovMesos/12) + '-' + (Math.round(recovMesos/12)+2) + ' anys'
+      : recovMesos + '-' + (recovMesos + 6) + ' m',
+    horitzo:     horMin + '+ anys',
+    volatilitat: Math.round(vol * 100) + '%',
+    sharpe:      sharpe.toFixed(2),
+    correlacio:  Math.round(corrMercat * 100) + '%',
+    mClass: {
+      drawdown:    dd > 0.35 ? 'danger' : dd > 0.20 ? 'warn' : 'good',
+      recuperacio: recovMesos > 36 ? 'warn' : recovMesos > 18 ? '' : 'good',
+      horitzo:     horMin >= 10 ? 'warn' : horMin >= 5 ? '' : 'good',
+      volatilitat: vol > 0.15 ? 'warn' : vol > 0.08 ? '' : 'good',
+      sharpe:      sharpe > 0.5 ? 'good' : sharpe > 0.3 ? '' : 'warn',
+      correlacio:  corrMercat > 0.75 ? 'warn' : corrMercat > 0.50 ? '' : 'good',
+    }
+  };
+}
+
+// ── CAPA 2 + 5: Suggeriments d'actius alternatius ──
+function calcSuggeriments(client) {
+  const s = client.scoringMods || [5,5,5,5,5,5,5];
+  const d3Horitzo = s[2] || 5;   // D3: horitzó
+  const d5Risc    = s[4] || 5;   // D5: risc financer
+  const d6Emocio  = s[5] || 5;   // D6: risc emocional
+  const d2Situacio= s[1] || 5;   // D2: situació financera
+  const capital   = parseFloat((client.perfil?.capitalInicial||'0').replace(/\./g,'').replace(/[^\d]/g,'')) || 0;
+
+  const sugs = [];
+
+  // Or / metalls — quasi sempre recomanat (>3 anys)
+  if(d3Horitzo >= 3) {
+    sugs.push({
+      id: 'or', nom: 'Or físic ETP', pct: 10, color: '#BA7517',
+      rao: "Cobertura inflació i crisi. Correlació negativa amb RV. Recomanat per horitzó >3 anys.",
+      ref: "Ray Dalio — All Weather",
+      actiu: true
+    });
+  }
+
+  // Crowdlending — horitzó >5 anys, risc moderat
+  if(d3Horitzo >= 5 && d5Risc >= 6 && d2Situacio >= 5) {
+    sugs.push({
+      id: 'crowdlending', nom: 'Crowdlending (Mintos)', pct: 5, color: '#0F6E56',
+      rao: "Retorn 6-10%, baixa correlació amb borsa. Adequat per perfils moderats amb horitzó >5 anys.",
+      ref: "Diversificació per font de retorn",
+      actiu: false
+    });
+  }
+
+  // Crypto — horitzó >7 anys, risc alt, control emocional bo
+  if(d3Horitzo >= 7 && d5Risc >= 8 && d6Emocio >= 7) {
+    sugs.push({
+      id: 'crypto', nom: 'Satèl·lit crypto (BTC/ETH)', pct: 3, color: '#534AB7',
+      rao: "Risc alt però retorn asimètric. Màx 5%. Només si control emocional alt i horitzó >7 anys.",
+      ref: "Asymmetric allocation — Kelly criterion",
+      actiu: false
+    });
+  }
+
+  // Private Equity — capital alt, horitzó molt llarg
+  if(capital >= 50000 && d3Horitzo >= 9 && d5Risc >= 7) {
+    sugs.push({
+      id: 'private_eq', nom: 'Private Equity / Start-ups', pct: 5, color: '#993556',
+      rao: "Il·liquiditat 5-10 anys compensada per retorn superior. Capital mínim 50k€ recomanat.",
+      ref: "Yale endowment model",
+      actiu: false
+    });
+  }
+
+  return sugs;
+}
+
+// ── CAPA 2: Gap analysis conductual ──
+function calcGapAnalysis(client) {
+  const s = client.scoringMods || [5,5,5,5,5,5,5];
+  const alerts = [];
+
+  const d5 = s[4], d6 = s[5], d2 = s[1], d3 = s[2], d1 = s[0];
+
+  if(d5 - d6 > 2) alerts.push({
+    tipus: 'warn',
+    msg: "Gap risc vs emocions: el client sobreestima la seva tolerància. Recomanar cartera un nivell més conservadora.",
+    ref: "Kahneman — biaix d'optimisme"
+  });
+  if(d2 < 4 && d5 > 7) alerts.push({
+    tipus: 'danger',
+    msg: "Inconsistència: situació financera feble però risc alt declarat. Override recomanat: prioritzar estabilitat.",
+    ref: "MPT — constraint frontier"
+  });
+  if(d1 >= 8 && d3 < 4) alerts.push({
+    tipus: 'warn',
+    msg: "Objectiu de renda mensual amb horitzó curt (<5a): incompatible. Revisar expectatives amb el client.",
+    ref: "Morgan Housel — playing a different game"
+  });
+
+  return alerts;
+}
+
+// ── Funció principal: actualitzar mètriques en temps real ──
+function actualitzarMetriquesTempsReal(actius) {
+  const m = calcMetriques(actius);
+  if(!m) return;
+
+  const metricLabels = {
+    drawdown:    {lbl:'Màxima caiguda',    sub:'Pitjor escenari'},
+    recuperacio: {lbl:'Temps recuperació', sub:'Per recuperar el màxim'},
+    horitzo:     {lbl:'Horitzó mínim',     sub:'Per probabilitat alta'},
+    volatilitat: {lbl:'Volatilitat anual', sub:'Moviment diari'},
+    sharpe:      {lbl:'Retorn/Risc',       sub:'Sharpe >0.5 = eficient'},
+    correlacio:  {lbl:'Correlació mercat', sub:'% que cau amb mercat'},
+  };
+
+  const metricBg    = {good:'var(--green-light)',warn:'var(--amber-light)',danger:'var(--red-light)','':'var(--gray-100)'};
+  const metricColor = {good:'var(--green)',      warn:'var(--amber)',      danger:'var(--red)',      '':'var(--gray-500)'};
+
+  const container = document.getElementById('metriques-live');
+  if(!container) return;
+
+  container.innerHTML = Object.entries(metricLabels).map(([k, ml]) => {
+    const cls = m.mClass[k] || '';
+    return `<div style="background:${metricBg[cls]};border-radius:var(--radius);padding:10px 12px">
+      <div style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">${ml.lbl}</div>
+      <div style="font-size:17px;font-weight:500;color:${metricColor[cls]};font-family:var(--font-mono)">${m[k]}</div>
+      <div style="font-size:10px;color:var(--gray-400);margin-top:2px">${ml.sub}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Renderitzar suggeriments d'alternatius ──
+function renderSuggeriments(client, actiusActuals) {
+  const sugs = calcSuggeriments(client);
+  const container = document.getElementById('alternatius-sugs');
+  if(!container || sugs.length === 0) {
+    if(container) container.style.display = 'none';
+    return;
+  }
+
+  const actiuNoms = actiusActuals.map(a => a.nom.toLowerCase());
+
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div style="font-size:10px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">
+      Suggeriments basats en el perfil
+    </div>
+    ${sugs.map(s => {
+      const jaInclòs = actiuNoms.some(n => n.includes(s.id) || n.includes(s.nom.toLowerCase().split(' ')[0]));
+      return `<div style="display:flex;justify-content:space-between;align-items:start;padding:8px 10px;background:var(--white);border:.5px solid var(--gray-200);border-radius:8px;margin-bottom:6px">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+            <span style="width:8px;height:8px;border-radius:2px;background:${s.color};flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:12px;font-weight:500;color:var(--black)">${s.nom}</span>
+            <span style="font-size:10px;font-family:var(--font-mono);color:var(--accent)">${s.pct}%</span>
+            ${jaInclòs ? '<span style="font-size:9px;padding:2px 6px;background:var(--green-light);color:var(--green);border-radius:99px">Ja inclòs</span>' : ''}
+          </div>
+          <div style="font-size:11px;color:var(--gray-500);line-height:1.4;margin-bottom:2px">${s.rao}</div>
+          <div style="font-size:10px;color:var(--gray-400);font-style:italic">${s.ref}</div>
+        </div>
+        ${!jaInclòs ? `<button onclick="afegirSuggeriment('${s.nom}',${s.pct},'${s.color}')"
+          style="margin-left:10px;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:.5px solid var(--black);background:var(--black);color:var(--white);font-family:var(--font-body);flex-shrink:0">
+          + Afegir
+        </button>` : ''}
+      </div>`;
+    }).join('')}`;
+}
+
+// ── Renderitzar alertes de gap analysis ──
+function renderGapAlerts(client) {
+  const alerts = calcGapAnalysis(client);
+  const container = document.getElementById('gap-alerts');
+  if(!container) return;
+  if(alerts.length === 0) { container.style.display = 'none'; return; }
+
+  const bgMap    = {warn:'var(--amber-light)', danger:'var(--red-light)'};
+  const colorMap = {warn:'var(--amber)',       danger:'var(--red)'};
+
+  container.style.display = 'block';
+  container.innerHTML = alerts.map(a => `
+    <div style="padding:8px 12px;background:${bgMap[a.tipus]};border-radius:8px;margin-bottom:6px">
+      <div style="font-size:12px;color:${colorMap[a.tipus]};line-height:1.5">${a.msg}</div>
+      <div style="font-size:10px;color:${colorMap[a.tipus]};opacity:.7;margin-top:2px;font-style:italic">${a.ref}</div>
+    </div>`).join('');
+}
+
+// ── afegirSuggeriment (crida des del botó dels suggeriments) ──
+function afegirSuggeriment(nom, pct, color) {
+  _carteraActius.push({nom, pct, color});
+  const c = getCurrentClient();
+  if(c) renderTabCartera(c);
+  toast('Afegit: ' + nom);
+}
+
 
 // ══════════════════════════════════════════════
 // TOAST
