@@ -599,9 +599,9 @@ function renderActius(){
       <input class="inp-sm" placeholder="Ex: Fons MSCI World" value="${a.nom}" oninput="actius[${i}].nom=this.value">
       <input class="inp-sm center" type="number" placeholder="%" min="0" max="100" value="${a.pct}" oninput="actius[${i}].pct=this.value">
       <input class="inp-sm" placeholder="Ex: Finizens" value="${a.plat}" oninput="actius[${i}].plat=this.value">
-      <button class="btn-rm" onclick="rmA(${i})" ${actius.length<=1?'disabled style="opacity:.15"':''}>×</button>
-    </div>`).join(''
-};
+      <button class="btn-rm" onclick="rmA(${i})" ${actius.length<=1?"disabled":""} style="${actius.length<=1?"opacity:.15":""}">×</button>
+    </div>`).join(''));
+}
 
 const PORTRAITS={
   estoic:'https://theboringinvestor.github.io/assessoria/portraits/estoic.png',
