@@ -493,10 +493,12 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
             <div class="tab active" onclick="switchTab(0)">Perfil</div>
             <div class="tab" onclick="switchTab(1)">Cartera</div>
             <div class="tab" onclick="switchTab(2)">Historial</div>
+            <div class="tab" onclick="switchTab(3)">Seguiment</div>
           </div>
           <div id="tab-perfil"></div>
           <div id="tab-cartera" style="display:none"></div>
           <div id="tab-historial" style="display:none"></div>
+          <div id="tab-seguiment" style="display:none"></div>
         </div>
       </div>
 
@@ -766,12 +768,13 @@ function switchTab(idx) {
 function renderTab() {
   const c = getCurrentClient();
   if (!c) return;
-  ['tab-perfil','tab-cartera','tab-historial'].forEach((id,i) => {
+  ['tab-perfil','tab-cartera','tab-historial','tab-seguiment'].forEach((id,i) => {
     document.getElementById(id).style.display = i===currentTab ? 'block' : 'none';
   });
   if (currentTab === 0) renderTabPerfil(c);
   if (currentTab === 1) renderTabCartera(c);
   if (currentTab === 2) renderTabHistorial(c);
+  if (currentTab === 3) renderTabSeguiment(c);
 }
 
 function renderTabPerfil(c) {
@@ -1889,6 +1892,359 @@ function afegirSuggeriment(nom, pct, color) {
   const c = getCurrentClient();
   if(c) renderTabCartera(c);
   toast('Afegit: ' + nom);
+}
+
+
+
+// ══════════════════════════════════════════════
+// MOTOR DCA v1.0
+// Entrada: posicions reals + cartera objectiu
+// Sortida: recomanació per CLASSE d'actiu (no producte específic)
+// ══════════════════════════════════════════════
+
+// Consells psicològics indexats per situació
+const CONSELLS_PSI = {
+  caiguda_forta: [
+    {text: "Els mercats cauen de mitjana un -10% una vegada a l'any i un -20% cada 3-4 anys. No és una anomalia, és el preu d'entrada al retorn a llarg termini.", ref: "Morgan Housel, Psicologia del Diner"},
+    {text: "Warren Buffett diu: 'Sigues temorós quan els altres són avars, i avar quan els altres són temorosos.' Una caiguda és el mercat posant les coses en oferta.", ref: "Warren Buffett, carta als accionistes 1986"},
+    {text: "La volatilitat no és risc si el teu horitzó és llarg. El risc real és vendre en el moment equivocat per por.", ref: "Howard Marks, The Most Important Thing"},
+  ],
+  sobreponderacio: [
+    {text: "Quan un actiu ha pujat molt, el seu pes a la cartera ha crescut i el risc concentrat ha augmentat. Rebalancejar no és vendre guanyadors: és mantenir el risc que vas acordar assumir.", ref: "William Bernstein, The Intelligent Asset Allocator"},
+    {text: "El rebalanceig disciplinat és la única estratègia que et fa comprar barat i vendre car de forma sistemàtica, sense necessitar cap previsió del mercat.", ref: "Vanguard Research, 2019"},
+  ],
+  infraponderacio: [
+    {text: "Quan un actiu ha caigut i el seu pes s'ha reduït, aportar-hi més és comprar a preu de descompte respecte al teu pla original. Això és disciplina, no especulació.", ref: "Michael Edleson, Value Averaging"},
+    {text: "La por a comprar el que ha caigut és el biaix de recència. El cervell interpreta 'ha baixat molt' com a 'és perillós'. La cartera objectiu et diu el contrari.", ref: "Daniel Kahneman, Thinking Fast and Slow"},
+  ],
+  cartera_ok: [
+    {text: "Una cartera equilibrada és avorrida. I l'avorriment a la inversió sol ser sinònim d'èxit. El drama és l'enemic del retorn a llarg termini.", ref: "The Boring Investor — principi fonamental"},
+    {text: "No fer res quan la cartera és al pla és una decisió activa i intel·ligent. La inacció disciplinada supera la majoria d'accions impulsives.", ref: "Morgan Housel, Psicologia del Diner"},
+  ],
+  maxim_historic: [
+    {text: "Estar en màxims històrics és normal: el 30% dels dies hàbils des de 1970 han estat màxims històrics. El mercat puja la majoria del temps.", ref: "Ben Carlson, A Wealth of Common Sense"},
+    {text: "La por als màxims histórics és un biaix cognitiu: els millors moments per invertir han estat sovint just després d'un nou màxim.", ref: "Nick Maggiulli, Just Keep Buying"},
+  ],
+  aportacio_regular: [
+    {text: "L'aportació mensual automàtica elimina la decisió emocional del 'quan invertir'. La disciplina val més que el timing perfecte.", ref: "John Bogle, The Little Book of Common Sense Investing"},
+    {text: "Invertir regularment és com fer exercici: no cal que sigui perfecte, cal que sigui consistent. La consistència bat l'excel·lència intermitent.", ref: "James Clear, Atomic Habits"},
+  ],
+};
+
+// Calcular l'estat de cada classe d'actiu (sobreponderat / infraponderat / ok)
+function calcDesviacions(posicions, carteraObjectiu) {
+  if(!posicions || !carteraObjectiu || posicions.length === 0) return [];
+
+  const totalReal = posicions.reduce((s,p) => s + (p.valorEur || 0), 0);
+  if(totalReal === 0) return [];
+
+  return carteraObjectiu.map(obj => {
+    const classe = obj.nom;
+    const pesObjectiu = obj.pct / 100;
+    const valorObjectiu = totalReal * pesObjectiu;
+
+    // Trobar posicions que corresponen a aquesta classe
+    const posClasse = posicions.filter(p =>
+      classifyActiu(p.nomActiu || p.nom || '') === classifyActiu(classe)
+      || (p.classe && p.classe === classifyActiu(classe))
+      || (p.nomActiu||'').toLowerCase().includes((classe||'').toLowerCase().split(' ')[0].toLowerCase())
+    );
+
+    const valorReal = posClasse.reduce((s,p) => s + (p.valorEur || 0), 0);
+    const pesReal   = totalReal > 0 ? valorReal / totalReal : 0;
+    const desviacio = pesReal - pesObjectiu; // positiu = sobreponderat
+    const desviPct  = pesObjectiu > 0 ? desviacio / pesObjectiu : 0;
+
+    return {
+      nom: classe,
+      color: obj.color || '#888780',
+      pesObjectiu: Math.round(pesObjectiu * 100),
+      pesReal:     Math.round(pesReal * 100 * 10) / 10,
+      valorReal:   Math.round(valorReal),
+      valorObjectiu: Math.round(valorObjectiu),
+      desviacio:   Math.round(desviacio * 100 * 10) / 10,
+      desviPct:    desviPct,
+      estat: desviPct >  0.33 ? 'sobreponderat' :
+             desviPct < -0.20 ? 'infraponderat' : 'ok',
+    };
+  });
+}
+
+// Motor DCA: calcular recomanació mensual per classes d'actiu
+function calcRecomanacioDCA(client, posicions, carteraObjectiu) {
+  const aportacio = parseFloat(
+    (client.perfil?.aportacioMensual || '0').replace(/[^\d.,]/g,'').replace(',','.')
+  ) || 0;
+
+  if(aportacio === 0 || !posicions || posicions.length === 0) return null;
+
+  const desv = calcDesviacions(posicions, carteraObjectiu);
+  const totalReal = posicions.reduce((s,p) => s + (p.valorEur||0), 0);
+
+  // Ordenar per desviació (més infraponderat primer)
+  const ordenats = [...desv].sort((a,b) => a.desviPct - b.desviPct);
+  const infraponderats = ordenats.filter(d => d.estat === 'infraponderat');
+  const sobreponderats = ordenats.filter(d => d.estat === 'sobreponderat');
+
+  // Ajust per tendència del mercat (punt 4 algoritme)
+  const scoringMods = client.scoringMods || [5,5,5,5,5,5,5];
+  const agressivitat = scoringMods[4] >= 8 ? 1.0 : scoringMods[4] >= 5 ? 0.5 : 0;
+  let aportacioAjustada = aportacio;
+
+  // Detectar tendència: si tots els actius estan per sobre del 5% del seu objectiu
+  const enMercatAlcista = desv.filter(d=>d.desviacio>3).length > desv.length * 0.6;
+  if(enMercatAlcista && agressivitat > 0) {
+    aportacioAjustada = aportacio * (1 - 0.20 * agressivitat);
+  }
+
+  // Repartir aportació entre els 1-2 actius més infraponderats
+  let distribucio = [];
+  if(infraponderats.length === 0) {
+    // Cartera equilibrada: aportar proporcionalment al pes objectiu
+    const top2 = ordenats.slice(0, 2);
+    const pesTotal = top2.reduce((s,d) => s + d.pesObjectiu, 0);
+    distribucio = top2.map(d => ({
+      nom: d.nom, color: d.color,
+      import: Math.round(aportacioAjustada * d.pesObjectiu / Math.max(pesTotal,1)),
+      motiu: 'Aportació proporcional al pes objectiu',
+      prioritat: 'normal'
+    }));
+  } else {
+    const top2Infra = infraponderats.slice(0, 2);
+    const pesTotal  = top2Infra.reduce((s,d) => s + Math.abs(d.desviacio), 0);
+    distribucio = top2Infra.map(d => ({
+      nom: d.nom, color: d.color,
+      import: Math.round(aportacioAjustada * Math.abs(d.desviacio) / Math.max(pesTotal,1)),
+      motiu: `Infraponderat ${Math.abs(d.desviacio).toFixed(1)}% respecte al pla`,
+      prioritat: 'prioritat'
+    }));
+  }
+
+  // Alertes de rebalanceig (venda)
+  const alertesVenda = sobreponderats
+    .filter(d => d.desviPct > 0.33)
+    .map(d => ({
+      nom: d.nom, color: d.color,
+      desviacio: d.desviacio,
+      accio: `Reducció suggerida de ${Math.round(d.desviacio)}% (de ${d.pesReal}% → ${d.pesObjectiu}%)`,
+      avis: 'Verificar antiguitat de les posicions abans de vendre (fiscalitat plusvàlues)'
+    }));
+
+  // Seleccionar consell psicològic
+  let tipusConsell = 'cartera_ok';
+  if(sobreponderats.length > 0) tipusConsell = 'sobreponderacio';
+  if(infraponderats.length > 0) tipusConsell = 'infraponderacio';
+  const consellsDisponibles = CONSELLS_PSI[tipusConsell] || CONSELLS_PSI['cartera_ok'];
+  const consell = consellsDisponibles[Math.floor(Math.random() * consellsDisponibles.length)];
+
+  return {
+    aportacioOriginal: aportacio,
+    aportacioAjustada: Math.round(aportacioAjustada),
+    ajustMotiu: enMercatAlcista && agressivitat > 0
+      ? `Mercat en tendència alcista: aportació reduïda ${Math.round((1-aportacioAjustada/aportacio)*100)}%`
+      : null,
+    distribucio,
+    alertesVenda,
+    desviacions: desv,
+    consell,
+    totalReal,
+    data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'})
+  };
+}
+
+// Detectar si hi ha caiguda forta (per aportació extraordinària)
+function detectarCaigudaForta(posicions) {
+  if(!posicions || posicions.length === 0) return false;
+  const amBaiguda = posicions.filter(p =>
+    p.variacio30d !== undefined && p.variacio30d < -8
+  );
+  return amBaiguda.length > posicions.length * 0.5;
+}
+
+// ── Renderitzar la pestanya Seguiment ──
+function renderTabSeguiment(c) {
+  const container = document.getElementById('tab-seguiment');
+  if(!container) return;
+
+  const posicions = c.posicions || [];
+  const carteraObj = c.carteraComposicio || [];
+  const rec = posicions.length > 0 ? calcRecomanacioDCA(c, posicions, carteraObj) : null;
+
+  const aportacio = parseFloat(
+    (c.perfil?.aportacioMensual||'0').replace(/[^\d.,]/g,'').replace(',','.')
+  ) || 0;
+
+  // Calcular desviacions si hi ha posicions
+  const desv = posicions.length > 0 && carteraObj.length > 0
+    ? calcDesviacions(posicions, carteraObj)
+    : [];
+
+  const totalReal = posicions.reduce((s,p) => s + (p.valorEur||0), 0);
+
+  container.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- KPIs superiors -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div class="proj-card" style="background:var(--gray-100);text-align:center;padding:10px">
+          <div class="proj-label">Valor total real</div>
+          <div class="proj-val" style="font-size:16px">${totalReal > 0 ? totalReal.toLocaleString('ca-ES')+'€' : '—'}</div>
+        </div>
+        <div class="proj-card" style="background:var(--gray-100);text-align:center;padding:10px">
+          <div class="proj-label">Aportació mensual</div>
+          <div class="proj-val" style="font-size:16px">${aportacio > 0 ? aportacio+'€' : '—'}</div>
+        </div>
+        <div class="proj-card" style="background:var(--gray-100);text-align:center;padding:10px">
+          <div class="proj-label">Actius seguits</div>
+          <div class="proj-val" style="font-size:16px">${posicions.length}</div>
+        </div>
+        <div class="proj-card" style="background:var(--gray-100);text-align:center;padding:10px">
+          <div class="proj-label">Alertes actives</div>
+          <div class="proj-val" style="font-size:16px;color:${(rec?.alertesVenda?.length||0)>0?'var(--amber)':'var(--green)'}">${rec?.alertesVenda?.length||0}</div>
+        </div>
+      </div>
+
+      <!-- Posicions reals -->
+      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="field-group-title" style="margin:0">Posicions reals del client</div>
+          <button onclick="afegirPosicio('${c.id}')" style="padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:.5px solid var(--gray-300);background:transparent;color:var(--gray-500);font-family:var(--font-body)">+ Afegir posició</button>
+        </div>
+        <div id="posicions-form-${c.id}" style="display:none;margin-bottom:10px;padding:10px;background:var(--gray-100);border-radius:8px">
+          <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center">
+            <input id="pos-nom" placeholder="Nom actiu (ex: Fons MSCI World)" style="padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+            <input id="pos-valor" type="number" placeholder="Valor actual (€)" style="padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-mono)">
+            <div style="display:flex;gap:6px">
+              <button onclick="desarPosicio('${c.id}')" style="padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--black);background:var(--black);color:var(--white);font-family:var(--font-body)">Desar</button>
+              <button onclick="document.getElementById('posicions-form-${c.id}').style.display='none'" style="padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--gray-200);background:transparent;color:var(--gray-500);font-family:var(--font-body)">Cancel</button>
+            </div>
+          </div>
+        </div>
+        ${posicions.length > 0 ? `
+          <table style="width:100%;border-collapse:collapse">
+            <thead><tr>
+              <th style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-bottom:1px solid var(--gray-200);text-align:left">Actiu</th>
+              <th style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-bottom:1px solid var(--gray-200);text-align:right">Valor €</th>
+              <th style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-bottom:1px solid var(--gray-200);text-align:right">Pes real</th>
+              <th style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-bottom:1px solid var(--gray-200);text-align:right">Pes obj.</th>
+              <th style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-bottom:1px solid var(--gray-200);text-align:right">Desv.</th>
+              <th style="padding:4px 8px;border-bottom:1px solid var(--gray-200)"></th>
+            </tr></thead>
+            <tbody>
+              ${desv.map((d,i) => `<tr>
+                <td style="padding:7px 8px;border-bottom:.5px solid var(--gray-100);font-size:12px;font-weight:500;color:var(--black)">
+                  <span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:${d.color};margin-right:7px"></span>${d.nom}
+                </td>
+                <td style="padding:7px 8px;border-bottom:.5px solid var(--gray-100);font-size:12px;color:var(--gray-600);text-align:right;font-family:var(--font-mono)">${d.valorReal.toLocaleString('ca-ES')}€</td>
+                <td style="padding:7px 8px;border-bottom:.5px solid var(--gray-100);font-size:12px;text-align:right;font-family:var(--font-mono);color:var(--black)">${d.pesReal}%</td>
+                <td style="padding:7px 8px;border-bottom:.5px solid var(--gray-100);font-size:12px;text-align:right;font-family:var(--font-mono);color:var(--gray-500)">${d.pesObjectiu}%</td>
+                <td style="padding:7px 8px;border-bottom:.5px solid var(--gray-100);font-size:12px;text-align:right;font-family:var(--font-mono);font-weight:500;color:${d.estat==='sobreponderat'?'var(--amber)':d.estat==='infraponderat'?'var(--accent)':'var(--green)'}">
+                  ${d.desviacio > 0 ? '+' : ''}${d.desviacio}%
+                </td>
+                <td style="padding:7px 8px;border-bottom:.5px solid var(--gray-100);text-align:center">
+                  <span style="font-size:10px;padding:2px 7px;border-radius:99px;background:${d.estat==='sobreponderat'?'var(--amber-light)':d.estat==='infraponderat'?'var(--acc-l)':'var(--green-light)'};color:${d.estat==='sobreponderat'?'var(--amber)':d.estat==='infraponderat'?'var(--accent)':'var(--green)'}">
+                    ${d.estat==='sobreponderat'?'Sobreponderat':d.estat==='infraponderat'?'Infraponderat':'Equilibrat'}
+                  </span>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>` : `<div style="color:var(--gray-400);font-size:12px;font-style:italic;padding:12px 0;text-align:center">
+            Afegeix les posicions reals del client per activar el motor DCA
+          </div>`}
+      </div>
+
+      <!-- Recomanació DCA -->
+      ${rec ? `
+      <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px">
+        <div class="field-group-title" style="margin-bottom:12px">Recomanació d'aportació — ${rec.data}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="padding:10px 12px;background:var(--gray-100);border-radius:8px">
+            <div style="font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Aportació planificada</div>
+            <div style="font-size:20px;font-weight:500;font-family:var(--font-mono);color:var(--black)">${rec.aportacioOriginal}€</div>
+          </div>
+          <div style="padding:10px 12px;background:${rec.ajustMotiu ? 'var(--amber-light)' : 'var(--green-light)'};border-radius:8px">
+            <div style="font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Aportació recomanada</div>
+            <div style="font-size:20px;font-weight:500;font-family:var(--font-mono);color:${rec.ajustMotiu ? 'var(--amber)' : 'var(--green)'}">${rec.aportacioAjustada}€</div>
+            ${rec.ajustMotiu ? `<div style="font-size:10px;color:var(--amber);margin-top:3px">${rec.ajustMotiu}</div>` : ''}
+          </div>
+        </div>
+
+        <div style="font-size:11px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">On aportar aquest mes</div>
+        ${rec.distribucio.map(d => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:${d.prioritat==='prioritat'?'var(--acc-l)':'var(--gray-100)'};border-radius:8px;margin-bottom:6px">
+            <div>
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+                <span style="width:8px;height:8px;border-radius:2px;background:${d.color};display:inline-block"></span>
+                <span style="font-size:13px;font-weight:500;color:var(--black)">${d.nom}</span>
+                ${d.prioritat==='prioritat'?'<span style="font-size:10px;padding:2px 7px;border-radius:99px;background:var(--accent);color:white">Prioritat</span>':''}
+              </div>
+              <div style="font-size:11px;color:var(--gray-500);padding-left:15px">${d.motiu}</div>
+            </div>
+            <div style="font-size:18px;font-weight:500;font-family:var(--font-mono);color:var(--accent)">${d.import}€</div>
+          </div>`).join('')}
+
+        ${rec.alertesVenda.length > 0 ? `
+          <div style="margin-top:12px;font-size:11px;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Alertes de rebalanceig</div>
+          ${rec.alertesVenda.map(a => `
+            <div style="padding:8px 12px;background:var(--amber-light);border-radius:8px;margin-bottom:6px">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+                <span style="width:8px;height:8px;border-radius:2px;background:${a.color};display:inline-block"></span>
+                <span style="font-size:12px;font-weight:500;color:var(--amber)">${a.nom} — ${a.accio}</span>
+              </div>
+              <div style="font-size:11px;color:var(--amber);opacity:.8">⚠ ${a.avis}</div>
+            </div>`).join('')}` : ''}
+      </div>
+
+      <!-- Consell psicològic -->
+      <div style="background:var(--gray-100);border-radius:var(--radius);padding:14px 16px">
+        <div class="field-group-title" style="margin-bottom:8px">Consell per a aquest moment</div>
+        <div style="font-size:13px;color:var(--black);line-height:1.7;font-style:italic;margin-bottom:6px">"${rec.consell.text}"</div>
+        <div style="font-size:11px;color:var(--gray-400)">— ${rec.consell.ref}</div>
+      </div>` : `
+      <div style="background:var(--gray-100);border-radius:var(--radius);padding:20px;text-align:center">
+        <div style="font-size:13px;color:var(--gray-500);margin-bottom:6px">Afegeix les posicions reals per activar el motor DCA</div>
+        <div style="font-size:12px;color:var(--gray-400)">El motor calcularà automàticament on aportar cada mes i si cal rebalancejar</div>
+      </div>`}
+
+      <div class="disclaimer">Les recomanacions indiquen la classe d'actiu (Renda Variable Global, Or, etc.) però no un producte específic. El client decideix el producte concret dins de cada classe. Eina d'educació financera — no és assessorament regulat MiFID II.</div>
+    </div>
+  `;
+}
+
+// Funcions auxiliars per gestionar posicions
+function afegirPosicio(clientId) {
+  const form = document.getElementById('posicions-form-' + clientId);
+  if(form) { form.style.display = form.style.display === 'none' ? 'block' : 'none'; }
+  const inp = document.getElementById('pos-nom');
+  if(inp && form.style.display === 'block') inp.focus();
+}
+
+function desarPosicio(clientId) {
+  const nom   = (document.getElementById('pos-nom')?.value || '').trim();
+  const valor = parseFloat(document.getElementById('pos-valor')?.value || '0') || 0;
+  if(!nom || valor <= 0) { toast('Nom i valor obligatoris'); return; }
+
+  const c = getCurrentClient();
+  if(!c) return;
+  if(!c.posicions) c.posicions = [];
+
+  c.posicions.push({nomActiu: nom, valorEur: valor, dataActualitzacio: new Date().toISOString().split('T')[0]});
+  saveData();
+
+  c.historial.unshift({
+    data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}),
+    titol: 'Posició afegida',
+    desc:  nom + ' — ' + valor.toLocaleString('ca-ES') + '€',
+    tipus: 'normal'
+  });
+  saveData();
+
+  document.getElementById('pos-nom').value = '';
+  document.getElementById('pos-valor').value = '';
+  document.getElementById('posicions-form-' + clientId).style.display = 'none';
+  renderTabSeguiment(c);
+  toast('Posició desada');
 }
 
 
