@@ -406,6 +406,11 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <button id="lang-ca" onclick="setLang('ca')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:white;font-family:var(--font-body);transition:all .12s">CA</button>
         <button id="lang-es" onclick="setLang('es')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-family:var(--font-body);transition:all .12s">ES</button>
       </div>
+      <div id="sync-btn" onclick="toggleSync()" title="Sincronitzar clients des de Google Sheets" style="margin-top:8px;display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+        <div id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gray-400);flex-shrink:0;transition:all .3s"></div>
+        <span id="sync-lbl" style="font-size:10px;color:rgba(255,255,255,.4);flex:1">Sync Sheets</span>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M13.5 2.5A7 7 0 0 0 2 8M2.5 13.5A7 7 0 0 0 14 8"/><path d="M2 2v4h4M14 14v-4h-4"/></svg>
+      </div>
     </div>
 
     <div class="nav">
@@ -448,13 +453,13 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)">
         <div style="font-size:9px;color:rgba(255,255,255,.25);line-height:1.5;margin-bottom:8px">
-          ${t('msg.dades_local')}<br>${t('msg.exporta')}
+          <span data-i18n="msg.dades_local">Dades guardades localment.</span><br><span data-i18n="msg.exporta">Exporta per fer còpia o canviar d'ordinador.</span>
         </div>
         <button onclick="exportarDades()" style="width:100%;padding:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:var(--font-body);margin-bottom:5px;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
           Exportar dades ↓
         </button>
         <button onclick="resetarDades()" style="width:100%;padding:6px;background:transparent;border:1px solid rgba(255,255,255,.08);border-radius:6px;color:rgba(255,255,255,.3);font-size:10px;cursor:pointer;font-family:var(--font-body);transition:all .12s" onmouseover="this.style.color='rgba(255,255,255,.5)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">
-          ${t('btn.reiniciar')}
+          <span data-i18n="btn.reiniciar">Reiniciar demo</span>
         </button>
       </div>
     </div>
@@ -469,7 +474,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <div class="topbar-title" id="topbar-title">Dashboard</div>
       </div>
       <div class="topbar-actions" id="topbar-actions">
-        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">${t('dash.nou_client')}</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')"><span data-i18n="dash.nou_client">+ Nou client</span></button>
       </div>
     </div>
 
@@ -480,19 +485,19 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
       <div class="screen active" id="screen-dashboard">
         <div class="kpi-grid" id="kpi-grid"></div>
         <div class="section-header">
-          <span class="section-title">${t('dash.tots_clients')}</span>
+          <span class="section-title"><span data-i18n="dash.tots_clients">Tots els clients</span></span>
           <span class="section-title" id="kpi-count" style="color:var(--gray-300)"></span>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>${t('col.client')}</th>
-                <th>${t('col.arquetip')}</th>
-                <th>${t('col.cartera')}</th>
-                <th>${t('col.scoring')}</th>
-                <th>${t('col.revisio')}</th>
-                <th>${t('col.estat')}</th>
+                <th><span data-i18n="col.client">Client</span></th>
+                <th><span data-i18n="col.arquetip">Arquetip</span></th>
+                <th><span data-i18n="col.cartera">Cartera</span></th>
+                <th><span data-i18n="col.scoring">Scoring</span></th>
+                <th><span data-i18n="col.revisio">Última revisió</span></th>
+                <th><span data-i18n="col.estat">Estat</span></th>
                 <th></th>
               </tr>
             </thead>
@@ -506,10 +511,10 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <div class="card" style="margin-bottom:14px">
           <div class="profile-header" id="profile-header"></div>
           <div class="tabs" id="fitxa-tabs">
-            <div class="tab active" onclick="switchTab(0)">${t('tab.perfil')}</div>
-            <div class="tab" onclick="switchTab(1)">${t('tab.cartera')}</div>
-            <div class="tab" onclick="switchTab(2)">${t('tab.historial')}</div>
-            <div class="tab" onclick="switchTab(3)">${t('tab.seguiment')}</div>
+            <div class="tab active" onclick="switchTab(0)"><span data-i18n="tab.perfil">Perfil</span></div>
+            <div class="tab" onclick="switchTab(1)"><span data-i18n="tab.cartera">Cartera</span></div>
+            <div class="tab" onclick="switchTab(2)"><span data-i18n="tab.historial">Historial</span></div>
+            <div class="tab" onclick="switchTab(3)"><span data-i18n="tab.seguiment">Seguiment</span></div>
           </div>
           <div id="tab-perfil"></div>
           <div id="tab-cartera" style="display:none"></div>
@@ -538,7 +543,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
               <div class="card-title">Pla de millora</div>
               <div id="improve-list"></div>
             </div>
-            <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveScoring()">${t('scoring.desar')}</button>
+            <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveScoring()"><span data-i18n="scoring.desar">Desar scoring al client</span></button>
           </div>
           <div>
             <div class="card">
@@ -3121,6 +3126,13 @@ function t(key) {
   return (TRANSLATIONS[LANG] && TRANSLATIONS[LANG][key]) || TRANSLATIONS['ca'][key] || key;
 }
 
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+}
+
 function setLang(lang) {
   LANG = lang;
   localStorage.setItem('tbi_lang', lang);
@@ -3134,6 +3146,7 @@ function setLang(lang) {
     return el && el.classList.contains('active');
   }) || 'dashboard';
   navigate(currentScreen, currentClientId);
+  applyTranslations();
 }
 
 function updateLangToggle() {
@@ -3456,6 +3469,173 @@ const TRANSLATIONS = {
     'disclaimer.pre_efa': 'Herramienta de educación financiera independiente. Recomendación por clase de activo, no producto específico. No es asesoramiento regulado MiFID II.',
   }
 };
+
+
+// ══════════════════════════════════════════════════════
+// SYNC GOOGLE SHEETS → DASHBOARD
+// Comprova cada 30 seg si hi ha onboardings nous
+// ══════════════════════════════════════════════════════
+
+const SHEETS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwJ4C3NiKbK3bVsigAQitWfjwOvk7779r7nAi9AhTMkqkd9dcuZvMKzlaTUsZq3pjbH/exec";
+let _syncInterval = null;
+let _lastSyncTime = null;
+let _syncEnabled  = false;
+
+function iniciarSync() {
+  _syncEnabled = true;
+  localStorage.setItem('tbi_sync', 'on');
+  comprovarPendents();
+  _syncInterval = setInterval(comprovarPendents, 30000); // cada 30s
+  updateSyncUI(true);
+  toast('Sincronització activada');
+}
+
+function aturarSync() {
+  _syncEnabled = false;
+  localStorage.setItem('tbi_sync', 'off');
+  if (_syncInterval) { clearInterval(_syncInterval); _syncInterval = null; }
+  updateSyncUI(false);
+  toast('Sincronització desactivada');
+}
+
+function updateSyncUI(active) {
+  const btn = document.getElementById('sync-btn');
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-lbl');
+  if (btn) btn.style.borderColor = active ? 'var(--green)' : 'var(--gray-300)';
+  if (dot) {
+    dot.style.background   = active ? 'var(--green)' : 'var(--gray-300)';
+    dot.style.boxShadow    = active ? '0 0 0 3px var(--green-light)' : 'none';
+  }
+  if (lbl) lbl.textContent = active
+    ? (_lastSyncTime ? 'Activa · ' + _lastSyncTime : 'Activa')
+    : 'Desactivada';
+}
+
+function comprovarPendents() {
+  if (!_syncEnabled) return;
+  fetch(SHEETS_SCRIPT_URL)
+    .then(r => r.json())
+    .then(res => {
+      _lastSyncTime = new Date().toLocaleTimeString('ca-ES', {hour:'2-digit',minute:'2-digit'});
+      updateSyncUI(true);
+      if (res.ok && res.pending && res.pending.length > 0) {
+        processarPendents(res.pending);
+      }
+    })
+    .catch(() => {
+      // Silenciós — CORS pot bloquejar, no mostrar error
+    });
+}
+
+function processarPendents(pendents) {
+  let nous = 0;
+  pendents.forEach(row => {
+    try {
+      // Reconstruir l'objecte de dades com el que envia l'onboarding
+      const respostes = (() => { try { return JSON.parse(row.respostes); } catch(e) { return {}; } })();
+      const dims = [1,2,3,4,5,6,7].map(dn => {
+        // Estimació de dims a partir del score total
+        return { dimensio: dn, sum: Math.round((parseInt(row.score)||50)/100*12), max: 12 };
+      });
+      const dades = {
+        client: {
+          nom:              row.nom || '-',
+          email:            row.email || '-',
+          capitalInicial:   row.capitalInicial || '-',
+          aportacioMensual: row.aportacioMensual || '-',
+          horitzo:          row.horitzo || '-',
+          objectiu:         row.objectiu || '-',
+        },
+        perfil: {
+          scoreTotal:      parseInt(row.score) || 0,
+          scoreMax:        84,
+          arquetip:        row.arquetip || '-',
+          carteraRecomanada: row.arquetip || '-',
+          cartLabel:       row.cartera || '-',
+          desc:            '',
+          lema:            '',
+          perDimensio:     dims,
+          respostesDetall: respostes,
+        },
+        carteraActual: {
+          actius:        (row.carteraActual||'').split(',').map(n=>n.trim()).filter(Boolean).map(n=>({nom:n,pct:'',plat:''})),
+          observacions:  '-',
+        }
+      };
+      // Importar silenciosament (sense navigate ni confirm)
+      importarOnboardingSilent(dades, row.rowIndex);
+      nous++;
+    } catch(e) {
+      console.error('Error processant pending:', e);
+    }
+  });
+  if (nous > 0) {
+    toast(nous + ' client' + (nous > 1 ? 's' : '') + ' nou' + (nous > 1 ? 's' : '') + ' sincronitzat' + (nous > 1 ? 's' : '') + ' des de Google Sheets');
+    if (document.getElementById('screen-dashboard')?.style.display !== 'none') {
+      renderDashboard();
+    }
+  }
+}
+
+function importarOnboardingSilent(dades, rowIndex) {
+  // Com importarOnboarding però sense navigate ni confirm
+  const c = dades.client, p = dades.perfil, ca = dades.carteraActual;
+  const avColors = ['av-blue','av-green','av-amber','av-red','av-gray'];
+  const existeix = clients.find(cl => cl.email && cl.email === c.email);
+  const perfil = {
+    capitalInicial: c.capitalInicial, aportacioMensual: c.aportacioMensual,
+    horitzo: c.horitzo, objectiu: c.objectiu, segment: 'Classe mitjana inversora',
+    riscFinancer:  'D5: ' + (p.perDimensio[4]?.sum||'-') + '/12',
+    riscEmocional: 'D6: ' + (p.perDimensio[5]?.sum||'-') + '/12',
+    coneixement:   'D4: ' + (p.perDimensio[3]?.sum||'-') + '/12',
+    volTolerable: '-', drawdownMax: '-',
+  };
+  const carteraComposicio = (ca.actius||[]).filter(a=>a.nom).map(a=>({nom:a.nom,pct:0,color:'#888780'}));
+  const entradaHist = {
+    data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}),
+    titol: 'Onboarding sincronitzat',
+    desc:  'Arquetip: ' + p.arquetip + ' · Score: ' + p.scoreTotal + '/' + p.scoreMax + '. Sincronitzat des de Google Sheets.',
+    tipus: 'normal'
+  };
+  if (existeix) {
+    Object.assign(existeix, {
+      arquetip: p.arquetip, perfil, carteraComposicio,
+      scoringMods: calcularScoringMods(p),
+      scoring: Math.round(p.scoreTotal / p.scoreMax * 100),
+      nota: p.arquetip + '. ' + p.desc,
+    });
+    existeix.historial.unshift(entradaHist);
+  } else {
+    const scoring = Math.round(p.scoreTotal / p.scoreMax * 100);
+    clients.push({
+      id: 'gs_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      nom: c.nom, email: c.email,
+      arquetip: p.arquetip,
+      cartera:  p.cartLabel || '-',
+      avColor:  avColors[Math.floor(Math.random() * 5)],
+      scoring:  scoring,
+      dataRevisio: new Date().toISOString().split('T')[0],
+      estat: scoring >= 60 ? 'ok' : scoring >= 35 ? 'revisio' : 'critic',
+      perfil, nota: p.arquetip + '. ' + p.desc,
+      carteraComposicio, ter: '-', liquiditat: '-',
+      projeccions: {p10:'-',p50:'-',p90:'-',totalAportat:'-'},
+      historial: [entradaHist],
+      scoringMods: calcularScoringMods(p),
+    });
+  }
+  saveData();
+  // Marcar com a processat al Sheet (via GET amb paràmetre mark)
+  fetch(SHEETS_SCRIPT_URL + '?mark=' + rowIndex).catch(() => {});
+}
+
+function toggleSync() {
+  if (_syncEnabled) {
+    aturarSync();
+  } else {
+    iniciarSync();
+  }
+}
 
 // ══════════════════════════════════════════════
 // TOAST

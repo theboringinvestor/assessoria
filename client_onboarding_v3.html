@@ -658,21 +658,14 @@ function buildResult(){
         <span style="font-size:10px;color:rgba(255,255,255,.3)">Retorn esperat ${ar.retorn}</span>
       </div>`:''}
     </div>
-    <div style="font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px">Perfil per dimensió</div>
-    <div class="result-dims">${dims.map((d,i)=>`
-      <div class="rdim">
-        <div class="rdim-bar"><div class="rdim-fill" style="height:${d.pct}%"></div></div>
-        <div class="rdim-lbl">${dlbls[i]}</div>
-      </div>`).join('')}</div>
-    <div class="radar-section">
-      <div class="radar-lbl">Perfil per dimensió</div>
-      <div class="radar-wrap"><canvas id="radarChart"></canvas></div>
-      <div class="dim-bars">${dims.map((d,i)=>`
-        <div class="dim-row">
-          <div class="dim-lbl-s">${dlbls[i]}</div>
-          <div class="dim-track"><div class="dim-fill-s" style="width:${d.pct}%"></div></div>
-          <div class="dim-val-s">${d.sum}/${d.max}</div>
-        </div>`).join('')}</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Perfil de les 7 dimensions</div>
+    <div class="radar-section" style="padding-top:0;border-top:none">
+      <div class="radar-wrap" style="max-width:320px;height:300px;margin:0 auto">
+        <canvas id="radarChart"></canvas>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:14px">
+        ${dims.map((d,i)=>'<div style="display:flex;align-items:center;gap:7px;padding:4px 0"><div style="width:'+(d.pct*0.5)+'px;max-width:50px;height:2px;background:rgba(255,255,255,0.45);border-radius:99px;flex-shrink:0"></div><span style="font-size:10px;color:rgba(255,255,255,.4);flex:1">'+dlbls[i]+'</span><span style="font-size:10px;color:rgba(255,255,255,.55);font-family:var(--fm)">'+d.sum+'/'+d.max+'</span></div>').join('')}
+      </div>
     </div>
     <div class="result-btns">
       <button class="btn-dl" onclick="descarregar()">Enviar al meu assessor →</button>
@@ -792,7 +785,7 @@ function descarregar(){
 }
 
 function enviarASheets(data){
-  const sheetsUrl = "https://script.google.com/macros/s/AKfycbw35Wwi92-DO4XF7puG2YfpthwJijO1CKNl0o7deI34CIk5U1PRop5_Mgj9hR2cmUqW/exec";
+  const sheetsUrl = "https://script.google.com/macros/s/AKfycbwJ4C3NiKbK3bVsigAQitWfjwOvk7779r7nAi9AhTMkqkd9dcuZvMKzlaTUsZq3pjbH/exec";
   const payload = {
     data: data.data,
     nom: data.client.nom,
@@ -854,9 +847,10 @@ function initRadar(){
   const dims=[1,2,3,4,5,6,7].map(dn=>{
     const qs=QS.filter(q=>q.dn===dn);
     const sum=qs.reduce((s,q)=>s+(ans[q.id]||0),0);
-    return {sum,max:qs.length*4};
+    const max=qs.length*4;
+    return {sum,max,pct:max?Math.round(sum/max*100):0};
   });
-  const dlbls=['Objectius','Situació','Horitzó','Coneixement','Risc fin.','Risc em.','Pref.'];
+  const dlbls=['Objectius','Situació','Horitzó','Coneixement','Risc fin.','Risc em.','Preferències'];
   const canvas=document.getElementById('radarChart');
   if(!canvas||typeof Chart==='undefined') return;
   if(window._radarInst) window._radarInst.destroy();
@@ -864,24 +858,58 @@ function initRadar(){
     type:'radar',
     data:{
       labels:dlbls,
-      datasets:[{
-        data:dims.map(d=>d.sum),
-        borderColor:'rgba(255,255,255,0.75)',
-        backgroundColor:'rgba(255,255,255,0.07)',
-        borderWidth:1.5,
-        pointBackgroundColor:'rgba(255,255,255,0.9)',
-        pointRadius:3,
-      }]
+      datasets:[
+        {
+          label:'El teu perfil',
+          data:dims.map(d=>d.sum),
+          borderColor:'rgba(255,255,255,0.85)',
+          backgroundColor:'rgba(255,255,255,0.09)',
+          borderWidth:2,
+          pointBackgroundColor:'rgba(255,255,255,1)',
+          pointBorderColor:'rgba(255,255,255,0.3)',
+          pointRadius:4,
+          pointHoverRadius:6,
+        },
+        {
+          label:'Màxim possible',
+          data:dims.map(d=>d.max),
+          borderColor:'rgba(255,255,255,0.1)',
+          backgroundColor:'rgba(255,255,255,0.02)',
+          borderWidth:1,
+          borderDash:[4,4],
+          pointRadius:0,
+        }
+      ]
     },
     options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:function(ctx){
+              const d=dims[ctx.dataIndex];
+              return ctx.dataset.label+': '+d.sum+'/'+d.max+' ('+d.pct+'%)';
+            }
+          }
+        }
+      },
       scales:{r:{
-        min:0,max:12,
-        ticks:{stepSize:3,color:'rgba(255,255,255,0.2)',backdropColor:'transparent',font:{size:9}},
-        grid:{color:'rgba(255,255,255,0.1)'},
-        pointLabels:{color:'rgba(255,255,255,0.35)',font:{size:10}},
-        angleLines:{color:'rgba(255,255,255,0.1)'}
+        min:0,
+        max:Math.max(...dims.map(d=>d.max)),
+        ticks:{
+          stepSize:3,
+          color:'rgba(255,255,255,0.18)',
+          backdropColor:'transparent',
+          font:{size:9}
+        },
+        grid:{color:'rgba(255,255,255,0.08)'},
+        pointLabels:{
+          color:'rgba(255,255,255,0.5)',
+          font:{size:11,weight:'500'}
+        },
+        angleLines:{color:'rgba(255,255,255,0.08)'}
       }}
     }
   });
