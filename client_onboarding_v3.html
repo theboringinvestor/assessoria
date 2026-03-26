@@ -849,7 +849,11 @@ function reiniciar(){
   if(!confirm('Vols esborrar totes les respostes i tornar a començar?')) return;
   [ans,txt].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   actius=[{nom:'',pct:'',plat:''}];
-  cur=0; 
+  cur=0;
+  render('none');
+  updateLangToggle && updateLangToggle();
+}
+
 function initRadar(){
   const sc=calcScore();
   const ar=getArquetip(sc);
@@ -922,9 +926,6 @@ function initRadar(){
       }}
     }
   });
-}
-
-render('none');
 }
 
 let toastT;
