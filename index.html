@@ -559,10 +559,10 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     <div class="form-field"><label class="form-label">Cartera assignada</label>
       <select class="form-select" id="nc-cartera">
         <option value="">— Sense definir —</option>
-        <option>I · Convicció Absoluta</option><option>II · Terreny Explorat</option>
-        <option>III · Rumb Constant</option><option>IV · Estructura Mestra</option>
-        <option>V · Cofre Fort</option><option>VI · Arxiu Viu</option>
-        <option>VII · Pedra Filosofal</option><option>VIII · Mínim Viable</option>
+        <option>I · La Catapulta</option><option>II · La Caravella</option>
+        <option>III · El Galeó</option><option>IV · La Catedral</option>
+        <option>V · La Muralla</option><option>VI · El Scriptorium</option>
+        <option>VII · L'Alambí</option><option>VIII · El Sarró</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -597,7 +597,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 // ══════════════════════════════════════════════
 // DADES INICIALS
 // ══════════════════════════════════════════════
-const CLIENTS_INICIALS = [{"id": "gm001", "nom": "Guillem Morales", "email": "guillem.morales@email.com", "arquetip": "El Tresorer", "cartera": "V · Cofre Fort", "avColor": "av-blue", "scoring": 76, "dataRevisio": "2026-03-01", "estat": "ok", "perfil": {"capitalInicial": "2.000 €", "aportacioMensual": "300 €/mes", "horitzo": "10 anys", "objectiu": "Protegir els estalvis", "segment": "Classe mitjana inversora", "riscFinancer": "Moderat (4/12)", "riscEmocional": "Baix (3/12)", "coneixement": "Iniciació (5/12)", "volTolerable": "-10%", "drawdownMax": "-15%"}, "nota": "Primera sessió 01/03/2026. Conservador real. Fons emergència insuficient. Prioritat: construir coixí abans d'augmentar RV.", "carteraComposicio": [{"nom": "RF Curta (Gov AAA)", "pct": 40, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 25, "color": "#BA7517"}, {"nom": "RV Global Defensiva", "pct": 20, "color": "#185FA5"}, {"nom": "Liquiditat (remunerat)", "pct": 10, "color": "#B4B2A9"}, {"nom": "REITs defensiu", "pct": 5, "color": "#3B6D11"}], "ter": "~0.14%", "liquiditat": "Alta", "projeccions": {"p10": "7.800€", "p50": "18.400€", "p90": "32.100€", "totalAportat": "38.000€"}, "historial": [{"data": "1 mar 2026", "titol": "Sessió inicial", "desc": "Perfil conservador confirmat. Fons emergència al 30%.", "tipus": "normal"}, {"data": "1 feb 2026", "titol": "Onboarding completat", "desc": "Arquetip: El Tresorer. Score: 38/84.", "tipus": "normal"}], "scoringMods": [4, 5, 4, 6, 3, 4, 3]}, {"id": "jv002", "nom": "Joan Vidal", "email": "joan.vidal@email.com", "arquetip": "L'Alquimista", "cartera": "VII · Pedra Filosofal", "avColor": "av-amber", "scoring": 22, "dataRevisio": "2026-02-15", "estat": "critic", "perfil": {"capitalInicial": "15.000 €", "aportacioMensual": "500 €/mes", "horitzo": "8 anys", "objectiu": "Creixement accelerat", "segment": "Classe mitjana inversora", "riscFinancer": "Alt (10/12)", "riscEmocional": "Molt baix (2/12)", "coneixement": "Mig (7/12)", "volTolerable": "-30%", "drawdownMax": "-40%"}, "nota": "Alta energia sense procés. Historial de decisions impulsives. Necessita la valvula de vapor del 10% satellit.", "carteraComposicio": [{"nom": "RV Global Core", "pct": 50, "color": "#185FA5"}, {"nom": "RF Curta", "pct": 20, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 10, "color": "#BA7517"}, {"nom": "REITs", "pct": 10, "color": "#3B6D11"}, {"nom": "Satellit lliure", "pct": 10, "color": "#534AB7"}], "ter": "~0.20%", "liquiditat": "Mitja", "projeccions": {"p10": "18.200€", "p50": "52.400€", "p90": "98.700€", "totalAportat": "63.000€"}, "historial": [{"data": "15 feb 2026", "titol": "Alerta: decisió impulsiva", "desc": "Ha comprat 3.000 en crypto sense consultar.", "tipus": "alert"}, {"data": "1 feb 2026", "titol": "Sessió inicial", "desc": "Perfil Alquimista confirmat. Risc emocional molt baix.", "tipus": "normal"}], "scoringMods": [2, 1, 2, 5, 8, 1, 3]}, {"id": "ap003", "nom": "Anna Puig", "email": "anna.puig@email.com", "arquetip": "El Navegant", "cartera": "III · Rumb Constant", "avColor": "av-green", "scoring": 68, "dataRevisio": "2026-03-10", "estat": "revisio", "perfil": {"capitalInicial": "25.000 €", "aportacioMensual": "400 €/mes", "horitzo": "15 anys", "objectiu": "Acumular capital jubilació", "segment": "Classe mitjana inversora", "riscFinancer": "Mig-Alt (8/12)", "riscEmocional": "Mig (6/12)", "coneixement": "Mig (7/12)", "volTolerable": "-20%", "drawdownMax": "-25%"}, "nota": "Bon perfil equilibrat. Dividend ETF funciona com a ancoratge psicologic. Pendent revisar REITs.", "carteraComposicio": [{"nom": "RV Global Indexada", "pct": 45, "color": "#185FA5"}, {"nom": "Dividend ETF Global", "pct": 20, "color": "#3B6D11"}, {"nom": "RF Diversificada", "pct": 20, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 10, "color": "#BA7517"}, {"nom": "REITs Global", "pct": 5, "color": "#639922"}], "ter": "~0.15%", "liquiditat": "Mitja-Alta", "projeccions": {"p10": "28.400€", "p50": "78.600€", "p90": "142.300€", "totalAportat": "97.000€"}, "historial": [{"data": "10 mar 2026", "titol": "Revisió trimestral", "desc": "Cartera alineada. REITs a vigilar.", "tipus": "normal"}, {"data": "1 gen 2026", "titol": "Sessió inicial", "desc": "Arquetip El Navegant. Score: 52/84.", "tipus": "normal"}], "scoringMods": [7, 6, 8, 7, 7, 6, 7]}, {"id": "nb004", "nom": "Client Nou", "email": "", "arquetip": "Pendent", "cartera": "Pendent qüestionari", "avColor": "av-gray", "scoring": 0, "dataRevisio": "—", "estat": "ok", "perfil": {"capitalInicial": "—", "aportacioMensual": "—", "horitzo": "—", "objectiu": "—", "segment": "—", "riscFinancer": "—", "riscEmocional": "—", "coneixement": "—", "volTolerable": "—", "drawdownMax": "—"}, "nota": "Primer contacte pendent. Enviar qüestionari d'onboarding.", "carteraComposicio": [], "ter": "—", "liquiditat": "—", "projeccions": {"p10": "—", "p50": "—", "p90": "—", "totalAportat": "—"}, "historial": [{"data": "20 mar 2026", "titol": "Alta al sistema", "desc": "Client creat. Pendent sessió inicial.", "tipus": "normal"}], "scoringMods": [5, 5, 5, 5, 5, 5, 5]}];
+const CLIENTS_INICIALS = [{"id": "gm001", "nom": "Guillem Morales", "email": "guillem.morales@email.com", "arquetip": "El Tresorer", "cartera": "V · La Muralla", "avColor": "av-blue", "scoring": 76, "dataRevisio": "2026-03-01", "estat": "ok", "perfil": {"capitalInicial": "2.000 €", "aportacioMensual": "300 €/mes", "horitzo": "10 anys", "objectiu": "Protegir els estalvis", "segment": "Classe mitjana inversora", "riscFinancer": "Moderat (4/12)", "riscEmocional": "Baix (3/12)", "coneixement": "Iniciació (5/12)", "volTolerable": "-10%", "drawdownMax": "-15%"}, "nota": "Primera sessió 01/03/2026. Conservador real. Fons emergència insuficient. Prioritat: construir coixí abans d'augmentar RV.", "carteraComposicio": [{"nom": "RF Curta (Gov AAA)", "pct": 40, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 25, "color": "#BA7517"}, {"nom": "RV Global Defensiva", "pct": 20, "color": "#185FA5"}, {"nom": "Liquiditat (remunerat)", "pct": 10, "color": "#B4B2A9"}, {"nom": "REITs defensiu", "pct": 5, "color": "#3B6D11"}], "ter": "~0.14%", "liquiditat": "Alta", "projeccions": {"p10": "7.800€", "p50": "18.400€", "p90": "32.100€", "totalAportat": "38.000€"}, "historial": [{"data": "1 mar 2026", "titol": "Sessió inicial", "desc": "Perfil conservador confirmat. Fons emergència al 30%.", "tipus": "normal"}, {"data": "1 feb 2026", "titol": "Onboarding completat", "desc": "Arquetip: El Tresorer. Score: 38/84.", "tipus": "normal"}], "scoringMods": [4, 5, 4, 6, 3, 4, 3]}, {"id": "jv002", "nom": "Joan Vidal", "email": "joan.vidal@email.com", "arquetip": "L'Alquimista", "cartera": "VII · L'Alambí", "avColor": "av-amber", "scoring": 22, "dataRevisio": "2026-02-15", "estat": "critic", "perfil": {"capitalInicial": "15.000 €", "aportacioMensual": "500 €/mes", "horitzo": "8 anys", "objectiu": "Creixement accelerat", "segment": "Classe mitjana inversora", "riscFinancer": "Alt (10/12)", "riscEmocional": "Molt baix (2/12)", "coneixement": "Mig (7/12)", "volTolerable": "-30%", "drawdownMax": "-40%"}, "nota": "Alta energia sense procés. Historial de decisions impulsives. Necessita la valvula de vapor del 10% satellit.", "carteraComposicio": [{"nom": "RV Global Core", "pct": 50, "color": "#185FA5"}, {"nom": "RF Curta", "pct": 20, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 10, "color": "#BA7517"}, {"nom": "REITs", "pct": 10, "color": "#3B6D11"}, {"nom": "Satellit lliure", "pct": 10, "color": "#534AB7"}], "ter": "~0.20%", "liquiditat": "Mitja", "projeccions": {"p10": "18.200€", "p50": "52.400€", "p90": "98.700€", "totalAportat": "63.000€"}, "historial": [{"data": "15 feb 2026", "titol": "Alerta: decisió impulsiva", "desc": "Ha comprat 3.000 en crypto sense consultar.", "tipus": "alert"}, {"data": "1 feb 2026", "titol": "Sessió inicial", "desc": "Perfil Alquimista confirmat. Risc emocional molt baix.", "tipus": "normal"}], "scoringMods": [2, 1, 2, 5, 8, 1, 3]}, {"id": "ap003", "nom": "Anna Puig", "email": "anna.puig@email.com", "arquetip": "El Navegant", "cartera": "III · El Galeó", "avColor": "av-green", "scoring": 68, "dataRevisio": "2026-03-10", "estat": "revisio", "perfil": {"capitalInicial": "25.000 €", "aportacioMensual": "400 €/mes", "horitzo": "15 anys", "objectiu": "Acumular capital jubilació", "segment": "Classe mitjana inversora", "riscFinancer": "Mig-Alt (8/12)", "riscEmocional": "Mig (6/12)", "coneixement": "Mig (7/12)", "volTolerable": "-20%", "drawdownMax": "-25%"}, "nota": "Bon perfil equilibrat. Dividend ETF funciona com a ancoratge psicologic. Pendent revisar REITs.", "carteraComposicio": [{"nom": "RV Global Indexada", "pct": 45, "color": "#185FA5"}, {"nom": "Dividend ETF Global", "pct": 20, "color": "#3B6D11"}, {"nom": "RF Diversificada", "pct": 20, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 10, "color": "#BA7517"}, {"nom": "REITs Global", "pct": 5, "color": "#639922"}], "ter": "~0.15%", "liquiditat": "Mitja-Alta", "projeccions": {"p10": "28.400€", "p50": "78.600€", "p90": "142.300€", "totalAportat": "97.000€"}, "historial": [{"data": "10 mar 2026", "titol": "Revisió trimestral", "desc": "Cartera alineada. REITs a vigilar.", "tipus": "normal"}, {"data": "1 gen 2026", "titol": "Sessió inicial", "desc": "Arquetip El Navegant. Score: 52/84.", "tipus": "normal"}], "scoringMods": [7, 6, 8, 7, 7, 6, 7]}, {"id": "nb004", "nom": "Client Nou", "email": "", "arquetip": "Pendent", "cartera": "Pendent qüestionari", "avColor": "av-gray", "scoring": 0, "dataRevisio": "-", "estat": "ok", "perfil": {"capitalInicial": "-", "aportacioMensual": "-", "horitzo": "-", "objectiu": "-", "segment": "-", "riscFinancer": "-", "riscEmocional": "-", "coneixement": "-", "volTolerable": "-", "drawdownMax": "-"}, "nota": "Primer contacte pendent. Enviar qüestionari d'onboarding.", "carteraComposicio": [], "ter": "-", "liquiditat": "-", "projeccions": {"p10": "-", "p50": "-", "p90": "-", "totalAportat": "-"}, "historial": [{"data": "20 mar 2026", "titol": "Alta al sistema", "desc": "Client creat. Pendent sessió inicial.", "tipus": "normal"}], "scoringMods": [5, 5, 5, 5, 5, 5, 5]}];
 
 const MODULES = [
   {id:'s1', label:'S1 · Costos', weight:.20, color:'#E24B4A'},
@@ -716,17 +716,17 @@ function renderDashboard() {
       }[c.estat] || '';
       const scoreDisplay = c.scoring !== null
         ? `<div class="score-cell"><div class="score-track"><div class="score-fill" style="width:${scorePct}%;background:${scoreColor}"></div></div><span class="score-num" style="color:${scoreColor}">${c.scoring}</span></div>`
-        : '<span style="color:var(--gray-300);font-size:11px">—</span>';
+        : '<span style="color:var(--gray-300);font-size:11px">-</span>';
       const dataDisplay = c.dataRevisio
         ? new Date(c.dataRevisio).toLocaleDateString('ca-ES', {day:'numeric',month:'short',year:'numeric'})
-        : '—';
+        : '-';
       return `<tr class="clickable" onclick="navigate('fitxa','${c.id}')">
         <td><div style="display:flex;align-items:center;gap:10px">
           <div class="av ${c.avColor}">${c.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
-          <div><div style="font-weight:500;color:var(--black)">${c.nom}</div><div style="font-size:10px;color:var(--gray-400)">${c.email||'—'}</div></div>
+          <div><div style="font-weight:500;color:var(--black)">${c.nom}</div><div style="font-size:10px;color:var(--gray-400)">${c.email||'-'}</div></div>
         </div></td>
-        <td><span class="badge ${c.arquetip==='—'?'badge-gray':'badge-blue'}">${c.arquetip}</span></td>
-        <td style="color:${c.cartera==='—'?'var(--gray-300)':'var(--gray-700)'}"><span style="font-size:11px">${c.cartera}</span></td>
+        <td><span class="badge ${c.arquetip==='-'?'badge-gray':'badge-blue'}">${c.arquetip}</span></td>
+        <td style="color:${c.cartera==='-'?'var(--gray-300)':'var(--gray-700)'}"><span style="font-size:11px">${c.cartera}</span></td>
         <td>${scoreDisplay}</td>
         <td style="color:var(--gray-400);font-size:11px">${dataDisplay}</td>
         <td>${estatBadge}</td>
@@ -752,7 +752,7 @@ function renderFitxa() {
       <div class="profile-arch">${c.arquetip} &nbsp;·&nbsp; ${c.cartera}</div>
     </div>
     <div class="profile-score">
-      <div class="profile-score-num" style="color:${scoreColor}">${c.scoring !== null ? c.scoring : '—'}<span style="font-size:14px;font-weight:400;color:var(--gray-400)">/100</span></div>
+      <div class="profile-score-num" style="color:${scoreColor}">${c.scoring !== null ? c.scoring : '-'}<span style="font-size:14px;font-weight:400;color:var(--gray-400)">/100</span></div>
       <div class="profile-score-label">Scoring actual</div>
     </div>
   `;
@@ -803,7 +803,51 @@ function renderTabPerfil(c) {
     </div>
     <div class="nota-box">
       <div class="nota-label">Nota de l'assessor</div>
-      <div class="nota-text">${c.nota}</div>
+      <textarea style="width:100%;padding:8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body);min-height:70px;resize:vertical;line-height:1.5" id="nota-edit" oninput="getCurrentClient().nota=this.value;saveData()">${c.nota||''}</textarea>
+    </div>
+    <div class="nota-box" style="margin-top:10px">
+      <div class="nota-label" style="margin-bottom:8px">Propera reunió planificada</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+        <div>
+          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Data i hora</div>
+          <input type="datetime-local" id="reunio-data" value="${c.properaReunio&&c.properaReunio.data||''}"
+            onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body)">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Format</div>
+          <select id="reunio-format" onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body)">
+            <option value="">- Selecciona -</option>
+            <option value="Presencial" ${c.properaReunio&&c.properaReunio.format==='Presencial'?'selected':''}>Presencial</option>
+            <option value="Videollamada" ${c.properaReunio&&c.properaReunio.format==='Videollamada'?'selected':''}>Videollamada</option>
+            <option value="Telèfon" ${c.properaReunio&&c.properaReunio.format==='Telèfon'?'selected':''}>Telèfon</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+        <div>
+          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Tema</div>
+          <select id="reunio-tema" onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body)">
+            <option value="">- Selecciona -</option>
+            <option value="Primera sessió" ${c.properaReunio&&c.properaReunio.tema==='Primera sessió'?'selected':''}>Primera sessió</option>
+            <option value="Seguiment trimestral" ${c.properaReunio&&c.properaReunio.tema==='Seguiment trimestral'?'selected':''}>Seguiment trimestral</option>
+            <option value="Revisió cartera" ${c.properaReunio&&c.properaReunio.tema==='Revisió cartera'?'selected':''}>Revisió cartera</option>
+            <option value="Nou actiu" ${c.properaReunio&&c.properaReunio.tema==='Nou actiu'?'selected':''}>Nou actiu</option>
+            <option value="Dubte client" ${c.properaReunio&&c.properaReunio.tema==='Dubte client'?'selected':''}>Dubte client</option>
+            <option value="Tancament" ${c.properaReunio&&c.properaReunio.tema==='Tancament'?'selected':''}>Tancament</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Lloc / Enllaç</div>
+          <input id="reunio-lloc" placeholder="Ex: Google Meet, Cafè Central..." value="${c.properaReunio&&c.properaReunio.lloc||''}"
+            oninput="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body)">
+        </div>
+      </div>
+      ${(()=>{
+        if(!c.properaReunio||!c.properaReunio.data) return '';
+        const d = new Date(c.properaReunio.data).toLocaleDateString('ca-ES',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
+        const tema = c.properaReunio.tema ? ' · '+c.properaReunio.tema : '';
+        return '<div style="font-size:11px;color:var(--accent);padding:6px 8px;background:var(--acc-l);border-radius:6px;display:flex;justify-content:space-between;align-items:center"><span>'+d+tema+'</span><button onclick=\"esborrarReunio()\" style=\"background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;font-family:var(--font-body)\">Esborrar</button></div>';
+      })()}
     </div>
   `;
 }
@@ -864,23 +908,25 @@ function renderTabCartera(c) {
 
   const metricsHTML = mData ? Object.entries(metricLabels).map(([k,ml]) => {
     const cls = (mData.mClass||{})[k] || '';
-    return `<div style="background:${metricBg[cls]};border-radius:var(--radius);padding:10px 12px">
-      <div style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">${ml.lbl}</div>
-      <div style="font-size:17px;font-weight:500;color:${metricColor[cls]};font-family:var(--font-mono)">${mData[k]||'—'}</div>
-      <div style="font-size:10px;color:var(--gray-400);margin-top:2px">${ml.sub}</div>
-    </div>`;
+    const bg = metricBg[cls]; const col = metricColor[cls]; const val = mData[k]||'-';
+    return '<div style="background:'+bg+';border-radius:var(--radius);padding:10px 12px">'+
+      '<div style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">'+ml.lbl+'</div>'+
+      '<div style="font-size:17px;font-weight:500;color:'+col+';font-family:var(--font-mono)">'+val+'</div>'+
+      '<div style="font-size:10px;color:var(--gray-400);margin-top:2px">'+ml.sub+'</div>'+
+    '</div>';
   }).join('') : '';
 
   const allocsHTML = _carteraActius.length
-    ? _carteraActius.map((a,i) => `
-      <div style="display:grid;grid-template-columns:1fr 48px 1fr 24px;gap:8px;align-items:center;padding:7px 0;border-bottom:.5px solid var(--gray-200)">
-        <div style="font-size:12px;font-weight:500;color:var(--black)">${a.nom}</div>
-        <div id="pct-${i}" style="font-size:12px;font-family:var(--font-mono);color:var(--accent);text-align:right">${a.pct}%</div>
-        <input type="range" min="0" max="100" step="1" value="${a.pct}"
-          style="width:100%" oninput="updateCarteraActiu(${i},+this.value)">
-        <button onclick="removeCarteraActiu(${i})" style="background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:15px;line-height:1;padding:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-400)'">×</button>
-      </div>`).join('')
-    : `<div style="color:var(--gray-400);font-size:12px;font-style:italic;padding:12px 0">Cartera pendent de definir</div>`;
+    ? _carteraActius.map((a,i) => {
+      const row = '<div style="display:grid;grid-template-columns:1fr 48px 1fr 24px;gap:8px;align-items:center;padding:7px 0;border-bottom:.5px solid var(--gray-200)">'
+        +'<div style="font-size:12px;font-weight:500;color:var(--black)">'+a.nom+'</div>'
+        +'<div id="pct-'+i+'" style="font-size:12px;font-family:var(--font-mono);color:var(--accent);text-align:right">'+a.pct+'%</div>'
+        +'<input type="range" min="0" max="100" step="1" value="'+a.pct+'" style="width:100%" oninput="updateCarteraActiu('+i+',+this.value)">'
+        +'<button onclick="removeCarteraActiu('+i+')" style="background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:15px;line-height:1;padding:0" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--gray-400)\'">x</button>'
+        +'</div>';
+      return row;
+    }).join('')
+    : '<div style="color:var(--gray-400);font-size:12px;font-style:italic;padding:12px 0">Cartera pendent de definir</div>';
 
   const total = _carteraActius.reduce((s,a) => s+a.pct, 0);
   const totalColor = total===100 ? 'var(--green)' : 'var(--red)';
@@ -915,7 +961,7 @@ function renderTabCartera(c) {
 
     <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div class="field-group-title" style="margin:0">Ajustar pesos — mètriques en temps real</div>
+        <div class="field-group-title" style="margin:0">Ajustar pesos - mètriques en temps real</div>
         <button onclick="toggleAfegirActiu()" style="padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:.5px solid var(--gray-300);background:transparent;color:var(--gray-500);font-family:var(--font-body)">+ Afegir actiu</button>
       </div>
       <div id="nou-actiu-form" style="display:none;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
@@ -963,7 +1009,7 @@ function renderCarteraChart() {
   if(leg) leg.innerHTML = _carteraActius.map(a=>`
     <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--gray-500)">
       <span style="width:8px;height:8px;border-radius:2px;background:${a.color||'#888780'};flex-shrink:0;display:inline-block"></span>
-      ${a.nom} — ${a.pct}%
+      ${a.nom} - ${a.pct}%
     </div>`).join('');
 }
 
@@ -1130,7 +1176,7 @@ function updateScoring() {
     const desc = improveDescs[m.id][m.score<=3?0:m.score<=6?1:2];
     return `<div class="improve-item" style="background:${bg}">
       <div class="improve-num" style="background:${tc};color:#fff">${i+1}</div>
-      <div class="improve-text">${m.label} — ${m.score}/10<div class="improve-sub">${desc}</div></div>
+      <div class="improve-text">${m.label} - ${m.score}/10<div class="improve-sub">${desc}</div></div>
     </div>`;
   }).join('');
 
@@ -1200,15 +1246,15 @@ function crearClient() {
   const nou = {
     id: 'c_' + Date.now(),
     nom, email: document.getElementById('nc-email').value.trim(),
-    arquetip: document.getElementById('nc-arquetip').value || '—',
-    cartera: document.getElementById('nc-cartera').value || '—',
+    arquetip: document.getElementById('nc-arquetip').value || '-',
+    cartera: document.getElementById('nc-cartera').value || '-',
     avColor: 'av-gray', scoring: null,
     dataRevisio: new Date().toISOString().split('T')[0],
     estat: 'nou',
-    perfil: { capitalInicial:'—', aportacioMensual:'—', horitzo:'—', objectiu:'—', segment:'—', riscFinancer:'—', riscEmocional:'—', coneixement:'—', volTolerable:'—', drawdownMax:'—' },
+    perfil: { capitalInicial:'-', aportacioMensual:'-', horitzo:'-', objectiu:'-', segment:'-', riscFinancer:'-', riscEmocional:'-', coneixement:'-', volTolerable:'-', drawdownMax:'-' },
     nota: 'Client nou. Pendent de sessió inicial i qüestionari de les 7 dimensions.',
-    carteraComposicio: [], ter:'—', liquiditat:'—',
-    projeccions: {p10:'—', p50:'—', p90:'—', totalAportat:'—'},
+    carteraComposicio: [], ter:'-', liquiditat:'-',
+    projeccions: {p10:'-', p50:'-', p90:'-', totalAportat:'-'},
     historial: [{data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}), titol:'Client creat', desc:'Expedient creat. Pendent de sessió inicial.', tipus:'pendent'}],
     scoringMods: [5,5,5,5,5,5,5]
   };
@@ -1261,7 +1307,7 @@ function exportarDades() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  toast('Dades exportades correctament — ' + clients.length + ' clients');
+  toast('Dades exportades correctament - ' + clients.length + ' clients');
 }
 
 function importarDades() {
@@ -1306,16 +1352,16 @@ function importarOnboarding(dades) {
   const perfil = {
     capitalInicial: c.capitalInicial, aportacioMensual: c.aportacioMensual,
     horitzo: c.horitzo, objectiu: c.objectiu, segment: 'Classe mitjana inversora',
-    riscFinancer: `D5: ${p.perDimensio[4]?.sum||'—'}/12`,
-    riscEmocional: `D6: ${p.perDimensio[5]?.sum||'—'}/12`,
-    coneixement: `D4: ${p.perDimensio[3]?.sum||'—'}/12`,
-    volTolerable: '—', drawdownMax: '—'
+    riscFinancer: `D5: ${p.perDimensio[4]?.sum||'-'}/12`,
+    riscEmocional: `D6: ${p.perDimensio[5]?.sum||'-'}/12`,
+    coneixement: `D4: ${p.perDimensio[3]?.sum||'-'}/12`,
+    volTolerable: '-', drawdownMax: '-'
   };
   const carteraComposicio = (ca.actius||[]).filter(a=>a.nom).map(a=>({nom:a.nom,pct:parseFloat(a.pct)||0,color:'#888780'}));
   const entradaHist = {
     data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}),
     titol: 'Onboarding completat', 
-    desc: `Arquetip: ${p.arquetip} · Score: ${p.scoreTotal}/${p.scoreMax}. Actius declarats: ${carteraComposicio.length}. ${ca.observacions&&ca.observacions!=='—'?'Obs: '+ca.observacions:''}`,
+    desc: `Arquetip: ${p.arquetip} · Score: ${p.scoreTotal}/${p.scoreMax}. Actius declarats: ${carteraComposicio.length}. ${ca.observacions&&ca.observacions!=='-'?'Obs: '+ca.observacions:''}`,
     tipus: 'normal'
   };
   if (existeix) {
@@ -1328,10 +1374,10 @@ function importarOnboarding(dades) {
   } else {
     const nou = {
       id:'c_'+Date.now(), nom:c.nom, email:c.email, arquetip:p.arquetip,
-      cartera:p.carteraRecomanada||'—', avColor:avColors[Math.floor(Math.random()*5)],
+      cartera:p.carteraRecomanada||'-', avColor:avColors[Math.floor(Math.random()*5)],
       scoring:Math.round(p.scoreTotal/p.scoreMax*100), dataRevisio:new Date().toISOString().split('T')[0],
       estat:'ok', perfil, nota:`${p.arquetip}. ${p.desc}`, carteraComposicio,
-      ter:'—', liquiditat:'—', projeccions:{p10:'—',p50:'—',p90:'—',totalAportat:'—'},
+      ter:'-', liquiditat:'-', projeccions:{p10:'-',p50:'-',p90:'-',totalAportat:'-'},
       historial:[entradaHist], scoringMods:calcularScoringMods(p)
     };
     clients.push(nou); saveData(); currentClientId = nou.id;
@@ -1436,7 +1482,7 @@ function generarInforme() {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Informe — ${c.nom}</title>
+<title>Informe - ${c.nom}</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--black:#0A0A0A;--white:#FAFAF8;--g100:#F4F3F0;--g200:#E8E6E1;--g400:#9A9690;--g500:#6B6762;--accent:#1B3A6B;--fd:'Playfair Display',Georgia,serif;--fb:'DM Sans',system-ui,sans-serif;--fm:'DM Mono',monospace}
@@ -1508,12 +1554,12 @@ td:first-child{color:var(--black);font-weight:500}
     <div>
       <div style="font-size:10px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Client</div>
       <div class="client-name">${c.nom}</div>
-      <div class="client-email">${c.email || '—'}</div>
+      <div class="client-email">${c.email || '-'}</div>
       <div class="client-data">
-        <div class="datum"><div class="lbl">Capital inicial</div><div class="val">${c.perfil?.capitalInicial || '—'}</div></div>
-        <div class="datum"><div class="lbl">Aportació mensual</div><div class="val">${c.perfil?.aportacioMensual || '—'}</div></div>
-        <div class="datum"><div class="lbl">Horitzó</div><div class="val">${c.perfil?.horitzo || '—'}</div></div>
-        <div class="datum"><div class="lbl">Objectiu</div><div class="val">${c.perfil?.objectiu || '—'}</div></div>
+        <div class="datum"><div class="lbl">Capital inicial</div><div class="val">${c.perfil?.capitalInicial || '-'}</div></div>
+        <div class="datum"><div class="lbl">Aportació mensual</div><div class="val">${c.perfil?.aportacioMensual || '-'}</div></div>
+        <div class="datum"><div class="lbl">Horitzó</div><div class="val">${c.perfil?.horitzo || '-'}</div></div>
+        <div class="datum"><div class="lbl">Objectiu</div><div class="val">${c.perfil?.objectiu || '-'}</div></div>
       </div>
     </div>
     <div class="arquetip-box">
@@ -1557,11 +1603,11 @@ td:first-child{color:var(--black);font-weight:500}
   <div class="section">
     <div class="section-title">Projecció Montecarlo (escenaris a 10 anys)</div>
     <div class="kpi-row">
-      <div class="kpi" style="background:#FDF0F0"><div class="lbl" style="color:#8B1A1A">Pessimista P10</div><div class="val" style="color:#8B1A1A">${c.projeccions?.p10 || '—'}</div></div>
-      <div class="kpi" style="background:#EBF0FA"><div class="lbl" style="color:#1B3A6B">Equilibrat P50</div><div class="val" style="color:#1B3A6B">${c.projeccions?.p50 || '—'}</div></div>
-      <div class="kpi" style="background:#EAF3DE"><div class="lbl" style="color:#1A5C3A">Optimista P90</div><div class="val" style="color:#1A5C3A">${c.projeccions?.p90 || '—'}</div></div>
+      <div class="kpi" style="background:#FDF0F0"><div class="lbl" style="color:#8B1A1A">Pessimista P10</div><div class="val" style="color:#8B1A1A">${c.projeccions?.p10 || '-'}</div></div>
+      <div class="kpi" style="background:#EBF0FA"><div class="lbl" style="color:#1B3A6B">Equilibrat P50</div><div class="val" style="color:#1B3A6B">${c.projeccions?.p50 || '-'}</div></div>
+      <div class="kpi" style="background:#EAF3DE"><div class="lbl" style="color:#1A5C3A">Optimista P90</div><div class="val" style="color:#1A5C3A">${c.projeccions?.p90 || '-'}</div></div>
     </div>
-    <div style="font-size:10px;color:#9A9690;font-style:italic">Total aportat estimat: ${c.projeccions?.totalAportat || '—'}. Rendiments passats no garanteixen resultats futurs.</div>
+    <div style="font-size:10px;color:#9A9690;font-style:italic">Total aportat estimat: ${c.projeccions?.totalAportat || '-'}. Rendiments passats no garanteixen resultats futurs.</div>
   </div>
 
   ${c.nota ? `<div class="section">
@@ -1575,7 +1621,7 @@ td:first-child{color:var(--black);font-weight:500}
   </div>
 
   <div class="disclaimer">
-    <strong>Avís legal:</strong> Aquest informe és el resultat d'una eina d'anàlisi i educació financera independent. No constitueix assessorament d'inversió regulat en els termes de la Directiva MiFID II ni recomanació personalitzada d'inversió. Les projeccions es basen en models estadístics i no garanteixen resultats futurs. Cada inversor ha de valorar la seva situació personal amb un professional regulat i autoritzat. Guillem Puig està en procés d'obtenció de la certificació EFA (European Financial Advisor) — examen juny 2026.
+    <strong>Avís legal:</strong> Aquest informe és el resultat d'una eina d'anàlisi i educació financera independent. No constitueix assessorament d'inversió regulat en els termes de la Directiva MiFID II ni recomanació personalitzada d'inversió. Les projeccions es basen en models estadístics i no garanteixen resultats futurs. Cada inversor ha de valorar la seva situació personal amb un professional regulat i autoritzat. Guillem Puig està en procés d'obtenció de la certificació EFA (European Financial Advisor) - examen juny 2026.
   </div>
 
   <div class="footer">
@@ -1591,7 +1637,7 @@ td:first-child{color:var(--black);font-weight:500}
   const win = window.open('', '_blank');
   win.document.write(html);
   win.document.close();
-  toast('Informe generat — usa Imprimir/PDF per guardar-lo');
+  toast('Informe generat - usa Imprimir/PDF per guardar-lo');
 }
 
 // ══════════════════════════════════════════════
@@ -1732,17 +1778,17 @@ function calcSuggeriments(client) {
 
   const sugs = [];
 
-  // Or / metalls — quasi sempre recomanat (>3 anys)
+  // Or / metalls - quasi sempre recomanat (>3 anys)
   if(d3Horitzo >= 3) {
     sugs.push({
       id: 'or', nom: 'Or físic ETP', pct: 10, color: '#BA7517',
       rao: "Cobertura inflació i crisi. Correlació negativa amb RV. Recomanat per horitzó >3 anys.",
-      ref: "Ray Dalio — All Weather",
+      ref: "Ray Dalio - All Weather",
       actiu: true
     });
   }
 
-  // Crowdlending — horitzó >5 anys, risc moderat
+  // Crowdlending - horitzó >5 anys, risc moderat
   if(d3Horitzo >= 5 && d5Risc >= 6 && d2Situacio >= 5) {
     sugs.push({
       id: 'crowdlending', nom: 'Crowdlending (Mintos)', pct: 5, color: '#0F6E56',
@@ -1752,17 +1798,17 @@ function calcSuggeriments(client) {
     });
   }
 
-  // Crypto — horitzó >7 anys, risc alt, control emocional bo
+  // Crypto - horitzó >7 anys, risc alt, control emocional bo
   if(d3Horitzo >= 7 && d5Risc >= 8 && d6Emocio >= 7) {
     sugs.push({
       id: 'crypto', nom: 'Satèl·lit crypto (BTC/ETH)', pct: 3, color: '#534AB7',
       rao: "Risc alt però retorn asimètric. Màx 5%. Només si control emocional alt i horitzó >7 anys.",
-      ref: "Asymmetric allocation — Kelly criterion",
+      ref: "Asymmetric allocation - Kelly criterion",
       actiu: false
     });
   }
 
-  // Private Equity — capital alt, horitzó molt llarg
+  // Private Equity - capital alt, horitzó molt llarg
   if(capital >= 50000 && d3Horitzo >= 9 && d5Risc >= 7) {
     sugs.push({
       id: 'private_eq', nom: 'Private Equity / Start-ups', pct: 5, color: '#993556',
@@ -1785,17 +1831,17 @@ function calcGapAnalysis(client) {
   if(d5 - d6 > 2) alerts.push({
     tipus: 'warn',
     msg: "Gap risc vs emocions: el client sobreestima la seva tolerància. Recomanar cartera un nivell més conservadora.",
-    ref: "Kahneman — biaix d'optimisme"
+    ref: "Kahneman - biaix d'optimisme"
   });
   if(d2 < 4 && d5 > 7) alerts.push({
     tipus: 'danger',
     msg: "Inconsistència: situació financera feble però risc alt declarat. Override recomanat: prioritzar estabilitat.",
-    ref: "MPT — constraint frontier"
+    ref: "MPT - constraint frontier"
   });
   if(d1 >= 8 && d3 < 4) alerts.push({
     tipus: 'warn',
     msg: "Objectiu de renda mensual amb horitzó curt (<5a): incompatible. Revisar expectatives amb el client.",
-    ref: "Morgan Housel — playing a different game"
+    ref: "Morgan Housel - playing a different game"
   });
 
   return alerts;
@@ -1918,7 +1964,7 @@ const CONSELLS_PSI = {
     {text: "La por a comprar el que ha caigut és el biaix de recència. El cervell interpreta 'ha baixat molt' com a 'és perillós'. La cartera objectiu et diu el contrari.", ref: "Daniel Kahneman, Thinking Fast and Slow"},
   ],
   cartera_ok: [
-    {text: "Una cartera equilibrada és avorrida. I l'avorriment a la inversió sol ser sinònim d'èxit. El drama és l'enemic del retorn a llarg termini.", ref: "The Boring Investor — principi fonamental"},
+    {text: "Una cartera equilibrada és avorrida. I l'avorriment a la inversió sol ser sinònim d'èxit. El drama és l'enemic del retorn a llarg termini.", ref: "The Boring Investor - principi fonamental"},
     {text: "No fer res quan la cartera és al pla és una decisió activa i intel·ligent. La inacció disciplinada supera la majoria d'accions impulsives.", ref: "Morgan Housel, Psicologia del Diner"},
   ],
   maxim_historic: [
@@ -2088,11 +2134,11 @@ function renderTabSeguiment(c) {
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
         <div class="proj-card" style="background:var(--gray-100);text-align:center;padding:10px">
           <div class="proj-label">Valor total real</div>
-          <div class="proj-val" style="font-size:16px">${totalReal > 0 ? totalReal.toLocaleString('ca-ES')+'€' : '—'}</div>
+          <div class="proj-val" style="font-size:16px">${totalReal > 0 ? totalReal.toLocaleString('ca-ES')+'€' : '-'}</div>
         </div>
         <div class="proj-card" style="background:var(--gray-100);text-align:center;padding:10px">
           <div class="proj-label">Aportació mensual</div>
-          <div class="proj-val" style="font-size:16px">${aportacio > 0 ? aportacio+'€' : '—'}</div>
+          <div class="proj-val" style="font-size:16px">${aportacio > 0 ? aportacio+'€' : '-'}</div>
         </div>
         <div class="proj-card" style="background:var(--gray-100);text-align:center;padding:10px">
           <div class="proj-label">Actius seguits</div>
@@ -2111,9 +2157,31 @@ function renderTabSeguiment(c) {
           <button onclick="afegirPosicio('${c.id}')" style="padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:.5px solid var(--gray-300);background:transparent;color:var(--gray-500);font-family:var(--font-body)">+ Afegir posició</button>
         </div>
         <div id="posicions-form-${c.id}" style="display:none;margin-bottom:10px;padding:10px;background:var(--gray-100);border-radius:8px">
-          <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center">
-            <input id="pos-nom" placeholder="Nom actiu (ex: Fons MSCI World)" style="padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
-            <input id="pos-valor" type="number" placeholder="Valor actual (€)" style="padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-mono)">
+          <div style="display:grid;grid-template-columns:1fr 1fr 100px auto;gap:8px;align-items:center;flex-wrap:wrap">
+            <select id="pos-categoria" style="padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+              <option value="">- Categoria -</option>
+              <option value="RV Global">RV Global</option>
+              <option value="RV Emergents">RV Emergents</option>
+              <option value="RV Small Cap">RV Small Cap</option>
+              <option value="RV Defensiva">RV Defensiva</option>
+              <option value="RF Curta Gov">RF Curta Gov</option>
+              <option value="RF Llarga Gov">RF Llarga Gov</option>
+              <option value="RF Corporativa">RF Corporativa</option>
+              <option value="RF Diversificada">RF Diversificada</option>
+              <option value="Dividend ETF">Dividend ETF</option>
+              <option value="Or físic ETP">Or físic ETP</option>
+              <option value="Plata / Metalls">Plata / Metalls</option>
+              <option value="REITs Global">REITs Global</option>
+              <option value="Liquiditat / Monetari">Liquiditat / Monetari</option>
+              <option value="Compte remunerat">Compte remunerat</option>
+              <option value="Crowdlending">Crowdlending</option>
+              <option value="Crypto BTC/ETH">Crypto BTC/ETH</option>
+              <option value="Private Equity">Private Equity</option>
+              <option value="Pla de pensions">Pla de pensions</option>
+              <option value="Altre">Altre (especificar)</option>
+            </select>
+            <input id="pos-nom" placeholder="Nom/Plataforma (ex: Finizens)" style="padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+            <input id="pos-valor" type="number" placeholder="Valor (€)" style="padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-mono)">
             <div style="display:flex;gap:6px">
               <button onclick="desarPosicio('${c.id}')" style="padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--black);background:var(--black);color:var(--white);font-family:var(--font-body)">Desar</button>
               <button onclick="document.getElementById('posicions-form-${c.id}').style.display='none'" style="padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--gray-200);background:transparent;color:var(--gray-500);font-family:var(--font-body)">Cancel</button>
@@ -2156,7 +2224,7 @@ function renderTabSeguiment(c) {
       <!-- Recomanació DCA -->
       ${rec ? `
       <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px">
-        <div class="field-group-title" style="margin-bottom:12px">Recomanació d'aportació — ${rec.data}</div>
+        <div class="field-group-title" style="margin-bottom:12px">Recomanació d'aportació - ${rec.data}</div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
           <div style="padding:10px 12px;background:var(--gray-100);border-radius:8px">
@@ -2190,7 +2258,7 @@ function renderTabSeguiment(c) {
             <div style="padding:8px 12px;background:var(--amber-light);border-radius:8px;margin-bottom:6px">
               <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
                 <span style="width:8px;height:8px;border-radius:2px;background:${a.color};display:inline-block"></span>
-                <span style="font-size:12px;font-weight:500;color:var(--amber)">${a.nom} — ${a.accio}</span>
+                <span style="font-size:12px;font-weight:500;color:var(--amber)">${a.nom} - ${a.accio}</span>
               </div>
               <div style="font-size:11px;color:var(--amber);opacity:.8">⚠ ${a.avis}</div>
             </div>`).join('')}` : ''}
@@ -2200,14 +2268,14 @@ function renderTabSeguiment(c) {
       <div style="background:var(--gray-100);border-radius:var(--radius);padding:14px 16px">
         <div class="field-group-title" style="margin-bottom:8px">Consell per a aquest moment</div>
         <div style="font-size:13px;color:var(--black);line-height:1.7;font-style:italic;margin-bottom:6px">"${rec.consell.text}"</div>
-        <div style="font-size:11px;color:var(--gray-400)">— ${rec.consell.ref}</div>
+        <div style="font-size:11px;color:var(--gray-400)">- ${rec.consell.ref}</div>
       </div>` : `
       <div style="background:var(--gray-100);border-radius:var(--radius);padding:20px;text-align:center">
         <div style="font-size:13px;color:var(--gray-500);margin-bottom:6px">Afegeix les posicions reals per activar el motor DCA</div>
         <div style="font-size:12px;color:var(--gray-400)">El motor calcularà automàticament on aportar cada mes i si cal rebalancejar</div>
       </div>`}
 
-      <div class="disclaimer">Les recomanacions indiquen la classe d'actiu (Renda Variable Global, Or, etc.) però no un producte específic. El client decideix el producte concret dins de cada classe. Eina d'educació financera — no és assessorament regulat MiFID II.</div>
+      <div class="disclaimer">Les recomanacions indiquen la classe d'actiu (Renda Variable Global, Or, etc.) però no un producte específic. El client decideix el producte concret dins de cada classe. Eina d'educació financera - no és assessorament regulat MiFID II.</div>
     </div>
   `;
 }
@@ -2221,21 +2289,24 @@ function afegirPosicio(clientId) {
 }
 
 function desarPosicio(clientId) {
+  const catEl = document.getElementById('pos-categoria');
+  const cat   = catEl ? catEl.value : '';
   const nom   = (document.getElementById('pos-nom')?.value || '').trim();
   const valor = parseFloat(document.getElementById('pos-valor')?.value || '0') || 0;
-  if(!nom || valor <= 0) { toast('Nom i valor obligatoris'); return; }
+  const nomFinal = cat && cat !== 'Altre' ? cat + (nom ? ' (' + nom + ')' : '') : nom;
+  if(!nomFinal || valor <= 0) { toast('Categoria i valor obligatoris'); return; }
 
   const c = getCurrentClient();
   if(!c) return;
   if(!c.posicions) c.posicions = [];
 
-  c.posicions.push({nomActiu: nom, valorEur: valor, dataActualitzacio: new Date().toISOString().split('T')[0]});
+  c.posicions.push({nomActiu: nomFinal, classe: cat, valorEur: valor, dataActualitzacio: new Date().toISOString().split('T')[0]});
   saveData();
 
   c.historial.unshift({
     data: new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}),
     titol: 'Posició afegida',
-    desc:  nom + ' — ' + valor.toLocaleString('ca-ES') + '€',
+    desc:  nom + ' - ' + valor.toLocaleString('ca-ES') + '€',
     tipus: 'normal'
   });
   saveData();
@@ -2248,6 +2319,53 @@ function desarPosicio(clientId) {
 }
 
 
+
+function desarReunio() {
+  const c = getCurrentClient();
+  if(!c) return;
+  const data   = document.getElementById('reunio-data')?.value || '';
+  const format = document.getElementById('reunio-format')?.value || '';
+  const tema   = document.getElementById('reunio-tema')?.value || '';
+  const lloc   = document.getElementById('reunio-lloc')?.value.trim() || '';
+  if(!data) { toast('Cal seleccionar una data'); return; }
+  c.properaReunio = {data, format, tema, lloc};
+  saveData();
+  toast('Reunió desada');
+  renderTab();
+}
+
+function esborrarReunio() {
+  const c = getCurrentClient();
+  if(!c) return;
+  delete c.properaReunio;
+  saveData();
+  toast('Reunió esborrada');
+  renderTab();
+}
+
+function actualitzarReunio() {
+  const c = getCurrentClient();
+  if(!c) return;
+  const data   = document.getElementById('reunio-data')?.value || '';
+  const format = document.getElementById('reunio-format')?.value || '';
+  const tema   = document.getElementById('reunio-tema')?.value || '';
+  const lloc   = document.getElementById('reunio-lloc')?.value.trim() || '';
+  if(data) {
+    c.properaReunio = {data, format, tema, lloc};
+  } else {
+    delete c.properaReunio;
+  }
+  saveData();
+}
+
+function esborrarReunio() {
+  const c = getCurrentClient();
+  if(!c) return;
+  delete c.properaReunio;
+  saveData();
+  renderTab();
+  toast('Reunió esborrada');
+}
 // ══════════════════════════════════════════════
 // TOAST
 // ══════════════════════════════════════════════
