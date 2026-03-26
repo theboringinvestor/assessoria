@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Boring Investor — Assessoria</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root {
@@ -33,6 +33,9 @@
   --radius: 8px;
   --radius-lg: 12px;
   --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --acc-l: #EBF0FA;
+  --gray-600: #4A4845;
+  --font-serif: 'Playfair Display', Georgia, serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -399,6 +402,10 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         </div>
       </div>
       <div class="logo-sub">Assessoria Financera · MVP 2026</div>
+      <div style="display:flex;gap:5px;margin-top:8px">
+        <button id="lang-ca" onclick="setLang('ca')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:white;font-family:var(--font-body);transition:all .12s">CA</button>
+        <button id="lang-es" onclick="setLang('es')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-family:var(--font-body);transition:all .12s">ES</button>
+      </div>
     </div>
 
     <div class="nav">
@@ -419,6 +426,15 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         Scoring
       </div>
 
+      <div class="nav-section">Assessoria</div>
+      <div class="nav-item" id="nav-serveis" onclick="navigate('serveis')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M5 3V2M11 3V2M1 7h14"/></svg>
+        Serveis i tarifes
+      </div>
+      <div class="nav-item" id="nav-quisoc" onclick="navigate('quisoc')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zM2 13s1-4 6-4 6 4 6 4"/><path d="M11 6l1.5 1.5M12.5 4.5l1 1"/></svg>
+        Qui soc
+      </div>
 
     </div>
 
@@ -432,13 +448,13 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)">
         <div style="font-size:9px;color:rgba(255,255,255,.25);line-height:1.5;margin-bottom:8px">
-          Dades guardades localment.<br>Exporta per fer còpia o canviar d'ordinador.
+          ${t('msg.dades_local')}<br>${t('msg.exporta')}
         </div>
         <button onclick="exportarDades()" style="width:100%;padding:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:var(--font-body);margin-bottom:5px;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
           Exportar dades ↓
         </button>
         <button onclick="resetarDades()" style="width:100%;padding:6px;background:transparent;border:1px solid rgba(255,255,255,.08);border-radius:6px;color:rgba(255,255,255,.3);font-size:10px;cursor:pointer;font-family:var(--font-body);transition:all .12s" onmouseover="this.style.color='rgba(255,255,255,.5)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">
-          Reiniciar demo
+          ${t('btn.reiniciar')}
         </button>
       </div>
     </div>
@@ -453,7 +469,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <div class="topbar-title" id="topbar-title">Dashboard</div>
       </div>
       <div class="topbar-actions" id="topbar-actions">
-        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">+ Nou client</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">${t('dash.nou_client')}</button>
       </div>
     </div>
 
@@ -464,19 +480,19 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
       <div class="screen active" id="screen-dashboard">
         <div class="kpi-grid" id="kpi-grid"></div>
         <div class="section-header">
-          <span class="section-title">Tots els clients</span>
+          <span class="section-title">${t('dash.tots_clients')}</span>
           <span class="section-title" id="kpi-count" style="color:var(--gray-300)"></span>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Client</th>
-                <th>Arquetip</th>
-                <th>Cartera</th>
-                <th>Scoring</th>
-                <th>Última revisió</th>
-                <th>Estat</th>
+                <th>${t('col.client')}</th>
+                <th>${t('col.arquetip')}</th>
+                <th>${t('col.cartera')}</th>
+                <th>${t('col.scoring')}</th>
+                <th>${t('col.revisio')}</th>
+                <th>${t('col.estat')}</th>
                 <th></th>
               </tr>
             </thead>
@@ -490,10 +506,10 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <div class="card" style="margin-bottom:14px">
           <div class="profile-header" id="profile-header"></div>
           <div class="tabs" id="fitxa-tabs">
-            <div class="tab active" onclick="switchTab(0)">Perfil</div>
-            <div class="tab" onclick="switchTab(1)">Cartera</div>
-            <div class="tab" onclick="switchTab(2)">Historial</div>
-            <div class="tab" onclick="switchTab(3)">Seguiment</div>
+            <div class="tab active" onclick="switchTab(0)">${t('tab.perfil')}</div>
+            <div class="tab" onclick="switchTab(1)">${t('tab.cartera')}</div>
+            <div class="tab" onclick="switchTab(2)">${t('tab.historial')}</div>
+            <div class="tab" onclick="switchTab(3)">${t('tab.seguiment')}</div>
           </div>
           <div id="tab-perfil"></div>
           <div id="tab-cartera" style="display:none"></div>
@@ -522,7 +538,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
               <div class="card-title">Pla de millora</div>
               <div id="improve-list"></div>
             </div>
-            <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveScoring()">Desar scoring al client</button>
+            <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveScoring()">${t('scoring.desar')}</button>
           </div>
           <div>
             <div class="card">
@@ -540,6 +556,17 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     </div>
   </div>
 </div>
+
+      <!-- ════ P4 SERVEIS ════ -->
+      <div class="screen" id="screen-serveis" style="display:none">
+        <div id="serveis-content"></div>
+      </div>
+
+      <!-- ════ P5 QUI SOC ════ -->
+      <div class="screen" id="screen-quisoc" style="display:none">
+        <div id="quisoc-content"></div>
+      </div>
+
 
 <!-- ── MODALS ── -->
 <div class="modal-bg" id="modal-nou-client">
@@ -617,7 +644,7 @@ let currentClientId = null;
 let currentTab = 0;
 let radarChart = null;
 
-const DATA_VERSION = '2.0';
+const DATA_VERSION = '2.1';
 
 function loadData() {
   const savedVersion = localStorage.getItem('tbi_data_version');
@@ -653,29 +680,37 @@ function navigate(screen, clientId) {
   const topbarActions = document.getElementById('topbar-actions');
 
   if (screen === 'dashboard') {
-    topbarTitle.textContent = 'Dashboard';
+    topbarTitle.textContent = t('nav.dashboard');
     topbarActions.innerHTML = `
-      <button class="btn btn-sm" onclick="importarDades()" title="Importar backup o perfil onboarding d'un client">Importar ↑</button>
-      <button class="btn btn-sm" onclick="exportarDades()" title="Descarregar totes les dades en JSON">Exportar dades</button>
+      <button class="btn btn-sm" onclick="importarDades()" title="Importar backup o perfil onboarding d'un client">${t('dash.importar')}</button>
+      <button class="btn btn-sm" onclick="exportarDades()" title="Descarregar totes les dades en JSON">${t('dash.exportar')}</button>
       <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">+ Nou client</button>
     `;
     renderDashboard();
   } else if (screen === 'fitxa') {
     const c = getCurrentClient();
-    topbarTitle.textContent = c ? c.nom : 'Fitxa client';
+    topbarTitle.textContent = c ? c.nom : t('nav.fitxa');
     topbarActions.innerHTML = `
       <button class="btn btn-sm" onclick="navigate('dashboard')">← Dashboard</button>
       <button class="btn btn-sm" onclick="navigate('scoring', currentClientId)">Scoring ↗</button>
-      <button class="btn btn-sm btn-primary" onclick="generarInforme()">Generar informe ↓</button>
+      <button class="btn btn-sm btn-primary" onclick="generarInforme()">${t('btn.informe')}</button>
     `;
     renderFitxa();
   } else if (screen === 'scoring') {
     const c = getCurrentClient();
-    topbarTitle.textContent = 'Scoring · ' + (c ? c.nom : 'Diagnòstic');
+    topbarTitle.textContent = t('nav.scoring') + ' · ' + (c ? c.nom : '');
     topbarActions.innerHTML = `
       <button class="btn btn-sm" onclick="navigate('fitxa', currentClientId)">← Fitxa</button>
     `;
     renderScoring();
+  } else if (screen === 'serveis') {
+    topbarTitle.textContent = t('nav.serveis');
+    topbarActions.innerHTML = '';
+    renderServeis();
+  } else if (screen === 'quisoc') {
+    topbarTitle.textContent = t('nav.quisoc');
+    topbarActions.innerHTML = '';
+    renderQuiSoc();
   }
 }
 
@@ -690,10 +725,759 @@ function renderDashboard() {
   const critics = clients.filter(c => c.estat === 'critic').length;
 
   document.getElementById('kpi-grid').innerHTML = `
-    <div class="kpi"><div class="kpi-label">Clients actius</div><div class="kpi-value">${total}</div><div class="kpi-sub">MVP · objectiu 20</div></div>
-    <div class="kpi"><div class="kpi-label">Scoring mitjà</div><div class="kpi-value accent">${scoringMig}/100</div><div class="kpi-sub">Cartera global</div></div>
-    <div class="kpi"><div class="kpi-label">Revisions pendents</div><div class="kpi-value ${pendents>0?'amber':''}">${pendents}</div><div class="kpi-sub">Revisió anual deguda</div></div>
-    <div class="kpi"><div class="kpi-label">Alertes crítiques</div><div class="kpi-value ${critics>0?'red':''}">${critics}</div><div class="kpi-sub">Scoring &lt;30</div></div>
+    <div class="kpi"><div class="kpi-label">${t('dash.clients_actius')}</div><div class="kpi-value">${total}</div><div class="kpi-sub">${t('dash.objectiu')}</div></div>
+    <div class="kpi"><div class="kpi-label">${t('dash.scoring_mitja')}</div><div class="kpi-value accent">${scoringMig}/100</div><div class="kpi-sub">${t('dash.cartera_global')}</div></div>
+    <div class="kpi"><div class="kpi-label">${t('dash.revisions')}</div><div class="kpi-value ${pendents>0?'amber':''}">${pendents}</div><div class="kpi-sub">${t('dash.revisio_anual')}</div></div>
+    <div class="kpi"><div class="kpi-label">${t('dash.alertes')}</div><div class="kpi-value ${critics>0?'red':''}">${critics}</div><div class="kpi-sub">${t('dash.scoring_baix')}</div></div>
+  `;
+
+  const badge = document.getElementById('nav-alert-badge');
+  if (critics > 0) { badge.textContent = critics; badge.style.display = 'block'; }
+  else badge.style.display = 'none';
+
+  document.getElementById('kpi-count').textContent = total + ' client' + (total !== 1 ? 's' : '');
+
+  const tbody = document.getElementById('clients-tbody');
+  tbody.innerHTML = [...clients]
+    .sort((a,b) => (a.scoring||999) - (b.scoring||999))
+    .map(c => {
+      const scorePct = c.scoring !== null ? c.scoring : 50;
+      const scoreColor = c.scoring === null ? '#C8C5BE' : c.scoring>=70?'#1A5C3A':c.scoring>=50?'#1B3A6B':c.scoring>=30?'#7A4A00':'#8B1A1A';
+      const estatBadge = {
+        'ok':      '<span class="badge badge-green">'+t('estat.ok')+'</span>',
+        'revisio': '<span class="badge badge-amber">'+t('estat.revisio')+'</span>',
+        'critic':  '<span class="badge badge-red">'+t('estat.critic')+'</span>',
+      };
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Boring Investor — Assessoria</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --black: #0A0A0A;
+  --white: #FAFAF8;
+  --gray-100: #F4F3F0;
+  --gray-200: #E8E6E1;
+  --gray-300: #C8C5BE;
+  --gray-400: #9A9690;
+  --gray-500: #6B6762;
+  --gray-700: #3A3835;
+  --accent: #1B3A6B;
+  --accent-light: #EBF0FA;
+  --accent-mid: #4A7CC7;
+  --green: #1A5C3A;
+  --green-light: #EAF3DE;
+  --amber: #7A4A00;
+  --amber-light: #FEF5E7;
+  --red: #8B1A1A;
+  --red-light: #FDF0F0;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+  --sidebar-w: 220px;
+  --topbar-h: 56px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --acc-l: #EBF0FA;
+  --gray-600: #4A4845;
+  --font-serif: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--gray-100);
+  color: var(--black);
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LAYOUT ── */
+.app { display: flex; height: 100vh; }
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--black);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  z-index: 10;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.logo-wrap {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.logo-symbol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.logo-box {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--white);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-face {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+
+.logo-colon { display: flex; flex-direction: column; gap: 5px; position: absolute; left: 0; top: 2px; }
+.logo-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--white); }
+.logo-dash { width: 7px; height: 2px; background: var(--white); position: absolute; left: 6px; top: 10px; }
+.logo-pipe { width: 2px; height: 16px; background: var(--white); position: absolute; right: 0; top: 3px; }
+
+.logo-text { font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--white); letter-spacing: -.2px; }
+.logo-sub { font-size: 10px; color: rgba(255,255,255,.4); letter-spacing: .02em; font-weight: 300; }
+
+.nav { padding: 12px 0; flex: 1; }
+.nav-section { padding: 8px 18px 4px; font-size: 9px; font-weight: 500; color: rgba(255,255,255,.25); letter-spacing: .1em; text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px; cursor: pointer;
+  color: rgba(255,255,255,.55); font-size: 12px; font-weight: 400;
+  border-left: 2px solid transparent;
+  transition: all .12s;
+  user-select: none;
+}
+.nav-item:hover { color: rgba(255,255,255,.9); background: rgba(255,255,255,.04); }
+.nav-item.active { color: var(--white); border-left-color: var(--white); background: rgba(255,255,255,.07); }
+.nav-item.disabled { opacity: .3; cursor: default; }
+.nav-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.nav-badge { font-size: 9px; padding: 1px 5px; border-radius: 99px; background: rgba(255,255,255,.1); color: rgba(255,255,255,.4); margin-left: auto; }
+
+.sidebar-bottom {
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.user-row { display: flex; align-items: center; gap: 10px; }
+.user-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; color: var(--white);
+  flex-shrink: 0;
+}
+.user-name { font-size: 12px; color: var(--white); font-weight: 400; }
+.user-role { font-size: 10px; color: rgba(255,255,255,.35); }
+
+/* ── TOPBAR ── */
+.topbar {
+  height: var(--topbar-h);
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center;
+  padding: 0 24px;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.topbar-breadcrumb { font-size: 11px; color: var(--gray-400); display: flex; align-items: center; gap: 6px; }
+.topbar-breadcrumb span { cursor: pointer; transition: color .1s; }
+.topbar-breadcrumb span:hover { color: var(--accent); }
+.topbar-breadcrumb .sep { color: var(--gray-300); }
+.topbar-breadcrumb .current { color: var(--gray-700); font-weight: 500; }
+.topbar-title { font-family: var(--font-display); font-size: 17px; font-weight: 400; color: var(--black); letter-spacing: -.3px; }
+.topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 7px 14px; border-radius: var(--radius);
+  font-size: 12px; font-family: var(--font-body); font-weight: 400;
+  cursor: pointer; border: 1px solid var(--gray-200);
+  background: var(--white); color: var(--gray-700);
+  transition: all .12s; white-space: nowrap;
+}
+.btn:hover { background: var(--gray-100); border-color: var(--gray-300); }
+.btn:active { transform: scale(.98); }
+.btn-primary {
+  background: var(--black); border-color: var(--black); color: var(--white);
+}
+.btn-primary:hover { background: var(--gray-700); border-color: var(--gray-700); }
+.btn-sm { padding: 5px 11px; font-size: 11px; }
+.btn-danger { border-color: #F09595; color: var(--red); }
+.btn-danger:hover { background: var(--red-light); }
+
+/* ── CONTENT ── */
+.content {
+  flex: 1; overflow-y: auto; padding: 24px;
+  background: var(--gray-100);
+}
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ── KPI ROW ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi {
+  background: var(--white); border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200); padding: 16px;
+  box-shadow: var(--shadow);
+}
+.kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--gray-400); margin-bottom: 6px; font-weight: 500; }
+.kpi-value { font-family: var(--font-mono); font-size: 24px; font-weight: 500; color: var(--black); letter-spacing: -.5px; line-height: 1; }
+.kpi-sub { font-size: 10px; color: var(--gray-400); margin-top: 4px; }
+.kpi-value.accent { color: var(--accent); }
+.kpi-value.amber { color: var(--amber); }
+.kpi-value.red { color: var(--red); }
+.kpi-value.green { color: var(--green); }
+
+/* ── SECTION HEADER ── */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-title { font-size: 11px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: .07em; }
+
+/* ── TABLE ── */
+.table-wrap { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); overflow: hidden; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 10px 16px; font-size: 10px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; letter-spacing: .07em; border-bottom: 1px solid var(--gray-200); background: var(--gray-100); }
+td { padding: 12px 16px; border-bottom: 1px solid var(--gray-200); font-size: 12px; color: var(--gray-700); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr.clickable { cursor: pointer; transition: background .1s; }
+tr.clickable:hover td { background: var(--gray-100); }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 500; white-space: nowrap; }
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-blue { background: var(--accent-light); color: var(--accent); }
+.badge-gray { background: var(--gray-200); color: var(--gray-500); }
+
+/* ── AVATAR ── */
+.av { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+.av-blue { background: var(--accent-light); color: var(--accent); }
+.av-amber { background: var(--amber-light); color: var(--amber); }
+.av-red { background: var(--red-light); color: var(--red); }
+.av-green { background: var(--green-light); color: var(--green); }
+.av-gray { background: var(--gray-200); color: var(--gray-500); }
+
+/* ── SCORE BAR ── */
+.score-cell { display: flex; align-items: center; gap: 8px; }
+.score-track { width: 56px; height: 4px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 99px; }
+.score-num { font-family: var(--font-mono); font-size: 12px; font-weight: 500; min-width: 28px; }
+
+/* ── CARD ── */
+.card { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); padding: 18px 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.card-title { font-size: 11px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-200); }
+
+/* ── PROFILE HEADER ── */
+.profile-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+.profile-av { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; flex-shrink: 0; }
+.profile-name { font-family: var(--font-display); font-size: 20px; font-weight: 400; color: var(--black); letter-spacing: -.3px; }
+.profile-arch { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.profile-score { margin-left: auto; text-align: right; }
+.profile-score-num { font-family: var(--font-mono); font-size: 32px; font-weight: 500; line-height: 1; }
+.profile-score-label { font-size: 10px; color: var(--gray-400); margin-top: 2px; text-align: right; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gray-200); margin-bottom: 18px; }
+.tab { padding: 9px 16px; font-size: 12px; cursor: pointer; color: var(--gray-400); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .1s; font-weight: 400; }
+.tab:hover { color: var(--gray-700); }
+.tab.active { color: var(--black); border-bottom-color: var(--black); font-weight: 500; }
+
+/* ── PANEL DE CAMP ── */
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-group-title { font-size: 10px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 2px; }
+.field-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--gray-200); }
+.field-row:last-child { border-bottom: none; }
+.field-label { font-size: 11px; color: var(--gray-500); }
+.field-val { font-size: 12px; font-weight: 500; color: var(--black); }
+.field-val.accent { color: var(--accent); }
+.field-val.red { color: var(--red); }
+.field-val.green { color: var(--green); }
+.field-val.amber { color: var(--amber); }
+
+/* ── NOTA ASSESSOR ── */
+.nota-box { background: var(--accent-light); border-radius: var(--radius); padding: 10px 14px; margin-top: 12px; }
+.nota-label { font-size: 10px; font-weight: 500; color: var(--accent); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .06em; }
+.nota-text { font-size: 12px; color: var(--accent); line-height: 1.5; font-style: italic; }
+
+/* ── ALLOC BARS ── */
+.alloc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.alloc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.alloc-name { font-size: 11px; color: var(--gray-500); flex: 1; }
+.alloc-track { flex: 2; height: 4px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+.alloc-fill { height: 100%; border-radius: 99px; }
+.alloc-pct { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--black); min-width: 32px; text-align: right; }
+
+/* ── PROJECTION BOX ── */
+.proj-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.proj-card { border-radius: var(--radius); padding: 10px; text-align: center; }
+.proj-label { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+.proj-val { font-family: var(--font-mono); font-size: 16px; font-weight: 500; }
+.proj-sub { font-size: 9px; margin-top: 2px; opacity: .75; }
+.proj-p { background: var(--red-light); color: var(--red); }
+.proj-m { background: var(--accent-light); color: var(--accent); }
+.proj-o { background: var(--green-light); color: var(--green); }
+
+/* ── HISTORIAL ── */
+.hist-list { display: flex; flex-direction: column; gap: 6px; }
+.hist-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius); background: var(--gray-100); }
+.hist-date { font-family: var(--font-mono); font-size: 10px; color: var(--gray-400); min-width: 54px; padding-top: 1px; }
+.hist-body { flex: 1; }
+.hist-title { font-size: 12px; font-weight: 500; color: var(--black); }
+.hist-desc { font-size: 11px; color: var(--gray-500); margin-top: 2px; line-height: 1.4; }
+.hist-item.pendent { background: var(--amber-light); }
+.hist-item.pendent .hist-date { color: var(--amber); }
+.hist-item.alerta { background: var(--red-light); }
+.hist-item.alerta .hist-date { color: var(--red); }
+
+/* ── SCORING ── */
+.scoring-layout { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+.mod-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.mod-label { font-size: 11px; color: var(--gray-500); width: 140px; flex-shrink: 0; }
+.mod-track { flex: 1; height: 5px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+.mod-fill { height: 100%; border-radius: 99px; transition: width .3s ease; }
+.mod-val { font-family: var(--font-mono); font-size: 11px; font-weight: 500; min-width: 30px; text-align: right; }
+.score-hero { text-align: center; padding: 20px 0 14px; }
+.score-big { font-family: var(--font-mono); font-size: 56px; font-weight: 500; line-height: 1; letter-spacing: -2px; }
+.score-gauge { height: 6px; background: var(--gray-200); border-radius: 99px; overflow: hidden; margin: 10px 0 8px; }
+.score-gauge-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+.verdict-box { border-radius: var(--radius); padding: 12px 14px; }
+.verdict-title { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+.verdict-text { font-size: 11px; line-height: 1.5; }
+.improve-item { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: var(--radius); margin-bottom: 6px; }
+.improve-num { width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.improve-text { font-size: 11px; color: var(--black); line-height: 1.5; }
+.improve-sub { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+/* ── MODAL ── */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.4); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: var(--radius-lg);
+  padding: 24px; width: 440px; max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15);
+  animation: modal-in .15s ease;
+}
+@keyframes modal-in { from { transform: scale(.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-title { font-family: var(--font-display); font-size: 18px; font-weight: 400; margin-bottom: 16px; color: var(--black); }
+.form-field { margin-bottom: 12px; }
+.form-label { font-size: 11px; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; display: block; }
+.form-input {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--gray-200);
+  border-radius: var(--radius); font-size: 13px; font-family: var(--font-body);
+  color: var(--black); background: var(--white); outline: none;
+  transition: border-color .1s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-select { width: 100%; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: var(--radius); font-size: 13px; font-family: var(--font-body); color: var(--black); background: var(--white); outline: none; }
+.form-textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: var(--radius); font-size: 12px; font-family: var(--font-body); color: var(--black); background: var(--white); outline: none; resize: vertical; min-height: 70px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--black); color: var(--white);
+  padding: 10px 16px; border-radius: var(--radius);
+  font-size: 12px; z-index: 200;
+  animation: toast-in .2s ease;
+  display: none;
+}
+.toast.show { display: block; }
+@keyframes toast-in { from { transform: translateY(8px); opacity: 0; } }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 48px 24px; color: var(--gray-400); }
+.empty-title { font-family: var(--font-display); font-size: 18px; color: var(--gray-300); margin-bottom: 6px; }
+.empty-sub { font-size: 12px; }
+
+/* ── SLIDER ── */
+input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; background: var(--gray-200); border-radius: 99px; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--black); border: 2px solid var(--white); box-shadow: 0 0 0 1px var(--gray-300); cursor: pointer; }
+input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--black); border: 2px solid var(--white); cursor: pointer; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-wrap { position: relative; width: 100%; height: 200px; }
+.disclaimer { font-size: 10px; color: var(--gray-400); font-style: italic; margin-top: 6px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar">
+    <div class="logo-wrap">
+      <div class="logo-symbol">
+        <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+        <circle cx="8.5" cy="10" r="2" fill="white"/>
+        <circle cx="8.5" cy="17" r="2" fill="white"/>
+        <rect x="12" y="13" width="6" height="1.5" rx=".75" fill="white"/>
+        <rect x="20" y="8" width="1.5" height="12" rx=".75" fill="white"/>
+      </svg>
+        <div>
+          <div class="logo-text">The Boring Investor</div>
+        </div>
+      </div>
+      <div class="logo-sub">Assessoria Financera · MVP 2026</div>
+      <div style="display:flex;gap:5px;margin-top:8px">
+        <button id="lang-ca" onclick="setLang('ca')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:white;font-family:var(--font-body);transition:all .12s">CA</button>
+        <button id="lang-es" onclick="setLang('es')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-family:var(--font-body);transition:all .12s">ES</button>
+      </div>
+    </div>
+
+    <div class="nav">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        Dashboard
+        <span class="nav-badge" id="nav-alert-badge" style="display:none"></span>
+      </div>
+
+      <div class="nav-section">Clients</div>
+      <div class="nav-item" id="nav-fitxa" onclick="navigate('fitxa')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+        Fitxa client
+      </div>
+      <div class="nav-item" id="nav-scoring" onclick="navigate('scoring')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
+        Scoring
+      </div>
+
+      <div class="nav-section">Assessoria</div>
+      <div class="nav-item" id="nav-serveis" onclick="navigate('serveis')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M5 3V2M11 3V2M1 7h14"/></svg>
+        Serveis i tarifes
+      </div>
+      <div class="nav-item" id="nav-quisoc" onclick="navigate('quisoc')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zM2 13s1-4 6-4 6 4 6 4"/><path d="M11 6l1.5 1.5M12.5 4.5l1 1"/></svg>
+        Qui soc
+      </div>
+
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="user-av">GP</div>
+        <div>
+          <div class="user-name">Guillem Puig</div>
+          <div class="user-role">Assessor · EFA juny 2026</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)">
+        <div style="font-size:9px;color:rgba(255,255,255,.25);line-height:1.5;margin-bottom:8px">
+          ${t('msg.dades_local')}<br>${t('msg.exporta')}
+        </div>
+        <button onclick="exportarDades()" style="width:100%;padding:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:var(--font-body);margin-bottom:5px;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+          Exportar dades ↓
+        </button>
+        <button onclick="resetarDades()" style="width:100%;padding:6px;background:transparent;border:1px solid rgba(255,255,255,.08);border-radius:6px;color:rgba(255,255,255,.3);font-size:10px;cursor:pointer;font-family:var(--font-body);transition:all .12s" onmouseover="this.style.color='rgba(255,255,255,.5)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">
+          ${t('btn.reiniciar')}
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div id="topbar-left">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+      </div>
+      <div class="topbar-actions" id="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">${t('dash.nou_client')}</button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ════ P1 DASHBOARD ════ -->
+      <div class="screen active" id="screen-dashboard">
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="section-header">
+          <span class="section-title">${t('dash.tots_clients')}</span>
+          <span class="section-title" id="kpi-count" style="color:var(--gray-300)"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>${t('col.client')}</th>
+                <th>${t('col.arquetip')}</th>
+                <th>${t('col.cartera')}</th>
+                <th>${t('col.scoring')}</th>
+                <th>${t('col.revisio')}</th>
+                <th>${t('col.estat')}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="clients-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════ P2 FITXA CLIENT ════ -->
+      <div class="screen" id="screen-fitxa">
+        <div class="card" style="margin-bottom:14px">
+          <div class="profile-header" id="profile-header"></div>
+          <div class="tabs" id="fitxa-tabs">
+            <div class="tab active" onclick="switchTab(0)">${t('tab.perfil')}</div>
+            <div class="tab" onclick="switchTab(1)">${t('tab.cartera')}</div>
+            <div class="tab" onclick="switchTab(2)">${t('tab.historial')}</div>
+            <div class="tab" onclick="switchTab(3)">${t('tab.seguiment')}</div>
+          </div>
+          <div id="tab-perfil"></div>
+          <div id="tab-cartera" style="display:none"></div>
+          <div id="tab-historial" style="display:none"></div>
+          <div id="tab-seguiment" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- ════ P3 SCORING ════ -->
+      <div class="screen" id="screen-scoring">
+        <div class="scoring-layout">
+          <div>
+            <div class="card">
+              <div class="card-title">Puntuació global</div>
+              <div class="score-hero">
+                <div class="score-big" id="score-total">--</div>
+                <div style="font-size:11px;color:var(--gray-400);margin-top:4px">sobre 100</div>
+              </div>
+              <div class="score-gauge"><div class="score-gauge-fill" id="score-gauge"></div></div>
+              <div class="verdict-box" id="verdict-box">
+                <div class="verdict-title" id="verdict-title"></div>
+                <div class="verdict-text" id="verdict-text"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Pla de millora</div>
+              <div id="improve-list"></div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="saveScoring()">${t('scoring.desar')}</button>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-title">Avaluació per mòdul</div>
+              <div id="sliders-container"></div>
+            </div>
+            <div class="card">
+              <div class="card-title">Radar per mòdul</div>
+              <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+      <!-- ════ P4 SERVEIS ════ -->
+      <div class="screen" id="screen-serveis" style="display:none">
+        <div id="serveis-content"></div>
+      </div>
+
+      <!-- ════ P5 QUI SOC ════ -->
+      <div class="screen" id="screen-quisoc" style="display:none">
+        <div id="quisoc-content"></div>
+      </div>
+
+
+<!-- ── MODALS ── -->
+<div class="modal-bg" id="modal-nou-client">
+  <div class="modal">
+    <div class="modal-title">Nou client</div>
+    <div class="form-field"><label class="form-label">Nom complet</label><input class="form-input" id="nc-nom" placeholder="Ex: Guillem Morales" /></div>
+    <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@exemple.com" /></div>
+    <div class="form-field"><label class="form-label">Arquetip</label>
+      <select class="form-select" id="nc-arquetip">
+        <option value="">— Selecciona —</option>
+        <option>L'Estoic</option><option>L'Explorador</option>
+        <option>El Navegant</option><option>L'Arquitecte</option>
+        <option>El Tresorer</option><option>El Cronista</option>
+        <option>L'Alquimista</option><option>L'Ermità</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-label">Cartera assignada</label>
+      <select class="form-select" id="nc-cartera">
+        <option value="">— Sense definir —</option>
+        <option>I · La Catapulta</option><option>II · La Caravella</option>
+        <option>III · El Galeó</option><option>IV · La Catedral</option>
+        <option>V · La Muralla</option><option>VI · El Scriptorium</option>
+        <option>VII · L'Alambí</option><option>VIII · El Sarró</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('nou-client')">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="crearClient()">Crear client</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-nova-entrada">
+  <div class="modal">
+    <div class="modal-title">Nova entrada a l'historial</div>
+    <div class="form-field"><label class="form-label">Títol</label><input class="form-input" id="he-titol" placeholder="Ex: Revisió trimestral Q1 2026" /></div>
+    <div class="form-field"><label class="form-label">Descripció</label><textarea class="form-textarea" id="he-desc" placeholder="Resum de la sessió, decisions preses, accions acordades..."></textarea></div>
+    <div class="form-field"><label class="form-label">Tipus</label>
+      <select class="form-select" id="he-tipus">
+        <option value="normal">Normal</option>
+        <option value="pendent">Pendent / Programada</option>
+        <option value="alerta">Alerta</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('nova-entrada')">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="afegirEntrada()">Afegir entrada</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// DADES INICIALS
+// ══════════════════════════════════════════════
+const CLIENTS_INICIALS = [{"id": "gm001", "nom": "Guillem Morales", "email": "guillem.morales@email.com", "arquetip": "El Tresorer", "cartera": "V · La Muralla", "avColor": "av-blue", "scoring": 76, "dataRevisio": "2026-03-01", "estat": "ok", "perfil": {"capitalInicial": "2.000 €", "aportacioMensual": "300 €/mes", "horitzo": "10 anys", "objectiu": "Protegir els estalvis", "segment": "Classe mitjana inversora", "riscFinancer": "Moderat (4/12)", "riscEmocional": "Baix (3/12)", "coneixement": "Iniciació (5/12)", "volTolerable": "-10%", "drawdownMax": "-15%"}, "nota": "Primera sessió 01/03/2026. Conservador real. Fons emergència insuficient. Prioritat: construir coixí abans d'augmentar RV.", "carteraComposicio": [{"nom": "RF Curta (Gov AAA)", "pct": 40, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 25, "color": "#BA7517"}, {"nom": "RV Global Defensiva", "pct": 20, "color": "#185FA5"}, {"nom": "Liquiditat (remunerat)", "pct": 10, "color": "#B4B2A9"}, {"nom": "REITs defensiu", "pct": 5, "color": "#3B6D11"}], "ter": "~0.14%", "liquiditat": "Alta", "projeccions": {"p10": "7.800€", "p50": "18.400€", "p90": "32.100€", "totalAportat": "38.000€"}, "historial": [{"data": "1 mar 2026", "titol": "Sessió inicial", "desc": "Perfil conservador confirmat. Fons emergència al 30%.", "tipus": "normal"}, {"data": "1 feb 2026", "titol": "Onboarding completat", "desc": "Arquetip: El Tresorer. Score: 38/84.", "tipus": "normal"}], "scoringMods": [4, 5, 4, 6, 3, 4, 3]}, {"id": "jv002", "nom": "Joan Vidal", "email": "joan.vidal@email.com", "arquetip": "L'Alquimista", "cartera": "VII · L'Alambí", "avColor": "av-amber", "scoring": 22, "dataRevisio": "2026-02-15", "estat": "critic", "perfil": {"capitalInicial": "15.000 €", "aportacioMensual": "500 €/mes", "horitzo": "8 anys", "objectiu": "Creixement accelerat", "segment": "Classe mitjana inversora", "riscFinancer": "Alt (10/12)", "riscEmocional": "Molt baix (2/12)", "coneixement": "Mig (7/12)", "volTolerable": "-30%", "drawdownMax": "-40%"}, "nota": "Alta energia sense procés. Historial de decisions impulsives. Necessita la valvula de vapor del 10% satellit.", "carteraComposicio": [{"nom": "RV Global Core", "pct": 50, "color": "#185FA5"}, {"nom": "RF Curta", "pct": 20, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 10, "color": "#BA7517"}, {"nom": "REITs", "pct": 10, "color": "#3B6D11"}, {"nom": "Satellit lliure", "pct": 10, "color": "#534AB7"}], "ter": "~0.20%", "liquiditat": "Mitja", "projeccions": {"p10": "18.200€", "p50": "52.400€", "p90": "98.700€", "totalAportat": "63.000€"}, "historial": [{"data": "15 feb 2026", "titol": "Alerta: decisió impulsiva", "desc": "Ha comprat 3.000 en crypto sense consultar.", "tipus": "alert"}, {"data": "1 feb 2026", "titol": "Sessió inicial", "desc": "Perfil Alquimista confirmat. Risc emocional molt baix.", "tipus": "normal"}], "scoringMods": [2, 1, 2, 5, 8, 1, 3]}, {"id": "ap003", "nom": "Anna Puig", "email": "anna.puig@email.com", "arquetip": "El Navegant", "cartera": "III · El Galeó", "avColor": "av-green", "scoring": 68, "dataRevisio": "2026-03-10", "estat": "revisio", "perfil": {"capitalInicial": "25.000 €", "aportacioMensual": "400 €/mes", "horitzo": "15 anys", "objectiu": "Acumular capital jubilació", "segment": "Classe mitjana inversora", "riscFinancer": "Mig-Alt (8/12)", "riscEmocional": "Mig (6/12)", "coneixement": "Mig (7/12)", "volTolerable": "-20%", "drawdownMax": "-25%"}, "nota": "Bon perfil equilibrat. Dividend ETF funciona com a ancoratge psicologic. Pendent revisar REITs.", "carteraComposicio": [{"nom": "RV Global Indexada", "pct": 45, "color": "#185FA5"}, {"nom": "Dividend ETF Global", "pct": 20, "color": "#3B6D11"}, {"nom": "RF Diversificada", "pct": 20, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 10, "color": "#BA7517"}, {"nom": "REITs Global", "pct": 5, "color": "#639922"}], "ter": "~0.15%", "liquiditat": "Mitja-Alta", "projeccions": {"p10": "28.400€", "p50": "78.600€", "p90": "142.300€", "totalAportat": "97.000€"}, "historial": [{"data": "10 mar 2026", "titol": "Revisió trimestral", "desc": "Cartera alineada. REITs a vigilar.", "tipus": "normal"}, {"data": "1 gen 2026", "titol": "Sessió inicial", "desc": "Arquetip El Navegant. Score: 52/84.", "tipus": "normal"}], "scoringMods": [7, 6, 8, 7, 7, 6, 7]}, {"id": "nb004", "nom": "Client Nou", "email": "", "arquetip": "Pendent", "cartera": "Pendent qüestionari", "avColor": "av-gray", "scoring": 0, "dataRevisio": "-", "estat": "ok", "perfil": {"capitalInicial": "-", "aportacioMensual": "-", "horitzo": "-", "objectiu": "-", "segment": "-", "riscFinancer": "-", "riscEmocional": "-", "coneixement": "-", "volTolerable": "-", "drawdownMax": "-"}, "nota": "Primer contacte pendent. Enviar qüestionari d'onboarding.", "carteraComposicio": [], "ter": "-", "liquiditat": "-", "projeccions": {"p10": "-", "p50": "-", "p90": "-", "totalAportat": "-"}, "historial": [{"data": "20 mar 2026", "titol": "Alta al sistema", "desc": "Client creat. Pendent sessió inicial.", "tipus": "normal"}], "scoringMods": [5, 5, 5, 5, 5, 5, 5]}];
+
+const MODULES = [
+  {id:'s1', label:'S1 · Costos', weight:.20, color:'#E24B4A'},
+  {id:'s2', label:'S2 · Diversificació', weight:.20, color:'#185FA5'},
+  {id:'s3', label:'S3 · Concentració', weight:.15, color:'#BA7517'},
+  {id:'s4', label:'S4 · Coherència', weight:.20, color:'#3B6D11'},
+  {id:'s5', label:'S5 · Robustesa', weight:.10, color:'#534AB7'},
+  {id:'s6', label:'S6 · Simplicitat', weight:.05, color:'#888780'},
+  {id:'s7', label:'S7 · Procés', weight:.10, color:'#0F6E56'},
+];
+
+// ══════════════════════════════════════════════
+// ESTAT DE L'APP
+// ══════════════════════════════════════════════
+let clients = [];
+let currentClientId = null;
+let currentTab = 0;
+let radarChart = null;
+
+const DATA_VERSION = '2.1';
+
+function loadData() {
+  const savedVersion = localStorage.getItem('tbi_data_version');
+  const saved = localStorage.getItem('tbi_clients');
+  if (saved && savedVersion === DATA_VERSION) {
+    try { clients = JSON.parse(saved); return; } catch(e) {}
+  }
+  clients = JSON.parse(JSON.stringify(CLIENTS_INICIALS));
+  localStorage.setItem('tbi_data_version', DATA_VERSION);
+  saveData();
+}
+
+function saveData() {
+  localStorage.setItem('tbi_clients', JSON.stringify(clients));
+  localStorage.setItem('tbi_data_version', DATA_VERSION);
+}
+
+function getClient(id) { return clients.find(c => c.id === id); }
+function getCurrentClient() { return getClient(currentClientId); }
+
+// ══════════════════════════════════════════════
+// NAVEGACIÓ
+// ══════════════════════════════════════════════
+function navigate(screen, clientId) {
+  if (clientId) currentClientId = clientId;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  const nav = document.getElementById('nav-' + screen);
+  if (nav) nav.classList.add('active');
+
+  const topbarTitle = document.getElementById('topbar-title');
+  const topbarActions = document.getElementById('topbar-actions');
+
+  if (screen === 'dashboard') {
+    topbarTitle.textContent = t('nav.dashboard');
+    topbarActions.innerHTML = `
+      <button class="btn btn-sm" onclick="importarDades()" title="Importar backup o perfil onboarding d'un client">${t('dash.importar')}</button>
+      <button class="btn btn-sm" onclick="exportarDades()" title="Descarregar totes les dades en JSON">${t('dash.exportar')}</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">+ Nou client</button>
+    `;
+    renderDashboard();
+  } else if (screen === 'fitxa') {
+    const c = getCurrentClient();
+    topbarTitle.textContent = c ? c.nom : t('nav.fitxa');
+    topbarActions.innerHTML = `
+      <button class="btn btn-sm" onclick="navigate('dashboard')">← Dashboard</button>
+      <button class="btn btn-sm" onclick="navigate('scoring', currentClientId)">Scoring ↗</button>
+      <button class="btn btn-sm btn-primary" onclick="generarInforme()">${t('btn.informe')}</button>
+    `;
+    renderFitxa();
+  } else if (screen === 'scoring') {
+    const c = getCurrentClient();
+    topbarTitle.textContent = t('nav.scoring') + ' · ' + (c ? c.nom : '');
+    topbarActions.innerHTML = `
+      <button class="btn btn-sm" onclick="navigate('fitxa', currentClientId)">← Fitxa</button>
+    `;
+    renderScoring();
+  } else if (screen === 'serveis') {
+    topbarTitle.textContent = t('nav.serveis');
+    topbarActions.innerHTML = '';
+    renderServeis();
+  } else if (screen === 'quisoc') {
+    topbarTitle.textContent = t('nav.quisoc');
+    topbarActions.innerHTML = '';
+    renderQuiSoc();
+  }
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const total = clients.length;
+  const amb_scoring = clients.filter(c => c.scoring !== null);
+  const scoringMig = amb_scoring.length ? Math.round(amb_scoring.reduce((s,c) => s+c.scoring, 0) / amb_scoring.length) : '--';
+  const pendents = clients.filter(c => c.estat === 'revisio').length;
+  const critics = clients.filter(c => c.estat === 'critic').length;
+
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi"><div class="kpi-label">${t('dash.clients_actius')}</div><div class="kpi-value">${total}</div><div class="kpi-sub">${t('dash.objectiu')}</div></div>
+    <div class="kpi"><div class="kpi-label">${t('dash.scoring_mitja')}</div><div class="kpi-value accent">${scoringMig}/100</div><div class="kpi-sub">${t('dash.cartera_global')}</div></div>
+    <div class="kpi"><div class="kpi-label">${t('dash.revisions')}</div><div class="kpi-value ${pendents>0?'amber':''}">${pendents}</div><div class="kpi-sub">${t('dash.revisio_anual')}</div></div>
+    <div class="kpi"><div class="kpi-label">${t('dash.alertes')}</div><div class="kpi-value ${critics>0?'red':''}">${critics}</div><div class="kpi-sub">${t('dash.scoring_baix')}</div></div>
   `;
 
   const badge = document.getElementById('nav-alert-badge');
@@ -723,7 +1507,7 @@ function renderDashboard() {
       return `<tr class="clickable" onclick="navigate('fitxa','${c.id}')">
         <td><div style="display:flex;align-items:center;gap:10px">
           <div class="av ${c.avColor}">${c.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
-          <div><div style="font-weight:500;color:var(--black)">${c.nom}</div><div style="font-size:10px;color:var(--gray-400)">${c.email||'-'}</div></div>
+          <div><div class="client-nom" style="font-weight:500;color:var(--black)">${c.nom}</div><div style="font-size:10px;color:var(--gray-400)">${c.email||'-'}</div></div>
         </div></td>
         <td><span class="badge ${c.arquetip==='-'?'badge-gray':'badge-blue'}">${c.arquetip}</span></td>
         <td style="color:${c.cartera==='-'?'var(--gray-300)':'var(--gray-700)'}"><span style="font-size:11px">${c.cartera}</span></td>
@@ -785,6 +1569,7 @@ function renderTabPerfil(c) {
         ${Object.entries({
           'Capital inicial': c.perfil.capitalInicial,
           'Aportació mensual': c.perfil.aportacioMensual,
+          'Despeses mensuals': c.perfil.despesesMensuals||'Pendent',
           'Horitzó': c.perfil.horitzo,
           'Objectiu': c.perfil.objectiu,
           'Segment': c.perfil.segment
@@ -803,7 +1588,7 @@ function renderTabPerfil(c) {
     </div>
     <div class="nota-box">
       <div class="nota-label">Nota de l'assessor</div>
-      <textarea style="width:100%;padding:8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body);min-height:70px;resize:vertical;line-height:1.5" id="nota-edit" oninput="getCurrentClient().nota=this.value;saveData()">${c.nota||''}</textarea>
+      <textarea style="width:100%;padding:8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body);min-height:70px;resize:vertical;line-height:1.5" id="nota-edit" oninput="getCurrentClient().nota=this.value;saveData()">${c.nota||''}</textarea>
     </div>
     <div class="nota-box" style="margin-top:10px">
       <div class="nota-label" style="margin-bottom:8px">Propera reunió planificada</div>
@@ -811,11 +1596,11 @@ function renderTabPerfil(c) {
         <div>
           <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Data i hora</div>
           <input type="datetime-local" id="reunio-data" value="${c.properaReunio&&c.properaReunio.data||''}"
-            onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body)">
+            onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
         </div>
         <div>
           <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Format</div>
-          <select id="reunio-format" onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body)">
+          <select id="reunio-format" onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
             <option value="">- Selecciona -</option>
             <option value="Presencial" ${c.properaReunio&&c.properaReunio.format==='Presencial'?'selected':''}>Presencial</option>
             <option value="Videollamada" ${c.properaReunio&&c.properaReunio.format==='Videollamada'?'selected':''}>Videollamada</option>
@@ -826,7 +1611,7 @@ function renderTabPerfil(c) {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
         <div>
           <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Tema</div>
-          <select id="reunio-tema" onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body)">
+          <select id="reunio-tema" onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
             <option value="">- Selecciona -</option>
             <option value="Primera sessió" ${c.properaReunio&&c.properaReunio.tema==='Primera sessió'?'selected':''}>Primera sessió</option>
             <option value="Seguiment trimestral" ${c.properaReunio&&c.properaReunio.tema==='Seguiment trimestral'?'selected':''}>Seguiment trimestral</option>
@@ -839,7 +1624,7 @@ function renderTabPerfil(c) {
         <div>
           <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Lloc / Enllaç</div>
           <input id="reunio-lloc" placeholder="Ex: Google Meet, Cafè Central..." value="${c.properaReunio&&c.properaReunio.lloc||''}"
-            oninput="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--bg);color:var(--black);font-family:var(--font-body)">
+            oninput="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
         </div>
       </div>
       ${(()=>{
@@ -847,6 +1632,13 @@ function renderTabPerfil(c) {
         const d = new Date(c.properaReunio.data).toLocaleDateString('ca-ES',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
         const tema = c.properaReunio.tema ? ' · '+c.properaReunio.tema : '';
         return '<div style="font-size:11px;color:var(--accent);padding:6px 8px;background:var(--acc-l);border-radius:6px;display:flex;justify-content:space-between;align-items:center"><span>'+d+tema+'</span><button onclick=\"esborrarReunio()\" style=\"background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;font-family:var(--font-body)\">Esborrar</button></div>';
+      })()}
+    </div>
+    <div style="margin-top:12px;padding:12px 14px;background:var(--gray-100);border-radius:var(--radius)">
+      ${(()=>{
+        const f = getFraseRandom(c);
+        return '<div style="font-size:12px;color:var(--gray-600);line-height:1.7;font-style:italic;margin-bottom:5px">\u201C'+f.text+'\u201D</div>' +
+               '<div style="font-size:10px;color:var(--gray-400)">\u2014 '+f.autor+'</div>';
       })()}
     </div>
   `;
@@ -945,13 +1737,11 @@ function renderTabCartera(c) {
         <div id="cartera-legend" style="margin-top:8px;display:flex;flex-direction:column;gap:3px"></div>
       </div>
       <div>
-        <div class="field-group-title" style="margin-bottom:10px">Projecció Montecarlo (10 anys)</div>
-        <div class="proj-grid" style="margin-bottom:10px">
-          <div class="proj-card proj-p"><div class="proj-label">P10 Pessimista</div><div class="proj-val">${c.projeccions.p10}</div></div>
-          <div class="proj-card proj-m"><div class="proj-label">P50 Equilibrat</div><div class="proj-val">${c.projeccions.p50}</div></div>
-          <div class="proj-card proj-o"><div class="proj-label">P90 Optimista</div><div class="proj-val">${c.projeccions.p90}</div></div>
+        <div class="field-group-title" style="margin-bottom:8px">Projecció Montecarlo</div>
+        <div style="position:relative;width:100%;height:180px;margin-bottom:10px">
+          <canvas id="mc-chart-${c.id}"></canvas>
         </div>
-        <div class="field-row"><span class="field-label">Total aportat</span><span class="field-val">${c.projeccions.totalAportat}</span></div>
+        <div id="mc-kpis-${c.id}" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px"></div>
         <div class="field-row"><span class="field-label">TER estimat</span><span class="field-val">${c.ter}</span></div>
         <div class="field-row"><span class="field-label">Liquiditat</span><span class="field-val">${c.liquiditat}</span></div>
       </div>
@@ -987,6 +1777,32 @@ function renderTabCartera(c) {
   renderCarteraChart();
   renderGapAlerts(c);
   renderSuggeriments(c, _carteraActius);
+
+  // Gràfic Montecarlo dinàmic
+  setTimeout(() => {
+    const sim = calcMontecarloSim(c, _carteraActius);
+    renderMontecarloChart(sim, 'mc-chart-' + c.id);
+
+    // KPIs finals
+    const fmt = v => v >= 1000000 ? (v/1000000).toFixed(1)+'M€' : v >= 1000 ? Math.round(v/1000)+'k€' : v+'€';
+    const kpiEl = document.getElementById('mc-kpis-' + c.id);
+    if(kpiEl) {
+      const finalAny = sim.anys;
+      kpiEl.innerHTML =
+        '<div style="padding:8px;background:var(--red-light);border-radius:8px;text-align:center">' +
+          '<div style="font-size:9px;font-weight:500;color:var(--red);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">P10 Pessimista</div>' +
+          '<div style="font-size:14px;font-weight:500;color:var(--red);font-family:var(--font-mono)">' + fmt(sim.p10[finalAny]) + '</div>' +
+        '</div>' +
+        '<div style="padding:8px;background:var(--green-light);border-radius:8px;text-align:center">' +
+          '<div style="font-size:9px;font-weight:500;color:var(--green);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">P50 Equilibrat</div>' +
+          '<div style="font-size:14px;font-weight:500;color:var(--green);font-family:var(--font-mono)">' + fmt(sim.p50[finalAny]) + '</div>' +
+        '</div>' +
+        '<div style="padding:8px;background:var(--acc-l);border-radius:8px;text-align:center">' +
+          '<div style="font-size:9px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">P90 Optimista</div>' +
+          '<div style="font-size:14px;font-weight:500;color:var(--accent);font-family:var(--font-mono)">' + fmt(sim.p90[finalAny]) + '</div>' +
+        '</div>';
+    }
+  }, 80);
 }
 
 function renderCarteraChart() {
@@ -1477,6 +2293,87 @@ function generarInforme() {
         '</div>';
     }).join('') + '</div>' : '';
 
+  // ── Scoring de la cartera actual (si hi ha posicions) ──
+  const carteraActual = c.posicions || [];
+  const mCarteraActual = carteraActual.length > 0 ? calcMetriques(carteraActual) : null;
+  const gapAlerts = calcGapAnalysis(c);
+  const suggeriments = calcSuggeriments(c);
+
+  // Scoring de cartera (0-100) basat en mètriques calculades
+  let scoringCartera = null;
+  let recomanacionsMillora = [];
+
+  if(mCarteraActual) {
+    // Calcular score de la cartera actual
+    const sharpe = parseFloat(mCarteraActual.sharpe) || 0;
+    const vol = parseInt(mCarteraActual.volatilitat) || 50;
+    const dd = parseInt(mCarteraActual.drawdown.replace('-','')) || 50;
+    const corr = parseInt(mCarteraActual.correlacio) || 80;
+
+    // Puntuació simple: Sharpe bo = bon score, vol i dd alts = penalització
+    let s = 50;
+    s += sharpe > 0.6 ? 20 : sharpe > 0.4 ? 10 : sharpe > 0.2 ? 0 : -10;
+    s += vol < 10 ? 15 : vol < 18 ? 5 : vol < 25 ? -5 : -15;
+    s += dd < 20 ? 10 : dd < 35 ? 0 : dd < 50 ? -10 : -15;
+    s += corr < 50 ? 10 : corr < 70 ? 5 : 0;
+    scoringCartera = Math.min(100, Math.max(0, Math.round(s)));
+
+    // Recomanacions de millora
+    if(sharpe < 0.4) recomanacionsMillora.push({
+      tipus: "warn",
+      text: "Relació retorn/risc (Sharpe " + mCarteraActual.sharpe + ") per sota de l'optim. Considera diversificar amb actius de baixa correlació."
+    });
+    if(vol > 20) recomanacionsMillora.push({
+      tipus: "warn",
+      text: "Volatilitat anual del " + mCarteraActual.volatilitat + " és elevada. Afegir renda fixa o or pot estabilitzar la cartera."
+    });
+    if(dd > 40) recomanacionsMillora.push({
+      tipus: "danger",
+      text: "Maxima caiguda potencial del " + mCarteraActual.drawdown + ". Verifica que el client pot aguantar psicologicament."
+    });
+    if(corr > 75) recomanacionsMillora.push({
+      tipus: "warn",
+      text: "Correlació amb el mercat del " + mCarteraActual.correlacio + ". La cartera te poca diversificació real entre actius."
+    });
+  }
+
+  gapAlerts.forEach(a => recomanacionsMillora.push({tipus: a.tipus, text: a.msg + ' (' + a.ref + ')'}));
+
+  const scoringCarteraHTML = scoringCartera !== null ? (() => {
+    const col = scoringCartera >= 70 ? '#1A5C3A' : scoringCartera >= 50 ? '#7A4A00' : '#8B1A1A';
+    const bg  = scoringCartera >= 70 ? '#EAF3DE' : scoringCartera >= 50 ? '#FEF5E7' : '#FDF0F0';
+    const txt = scoringCartera >= 70 ? 'Cartera real eficient' : scoringCartera >= 50 ? 'Cartera acceptable, marge de millora' : 'Cartera real amb problemes estructurals';
+    const recHTML = recomanacionsMillora.length > 0
+      ? recomanacionsMillora.map(r => '<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #F4F3F0">' +
+          '<span style="color:' + (r.tipus==='danger'?'#C0392B':'#D4700A') + ';font-size:13px;flex-shrink:0">' + (r.tipus==='danger'?'!':'~') + '</span>' +
+          '<div style="font-size:12px;color:#4A4845;line-height:1.6">' + r.text + '</div></div>').join('')
+      : '<div style="font-size:12px;color:#6A6864;padding:8px 0">Cap recomanació de millora urgent.</div>';
+    return '<div class="section">' +
+      '<div class="section-title">Scoring de la cartera actual</div>' +
+      '<div style="display:grid;grid-template-columns:80px 1fr;gap:16px;align-items:start;margin-bottom:16px">' +
+        '<div style="text-align:center;padding:14px;background:' + bg + ';border-radius:12px">' +
+          '<div style="font-size:28px;font-weight:600;color:' + col + '">' + scoringCartera + '</div>' +
+          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:' + col + ';opacity:.7">/ 100</div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:500;color:' + col + ';margin-bottom:4px">' + txt + '</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px">' +
+            ['drawdown','volatilitat','sharpe'].map(k => {
+              const cls = mCarteraActual.mClass[k]||'';
+              const col2 = cls==='good'?'#1A5C3A':cls==='danger'?'#C0392B':cls==='warn'?'#D4700A':'#6A6864';
+              const bg2  = cls==='good'?'#EAF3DE':cls==='danger'?'#FDF0F0':cls==='warn'?'#FEF5E7':'#F4F3F0';
+              return '<div style="padding:6px 8px;background:'+bg2+';border-radius:6px;text-align:center">' +
+                '<div style="font-size:11px;font-weight:500;color:'+col2+'">' + mCarteraActual[k] + '</div>' +
+                '<div style="font-size:9px;color:#9A9690;text-transform:uppercase">' + {drawdown:'Caiguda',volatilitat:'Volatilitat',sharpe:'Sharpe'}[k] + '</div></div>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:11px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Recomanacions de millora</div>' +
+      recHTML +
+      '</div>';
+  })() : '';
+
   const html = `<!DOCTYPE html>
 <html lang="ca">
 <head>
@@ -1599,6 +2496,7 @@ td:first-child{color:var(--black);font-weight:500}
       <tbody>${carteraRows}</tbody>
     </table>
   </div>
+  ${scoringCarteraHTML}
 
   <div class="section">
     <div class="section-title">Projecció Montecarlo (escenaris a 10 anys)</div>
@@ -1668,7 +2566,7 @@ const ASSET_DATA = {
   'rf_div':       {ret:0.040, vol:0.05, dd:0.12, corr_rv:-0.05},
   'or':           {ret:0.040, vol:0.15, dd:0.30, corr_rv:-0.10},
   'reits':        {ret:0.065, vol:0.20, dd:0.50, corr_rv:0.70},
-  'liquiditat':   {ret:0.030, vol:0.01, dd:0.00, corr_rv:0.00},
+  'liquiditat':   {ret:0.030, vol:0.005, dd:0.00, corr_rv:0.00},  // Cash, dipòsits, comptes remunerats
   'dividend_etf': {ret:0.060, vol:0.14, dd:0.38, corr_rv:0.75},
   'crowdlending': {ret:0.080, vol:0.12, dd:0.25, corr_rv:0.05},
   'metalls':      {ret:0.038, vol:0.17, dd:0.35, corr_rv:-0.08},
@@ -1687,7 +2585,7 @@ function classifyActiu(nom) {
   if(n.includes('metall')||n.includes('plata')||n.includes('silver')) return 'metalls';
   if(n.includes('reits')||n.includes('reit')||n.includes('immobili')) return 'reits';
   if(n.includes('dividend')) return 'dividend_etf';
-  if(n.includes('liquiditat')||n.includes('remunerat')||n.includes('monetari')) return 'liquiditat';
+  if(n.includes('liquiditat')||n.includes('remunerat')||n.includes('monetari')||n.includes('deposit')||n.includes('dipòsit')||n.includes('diposit')||n.includes('cash')||n.includes('compte')) return 'liquiditat';
   if(n.includes('rf curta')||n.includes('rf corta')||n.includes('rf curt')||n.includes('gov aaa')) return 'rf_curta';
   if(n.includes('rf llarga')||n.includes('rf llar')||n.includes('treasury')) return 'rf_llarga';
   if(n.includes('rf corp')||n.includes('corporat')) return 'rf_corp';
@@ -2098,6 +2996,81 @@ function calcRecomanacioDCA(client, posicions, carteraObjectiu) {
   };
 }
 
+// ── Fons d'emergència: càlcul i recomanació ──
+function calcFonsEmergencia(client, posicions) {
+  // Obtenir despeses mensuals del perfil
+  const despesesStr = client.perfil?.despesesMensuals || '';
+  const despeses = parseFloat(despesesStr.replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+
+  // Capital total
+  const capitalStr = client.perfil?.capitalInicial || '';
+  const capital = parseFloat(capitalStr.replace(/\./g,'').replace(/[^\d]/g,'')) || 0;
+
+  // Valor en liquiditat actual (cash, dipòsits, comptes)
+  const liquidTotal = posicions
+    .filter(p => classifyActiu(p.nomActiu||p.nom||'') === 'liquiditat')
+    .reduce((s,p) => s + (p.valorEur||0), 0);
+
+  const totalCartera = posicions.reduce((s,p) => s + (p.valorEur||0), 0);
+  const pctLiquid = totalCartera > 0 ? liquidTotal / totalCartera : 0;
+
+  // Recomanació: 3-6 mesos de despeses en fons emergència
+  // Si no hi ha despeses, usar 10% del capital com a referència
+  let mesosRecomanats = 4; // default
+  let targetFE = 0;
+
+  if(despeses > 0) {
+    targetFE = despeses * mesosRecomanats;
+  } else if(capital > 0) {
+    targetFE = capital * 0.10; // 10% del capital com a mínim de liquiditat
+  }
+
+  const deficit = Math.max(0, targetFE - liquidTotal);
+  const superavit = Math.max(0, liquidTotal - targetFE * 1.5); // >6 mesos = excés
+
+  let estat = 'ok';
+  let missatge = '';
+  let accio = '';
+
+  if(targetFE === 0) {
+    estat = 'pendent';
+    missatge = "Afegeix les despeses mensuals per calcular el fons d'emergencia recomanat.";
+    accio = '';
+  } else if(liquidTotal === 0 && posicions.length === 0) {
+    estat = 'pendent';
+    missatge = 'Afegeix les posicions reals per analitzar la liquiditat.';
+    accio = '';
+  } else if(deficit > 0) {
+    estat = 'deficit';
+    missatge = "Liquiditat insuficient. El client necessita un fons d'emergencia de " +
+      Math.round(targetFE).toLocaleString('ca-ES') + '€ (' + mesosRecomanats + ' mesos de despeses).';
+    accio = 'Prioritzar acumulació en compte remunerat o dipòsit fins arribar a ' +
+      Math.round(targetFE).toLocaleString('ca-ES') + '€. ' +
+      'Dèficit actual: ' + Math.round(deficit).toLocaleString('ca-ES') + '€.';
+  } else if(superavit > 0) {
+    estat = 'superavit';
+    missatge = 'Liquiditat en excés. Té ' + Math.round(liquidTotal).toLocaleString('ca-ES') +
+      '€ en cash, equivalent a ' + Math.round(liquidTotal/Math.max(despeses,1)) + ' mesos de despeses.';
+    accio = 'Considera invertir ' + Math.round(superavit).toLocaleString('ca-ES') +
+      "\u20AC de l'exces de liquiditat en actius productius.";
+  } else {
+    estat = 'ok';
+    missatge = "Fons d'emergencia adequat: " + Math.round(liquidTotal).toLocaleString('ca-ES') +
+      '€ (' + Math.round(liquidTotal/Math.max(despeses,1)) + ' mesos de despeses cobertes).';
+    accio = 'Mantenir el nivell actual de liquiditat.';
+  }
+
+  return {
+    estat, missatge, accio,
+    liquidTotal: Math.round(liquidTotal),
+    targetFE: Math.round(targetFE),
+    pctLiquid: Math.round(pctLiquid * 100),
+    mesosCoberts: despeses > 0 ? Math.round(liquidTotal / despeses * 10) / 10 : null,
+    deficit: Math.round(deficit),
+    superavit: Math.round(superavit)
+  };
+}
+
 // Detectar si hi ha caiguda forta (per aportació extraordinària)
 function detectarCaigudaForta(posicions) {
   if(!posicions || posicions.length === 0) return false;
@@ -2148,6 +3121,23 @@ function renderTabSeguiment(c) {
           <div class="proj-label">Alertes actives</div>
           <div class="proj-val" style="font-size:16px;color:${(rec?.alertesVenda?.length||0)>0?'var(--amber)':'var(--green)'}">${rec?.alertesVenda?.length||0}</div>
         </div>
+      </div>
+
+      <!-- Fons d'emergència -->
+      <div id="fe-card" style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px">
+        <div class="field-group-title" style="margin-bottom:10px">Fons d'emergència</div>
+        ${(()=>{
+          const fe = calcFonsEmergencia(c, posicions);
+          const bgMap = {ok:'var(--green-light)', deficit:'var(--red-light)', superavit:'var(--amber-light)', pendent:'var(--gray-100)'};
+          const colMap = {ok:'var(--green)', deficit:'var(--red)', superavit:'var(--amber)', pendent:'var(--gray-400)'};
+          const icMap = {ok:'✓', deficit:'!', superavit:'~', pendent:'?'};
+          const bg = bgMap[fe.estat]; const col = colMap[fe.estat]; const ic = icMap[fe.estat];
+          const mesos = fe.mesosCoberts !== null ? '<span style="font-size:11px;color:'+col+';margin-left:8px">'+fe.mesosCoberts+' mesos coberts</span>' : '';
+          const barra = fe.targetFE > 0 ? '<div style="margin-top:8px;height:6px;border-radius:99px;background:var(--gray-100);overflow:hidden"><div style="height:100%;border-radius:99px;background:'+col+';width:'+Math.min(100,Math.round(fe.liquidTotal/fe.targetFE*100))+'%;transition:width .3s"></div></div>' : '';
+          const accio = fe.accio ? '<div style="font-size:11px;color:var(--gray-500);margin-top:5px;line-height:1.5">'+fe.accio+'</div>' : '';
+          return '<div style="display:flex;align-items:start;gap:10px"><div style="width:24px;height:24px;border-radius:50%;background:'+bg+';color:'+col+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0">'+ic+'</div><div style="flex:1"><div style="font-size:12px;color:var(--black);line-height:1.5">'+fe.missatge+mesos+'</div>'+barra+accio+'</div></div>';
+        })()}
+        ${c.perfil?.despesesMensuals ? '' : '<div style="margin-top:8px;font-size:11px;color:var(--gray-400)">Afegeix les despeses mensuals a la fitxa de perfil per activar el càlcul.</div>'}
       </div>
 
       <!-- Posicions reals -->
@@ -2366,6 +3356,855 @@ function esborrarReunio() {
   renderTab();
   toast('Reunió esborrada');
 }
+// ══════════════════════════════════════════════════════
+// MOTOR MONTECARLO v1.0
+// Simulació amb evolució temporal + aportacions periòdiques
+// Genera paths anuals per a P10, P50, P90
+// ══════════════════════════════════════════════════════
+
+function calcMontecarloSim(client, actius) {
+  // --- Paràmetres del client ---
+  const capitalStr  = (client.perfil?.capitalInicial || '0').replace(/\./g,'').replace(/[^\d]/g,'');
+  const aportStr    = (client.perfil?.aportacioMensual || '0').replace(/[^\d.,]/g,'').replace(',','.');
+  const horStr      = (client.perfil?.horitzo || '10').replace(/[^\d]/g,'');
+
+  const capital0   = parseFloat(capitalStr)  || 0;
+  const aportMens  = parseFloat(aportStr)    || 0;
+  const aportAnual = aportMens * 12;
+  const anys       = Math.min(parseInt(horStr) || 10, 30);
+
+  // --- Paràmetres de la cartera (del motor MPT) ---
+  const m = actius && actius.length > 0 ? calcMetriques(actius) : null;
+  let retornEspe = 0.06;  // default 6%
+  let volAnual   = 0.12;  // default 12%
+
+  if(m) {
+    // Extreure del Sharpe i volatilitat calculada
+    const sharpe = parseFloat(m.sharpe) || 0.4;
+    const vol    = parseInt(m.volatilitat) / 100 || 0.12;
+    volAnual     = vol;
+    retornEspe   = sharpe * vol + 0.035; // retorn = sharpe * vol + rf
+  }
+
+  // Si no hi ha actius, usar mètriques per arquetip
+  const ar = client.arquetip || 'navegant';
+  const metAr = (typeof METRICS_BY_ARQUETIP !== 'undefined') ? METRICS_BY_ARQUETIP[ar] : null;
+  if(!m && metAr) {
+    // Extreure Sharpe i volatilitat del text de METRICS_BY_ARQUETIP
+    const sharpeStr = metAr.sharpe || '0.45';
+    const volStr    = (metAr.volatilitat || '12%').replace('%','');
+    const sharpe    = parseFloat(sharpeStr) || 0.45;
+    volAnual        = parseFloat(volStr) / 100 || 0.12;
+    retornEspe      = sharpe * volAnual + 0.035;
+  }
+
+  // --- Simulació Montecarlo ---
+  const N_PATHS   = 500;  // nombre de simulacions
+  const dt        = 1;    // pas anual
+
+  // Box-Muller per generar nombres aleatoris normals
+  function randNormal() {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
+  // Drift i difusió (model GBM)
+  const mu    = retornEspe - 0.5 * volAnual * volAnual;
+  const sigma = volAnual;
+
+  // Generar paths
+  const allPaths = [];
+  for(let p = 0; p < N_PATHS; p++) {
+    let val = capital0;
+    const path = [Math.round(val)];
+    for(let t = 1; t <= anys; t++) {
+      const z   = randNormal();
+      const ret = Math.exp(mu * dt + sigma * Math.sqrt(dt) * z);
+      val       = val * ret + aportAnual;
+      path.push(Math.max(0, Math.round(val)));
+    }
+    allPaths.push(path);
+  }
+
+  // Calcular percentils any a any
+  const p10Path = [], p50Path = [], p90Path = [];
+  const labels  = [];
+
+  const anyActual = new Date().getFullYear();
+  for(let t = 0; t <= anys; t++) {
+    labels.push(anyActual + t);
+    const vals = allPaths.map(p => p[t]).sort((a,b) => a - b);
+    const n    = vals.length;
+    p10Path.push(vals[Math.floor(n * 0.10)]);
+    p50Path.push(vals[Math.floor(n * 0.50)]);
+    p90Path.push(vals[Math.floor(n * 0.90)]);
+  }
+
+  // Acumulat aportat any a any
+  const aportatPath = [];
+  for(let t = 0; t <= anys; t++) {
+    aportatPath.push(Math.round(capital0 + aportAnual * t));
+  }
+
+  return {
+    labels,
+    p10: p10Path,
+    p50: p50Path,
+    p90: p90Path,
+    aportat: aportatPath,
+    retornEspe: Math.round(retornEspe * 100),
+    volAnual:   Math.round(volAnual * 100),
+    capital0,
+    aportAnual,
+    anys,
+  };
+}
+
+// Renderitzar el gràfic Montecarlo dins un canvas
+let _mcChart = null;
+
+function renderMontecarloChart(sim, canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if(!canvas || typeof Chart === 'undefined') return;
+  if(_mcChart) { _mcChart.destroy(); _mcChart = null; }
+
+  const fmt = v => {
+    if(v >= 1000000) return (v/1000000).toFixed(1) + 'M€';
+    if(v >= 1000)    return Math.round(v/1000) + 'k€';
+    return v + '€';
+  };
+
+  _mcChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: sim.labels,
+      datasets: [
+        {
+          label: 'P90 Optimista',
+          data: sim.p90,
+          borderColor: 'rgba(34,139,80,0.7)',
+          backgroundColor: 'rgba(34,139,80,0.08)',
+          borderWidth: 1.5,
+          fill: '+1',
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+        },
+        {
+          label: 'P50 Equilibrat',
+          data: sim.p50,
+          borderColor: 'rgba(34,139,80,1)',
+          backgroundColor: 'rgba(34,139,80,0.12)',
+          borderWidth: 2.5,
+          fill: '+1',
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+        },
+        {
+          label: 'P10 Pessimista',
+          data: sim.p10,
+          borderColor: 'rgba(192,57,43,0.6)',
+          backgroundColor: 'rgba(192,57,43,0.06)',
+          borderWidth: 1.5,
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+        },
+        {
+          label: 'Capital aportat',
+          data: sim.aportat,
+          borderColor: 'rgba(150,150,150,0.5)',
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderDash: [5, 4],
+          fill: false,
+          tension: 0,
+          pointRadius: 0,
+          pointHoverRadius: 3,
+        },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: {
+            font: { size: 10, family: 'var(--font-body)' },
+            color: 'var(--gray-500)',
+            boxWidth: 12,
+            padding: 10,
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.dataset.label + ': ' + fmt(ctx.raw),
+            title: lbls => 'Any ' + lbls[0],
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'var(--gray-100)' },
+          ticks: { font: { size: 10 }, color: 'var(--gray-400)', maxTicksLimit: 6 }
+        },
+        y: {
+          grid: { color: 'var(--gray-100)' },
+          ticks: {
+            font: { size: 10 }, color: 'var(--gray-400)',
+            callback: v => fmt(v),
+          }
+        }
+      }
+    }
+  });
+}
+
+
+// ══════════════════════════════════════════════════════
+// FRASES CÈLEBRES D'INVERSIÓ
+// 40 frases indexades per categoria
+// ══════════════════════════════════════════════════════
+
+const FRASES_INVERSIO = [
+  // Paciència i llarg termini
+  { text: "El mercat de valors és un dispositiu per transferir diners dels impacients als pacients.", autor: "Warren Buffett", cat: "paciencia" },
+  { text: "El temps al mercat bat el timing del mercat, sempre.", autor: "Ken Fisher", cat: "paciencia" },
+  { text: "Les accions no són bitllets de loteria. Darrera hi ha un negoci.", autor: "Peter Lynch", cat: "paciencia" },
+  { text: "La inversió és l'única àrea on una persona amb un QI de 160 pot perdre davant d'una amb un QI de 130.", autor: "Warren Buffett", cat: "paciencia" },
+  { text: "Comprar quan tothom ven i mantenir fins que tothom compra. Aixo no és una estrategia popular.", autor: "J. Paul Getty", cat: "paciencia" },
+
+  // Risc i diversificació
+  { text: "No posis tots els ous al mateix cistell.", autor: "Cervantes / Proverbio", cat: "risc" },
+  { text: "El risc prové de no saber el que fas.", autor: "Warren Buffett", cat: "risc" },
+  { text: "La diversificació és protecció contra la ignorancia. Té molt poc sentit per als qui saben el que fan.", autor: "Warren Buffett", cat: "risc" },
+  { text: "L'únic inversor que no hauria de diversificar és aquell que sempre encerta.", autor: "John Templeton", cat: "risc" },
+  { text: "No busquis l'agulla al paller. Compra el paller sencer.", autor: "John Bogle", cat: "risc" },
+
+  // Psicologia i emocions
+  { text: "Tingues por quan els altres siguin avars, i sigues avar quan els altres tinguin por.", autor: "Warren Buffett", cat: "psicologia" },
+  { text: "El pitjor enemic de l'inversor és probablement ell mateix.", autor: "Benjamin Graham", cat: "psicologia" },
+  { text: "La borsa és el lloguer d'euforia i panica de la gent. La teva feina es mantenir-te al mig.", autor: "Warren Buffett", cat: "psicologia" },
+  { text: "El problema amb els inversors no es la seva intelligencia. Es que no es pot suportar el que fa el mercat a curt termini.", autor: "Benjamin Graham", cat: "psicologia" },
+  { text: "Mai preguntis al barber si necessites un tall de cabell.", autor: "Warren Buffett", cat: "psicologia" },
+  { text: "El mercat pot romandre irracional mes temps del que tu pots romandre solvent.", autor: "John Maynard Keynes", cat: "psicologia" },
+  { text: "Les emocions son l'enemic de les bones decisions financeres.", autor: "Daniel Kahneman", cat: "psicologia" },
+
+  // Simplicitat i disciplina
+  { text: "La inversió en indexats baixa costos i maximitza la teva part del rendiment del mercat. Es sentit comu.", autor: "John Bogle", cat: "simplicitat" },
+  { text: "La simplicitat es la sofisticació suprema en inversió.", autor: "John Bogle", cat: "simplicitat" },
+  { text: "El mes important en inversió es tenir un pla i adherir-se a ell.", autor: "Burton Malkiel", cat: "simplicitat" },
+  { text: "Invertir hauria de ser mes com veure secar la pintura o creixer l'herba. Si vols emocions, agafa 800 euros i ves a Las Vegas.", autor: "Paul Samuelson", cat: "simplicitat" },
+  { text: "La consistencia bat l'excellencia intermitent.", autor: "James Clear", cat: "simplicitat" },
+  { text: "El secret de les finances es saber el que tens, saber el que deus, i viure per sota dels teus ingressos.", autor: "John Bogle", cat: "simplicitat" },
+
+  // Valor i mercat
+  { text: "En el curt termini la borsa es una maquina de votar. En el llarg termini, es una maquina de pesar.", autor: "Benjamin Graham", cat: "valor" },
+  { text: "El preu es el que pagues. El valor es el que reps.", autor: "Warren Buffett", cat: "valor" },
+  { text: "No es necessari fer coses extraordinaries per aconseguir resultats extraordinaris.", autor: "Warren Buffett", cat: "valor" },
+  { text: "Una acció en decadencia no necessàriament es una bona compra si el negoci continuarà decaient.", autor: "Peter Lynch", cat: "valor" },
+  { text: "Compra empreses meravelloses a preus raonables, no empreses raonables a preus meravellosos.", autor: "Warren Buffett", cat: "valor" },
+
+  // Inflació i poder adquisitiu
+  { text: "La inflació es el impost mes injust perque no es vota.", autor: "Milton Friedman", cat: "inflacio" },
+  { text: "L'or es la moneda de reis, la plata de cavallers, el troc de camperols i el deute d'esclaus.", autor: "Proverbio medieval", cat: "inflacio" },
+  { text: "Invertir en tu mateix es el millor que pots fer. Res no pot gravar aquest rendiment.", autor: "Warren Buffett", cat: "inflacio" },
+
+  // Temps i interès compost
+  { text: "L'interes compost es la vuitena meravella del mon. El qui l'entén, el guanya. El qui no, el paga.", autor: "Albert Einstein (atrib.)", cat: "interes_compost" },
+  { text: "El millor moment per invertir era fa 20 anys. El segon millor moment es ara.", autor: "Proverbi popular", cat: "interes_compost" },
+  { text: "Donem a l'interes compost el temps que necessita i fara coses increibles.", autor: "John Bogle", cat: "interes_compost" },
+  { text: "La meva riquesa procedeix d'una combinació de viure a America, uns bons gens i l'interes compost.", autor: "Warren Buffett", cat: "interes_compost" },
+
+  // Qualitat de vida i diners
+  { text: "Els diners compren temps i opcions. La llibertat financera es tenir opcions.", autor: "Morgan Housel", cat: "qualitat_vida" },
+  { text: "Ser ric no es sobre tenir molts diners. Es sobre tenir moltes opcions.", autor: "Chris Rock", cat: "qualitat_vida" },
+  { text: "El primer milió es el mes difícil. Despres l'interes compost fa la feina.", autor: "Proverbio inversor", cat: "qualitat_vida" },
+  { text: "No mesures la teva riquesa per les coses que tens, sino per les coses que pots permetre't no tenir.", autor: "Epictet (adaptat)", cat: "qualitat_vida" },
+  { text: "La inversió millor es aquella que et permet dormir tranquil.", autor: "Kenneth Fisher", cat: "qualitat_vida" },
+];
+
+// Obtenir una frase random (o basada en el client)
+function getFraseRandom(client) {
+  const idx = Math.floor(Math.random() * FRASES_INVERSIO.length);
+  return FRASES_INVERSIO[idx];
+}
+
+// Obtenir frase per context (scoring, cartera, etc.)
+function getFrasePerContext(context) {
+  const catMap = {
+    'caiguda':    'psicologia',
+    'bon_moment': 'paciencia',
+    'alt_risc':   'risc',
+    'baix_risc':  'simplicitat',
+    'llarg':      'interes_compost',
+    'inflacio':   'inflacio',
+  };
+  const cat = catMap[context] || null;
+  const pool = cat ? FRASES_INVERSIO.filter(f => f.cat === cat) : FRASES_INVERSIO;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+
+// ══════════════════════════════════════════════
+// RENDER SERVEIS I TARIFES
+// ══════════════════════════════════════════════
+function renderServeis() {
+  const el = document.getElementById('serveis-content');
+  if(!el) return;
+
+  el.innerHTML = `
+    <div style="max-width:780px;margin:0 auto;padding:0 4px">
+
+      <!-- Capçalera -->
+      <div style="margin-bottom:28px">
+        <div style="font-size:11px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Model fee-only · Sense comissions de tercers</div>
+        <div style="font-size:26px;font-weight:500;color:var(--black);margin-bottom:8px">Serveis i tarifes</div>
+        <div style="font-size:14px;color:var(--gray-500);line-height:1.7;max-width:560px">
+          Assessorament financer independent. Cobro únicament pels meus serveis, mai per la venda de productes. Els teus interessos i els meus estan alineats.
+        </div>
+      </div>
+
+      <!-- Grid de serveis -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px">
+
+        <div style="background:var(--black);border-radius:var(--radius);padding:22px 24px;color:white">
+          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:12px">Pack 01</div>
+          <div style="font-size:18px;font-weight:500;margin-bottom:6px">Diagnòstic Financer</div>
+          <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);margin-bottom:14px">300<span style="font-size:14px;color:rgba(255,255,255,.5)"> – 500€</span></div>
+          <div style="height:1px;background:rgba(255,255,255,.1);margin-bottom:14px"></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.8">
+            ✓ Qüestionari d'onboarding complet<br>
+            ✓ Anàlisi del perfil inversor (7 dimensions)<br>
+            ✓ Informe de diagnòstic personalitzat<br>
+            ✓ Cartera model recomanada<br>
+            ✓ 1 sessió de 90 min (presencial o videotrucada)
+          </div>
+          <div style="margin-top:16px;font-size:10px;color:rgba(255,255,255,.3)">Sessió única · Sense compromís de continuïtat</div>
+        </div>
+
+        <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
+          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Pack 02</div>
+          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">Disseny de Cartera</div>
+          <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">800<span style="font-size:14px;color:var(--gray-400)"> – 1.500€</span></div>
+          <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
+          <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
+            ✓ Tot el Pack 01 inclòs<br>
+            ✓ Selecció de productes específics (ETFs, fons)<br>
+            ✓ Pla d'implementació pas a pas<br>
+            ✓ Fiscalitat i optimització fiscal<br>
+            ✓ Simulació Montecarlo personalitzada<br>
+            ✓ 2 sessions de seguiment (3 mesos)
+          </div>
+          <div style="margin-top:16px;font-size:10px;color:var(--gray-400)">Recomanat per a noves carteres o reestructuració</div>
+        </div>
+
+        <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
+          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Pack 03</div>
+          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">Seguiment Recurrent</div>
+          <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">100<span style="font-size:14px;color:var(--gray-400)"> – 200€/trim.</span></div>
+          <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
+          <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
+            ✓ Revisió trimestral de cartera<br>
+            ✓ Recomanació DCA mensual<br>
+            ✓ Alertes de rebalanceig<br>
+            ✓ 1 sessió trimestral de 45 min<br>
+            ✓ Suport per missatgeria (dubtes puntuals)
+          </div>
+          <div style="margin-top:16px;font-size:10px;color:var(--gray-400)">Disponible per a clients amb Pack 02 completat</div>
+        </div>
+
+        <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
+          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Consultoria</div>
+          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">Sessió Puntual</div>
+          <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">150<span style="font-size:14px;color:var(--gray-400)"> – 250€/hora</span></div>
+          <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
+          <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
+            ✓ Dubte concret o decisió puntual<br>
+            ✓ Revisió d'una inversió específica<br>
+            ✓ Planificació d'un event financer (herència, canvi feina...)<br>
+            ✓ Sense compromís de continuïtat
+          </div>
+          <div style="margin-top:16px;font-size:10px;color:var(--gray-400)">Mínim 1 hora · Format lliure</div>
+        </div>
+      </div>
+
+      <!-- Model fee-only explicat -->
+      <div style="background:var(--gray-100);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px">
+        <div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:10px">Per que fee-only?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">Sense conflicte d'interessos</div>
+            <div style="font-size:11px;color:var(--gray-500);line-height:1.6">No cobro comissions de cap entitat financera. No tinc incentiu per recomanar cap producte específic.</div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">Transparència total</div>
+            <div style="font-size:11px;color:var(--gray-500);line-height:1.6">Saps exactament el que pagues i per que. L'únic cost ets tu, no productes de tercers.</div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">Alineació d'objectius</div>
+            <div style="font-size:11px;color:var(--gray-500);line-height:1.6">El meu èxit depèn del teu resultat a llarg termini, no del volum de productes col·locats.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="disclaimer">Tarifes orientatives. El preu final s'acorda en la primera sessió gratuïta de 20 min. IVA no inclòs. Activitat pendent de certificació EFA (juny 2026).</div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════
+// RENDER QUI SOC
+// ══════════════════════════════════════════════
+function renderQuiSoc() {
+  const el = document.getElementById('quisoc-content');
+  if(!el) return;
+
+  el.innerHTML = `
+    <div style="max-width:720px;margin:0 auto;padding:0 4px">
+
+      <!-- Capçalera amb foto placeholder -->
+      <div style="display:flex;gap:28px;align-items:start;margin-bottom:32px">
+        <div style="width:80px;height:80px;border-radius:50%;background:var(--black);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:28px;font-weight:400;color:white;font-family:var(--font-serif)">GP</span>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:500;color:var(--black);margin-bottom:4px">Guillem Puig</div>
+          <div style="font-size:13px;color:var(--gray-400);margin-bottom:8px">The Boring Investor · Assessoria Financera Independent</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="font-size:11px;padding:3px 10px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">EFA candidat juny 2026</span>
+            <span style="font-size:11px;padding:3px 10px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">Fee-only</span>
+            <span style="font-size:11px;padding:3px 10px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">@the_boringinvestor</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text principal - contingut de Guillem -->
+      <div style="font-size:14px;color:var(--gray-600);line-height:1.85;margin-bottom:24px">
+        <p style="margin-bottom:16px">
+          Hola, soc en Guillem, i si treballes per nomina segurament compartim el mateix enemic: la inflació i un sistema on, any rere any, el teu sou no corre al mateix ritme que el cost de la vida.
+        </p>
+        <p style="margin-bottom:16px">
+          Treballes, t'hi esforces, fas hores, assumes responsabilitats... pero la sensació és que cada vegada arribes mes just. El carro de la compra puja, lloguers o hipoteques pugen, l'energia puja... i tu, tot i fer-ho "be", notes que cada any pots fer menys amb els teus diners.
+        </p>
+        <p style="font-size:15px;font-weight:500;color:var(--black);margin-bottom:16px">Jo he estat exactament aquí.</p>
+        <p style="margin-bottom:16px">
+          Durant anys vaig treballar en una gran empresa corporativa, donant-ho tot: projectes, energia, moltes hores, extra de responsabilitat. Pero hi havia una cosa que no em quadrava: el meu esforc no es traduia en un augment real del poder adquisitiu, i al final, em sentia sobretot un numero mes en un Excel. Treballava mes... pero no vivia millor.
+        </p>
+        <p style="margin-bottom:16px">
+          I vaig arribar a aquella pregunta incomoda que potser tu tambe t'has fet: <em>"De veritat, nomes puc confiar en la nomina i esperar que tot vagi be... mentre els preus no paren de pujar?"</em>
+        </p>
+        <p style="margin-bottom:16px">
+          En comptes de resignar-m'hi, vaig fer el que sempre he fet en el mon tecnic i industrial: analitzar el problema, buscar solucions i provar-les. Vaig comecar a formar-me seriosament en inversió i finances personals. He passat per gairebe tots els instruments: comptes remunerats, fons de banca tradicional, plans de pensions, accions individuals, ETF, roboadvisors... Ho he viscut en propia pell.
+        </p>
+      </div>
+
+      <!-- Bloc destacat -->
+      <div style="border-left:3px solid var(--black);padding:14px 20px;margin-bottom:24px;background:var(--gray-100);border-radius:0 8px 8px 0">
+        <div style="font-size:15px;font-weight:500;color:var(--black);line-height:1.6">
+          En aquest proces vaig descobrir una cosa que molts no volen sentir: no cal fer coses espectaculars per tenir bons resultats, cal tenir metodologia i disciplina.
+        </div>
+      </div>
+
+      <div style="font-size:14px;color:var(--gray-600);line-height:1.85;margin-bottom:24px">
+        <p style="margin-bottom:16px">
+          Aixi és com neix <strong style="color:var(--black)">The Boring Investor</strong>. Un projecte pensat per a persones com tu i com jo: assalariats, professionals tecnics, gent que curren de debo... pero que no volen veure com la inflació i un sistema mal dissenyat els van menjant el futur a trossets.
+        </p>
+      </div>
+
+      <!-- Que m'hi jugo -->
+      <div style="margin-bottom:24px">
+        <div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:14px">Que m'hi jugo?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${[
+            {icon:'◎', tit:'Vinc del mon tecnic, no de la banca', txt:"Combino una mentalitat d'eficiencia, dades i processos amb l'univers financer. No vinc a col·locar productes, vinc a dissenyar un sistema que funcioni."},
+            {icon:'◈', tit:'Es la meva passió', txt:"No es un hobby passatger ni una moda. M'agrada de debo analitzar carteres, optimitzar estrategies i buscar la manera que els diners treballin millor per la gent."},
+            {icon:'◉', tit:'Skin in the game', txt:"Hi tinc els meus diners. No et recomanare mai un actiu o una estrategia en la qual jo mateix no estaria disposat a invertir."},
+            {icon:'◐', tit:'He provat (gairebe) de tot', txt:"No parlo des de la trinxera del power point, sino des de l'experiencia real. Sé que se sent quan el mercat baixa."},
+          ].map(item =>
+            '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:10px;padding:14px 16px">' +
+              '<div style="display:flex;gap:10px;align-items:start">' +
+                '<span style="font-size:18px;color:var(--accent);flex-shrink:0;line-height:1.3">' + item.icon + '</span>' +
+                '<div>' +
+                  '<div style="font-size:12px;font-weight:500;color:var(--black);margin-bottom:4px">' + item.tit + '</div>' +
+                  '<div style="font-size:11px;color:var(--gray-500);line-height:1.6">' + item.txt + '</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>'
+          ).join('')}
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="background:var(--black);border-radius:var(--radius);padding:22px 26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:14px">
+        <div>
+          <div style="font-size:15px;font-weight:500;color:white;margin-bottom:4px">En que et puc ajudar?</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">Sense fum. Sense promeses irreals. Metodologia, disciplina i sentit comu aplicats als teus diners.</div>
+        </div>
+        <button onclick="navigate('serveis')" style="padding:10px 20px;background:white;color:var(--black);border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body);flex-shrink:0">
+          Veure serveis →
+        </button>
+      </div>
+
+      <div class="disclaimer">Activitat d'educació i analisi financera independent. Pendent de certificació EFA (juny 2026). No constiteix assessorament regulat MiFID II.</div>
+    </div>
+  `;
+}
+
+
+// ══════════════════════════════════════════════════════
+// SISTEMA DE TRADUCCIONS CA/ES
+// ══════════════════════════════════════════════════════
+
+let LANG = localStorage.getItem('tbi_lang') || 'ca';
+
+function t(key) {
+  return (TRANSLATIONS[LANG] && TRANSLATIONS[LANG][key]) || TRANSLATIONS['ca'][key] || key;
+}
+
+function setLang(lang) {
+  LANG = lang;
+  localStorage.setItem('tbi_lang', lang);
+  updateLangToggle();
+  // Re-renderitzar sidebar nav labels
+  updateNavLabels();
+  // Re-renderitzar la pantalla actual
+  const screens = ['dashboard','fitxa','scoring','serveis','quisoc'];
+  const currentScreen = screens.find(s => {
+    const el = document.getElementById('nav-'+s);
+    return el && el.classList.contains('active');
+  }) || 'dashboard';
+  navigate(currentScreen, currentClientId);
+}
+
+function updateLangToggle() {
+  const btnCa = document.getElementById('lang-ca');
+  const btnEs = document.getElementById('lang-es');
+  if(btnCa) {
+    btnCa.style.background = LANG==='ca' ? 'rgba(255,255,255,.12)' : 'transparent';
+    btnCa.style.color       = LANG==='ca' ? 'white' : 'rgba(255,255,255,.4)';
+    btnCa.style.borderColor = LANG==='ca' ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.1)';
+  }
+  if(btnEs) {
+    btnEs.style.background = LANG==='es' ? 'rgba(255,255,255,.12)' : 'transparent';
+    btnEs.style.color       = LANG==='es' ? 'white' : 'rgba(255,255,255,.4)';
+    btnEs.style.borderColor = LANG==='es' ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.1)';
+  }
+}
+
+function updateNavLabels() {
+  const navMap = {
+    'nav-dashboard': 'nav.dashboard',
+    'nav-fitxa':     'nav.fitxa',
+    'nav-scoring':   'nav.scoring',
+    'nav-serveis':   'nav.serveis',
+    'nav-quisoc':    'nav.quisoc',
+  };
+  Object.entries(navMap).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if(el) {
+      // Preservar el badge i icon - actualitzar només el text
+      const icon = el.querySelector('svg');
+      const badge = el.querySelector('.nav-badge');
+      if(icon) {
+        const txt = el.childNodes[el.childNodes.length-1];
+        if(txt && txt.nodeType === 3) txt.textContent = ' ' + t(key);
+      }
+    }
+  });
+  // Nav sections
+  const sections = document.querySelectorAll('.nav-section');
+  const sectionKeys = ['nav.principal','nav.clients','nav.assessoria'];
+  sections.forEach((el,i) => { if(sectionKeys[i]) el.textContent = t(sectionKeys[i]); });
+}
+
+const TRANSLATIONS = {
+  ca: {
+    // Nav
+    'nav.principal':   'Principal',
+    'nav.clients':     'Clients',
+    'nav.assessoria':  'Assessoria',
+    'nav.dashboard':   'Dashboard',
+    'nav.fitxa':       'Fitxa client',
+    'nav.scoring':     'Scoring',
+    'nav.serveis':     'Serveis i tarifes',
+    'nav.quisoc':      'Qui soc',
+    // Dashboard
+    'dash.title':          'Dashboard',
+    'dash.clients_actius': 'Clients actius',
+    'dash.objectiu':       'MVP · objectiu 20',
+    'dash.scoring_mitja':  'Scoring mitjà',
+    'dash.cartera_global': 'Cartera global',
+    'dash.revisions':      'Revisions pendents',
+    'dash.revisio_anual':  'Revisió anual deguda',
+    'dash.alertes':        'Alertes crítiques',
+    'dash.scoring_baix':   'Scoring <30',
+    'dash.tots_clients':   'Tots els clients',
+    'dash.nou_client':     '+ Nou client',
+    'dash.importar':       'Importar ↑',
+    'dash.exportar':       'Exportar dades',
+    // Taula
+    'col.client':    'Client',
+    'col.arquetip':  'Arquetip',
+    'col.cartera':   'Cartera',
+    'col.scoring':   'Scoring',
+    'col.revisio':   'Última revisió',
+    'col.estat':     'Estat',
+    // Tabs fitxa
+    'tab.perfil':    'Perfil',
+    'tab.cartera':   'Cartera',
+    'tab.historial': 'Historial',
+    'tab.seguiment': 'Seguiment',
+    // Estats
+    'estat.ok':      'OK',
+    'estat.revisio': 'Revisió',
+    'estat.critic':  'Crític',
+    // Perfil labels
+    'perfil.dades_financeres': 'Dades financeres',
+    'perfil.capital_inicial':  'Capital inicial',
+    'perfil.aportacio':        'Aportació mensual',
+    'perfil.despeses':         'Despeses mensuals',
+    'perfil.horitzo':          'Horitzó',
+    'perfil.objectiu':         'Objectiu',
+    'perfil.segment':          'Segment',
+    'perfil.risc':             'Perfil de risc',
+    'perfil.risc_financer':    'Risc financer',
+    'perfil.risc_emocional':   'Risc emocional',
+    'perfil.coneixement':      'Coneixement',
+    'perfil.vol_tolerable':    'Vol. tolerable',
+    'perfil.drawdown_max':     'Drawdown màx.',
+    'perfil.nota_assessor':    "Nota de l'assessor",
+    'perfil.propera_reunio':   'Propera reunió planificada',
+    'perfil.data_hora':        'Data i hora',
+    'perfil.format':           'Format',
+    'perfil.tema':             'Tema',
+    'perfil.lloc':             'Lloc / Enllaç',
+    'perfil.format_presencial': 'Presencial',
+    'perfil.format_video':      'Videollamada',
+    'perfil.format_tel':        'Telèfon',
+    'perfil.tema_primera':      'Primera sessió',
+    'perfil.tema_seguiment':    'Seguiment trimestral',
+    'perfil.tema_revisio':      'Revisió cartera',
+    'perfil.tema_actiu':        'Nou actiu',
+    'perfil.tema_dubte':        'Dubte client',
+    'perfil.tema_tancament':    'Tancament',
+    'perfil.desar_reunio':      'Desar reunió',
+    'perfil.esborrar':          'Esborrar',
+    // Cartera
+    'cartera.ajustar_pesos':    'Ajustar pesos — mètriques en temps real',
+    'cartera.afegir_actiu':     '+ Afegir actiu',
+    'cartera.desar':            'Desar cartera personalitzada',
+    'cartera.restaurar':        'Restaurar model',
+    'cartera.total':            'Total assignat',
+    'cartera.projeccio':        'Projecció Montecarlo',
+    'cartera.ter':              'TER estimat',
+    'cartera.liquiditat':       'Liquiditat',
+    'cartera.warn_total':       'El total ha de ser 100% per desar.',
+    // Seguiment
+    'seg.valor_total':         'Valor total real',
+    'seg.aportacio':           'Aportació mensual',
+    'seg.actius_seguits':      'Actius seguits',
+    'seg.alertes':             'Alertes actives',
+    'seg.fons_emergencia':     "Fons d'emergència",
+    'seg.posicions':           'Posicions reals del client',
+    'seg.afegir_posicio':      '+ Afegir posició',
+    'seg.desar':               'Desar',
+    'seg.cancel':              'Cancel',
+    'seg.nom_actiu':           'Nom/Plataforma (ex: Finizens)',
+    'seg.valor_eur':           'Valor (€)',
+    'seg.on_aportar':          'On aportar aquest mes',
+    'seg.aportacio_planificada': 'Aportació planificada',
+    'seg.aportacio_recomanada':  'Aportació recomanada',
+    'seg.alertes_rebalanceig':   'Alertes de rebalanceig',
+    'seg.consell':             'Consell per a aquest moment',
+    // Scoring
+    'scoring.puntuacio':   'Puntuació global',
+    'scoring.sobre_100':   'sobre 100',
+    'scoring.pla_millora': 'Pla de millora',
+    'scoring.desar':       'Desar scoring al client',
+    'scoring.avaluacio':   'Avaluació per mòdul',
+    'scoring.radar':       'Radar per mòdul',
+    // Botons
+    'btn.desar':      'Desar',
+    'btn.cancel':     'Cancel',
+    'btn.scoring':    'Scoring',
+    'btn.informe':    'Generar informe ↓',
+    'btn.exportar':   'Exportar dades ↓',
+    'btn.reiniciar':  'Reiniciar demo',
+    'btn.afegir':     '+ Afegir',
+    // Missatges
+    'msg.dades_local':   'Dades guardades localment.',
+    'msg.exporta':       "Exporta per fer còpia o canviar d'ordinador.",
+    'msg.cartera_pendent': 'Cartera pendent de definir',
+    'msg.afegir_posicions': 'Afegeix les posicions reals del client per activar el motor DCA',
+    // Mètriques
+    'met.drawdown':    'Màxima caiguda',
+    'met.drawdown_sub':'Pitjor escenari',
+    'met.recuperacio': 'Temps recuperació',
+    'met.recuperacio_sub': 'Per recuperar el màxim',
+    'met.horitzo':     'Horitzó mínim',
+    'met.horitzo_sub': 'Per probabilitat alta',
+    'met.volatilitat': 'Volatilitat anual',
+    'met.volatilitat_sub': 'Moviment diari',
+    'met.sharpe':      'Retorn/Risc',
+    'met.sharpe_sub':  'Sharpe >0.5 = eficient',
+    'met.correlacio':  'Correlació mercat',
+    'met.correlacio_sub': '% que cau amb mercat',
+    // Montecarlo
+    'mc.p10': 'P10 Pessimista',
+    'mc.p50': 'P50 Equilibrat',
+    'mc.p90': 'P90 Optimista',
+    // Disclaimer
+    'disclaimer.pre_efa': "Eina d'educació financera independent. Recomanació per classe d'actiu, no producte específic. No és assessorament regulat MiFID II.",
+  },
+
+  es: {
+    // Nav
+    'nav.principal':   'Principal',
+    'nav.clients':     'Clientes',
+    'nav.assessoria':  'Asesoría',
+    'nav.dashboard':   'Panel principal',
+    'nav.fitxa':       'Ficha cliente',
+    'nav.scoring':     'Scoring',
+    'nav.serveis':     'Servicios y tarifas',
+    'nav.quisoc':      'Quién soy',
+    // Dashboard
+    'dash.title':          'Panel principal',
+    'dash.clients_actius': 'Clientes activos',
+    'dash.objectiu':       'MVP · objetivo 20',
+    'dash.scoring_mitja':  'Scoring medio',
+    'dash.cartera_global': 'Cartera global',
+    'dash.revisions':      'Revisiones pendientes',
+    'dash.revisio_anual':  'Revisión anual debida',
+    'dash.alertes':        'Alertas críticas',
+    'dash.scoring_baix':   'Scoring <30',
+    'dash.tots_clients':   'Todos los clientes',
+    'dash.nou_client':     '+ Nuevo cliente',
+    'dash.importar':       'Importar ↑',
+    'dash.exportar':       'Exportar datos',
+    // Taula
+    'col.client':    'Cliente',
+    'col.arquetip':  'Arquetipo',
+    'col.cartera':   'Cartera',
+    'col.scoring':   'Scoring',
+    'col.revisio':   'Última revisión',
+    'col.estat':     'Estado',
+    // Tabs fitxa
+    'tab.perfil':    'Perfil',
+    'tab.cartera':   'Cartera',
+    'tab.historial': 'Historial',
+    'tab.seguiment': 'Seguimiento',
+    // Estats
+    'estat.ok':      'OK',
+    'estat.revisio': 'Revisión',
+    'estat.critic':  'Crítico',
+    // Perfil labels
+    'perfil.dades_financeres': 'Datos financieros',
+    'perfil.capital_inicial':  'Capital inicial',
+    'perfil.aportacio':        'Aportación mensual',
+    'perfil.despeses':         'Gastos mensuales',
+    'perfil.horitzo':          'Horizonte',
+    'perfil.objectiu':         'Objetivo',
+    'perfil.segment':          'Segmento',
+    'perfil.risc':             'Perfil de riesgo',
+    'perfil.risc_financer':    'Riesgo financiero',
+    'perfil.risc_emocional':   'Riesgo emocional',
+    'perfil.coneixement':      'Conocimiento',
+    'perfil.vol_tolerable':    'Vol. tolerable',
+    'perfil.drawdown_max':     'Drawdown máx.',
+    'perfil.nota_assessor':    'Nota del asesor',
+    'perfil.propera_reunio':   'Próxima reunión planificada',
+    'perfil.data_hora':        'Fecha y hora',
+    'perfil.format':           'Formato',
+    'perfil.tema':             'Tema',
+    'perfil.lloc':             'Lugar / Enlace',
+    'perfil.format_presencial': 'Presencial',
+    'perfil.format_video':      'Videollamada',
+    'perfil.format_tel':        'Teléfono',
+    'perfil.tema_primera':      'Primera sesión',
+    'perfil.tema_seguiment':    'Seguimiento trimestral',
+    'perfil.tema_revisio':      'Revisión cartera',
+    'perfil.tema_actiu':        'Nuevo activo',
+    'perfil.tema_dubte':        'Duda cliente',
+    'perfil.tema_tancament':    'Cierre',
+    'perfil.desar_reunio':      'Guardar reunión',
+    'perfil.esborrar':          'Eliminar',
+    // Cartera
+    'cartera.ajustar_pesos':    'Ajustar pesos — métricas en tiempo real',
+    'cartera.afegir_actiu':     '+ Añadir activo',
+    'cartera.desar':            'Guardar cartera personalizada',
+    'cartera.restaurar':        'Restaurar modelo',
+    'cartera.total':            'Total asignado',
+    'cartera.projeccio':        'Proyección Montecarlo',
+    'cartera.ter':              'TER estimado',
+    'cartera.liquiditat':       'Liquidez',
+    'cartera.warn_total':       'El total debe ser 100% para guardar.',
+    // Seguiment
+    'seg.valor_total':         'Valor total real',
+    'seg.aportacio':           'Aportación mensual',
+    'seg.actius_seguits':      'Activos seguidos',
+    'seg.alertes':             'Alertas activas',
+    'seg.fons_emergencia':     'Fondo de emergencia',
+    'seg.posicions':           'Posiciones reales del cliente',
+    'seg.afegir_posicio':      '+ Añadir posición',
+    'seg.desar':               'Guardar',
+    'seg.cancel':              'Cancelar',
+    'seg.nom_actiu':           'Nombre/Plataforma (ej: Finizens)',
+    'seg.valor_eur':           'Valor (€)',
+    'seg.on_aportar':          'Dónde aportar este mes',
+    'seg.aportacio_planificada': 'Aportación planificada',
+    'seg.aportacio_recomanada':  'Aportación recomendada',
+    'seg.alertes_rebalanceig':   'Alertas de rebalanceo',
+    'seg.consell':             'Consejo para este momento',
+    // Scoring
+    'scoring.puntuacio':   'Puntuación global',
+    'scoring.sobre_100':   'sobre 100',
+    'scoring.pla_millora': 'Plan de mejora',
+    'scoring.desar':       'Guardar scoring al cliente',
+    'scoring.avaluacio':   'Evaluación por módulo',
+    'scoring.radar':       'Radar por módulo',
+    // Botons
+    'btn.desar':      'Guardar',
+    'btn.cancel':     'Cancelar',
+    'btn.scoring':    'Scoring',
+    'btn.informe':    'Generar informe ↓',
+    'btn.exportar':   'Exportar datos ↓',
+    'btn.reiniciar':  'Reiniciar demo',
+    'btn.afegir':     '+ Añadir',
+    // Missatges
+    'msg.dades_local':   'Datos guardados localmente.',
+    'msg.exporta':       'Exporta para hacer copia o cambiar de ordenador.',
+    'msg.cartera_pendent': 'Cartera pendiente de definir',
+    'msg.afegir_posicions': 'Añade las posiciones reales del cliente para activar el motor DCA',
+    // Mètriques
+    'met.drawdown':    'Caída máxima',
+    'met.drawdown_sub':'Peor escenario',
+    'met.recuperacio': 'Tiempo recuperación',
+    'met.recuperacio_sub': 'Para recuperar el máximo',
+    'met.horitzo':     'Horizonte mínimo',
+    'met.horitzo_sub': 'Por probabilidad alta',
+    'met.volatilitat': 'Volatilidad anual',
+    'met.volatilitat_sub': 'Movimiento diario',
+    'met.sharpe':      'Retorno/Riesgo',
+    'met.sharpe_sub':  'Sharpe >0.5 = eficiente',
+    'met.correlacio':  'Correlación mercado',
+    'met.correlacio_sub': '% que cae con mercado',
+    // Montecarlo
+    'mc.p10': 'P10 Pesimista',
+    'mc.p50': 'P50 Equilibrado',
+    'mc.p90': 'P90 Optimista',
+    // Disclaimer
+    'disclaimer.pre_efa': 'Herramienta de educación financiera independiente. Recomendación por clase de activo, no producto específico. No es asesoramiento regulado MiFID II.',
+  }
+};
+
 // ══════════════════════════════════════════════
 // TOAST
 // ══════════════════════════════════════════════
