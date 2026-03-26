@@ -631,7 +631,7 @@ function buildResult(){
   const cd = CARTERES_DESC[ar.cartera]||'';
   return `<div class="result-outer">
     <div class="result-eyebrow">El teu perfil inversor</div>
-      ${pSrc?`<img class="result-img" src="${pSrc}" alt="${ar.nom}"/>`:''}
+      ${pSrc?`<img class="result-img" src="${pSrc}" alt="${ar.nom}" onerror="this.style.display='none'"/>`:''}
         <div class="result-nom">${ar.nom}</div>
     <div class="result-ep">${ar.ep}</div>
     <div class="result-score-row">
@@ -747,7 +747,15 @@ function next(){
     if(q.req&&!v){ toast('Aquest camp és obligatori'); return; }
     if(q.isEmail&&v&&!v.includes('@')){ toast('L\'email no sembla vàlid'); return; }
   }
-  if(q.type==='result') return;
+  if(q.type==='result'){
+    // Tornar a la pàgina anterior o a la landing
+    if(document.referrer) {
+      window.location.href = document.referrer;
+    } else {
+      window.location.href = 'https://theboringinvestor.github.io/assessoria/';
+    }
+    return;
+  }
   going=true;
   cur++;
   render('fwd');
