@@ -653,10 +653,7 @@ function buildResult(){
           <span style="font-size:11px;color:rgba(255,255,255,.55);flex:1">${b.n}</span>
           <span style="font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.4)">${b.p}%</span>
         </div>`).join(''):''}
-      ${ar.ter?`<div style="display:flex;gap:16px;margin-top:10px">
-        <span style="font-size:10px;color:rgba(255,255,255,.3)">TER ${ar.ter}</span>
-        <span style="font-size:10px;color:rgba(255,255,255,.3)">Retorn esperat ${ar.retorn}</span>
-      </div>`:''}
+      ${(ar.ter||ar.retorn)?'<div style="display:flex;gap:16px;margin-top:10px">'+(ar.ter?'<span style="font-size:10px;color:rgba(255,255,255,.3)">TER '+ar.ter+'</span>':'')+(ar.retorn?'<span style="font-size:10px;color:rgba(255,255,255,.3)">Retorn esperat '+ar.retorn+'</span>':'')+'</div>':''}
     </div>
     <div style="font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Perfil de les 7 dimensions</div>
     <div class="radar-section" style="padding-top:0;border-top:none">
@@ -675,7 +672,7 @@ function buildResult(){
       </div>
       <button class="btn-reset" onclick="reiniciar()">Tornar a començar</button>
     </div>
-    <div class="result-note">Descarrega el fitxer i envia'l per email a Guillem Puig.<br>L'assessor l'importarà i el teu expedient estarà llest per a la primera sessió.</div>
+    <div class="result-note">Les teves dades s'han enviat a Guillem Puig. En breu et contactarà per concretar la primera sessió.<br><span style="opacity:.6">Si prefereixes, pots descarregar una còpia del teu perfil amb el botó d'adalt.</span></div>
   </div>`;
 }
 
@@ -748,9 +745,12 @@ function next(){
     if(q.isEmail&&v&&!v.includes('@')){ toast('L\'email no sembla vàlid'); return; }
   }
   if(q.type==='result'){
-    // Tornar a la pàgina anterior o a la landing
-    if(document.referrer) {
-      window.location.href = document.referrer;
+    // Si no s'ha enviat encara, enviar primer
+    if(!_dadesEnviades) {
+      descarregar();
+      setTimeout(() => {
+        window.location.href = 'https://theboringinvestor.github.io/assessoria/';
+      }, 2500);
     } else {
       window.location.href = 'https://theboringinvestor.github.io/assessoria/';
     }
@@ -822,6 +822,7 @@ function enviarASheets(data){
     body: JSON.stringify(payload)
   })
   .then(() => {
+    _dadesEnviades = true;
     toast("Perfil enviat a l'assessor!");
     if(btn) btn.textContent = originalText;
     // Descàrrega automàtica com a còpia
