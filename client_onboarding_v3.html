@@ -16,6 +16,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
+body{overflow-y:auto}
 body{font-family:var(--fb);background:var(--black);color:var(--white);font-size:14px;-webkit-font-smoothing:antialiased}
 
 /* ── HEADER ── */
@@ -44,7 +45,7 @@ body{font-family:var(--fb);background:var(--black);color:var(--white);font-size:
 
 /* ── MAIN ── */
 .main{height:100vh;padding-top:53px;display:flex;flex-direction:column;overflow:hidden}
-.stage{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 40px;overflow:hidden}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 40px;overflow-y:auto;overflow-x:hidden}
 .q-wrap{max-width:580px;width:100%;transition:transform .3s var(--ease),opacity .22s var(--ease)}
 .q-wrap.out-l{transform:translateX(-44px);opacity:0}
 .q-wrap.out-r{transform:translateX(44px);opacity:0}
@@ -111,7 +112,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
 .kb-hint{font-size:11px;color:rgba(255,255,255,.18)}
 
 /* ── RESULTAT ── */
-.result-outer{width:100%;max-width:620px}
+.result-outer{width:100%;max-width:620px;padding-bottom:80px}
 .result-eyebrow{font-size:10px;font-weight:500;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
 .result-nom{font-family:var(--fd);font-size:clamp(32px,5vw,52px);font-weight:400;line-height:1.1;letter-spacing:-.5px;margin-bottom:4px}
 .result-ep{font-family:var(--fd);font-size:14px;font-style:italic;color:rgba(255,255,255,.35);margin-bottom:6px}
@@ -181,6 +182,10 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
       </svg>
       <span class="logo-name">The Boring Investor</span>
     </div>
+    <div style="display:flex;gap:4px;margin:0 auto 0 16px">
+      <button id="onb-lang-ca" onclick="setOnbLang('ca')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:white;font-family:var(--fb);transition:all .12s">CA</button>
+      <button id="onb-lang-es" onclick="setOnbLang('es')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-family:var(--fb);transition:all .12s">ES</button>
+    </div>
     <div class="prog-info">
       <span class="time-pill" id="time-pill">~5 min</span>
       <span class="prog-label" id="prog-label">0 de 23</span>
@@ -204,7 +209,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
   </div>
   <div class="nav">
     <button class="btn-back" id="btn-back" onclick="prev()">← Enrere</button>
-    <span class="kb-hint">Prem Enter per continuar</span>
+    <span class="kb-hint" id="kb-hint"></span>
     <button class="btn-next" id="btn-next" onclick="next()" disabled>Continuar →</button>
   </div>
 </div>
@@ -212,6 +217,162 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
 <div class="toast" id="toast"></div>
 
 <script>
+// ══════════════════════════════════════════════
+// TRADUCCIONS CASTELLÀ — ONBOARDING
+// ══════════════════════════════════════════════
+let ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
+
+const QS_ES = {
+  // Textos i placeholders
+  nom:    { text: 'Empecemos. ¿Cómo te llamas?', ph: 'Tu nombre' },
+  email:  { text: '¿Y tu email?', ph: 'email@ejemplo.com' },
+  // D1 Objectius
+  D1P1: { text: '¿Cuál es tu objetivo principal al invertir?',
+    opts: ['Protección','Estabilidad','Crecimiento','Máximo crecimiento'] },
+  D1P2: { text: '¿En qué momento de tu vida inversora estás?',
+    opts: ['Acabo de empezar','Tengo algo ahorrado','Llevo años invirtiendo','Gestor activo'] },
+  D1P3: { text: '¿Qué harías si tu cartera cayera un 20% en 3 meses?',
+    opts: ['Vendería todo','Vendería algo','No haría nada','Compraría más'] },
+  // D2 Situació
+  D2P1: { text: '¿Cuánto capital inicial tienes disponible para invertir?',
+    opts: ['Menos de 5.000€','5.000–20.000€','20.000–100.000€','Más de 100.000€'] },
+  D2P2: { text: '¿Cuánto puedes aportar mensualmente?',
+    opts: ['No puedo aportar','Menos de 100€/mes','100–500€/mes','Más de 500€/mes'] },
+  D2P3: { text: '¿Tienes fondo de emergencia (3–6 meses de gastos)?',
+    opts: ['No tengo','Parcialmente','Sí, lo tengo cubierto','Sí, y más de 6 meses'] },
+  // D3 Horitzó
+  D3P1: { text: '¿Cuántos años tienes previstos para invertir sin necesitar el dinero?',
+    opts: ['Menos de 3 años','3–5 años','5–10 años','Más de 10 años'] },
+  D3P2: { text: '¿Cuándo podrías necesitar retirar una parte importante?',
+    opts: ['En menos de 1 año','En 1–3 años','En 3–10 años','Más de 10 años o nunca'] },
+  // D4 Coneixement
+  D4P1: { text: '¿Cómo definirías tu nivel de conocimiento financiero?',
+    opts: ['Básico','Intermedio','Avanzado','Experto'] },
+  D4P2: { text: '¿Qué instrumento describe mejor tu cartera actual?',
+    opts: ['Cuenta corriente / depósito','Fondos mixtos o de pensiones','ETFs o fondos indexados','Acciones, derivados, criptos'] },
+  D4P3: { text: '¿Sabes qué es la diversificación y la aplicas?',
+    opts: ['No lo sé','Lo sé pero no lo aplico','Lo aplico parcialmente','Lo aplico de forma sistemática'] },
+  // D5 Risc financer
+  D5P1: { text: '¿Qué caída máxima aceptarías sin perder el sueño?',
+    opts: ['Menos del 5%','5–15%','15–30%','Más del 30%'] },
+  D5P2: { text: 'Si tu cartera cae un 35%, ¿qué harías?',
+    opts: ['La vendería toda','Vendería una parte','Esperaría','Compraría más'] },
+  D5P3: { text: '¿Prefieres rentabilidad potencial alta o seguridad?',
+    opts: ['Máxima seguridad','Más seguridad que rentabilidad','Equilibrio','Más rentabilidad que seguridad'] },
+  // D6 Risc emocional
+  D6P1: { text: '¿Con qué frecuencia miras el valor de tu cartera?',
+    opts: ['Varias veces al día','A diario','Mensual','Trimestral o menos'] },
+  D6P2: { text: 'Imagina que tu cartera baja un 25% en un mes. ¿Cómo te sentirías?',
+    opts: ['Muy angustiado, pensaría en venderlo todo','Preocupado pero esperaría','Tranquilo, es parte del proceso','Motivado, compraría más'] },
+  D6P3: { text: '¿Cómo describes tu relación emocional con el dinero?',
+    opts: ['Muy ansioso','Algo nervioso','Bastante tranquilo','Muy tranquilo'] },
+  // D7 Preferències
+  D7P1: { text: '¿Tienes alguna restricción o preferencia en tus inversiones?',
+    opts: ['Solo productos garantizados','Sin empresas no éticas (ESG)','Prefiero gestión pasiva e indexada','Sin restricciones'] },
+  D7P2: { text: '¿Cuánto tiempo quieres dedicar a gestionar tus inversiones?',
+    opts: ['Nada, totalmente pasivo','Revisión anual','Revisión trimestral','Seguimiento activo mensual'] },
+  // Cartera
+  cartera: { 
+    dim: 'Tu cartera actual',
+    text: '¿Tienes alguna inversión actual?',
+    addBtn: '+ Añadir activo',
+    obs_ph: 'Observaciones (opcional)',
+    col_nom: 'Activo / Plataforma',
+    col_pct: '% aprox.',
+    col_plat: 'Entidad',
+  }
+};
+
+// Textos UI en castellà
+const UI_ES = {
+  welcome_dim:  'Bienvenido',
+  contact_dim:  'Contacto',
+  result_eyebrow: 'Tu perfil inversor',
+  perf_de_7_dims: 'Perfil de las 7 dimensiones',
+  cartera_rec:    'CARTERA RECOMENDADA',
+  ter_label:      'TER',
+  retorn_label:   'Retorno esperado',
+  send_btn:       'Enviar a mi asesor →',
+  send_note:      'Tus datos se enviarán a Guillem Puig. Pronto se pondrá en contacto contigo.',
+  send_copy:      'Si prefieres, puedes descargar una copia de tu perfil.',
+  restart_btn:    'Volver a empezar',
+  back_btn:       '← Atrás',
+  next_btn:       'Continuar →',
+  back_web_btn:   'Volver a la web →',
+  press_enter:    'Pulsa Enter para continuar',
+  min_label:      'min',
+  de_label:       'de',
+  obligatori:     'Este campo es obligatorio',
+  email_invalid:  'El email no parece válido',
+};
+
+function setOnbLang(lang) {
+  ONB_LANG = lang;
+  localStorage.setItem('onb_lang', lang);
+  // Actualitzar botons
+  const ca = document.getElementById('onb-lang-ca');
+  const es = document.getElementById('onb-lang-es');
+  if (ca) {
+    ca.style.background = lang==='ca' ? 'rgba(255,255,255,.15)' : 'transparent';
+    ca.style.color      = lang==='ca' ? 'white' : 'rgba(255,255,255,.4)';
+    ca.style.borderColor= lang==='ca' ? 'rgba(255,255,255,.3)' : 'rgba(255,255,255,.1)';
+  }
+  if (es) {
+    es.style.background = lang==='es' ? 'rgba(255,255,255,.15)' : 'transparent';
+    es.style.color      = lang==='es' ? 'white' : 'rgba(255,255,255,.4)';
+    es.style.borderColor= lang==='es' ? 'rgba(255,255,255,.3)' : 'rgba(255,255,255,.1)';
+  }
+  // Re-renderitzar pregunta actual
+  render('none');
+}
+
+function tOnb(key, subkey) {
+  if (ONB_LANG === 'ca') return null; // usar el valor original
+  if (subkey) return QS_ES[key]?.[subkey] || null;
+  return UI_ES[key] || null;
+}
+
+function getQText(q) {
+  if (ONB_LANG === 'es' && QS_ES[q.id]) return QS_ES[q.id].text || q.text;
+  return q.text;
+}
+function getQPh(q) {
+  if (ONB_LANG === 'es' && QS_ES[q.id]) return QS_ES[q.id].ph || q.ph || '';
+  return q.ph || '';
+}
+function getOptLbl(q, i) {
+  if (ONB_LANG === 'es' && QS_ES[q.id]?.opts?.[i]) return QS_ES[q.id].opts[i];
+  return q.opts[i].lbl;
+}
+function getOptTxt(q, i) {
+  // Descripció de l'opció — en castellà usem el lbl traduit com a txt
+  if (ONB_LANG === 'es' && QS_ES[q.id]?.opts?.[i]) return QS_ES[q.id].opts[i];
+  return q.opts[i].txt || q.opts[i].lbl;
+}
+function uiT(key) {
+  if (ONB_LANG === 'es' && UI_ES[key]) return UI_ES[key];
+  // Valors per defecte CA
+  const CA = {
+    welcome_dim: 'Benvingut', contact_dim: 'Contacte',
+    result_eyebrow: 'El teu perfil inversor',
+    perf_de_7_dims: 'Perfil de les 7 dimensions',
+    cartera_rec: 'CARTERA RECOMANADA',
+    ter_label: 'TER', retorn_label: 'Retorn esperat',
+    send_btn: "Enviar al meu assessor →",
+    send_note: "Les teves dades s'han enviat a Guillem Puig. En breu et contactarà.",
+    send_copy: "Si prefereixes, pots descarregar una còpia del teu perfil.",
+    restart_btn: 'Tornar a començar',
+    back_btn: '← Enrere', next_btn: 'Continuar →',
+    back_web_btn: 'Tornar a la web →',
+    press_enter: 'Prem Enter per continuar',
+    min_label: 'min', de_label: 'de',
+    obligatori: 'Aquest camp és obligatori',
+    email_invalid: "L'email no sembla vàlid",
+  };
+  return CA[key] || key;
+}
+
+
 // ════════════════════════════════════════════
 // 8 ARQUETIPS — PERSONATGES HISTÒRICS
 // ════════════════════════════════════════════
@@ -561,7 +722,7 @@ function buildQ(q){
     <div class="opts">${q.opts.map((o,i)=>`
       <div class="opt${ans[q.id]===o.s?' sel':''}" onclick="pick(this,'${q.id}',${o.s})">
         <div class="opt-sym">${o.sym}</div>
-        <div><div class="opt-lbl">${o.lbl}</div><div class="opt-txt">${o.txt}</div></div>
+        <div><div class="opt-lbl">${getOptLbl(q,i)}</div><div class="opt-txt">${getOptTxt(q,i)}</div></div>
       </div>`).join('')}</div>`;
 
   if(q.type==='slider'){
@@ -630,7 +791,7 @@ function buildResult(){
   const dlbls=['Obj','Sit','Hor','Con','Risc F','Risc E','Pref'];
   const cd = CARTERES_DESC[ar.cartera]||'';
   return `<div class="result-outer">
-    <div class="result-eyebrow">El teu perfil inversor</div>
+    <div class="result-eyebrow">${uiT('result_eyebrow')}</div>
       ${pSrc?`<img class="result-img" src="${pSrc}" alt="${ar.nom}" onerror="this.style.display='none'"/>`:''}
         <div class="result-nom">${ar.nom}</div>
     <div class="result-ep">${ar.ep}</div>
@@ -655,7 +816,7 @@ function buildResult(){
         </div>`).join(''):''}
       ${(ar.ter||ar.retorn)?'<div style="display:flex;gap:16px;margin-top:10px">'+(ar.ter?'<span style="font-size:10px;color:rgba(255,255,255,.3)">TER '+ar.ter+'</span>':'')+(ar.retorn?'<span style="font-size:10px;color:rgba(255,255,255,.3)">Retorn esperat '+ar.retorn+'</span>':'')+'</div>':''}
     </div>
-    <div style="font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Perfil de les 7 dimensions</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">${uiT('perf_de_7_dims')}</div>
     <div class="radar-section" style="padding-top:0;border-top:none">
       <div class="radar-wrap" style="max-width:320px;height:300px;margin:0 auto">
         <canvas id="radarChart"></canvas>
@@ -665,14 +826,14 @@ function buildResult(){
       </div>
     </div>
     <div class="result-btns">
-      <button class="btn-dl" onclick="descarregar()">Enviar al meu assessor →</button>
+      <button class="btn-dl" onclick="descarregar()">${uiT('send_btn')}</button>
       <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:8px;line-height:1.5">
         Les teves dades s'enviaran automàticament a Guillem Puig.<br>
         També es descarregarà una còpia al teu dispositiu.
       </div>
-      <button class="btn-reset" onclick="reiniciar()">Tornar a començar</button>
+      <button class="btn-reset" onclick="reiniciar()">${uiT('restart_btn')}</button>
     </div>
-    <div class="result-note">Les teves dades s'han enviat a Guillem Puig. En breu et contactarà per concretar la primera sessió.<br><span style="opacity:.6">Si prefereixes, pots descarregar una còpia del teu perfil amb el botó d'adalt.</span></div>
+    <div class="result-note">${uiT('send_note')}<br><span style="opacity:.6">${uiT('send_copy')}</span></div>
   </div>`;
 }
 
@@ -726,11 +887,15 @@ function updateNav(){
   const nb=document.getElementById('btn-next');
   const bb=document.getElementById('btn-back');
   bb.style.visibility=cur===0?'hidden':'visible';
-  if(q.type==='result'){ nb.textContent='Tornar a la web →'; nb.disabled=false; return; }
-  nb.textContent='Continuar →';
+  if(q.type==='result'){ nb.textContent=uiT('back_web_btn'); nb.disabled=false; return; }
+  nb.textContent=uiT('next_btn');
   if(q.type==='choice') nb.disabled=ans[q.id]===undefined;
   else if(q.type==='text') nb.disabled=(q.req&&!txt[q.id]);
   else nb.disabled=false;
+  const kbh = document.getElementById('kb-hint');
+  if(kbh) kbh.textContent = q.type==='result' ? '' : uiT('press_enter');
+  const btnBack = document.getElementById('btn-back');
+  if(btnBack) btnBack.textContent = uiT('back_btn');
 }
 
 // ════════════════════════════════════════════
@@ -741,8 +906,8 @@ function next(){
   const q=QS[cur];
   if(q.type==='text'){
     const v=txt[q.id]||'';
-    if(q.req&&!v){ toast('Aquest camp és obligatori'); return; }
-    if(q.isEmail&&v&&!v.includes('@')){ toast('L\'email no sembla vàlid'); return; }
+    if(q.req&&!v){ toast(uiT('obligatori')); return; }
+    if(q.isEmail&&v&&!v.includes('@')){ toast(uiT('email_invalid')); return; }
   }
   if(q.type==='result'){
     // Si no s'ha enviat encara, enviar primer
@@ -852,6 +1017,9 @@ function reiniciar(){
   cur=0;
   render('none');
   updateLangToggle && updateLangToggle();
+  // Restaurar llengua onboarding
+  ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
+  setOnbLang(ONB_LANG);
 }
 
 function initRadar(){
