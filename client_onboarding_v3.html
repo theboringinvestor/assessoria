@@ -129,11 +129,15 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
 .rdim-bar{height:38px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;display:flex;align-items:flex-end;margin-bottom:3px}
 .rdim-fill{width:100%;border-radius:3px;background:rgba(255,255,255,.45);transition:height 1s var(--ease)}
 .rdim-lbl{font-size:9px;color:rgba(255,255,255,.25);line-height:1.3}
-.result-btns{display:flex;gap:10px;flex-wrap:wrap}
-.btn-dl{padding:11px 24px;border-radius:7px;font-size:13px;font-family:var(--fb);font-weight:500;cursor:pointer;border:1.5px solid var(--white);background:var(--white);color:var(--black);transition:all .15s}
-.btn-dl:hover{background:var(--g100)}
-.btn-reset{padding:11px 18px;border-radius:7px;font-size:13px;font-family:var(--fb);cursor:pointer;border:1px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.5);transition:all .15s}
-.btn-reset:hover{border-color:rgba(255,255,255,.35);color:var(--white)}
+.result-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:420px;margin:0 auto}
+.btn-dl{padding:14px 24px;border-radius:8px;font-size:14px;font-family:var(--fb);font-weight:600;cursor:pointer;border:none;background:var(--white);color:var(--black);transition:all .15s;width:100%;text-align:center}
+.btn-dl:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,255,255,.15)}
+.btn-dl:active{transform:translateY(0)}
+.btn-dl.sent{background:rgba(255,255,255,.15);color:rgba(255,255,255,.6);cursor:default}
+.btn-secondary{padding:13px 24px;border-radius:8px;font-size:13px;font-family:var(--fb);font-weight:500;cursor:pointer;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.8);transition:all .15s;width:100%;text-align:center}
+.btn-secondary:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.06)}
+.btn-reset{padding:11px 24px;border-radius:8px;font-size:13px;font-family:var(--fb);cursor:pointer;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.4);transition:all .15s;width:100%;text-align:center}
+.btn-reset:hover{border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.65)}
 .result-note{font-size:11px;color:rgba(255,255,255,.2);margin-top:14px;line-height:1.6}
 
 /* ── TOAST ── */
@@ -156,6 +160,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
 
 
 .result-img{width:180px;height:180px;border-radius:10px;object-fit:cover;filter:grayscale(100%) contrast(1.15) brightness(1.05);display:block;margin:0 auto 16px;border:1px solid rgba(255,255,255,.18);flex-shrink:0}
+.result-img-wrap{width:180px;height:180px;margin:0 auto 16px;border-radius:10px;overflow:hidden;flex-shrink:0;}
+.result-av{width:180px;height:180px;background:rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:300;color:rgba(255,255,255,.7);letter-spacing:-2px;}
 
 .radar-section{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)}
 .radar-lbl{font-size:10px;font-weight:500;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
@@ -358,7 +364,10 @@ function uiT(key) {
     perf_de_7_dims: 'Perfil de les 7 dimensions',
     cartera_rec: 'CARTERA RECOMANADA',
     ter_label: 'TER', retorn_label: 'Retorn esperat',
-    send_btn: "Enviar al meu assessor →",
+    send_btn: "📤  Enviar a l'assessor",
+    download_btn: "⬇  Descarregar còpia",
+    sending: '✓  Enviant...',
+    download_ok: 'Còpia descarregada',
     send_note: "Les teves dades s'han enviat a Guillem Puig. En breu et contactarà.",
     send_copy: "Si prefereixes, pots descarregar una còpia del teu perfil.",
     restart_btn: 'Tornar a començar',
@@ -665,6 +674,7 @@ let ans = {};
 let txt = {};
 let actius = [{nom:'',pct:'',plat:''}];
 let going = false;
+let _dadesEnviades = false;
 
 function calcScore(){ return Object.keys(ans).filter(k=>!k.includes('_raw')).reduce((s,k)=>s+ans[k],0); }
 function getArquetip(sc){ return ARQUETIPS.find(a=>sc>=a.min)||ARQUETIPS[ARQUETIPS.length-1]; }
@@ -673,12 +683,14 @@ function getArquetip(sc){ return ARQUETIPS.find(a=>sc>=a.min)||ARQUETIPS[ARQUETI
 // PROGRÉS
 // ════════════════════════════════════════════
 function updateProg(){
-  const pct = Math.round(cur/TOTAL*100);
+  const isResult = QS[cur] && QS[cur].type==='result';
+  const pct = isResult ? 100 : Math.round(cur/(TOTAL-1)*100);
+  const labelNum = isResult ? TOTAL : cur;
   document.getElementById('prog-fill').style.width = pct+'%';
   document.getElementById('prog-pct').textContent = pct+'%';
-  document.getElementById('prog-label').textContent = cur+' de '+TOTAL;
+  document.getElementById('prog-label').textContent = labelNum+' '+uiT('de_label')+' '+TOTAL;
   const mins = Math.max(1, Math.ceil((TOTAL-cur)*0.18));
-  document.getElementById('time-pill').textContent = cur===0?'~5 min':mins===1?'<1 min':mins+' min';
+  document.getElementById('time-pill').textContent = isResult?'':cur===0?'~5 min':mins===1?'<1 min':mins+' min';
 }
 
 // ════════════════════════════════════════════
@@ -703,6 +715,10 @@ function render(dir){
     updateProg();
     updateNav();
     attachEv(QS[cur]);
+    // Scroll al principi sempre que canvia de pantalla
+    const stage = document.querySelector('.stage');
+    if(stage) stage.scrollTop = 0;
+    window.scrollTo(0,0);
     if(QS[cur].type==='result') setTimeout(initRadar, 150);
   }
 }
@@ -792,8 +808,11 @@ function buildResult(){
   const cd = CARTERES_DESC[ar.cartera]||'';
   return `<div class="result-outer">
     <div class="result-eyebrow">${uiT('result_eyebrow')}</div>
-      ${pSrc?`<img class="result-img" src="${pSrc}" alt="${ar.nom}" onerror="this.style.display='none'"/>`:''}
-        <div class="result-nom">${ar.nom}</div>
+      <div class="result-img-wrap">
+      ${pSrc?`<img class="result-img" src="${pSrc}" alt="${ar.nom}" onerror="this.parentElement.innerHTML='<div class=result-av>'+ar.nom.split(' ').map(w=>w[0]).join('').slice(0,2)+'</div>'"/>`:
+      `<div class="result-av">${ar.nom.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>`}
+    </div>
+    <div class="result-nom">${ar.nom}</div>
     <div class="result-ep">${ar.ep}</div>
     <div class="result-score-row">
       <span class="result-score-num">${sc} / ${maxSc} pts</span>
@@ -826,14 +845,17 @@ function buildResult(){
       </div>
     </div>
     <div class="result-btns">
-      <button class="btn-dl" onclick="descarregar()">${uiT('send_btn')}</button>
-      <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:8px;line-height:1.5">
-        Les teves dades s'enviaran automàticament a Guillem Puig.<br>
-        També es descarregarà una còpia al teu dispositiu.
-      </div>
-      <button class="btn-reset" onclick="reiniciar()">${uiT('restart_btn')}</button>
+      <button id="btn-enviar" class="btn-dl" onclick="enviarITancar()">
+        ${uiT('send_btn')}
+      </button>
+      <button class="btn-secondary" onclick="nomesDL()">
+        ${uiT('download_btn')}
+      </button>
+      <button class="btn-reset" onclick="reiniciar()">
+        ${uiT('restart_btn')}
+      </button>
     </div>
-    <div class="result-note">${uiT('send_note')}<br><span style="opacity:.6">${uiT('send_copy')}</span></div>
+
   </div>`;
 }
 
@@ -911,14 +933,8 @@ function next(){
   }
   if(q.type==='result'){
     // Si no s'ha enviat encara, enviar primer
-    if(!_dadesEnviades) {
-      descarregar();
-      setTimeout(() => {
-        window.location.href = 'https://theboringinvestor.github.io/assessoria/';
-      }, 2500);
-    } else {
-      window.location.href = 'https://theboringinvestor.github.io/assessoria/';
-    }
+    // El botó "Tornar a la web" al nav simplement redirigeix
+    window.location.href = 'https://theboringinvestor.github.io/assessoria/';
     return;
   }
   going=true;
@@ -938,6 +954,36 @@ function prev(){
 // ════════════════════════════════════════════
 // DESCÀRREGA
 // ════════════════════════════════════════════
+function enviarITancar(){
+  // Envia al Google Sheets i redirigeix
+  const btn = document.getElementById('btn-enviar');
+  if(btn) { btn.textContent = uiT('sending'); btn.disabled = true; btn.classList.add('sent'); }
+  descarregar(); // crida l'enviament a Sheets + descàrrega JSON
+  setTimeout(() => {
+    window.location.href = 'https://theboringinvestor.github.io/assessoria/';
+  }, 2500);
+}
+
+function nomesDL(){
+  // Només descarrega el JSON, sense enviar ni redirigir
+  const sc = calcScore();
+  const ar = getArquetip(sc);
+  const dims = [1,2,3,4,5,6,7].map(dn => {
+    const qs = QS.filter(q=>q.dn===dn);
+    return {dimensio:dn, sum:qs.reduce((s,q)=>s+(ans[q.id]||0),0), max:qs.length*4};
+  });
+  const data = {
+    versio:'3.0', tipus:'client_onboarding',
+    data: new Date().toISOString(),
+    app: 'The Boring Investor — Qüestionari v3',
+    client:{nom:txt.nom||'—',email:txt.email||'—',capitalInicial:'—',aportacioMensual:'—',horitzo:'—',objectiu:'—'},
+    perfil:{scoreTotal:sc,scoreMax:84,arquetip:ar.nom,carteraRecomanada:ar.perfil,cartLabel:ar.cartera,desc:ar.desc,lema:ar.lema,perDimensio:dims,respostesDetall:ans},
+    carteraActual:{actius:actius.filter(a=>a.nom),observacions:txt.obs||'—'}
+  };
+  descarregarJSON(data);
+  toast(uiT('download_ok'));
+}
+
 function descarregar(){
   const sc=calcScore();
   const ar=getArquetip(sc);
