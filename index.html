@@ -380,6 +380,20 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .chart-wrap { position: relative; width: 100%; height: 200px; }
 .disclaimer { font-size: 10px; color: var(--gray-400); font-style: italic; margin-top: 6px; line-height: 1.5; }
+/* ── MACRO WIDGET ── */
+.ticker-item {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 5px 10px; border-radius: 6px;
+  background: var(--gray-100); min-width: 80px;
+  cursor: default;
+}
+.ticker-name  { font-size: 9px; font-weight: 500; color: var(--gray-400); text-transform: uppercase; letter-spacing: .06em; }
+.ticker-price { font-size: 13px; font-weight: 500; font-family: var(--font-mono); color: var(--black); }
+.ticker-chg   { font-size: 10px; font-family: var(--font-mono); font-weight: 500; }
+.ticker-up    { color: var(--green); }
+.ticker-down  { color: var(--red); }
+.ticker-flat  { color: var(--gray-400); }
+
 </style>
 </head>
 <body>
@@ -484,6 +498,15 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
       <!-- ════ P1 DASHBOARD ════ -->
       <div class="screen active" id="screen-dashboard">
         <div class="kpi-grid" id="kpi-grid"></div>
+        <div id="macro-widget" style="margin-bottom:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:10px 16px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em">Mercats · Temps real</span>
+            <span id="macro-update" style="font-size:9px;color:var(--gray-400)">Actualitzant...</span>
+          </div>
+          <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center">
+            <span style="font-size:11px;color:var(--gray-400);font-style:italic">Carregant dades...</span>
+          </div>
+        </div>
         <div class="section-header">
           <span class="section-title"><span data-i18n="dash.tots_clients">Tots els clients</span></span>
           <span class="section-title" id="kpi-count" style="color:var(--gray-300)"></span>
@@ -742,6 +765,7 @@ function renderDashboard() {
   else badge.style.display = 'none';
 
   document.getElementById('kpi-count').textContent = total + ' client' + (total !== 1 ? 's' : '');
+  iniciarMacro();
 
   const tbody = document.getElementById('clients-tbody');
   tbody.innerHTML = [...clients]
@@ -771,7 +795,12 @@ function renderDashboard() {
         <td>${scoreDisplay}</td>
         <td style="color:var(--gray-400);font-size:11px">${dataDisplay}</td>
         <td>${estatBadge}</td>
-        <td><button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','${c.id}')" style="font-size:10px;padding:3px 8px">Scoring</button></td>
+        <td style="white-space:nowrap">
+          ${c.arquetip==='Pendent' || c.arquetip==='-'
+            ? `<button class="btn btn-sm" onclick="event.stopPropagation();obrirOnboarding('${c.id}')" style="font-size:10px;padding:3px 8px;background:var(--accent);color:white;border-color:var(--accent)">Onboarding →</button>`
+            : `<button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','${c.id}')" style="font-size:10px;padding:3px 8px">Scoring</button>`
+          }
+        </td>
       </tr>`;
     }).join('');
 }
@@ -3629,12 +3658,137 @@ function importarOnboardingSilent(dades, rowIndex) {
   fetch(SHEETS_SCRIPT_URL + '?mark=' + rowIndex).catch(() => {});
 }
 
+
+function obrirOnboarding(clientId) {
+  const c = getClient(clientId);
+  if (!c) return;
+  // Construir URL amb dades pre-omplides
+  const nom   = encodeURIComponent(c.nom || '');
+  const email = encodeURIComponent(c.email || '');
+  const url   = 'https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html?nom=' + nom + '&email=' + email + '&clientId=' + clientId;
+  window.open(url, '_blank');
+  toast("Onboarding obert per a " + (c.nom || 'client'));
+}
+
 function toggleSync() {
   if (_syncEnabled) {
     aturarSync();
   } else {
     iniciarSync();
   }
+}
+
+
+// ══════════════════════════════════════════════════════
+// MOTOR DE MERCATS — Dades en temps real
+// Fonts: Yahoo Finance (via allorigins CORS proxy)
+//        Frankfurter (EUR/USD, gratuït, CORS ok)
+// Auto-refresh cada 5 minuts
+// ══════════════════════════════════════════════════════
+
+const MACRO_TICKERS = [
+  { sym: 'SPY',     nom: 'S&P 500',    tipus: 'etf' },
+  { sym: 'URTH',    nom: 'MSCI World', tipus: 'etf' },
+  { sym: 'EWP',     nom: 'IBEX 35',   tipus: 'etf' },
+  { sym: 'GLD',     nom: 'Or',         tipus: 'mat' },
+  { sym: 'BTC-USD', nom: 'BTC',        tipus: 'crypto', showUSD: true },
+  { sym: 'TLT',     nom: 'RF USA',     tipus: 'rf' },
+];
+
+let _macroTimer = null;
+let _macroData  = {};
+
+async function fetchMacroData() {
+  const el = document.getElementById('macro-tickers');
+  const updEl = document.getElementById('macro-update');
+  if (!el) return;
+
+  // Construir URL de Yahoo Finance per a tots els símbols
+  const syms = MACRO_TICKERS.map(t => t.sym).join(',');
+  const yhUrl = encodeURIComponent(
+    'https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&symbols=' + syms
+  );
+  const proxyUrl = 'https://api.allorigins.win/raw?url=' + yhUrl;
+
+  try {
+    const [yhRes, fxRes] = await Promise.all([
+      fetch(proxyUrl, { cache: 'no-cache' }),
+      fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,GBP'),
+    ]);
+
+    let quotes = null;
+    if (yhRes.ok) {
+      const yhData = await yhRes.json();
+      quotes = (yhData.quoteResponse && yhData.quoteResponse.result) || null;
+    }
+
+    let eur_usd = null;
+    if (fxRes.ok) {
+      const fxData = await fxRes.json();
+      eur_usd = fxData.rates && fxData.rates.USD ? fxData.rates.USD : null;
+    }
+
+    // Construir HTML dels tickers
+    let html = '';
+
+    if (quotes) {
+      quotes.forEach(q => {
+        const ticker = MACRO_TICKERS.find(t => t.sym === q.symbol);
+        if (!ticker) return;
+        const price = q.regularMarketPrice || 0;
+        const chg   = q.regularMarketChangePercent || 0;
+        const chgCls = chg > 0 ? 'ticker-up' : chg < 0 ? 'ticker-down' : 'ticker-flat';
+        const chgSign = chg > 0 ? '+' : '';
+        const priceStr = ticker.showUSD
+          ? (price >= 1000 ? (price/1000).toFixed(1) + 'k' : price.toFixed(0)) + '$'
+          : price >= 1000 ? (price/1000).toFixed(2) + 'k' : price.toFixed(2);
+        html += '<div class="ticker-item">'
+          + '<span class="ticker-name">' + ticker.nom + '</span>'
+          + '<span class="ticker-price">' + priceStr + '</span>'
+          + '<span class="ticker-chg ' + chgCls + '">' + chgSign + chg.toFixed(2) + '%</span>'
+          + '</div>';
+        _macroData[ticker.sym] = { price, chg, nom: ticker.nom };
+      });
+    } else {
+      // Fallback: mostrar dades en caché o placeholder
+      html = renderMacroFallback();
+    }
+
+    // Afegir EUR/USD si tenim dades de Frankfurter
+    if (eur_usd) {
+      html += '<div class="ticker-item">'
+        + '<span class="ticker-name">EUR/USD</span>'
+        + '<span class="ticker-price">' + eur_usd.toFixed(4) + '</span>'
+        + '<span class="ticker-chg ticker-flat">Canvi</span>'
+        + '</div>';
+    }
+
+    if (el) el.innerHTML = html || renderMacroFallback();
+    if (updEl) {
+      const now = new Date();
+      updEl.textContent = now.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
+    }
+  } catch (err) {
+    if (el) el.innerHTML = renderMacroFallback();
+    if (updEl) updEl.textContent = 'Error de connexió';
+  }
+}
+
+function renderMacroFallback() {
+  // Mostrar tickers en gris (sense dades)
+  return MACRO_TICKERS.map(t =>
+    '<div class="ticker-item">' +
+      '<span class="ticker-name">' + t.nom + '</span>' +
+      '<span class="ticker-price" style="color:var(--gray-300)">—</span>' +
+      '<span class="ticker-chg ticker-flat">—</span>' +
+    '</div>'
+  ).join('');
+}
+
+function iniciarMacro() {
+  fetchMacroData();
+  if (_macroTimer) clearInterval(_macroTimer);
+  _macroTimer = setInterval(fetchMacroData, 5 * 60 * 1000); // cada 5 min
 }
 
 // ══════════════════════════════════════════════

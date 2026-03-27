@@ -1157,6 +1157,27 @@ function reiniciar(){
   cur=0;
   render('none');
   updateLangToggle && updateLangToggle();
+  // Pre-omplir des de paràmetres URL (quan ve del dashboard)
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('nom'))   { txt.nom   = decodeURIComponent(params.get('nom'));   }
+    if (params.get('email')) { txt.email  = decodeURIComponent(params.get('email')); }
+    if (params.get('nom') || params.get('email')) {
+      // Saltar directament a la primera pregunta de perfil (skip nom/email si ja omplert)
+      // Però mostrar igualment per confirmar
+      render('none');
+      // Mostrar benvinguda personalitzada
+      const nom = txt.nom || '';
+      if (nom) {
+        const toastEl = document.getElementById('toast');
+        if (toastEl) {
+          toastEl.textContent = 'Hola, ' + nom.split(' ')[0] + '! Les teves dades ja estan pre-omplertes.';
+          toastEl.classList.add('show');
+          setTimeout(() => toastEl.classList.remove('show'), 3000);
+        }
+      }
+    }
+  })();
   // Restaurar llengua onboarding
   ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
   setOnbLang(ONB_LANG);
