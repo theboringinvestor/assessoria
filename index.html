@@ -2952,6 +2952,119 @@ function getFrasePerContext(context) {
 
 
 
+
+// ══════════════════════════════════════════════════════
+// MOTOR DE CÀLCUL FE — Model Charles Schwab adaptat ES
+// 100% client-side, sense API externa
+// ══════════════════════════════════════════════════════
+
+function calcEstrategiaEmergencia(p) {
+  const ing   = p.ingressos  || 0;
+  const desp  = p.despeses   || 0;
+  const deu   = p.deutes     || 0;
+  const est   = p.estalvis   || 0;
+  const emMes = p.estalviMensual || Math.round((ing - desp - deu) * 0.20); // default 20% excedent
+  const despTotal = desp + deu; // despeses reals totals incl. deutes
+
+  // ── Mesos recomanats segons perfil ──
+  const mFactor = {
+    'Molt alta': 3, 'Alta': 4, 'Mitja': 5, 'Baixa': 6, 'Molt baixa': 8
+  }[p.estabilitat] || 5;
+  const depFactor = p.dependents === 'Cap' ? 0 : p.dependents === '1-2' ? 1 : 2;
+  const mesosRec = Math.min(mFactor + depFactor, 12);
+  const objectiuFE = Math.round(despTotal * mesosRec);
+  const faltant   = Math.max(0, objectiuFE - est);
+  const veloMes   = p.velocitat === '6 mesos' ? 6 : p.velocitat === '18-24 mesos' ? 20 : 12;
+  const estalviRec = faltant > 0 ? Math.round(faltant / veloMes) : emMes;
+  const mesosPerAssolir = emMes > 0 ? Math.ceil(faltant / emMes) : veloMes;
+  const pctIngressos = ing > 0 ? Math.round(estalviRec / ing * 100) : 0;
+
+  // ── Semàfor ──
+  const liquidActual = est;
+  const liquidMin    = despTotal * 2; // mínim 2 mesos
+  const estatSem = liquidActual >= objectiuFE ? 'verd'
+    : liquidActual >= liquidMin ? 'ambre' : 'vermell';
+  const deficitSuperavit = liquidActual - objectiuFE;
+
+  // ── 3 Nivells ──
+  const n1 = Math.round(despTotal * 1);    // 1 mes — immediat
+  const n2 = Math.round(despTotal * 2);    // 2 mesos — 30 dies
+  const n3 = objectiuFE - n1 - n2;        // resta — 90 dies
+
+  // ── Comptes recomanats mercat ES ──
+  const comptes = [
+    { nom: 'Trade Republic', tipus: 'Compte remunerat', rendiment_aprox: '3.25% TAE', liquiditat: 'Immediata', minim: 'Cap', entitat: 'Trade Republic Bank AG' },
+    { nom: 'Compte Coinc / OpenBank', tipus: 'Compte remunerat', rendiment_aprox: '2.50-3.00% TAE', liquiditat: 'Immediata', minim: 'Cap', entitat: 'Santander / Openbank' },
+    { nom: 'Depòsit 3 mesos', tipus: 'Dipòsit a termini', rendiment_aprox: '2.75-3.25% TAE', liquiditat: '3 mesos', minim: '1.000€', entitat: 'MyInvestor, Raisin' },
+    { nom: 'Fons monetari EUR', tipus: 'Fons monetari', rendiment_aprox: '~3.50% TAE', liquiditat: '1-3 dies', minim: '500€', entitat: 'Amundi, BlackRock (via broker)' },
+  ];
+
+  // ── Reserves específiques ──
+  const reserves = [];
+  if (deu > 0) reserves.push({ nom: 'Amortització anticipada', proposit: 'Fons per amortitzar deute si apareix excedent', import_objectiu: Math.round(deu * 12), aportacio_mensual: Math.round(deu * 0.1) });
+  reserves.push({ nom: 'Reparacions / imprevistos llar', proposit: 'Electrodomèstics, reparacions, reformes menors', import_objectiu: 1500, aportacio_mensual: 50 });
+  reserves.push({ nom: 'Salut / dental', proposit: 'Despeses mèdiques no cobertes per SS', import_objectiu: 800, aportacio_mensual: 30 });
+  if (p.dependents !== 'Cap') reserves.push({ nom: 'Educació / activitats', proposit: 'Activitats extraescolars, material, viatges fi de curs', import_objectiu: 1200, aportacio_mensual: 50 });
+  reserves.push({ nom: 'Cotxe / transport', proposit: 'Revisió, avaria, pneumàtics', import_objectiu: 1000, aportacio_mensual: 40 });
+
+  // ── Dia de transferència ──
+  const diaTransf = 2; // 2 dies després de nòmina (habitualment dia 1)
+  const ordreAuto = [
+    'Dia ' + diaTransf + ': transferència automàtica de ' + estalviRec + '€ al compte remunerat Trade Republic / OpenBank',
+    'Dia ' + (diaTransf + 1) + ': aportació a reserves específiques (' + (reserves.reduce((s,r) => s + r.aportacio_mensual, 0)) + '€/mes repartits entre buckets)',
+    'Dia ' + (diaTransf + 2) + ': revisió del saldo total — si > objectiu, derivar excedent a cartera d\'inversió',
+    'Cada trimestre: revisar si el nivell d\'estabilitat laboral ha canviat i ajustar objectiu'
+  ];
+
+  // ── Regla efectiu vs inversió ──
+  const llindaEfectiu = objectiuFE;
+  const fonsOp = ing > 0 ? Math.round(ing * 0.05) : 100; // 5% ingressos per oportunitats
+
+  // ── Calendari flux ──
+  const calendari = [
+    { dia: 1,  concepte: 'Ingrés nòmina — ' + ing + '€', tipus: 'ingrés' },
+    { dia: diaTransf, concepte: 'Transferència FE — ' + estalviRec + '€', tipus: 'transferència' },
+    { dia: 5,  concepte: 'Despeses fixes (subministraments, llars...)', tipus: 'despesa' },
+    { dia: 15, concepte: 'Revisió saldo FE vs objectiu', tipus: 'transferència' },
+    { dia: 28, concepte: 'Tancament mensual — ajustar si cal', tipus: 'transferència' },
+  ];
+  if (deu > 0) calendari.splice(2, 0, { dia: 3, concepte: 'Quota deute — ' + deu + '€', tipus: 'despesa' });
+
+  // ── Resum i justificació ──
+  const resum = estatSem === 'verd'
+    ? `${p.nom} té el fons d'emergència cobert (${est.toLocaleString('ca-ES')}€ vs objectiu de ${objectiuFE.toLocaleString('ca-ES')}€). El focus ara és mantenir la disciplina i maximitzar el rendiment de la liquiditat.`
+    : estatSem === 'ambre'
+    ? `${p.nom} té cobertura parcial (${est.toLocaleString('ca-ES')}€). Cal aportar ${estalviRec.toLocaleString('ca-ES')}€/mes per assolir els ${mesosRec} mesos recomanats en uns ${mesosPerAssolir} mesos.`
+    : `Situació de vulnerabilitat financera: liquiditat insuficient per cobrir 2 mesos de despeses. Prioritat màxima: construir coixí d'emergència ABANS d'augmentar inversió.`;
+
+  const justificacio = `Estabilitat laboral "${p.estabilitat}" + ${p.dependents} dependent(s) → ${mesosRec} mesos de cobertura recomanats per al perfil ${p.arquetip || ''}.`;
+
+  const accionsImm = [];
+  if (estatSem === 'vermell') accionsImm.push('URGENT: Obrir compte remunerat Trade Republic (10 min)');
+  if (estatSem === 'vermell') accionsImm.push('Configurar transferència automàtica ' + estalviRec + '€/mes el dia ' + diaTransf);
+  else if (estatSem === 'ambre') accionsImm.push('Augmentar aportació mensual al FE fins a ' + estalviRec + '€');
+  if (deu > 0 && deficitSuperavit < 0) accionsImm.push('Prioritzar FE sobre amortització de deute fins assolir 3 mesos');
+  if (estatSem === 'verd') accionsImm.push('Derivar excedent (' + Math.max(0, est - objectiuFE).toLocaleString('ca-ES') + '€) a cartera d\'inversió');
+  accionsImm.push('Revisar TAE comptes remunerats cada 6 mesos (mercat canvia)');
+
+  return {
+    resum,
+    objectiu_fe: { mesos_recomanats: mesosRec, import_total: objectiuFE, justificacio },
+    nivells: [
+      { nom: 'Nivell 1 · Accés immediat', import: n1, on: 'Compte corrent / Trade Republic', liquiditat: '24h', proposit: 'Avaria cotxe, factura inesperada, urgència mèdica menor' },
+      { nom: 'Nivell 2 · 30 dies', import: n2, on: 'Compte remunerat (OpenBank, Coinc)', liquiditat: '1-3 dies', proposit: 'Reparació gran, pèrdua temporal d\'ingrés, canvi de feina' },
+      { nom: 'Nivell 3 · 90 dies', import: Math.max(0, n3), on: 'Dipòsit 3m / Fons monetari EUR', liquiditat: '7-14 dies', proposit: 'Atur prolongat, crisi mèdica, emergència familiar greu' },
+    ],
+    pla_acumulacio: { estalvi_mensual: estalviRec, mesos_per_assolir: mesosPerAssolir, pct_sobre_ingressos: pctIngressos, consell_accelerar: 'Aplica la regla 72h: espera 72h abans de qualsevol compra no planificada >50€. L\'import estalviat va directe al FE.' },
+    comptes_recomanats: comptes,
+    reserves_especifiques: reserves,
+    automatitzacio: { dia_transferencia: diaTransf, ordre: ordreAuto, regla_clau: 'Paga\'t primer a tu. La transferència al FE és la primera que surt, no l\'última.' },
+    efectiu_vs_inversio: { llindar_efectiu: llindaEfectiu, regla: 'Mentre FE < objectiu: 100% excedent al FE. FE assolit: 80% inversió + 20% fons oportunitats.', fons_oportunitats: fonsOp },
+    calendari_flux: calendari,
+    semafors: { estat_actual: estatSem, deficit_o_superavit: deficitSuperavit, accions_immediates: accionsImm.slice(0, 3) },
+  };
+}
+
 // ══════════════════════════════════════════════════════
 // TAB EMERGÈNCIA — Estratègia de Fons d'Emergència
 // Motor basat en el model Charles Schwab (10 blocs)
@@ -3074,101 +3187,23 @@ async function generarEstrategiaEmergencia(clientId) {
   const resultatEl = document.getElementById('em-resultat-' + clientId);
   if (!resultatEl) return;
 
-  // Mostrar loading
-  resultatEl.innerHTML = `
-    <div style="padding:32px;text-align:center;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius)">
-      <div style="font-size:24px;margin-bottom:12px">⏳</div>
-      <div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:6px">Generant estratègia personalitzada...</div>
-      <div style="font-size:12px;color:var(--gray-400)">Analitzant la situació de ${c.nom} amb el model Charles Schwab</div>
-    </div>`;
-
-  const prompt = `Ets un director sènior de planificació financera estil Charles Schwab especialitzat en mercats espanyols i europeus. El teu client és ${c.nom}, arquetip inversor: ${c.arquetip}.
-
-La seva situació financera:
-- Ingressos nets mensuals: ${ingressos}€
-- Despeses mensuals totals (sense deutes): ${despeses}€
-- Deutes mensuals (hipoteca, préstecs, renting): ${deutes}€
-- Estalvis actuals: ${estalvis}€
-- Estalvi mensual disponible per al FE: ${estalviMensual || 'No especificat (calcular-ho tu)'}€
-- Estabilitat laboral: ${estabilitat}
-- Persones dependents: ${dependents}
-- Objectiu: construir el fons d'emergència en ${velocitat}
-${context ? '- Context addicional: ' + context : ''}
-
-Genera un pla complet de gestió de fons d'emergència amb EXACTAMENT aquesta estructura JSON (respon ÚNICAMENT amb el JSON, sense markdown ni text addicional):
-
-{
-  "resum": "2-3 frases que resumeixen la situació i la recomanació principal",
-  "objectiu_fe": {
-    "mesos_recomanats": número,
-    "import_total": número,
-    "justificacio": "explicació breu de per què aquest nombre de mesos"
-  },
-  "nivells": [
-    {"nom": "Nivell 1 · Accés immediat", "import": número, "on": "on guardar-ho a Espanya", "liquiditat": "24h", "proposit": "per a quin tipus d'emergència"},
-    {"nom": "Nivell 2 · 30 dies", "import": número, "on": "on guardar-ho", "liquiditat": "1-3 dies", "proposit": "propòsit"},
-    {"nom": "Nivell 3 · 90 dies", "import": número, "on": "on guardar-ho", "liquiditat": "7-14 dies", "proposit": "propòsit"}
-  ],
-  "pla_acumulacio": {
-    "estalvi_mensual": número,
-    "mesos_per_assolir": número,
-    "pct_sobre_ingressos": número,
-    "consell_accelerar": "1 consell pràctic per construir-ho més ràpid"
-  },
-  "comptes_recomanats": [
-    {"nom": "nom del compte/producte", "tipus": "compte remunerat/dipòsit/fons monetari", "rendiment_aprox": "% TAE", "liquiditat": "immediata/1-3 dies/etc", "minim": "import mínim o cap", "entitat": "entitat o opcions"}
-  ],
-  "reserves_especifiques": [
-    {"nom": "nom del fons", "import_objectiu": número, "aportacio_mensual": número, "proposit": "per a quin concepte específic"}
-  ],
-  "automatitzacio": {
-    "dia_transferencia": número,
-    "ordre": ["pas 1", "pas 2", "pas 3"],
-    "regla_clau": "la regla més important per mantenir la disciplina"
-  },
-  "efectiu_vs_inversio": {
-    "llindar_efectiu": número,
-    "regla": "regla clara de quan mantenir efectiu i quan invertir",
-    "fons_oportunitats": número
-  },
-  "calendari_flux": [
-    {"dia": número, "concepte": "descripció", "tipus": "ingrés/despesa/transferència"}
-  ],
-  "semafors": {
-    "estat_actual": "verd/ambre/vermell",
-    "deficit_o_superavit": número,
-    "accions_immediates": ["acció 1", "acció 2"]
-  }
-}`;
-
+  // Càlcul instantani — sense API
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+    const estrategia = calcEstrategiaEmergencia({
+      ingressos: +ingressos||0, despeses: +despeses||0, deutes: +deutes||0,
+      estalvis: +estalvis||0, estalviMensual: +estalviMensual||0,
+      estabilitat, dependents, velocitat, context,
+      nom: c.nom, arquetip: c.arquetip
     });
-    const data = await res.json();
-    const text = data.content && data.content[0] && data.content[0].text;
-    if (!text) throw new Error('Sense resposta');
-
-    // Parsejar JSON
-    const clean = text.replace(/```json|```/g, '').trim();
-    const estrategia = JSON.parse(clean);
-
-    // Desar al client
-    c.emergenciaData = { ...estrategia, generatEl: new Date().toLocaleDateString('ca-ES', {day:'numeric',month:'long',year:'numeric'}), inputs: { ingressos, despeses, estalvis, estalviMensual, deutes, estabilitat, dependents, velocitat } };
+    c.emergenciaData = { ...estrategia,
+      generatEl: new Date().toLocaleDateString('ca-ES', {day:'numeric',month:'long',year:'numeric'}),
+      inputs: { ingressos, despeses, estalvis, estalviMensual, deutes, estabilitat, dependents, velocitat }
+    };
     saveData();
-
     resultatEl.innerHTML = renderEmergenciaResult(c.emergenciaData);
-    toast('Estratègia generada i desada per a ' + c.nom);
-
+    toast('Estratègia generada per a ' + c.nom);
   } catch(e) {
-    resultatEl.innerHTML = `<div style="padding:16px;background:var(--red-light);border-radius:var(--radius);font-size:12px;color:var(--red)">
-      Error generant l'estratègia: ${e.message}. Comprova la connexió i torna-ho a intentar.</div>`;
+    resultatEl.innerHTML = '<div style="padding:16px;background:var(--red-light);border-radius:var(--radius);font-size:12px;color:var(--red)">Error: ' + e.message + '</div>';
   }
 }
 
