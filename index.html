@@ -586,12 +586,12 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 </div>
 
       <!-- ════ P4 SERVEIS ════ -->
-      <div class="screen" id="screen-serveis" style="display:none">
+      <div class="screen" id="screen-serveis">
         <div id="serveis-content"></div>
       </div>
 
       <!-- ════ P5 QUI SOC ════ -->
-      <div class="screen" id="screen-quisoc" style="display:none">
+      <div class="screen" id="screen-quisoc">
         <div id="quisoc-content"></div>
       </div>
 
@@ -3054,73 +3054,110 @@ function renderQuiSoc() {
   if(!el) return;
 
   el.innerHTML = `
-    <div style="max-width:720px;margin:0 auto;padding:0 4px">
+    <div style="max-width:680px;margin:0 auto;padding:0 4px">
 
-      <!-- Capçalera amb foto placeholder -->
-      <div style="display:flex;gap:28px;align-items:start;margin-bottom:32px">
-        <div style="width:80px;height:80px;border-radius:50%;background:var(--black);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-size:28px;font-weight:400;color:white;font-family:var(--font-serif)">GP</span>
+      <!-- Capçalera -->
+      <div style="display:flex;gap:24px;align-items:start;margin-bottom:36px;padding-bottom:28px;border-bottom:1px solid var(--gray-200)">
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--black);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:24px;font-weight:400;color:white;font-family:var(--font-serif)">GP</span>
         </div>
         <div>
-          <div style="font-size:24px;font-weight:500;color:var(--black);margin-bottom:4px">Guillem Puig</div>
-          <div style="font-size:13px;color:var(--gray-400);margin-bottom:8px">The Boring Investor · Assessoria Financera Independent</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <span style="font-size:11px;padding:3px 10px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">EFA candidat juny 2026</span>
-            <span style="font-size:11px;padding:3px 10px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">Fee-only</span>
-            <span style="font-size:11px;padding:3px 10px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">@the_boringinvestor</span>
+          <div style="font-size:22px;font-weight:500;color:var(--black);margin-bottom:3px;letter-spacing:-.3px">Guillem Puig</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:10px">The Boring Investor · Assessoria Financera Independent · Barcelona</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:10px;padding:3px 9px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">EFA candidat juny 2026</span>
+            <span style="font-size:10px;padding:3px 9px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">Fee-only</span>
+            <span style="font-size:10px;padding:3px 9px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">@the_boringinvestor</span>
           </div>
         </div>
       </div>
 
-      <!-- Text principal - contingut de Guillem -->
-      <div style="font-size:14px;color:var(--gray-600);line-height:1.85;margin-bottom:24px">
-        <p style="margin-bottom:16px">
-          Hola, soc en Guillem, i si treballes per nomina segurament compartim el mateix enemic: la inflació i un sistema on, any rere any, el teu sou no corre al mateix ritme que el cost de la vida.
-        </p>
-        <p style="margin-bottom:16px">
-          Treballes, t'hi esforces, fas hores, assumes responsabilitats... pero la sensació és que cada vegada arribes mes just. El carro de la compra puja, lloguers o hipoteques pugen, l'energia puja... i tu, tot i fer-ho "be", notes que cada any pots fer menys amb els teus diners.
-        </p>
-        <p style="font-size:15px;font-weight:500;color:var(--black);margin-bottom:16px">Jo he estat exactament aquí.</p>
-        <p style="margin-bottom:16px">
-          Durant anys vaig treballar en una gran empresa corporativa, donant-ho tot: projectes, energia, moltes hores, extra de responsabilitat. Pero hi havia una cosa que no em quadrava: el meu esforc no es traduia en un augment real del poder adquisitiu, i al final, em sentia sobretot un numero mes en un Excel. Treballava mes... pero no vivia millor.
-        </p>
-        <p style="margin-bottom:16px">
-          I vaig arribar a aquella pregunta incomoda que potser tu tambe t'has fet: <em>"De veritat, nomes puc confiar en la nomina i esperar que tot vagi be... mentre els preus no paren de pujar?"</em>
-        </p>
-        <p style="margin-bottom:16px">
-          En comptes de resignar-m'hi, vaig fer el que sempre he fet en el mon tecnic i industrial: analitzar el problema, buscar solucions i provar-les. Vaig comecar a formar-me seriosament en inversió i finances personals. He passat per gairebe tots els instruments: comptes remunerats, fons de banca tradicional, plans de pensions, accions individuals, ETF, roboadvisors... Ho he viscut en propia pell.
-        </p>
-      </div>
-
-      <!-- Bloc destacat -->
-      <div style="border-left:3px solid var(--black);padding:14px 20px;margin-bottom:24px;background:var(--gray-100);border-radius:0 8px 8px 0">
-        <div style="font-size:15px;font-weight:500;color:var(--black);line-height:1.6">
-          En aquest proces vaig descobrir una cosa que molts no volen sentir: no cal fer coses espectaculars per tenir bons resultats, cal tenir metodologia i disciplina.
+      <!-- GANXO: la pregunta incòmoda -->
+      <div style="margin-bottom:28px">
+        <div style="font-size:18px;font-weight:500;color:var(--black);line-height:1.5;margin-bottom:12px;letter-spacing:-.2px">
+          Fas bé totes les coses que et van dir que havies de fer.<br>I tot i així, cada any arribes una mica més just.
+        </div>
+        <div style="font-size:14px;color:var(--gray-500);line-height:1.8">
+          Treballes. T'hi esforces. Assumes responsabilitats. Fas hores. Estalvies el que pots.
+          I tanmateix el carro de la compra puja, el lloguer o la hipoteca puja, l'energia puja...
+          mentre el teu sou fa el que sempre ha fet: esperar la revisió anual que mai arriba del tot.
         </div>
       </div>
 
-      <div style="font-size:14px;color:var(--gray-600);line-height:1.85;margin-bottom:24px">
-        <p style="margin-bottom:16px">
-          Aixi és com neix <strong style="color:var(--black)">The Boring Investor</strong>. Un projecte pensat per a persones com tu i com jo: assalariats, professionals tecnics, gent que curren de debo... pero que no volen veure com la inflació i un sistema mal dissenyat els van menjant el futur a trossets.
+      <!-- CONFESSIÓ: jo he estat aquí -->
+      <div style="border-left:3px solid var(--black);padding:16px 20px;margin-bottom:28px;background:var(--gray-100);border-radius:0 8px 8px 0">
+        <div style="font-size:14px;font-weight:500;color:var(--black);line-height:1.6;margin-bottom:8px">Jo he estat exactament aquí.</div>
+        <div style="font-size:13px;color:var(--gray-600);line-height:1.8">
+          Durant anys vaig treballar en una gran empresa industrial, donant-ho tot. Projectes, energia, moltes hores, extra de responsabilitat.
+          I em va costar molt de temps reconèixer una cosa senzilla i molesta: <em>el meu esforç no es traduïa en un augment real del poder adquisitiu.</em>
+          Treballava més. Però no vivia millor. Era un número en un Excel.
+        </div>
+      </div>
+
+      <!-- MOMENT DE RUPTURA -->
+      <div style="font-size:14px;color:var(--gray-600);line-height:1.85;margin-bottom:28px">
+        <p style="margin-bottom:14px">
+          Un dia em vaig fer la pregunta que potser tu també t'has fet, però en veu molt baixa:
+        </p>
+        <div style="font-size:15px;font-style:italic;color:var(--black);padding:14px 18px;background:var(--gray-100);border-radius:8px;line-height:1.7;margin-bottom:14px">
+          "De veritat, l'únic pla és confiar en la nòmina i esperar que tot vagi bé... mentre la inflació em menja els estalvis a poc a poc?"
+        </div>
+        <p>
+          En comptes de resignar-me, vaig fer el que sempre he fet en el món tècnic: analitzar el problema,
+          buscar solucions i provar-les. Vaig estudiar seriosament inversió i finances personals.
+          Comptes remunerats, fons de la banca tradicional, plans de pensions, accions individuals,
+          ETFs, roboadvisors. Ho he viscut en pròpia pell, amb els meus diners.
         </p>
       </div>
 
-      <!-- Que m'hi jugo -->
-      <div style="margin-bottom:24px">
-        <div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:14px">Que m'hi jugo?</div>
+      <!-- DESCOBERTA: la filosofia boring -->
+      <div style="margin-bottom:28px;padding:20px 22px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius)">
+        <div style="font-size:11px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">La descoberta</div>
+        <div style="font-size:15px;font-weight:500;color:var(--black);line-height:1.6;margin-bottom:10px">
+          No cal fer coses espectaculars per tenir bons resultats financers.<br>Cal tenir metodologia, disciplina i paciència.
+        </div>
+        <div style="font-size:13px;color:var(--gray-500);line-height:1.75">
+          La majoria de persones que conec amb bones finances no han aconseguit res gràcies a un consell brillant,
+          un moment d'inspiració o un producte miraculós. Ho han aconseguit sent <strong style="color:var(--black)">consistents durant molt de temps</strong>
+          en coses avorrissimes: invertir regularment, no tocar la cartera en les caigudes, diversificar bé i pagar el mínim de costos possible.
+          The Boring Investor neix d'aquí.
+        </div>
+      </div>
+
+      <!-- LA MISSIÓ -->
+      <div style="font-size:14px;color:var(--gray-600);line-height:1.85;margin-bottom:28px">
+        <p style="margin-bottom:14px">
+          <strong style="color:var(--black)">The Boring Investor</strong> és un projecte pensat per a persones com tu i com jo:
+          assalariats, professionals tècnics, gent que currela de debò, però que no vol veure com la inflació
+          i un sistema mal dissenyat els va menjant el futur a trossets, any rere any.
+        </p>
+        <p>
+          No vinc del món de la banca. Vinc del món tècnic i industrial, on les decisions es basen en dades,
+          processos i eficiència — no en comissions. Combino aquesta mentalitat amb l'univers financer.
+          I crec que això marca una diferència real.
+        </p>
+      </div>
+
+      <!-- SKIN IN THE GAME: els 4 compromisos -->
+      <div style="margin-bottom:28px">
+        <div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:14px">El que em juc en això</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           ${[
-            {icon:'◎', tit:'Vinc del mon tecnic, no de la banca', txt:"Combino una mentalitat d'eficiencia, dades i processos amb l'univers financer. No vinc a col·locar productes, vinc a dissenyar un sistema que funcioni."},
-            {icon:'◈', tit:'Es la meva passió', txt:"No es un hobby passatger ni una moda. M'agrada de debo analitzar carteres, optimitzar estrategies i buscar la manera que els diners treballin millor per la gent."},
-            {icon:'◉', tit:'Skin in the game', txt:"Hi tinc els meus diners. No et recomanare mai un actiu o una estrategia en la qual jo mateix no estaria disposat a invertir."},
-            {icon:'◐', tit:'He provat (gairebe) de tot', txt:"No parlo des de la trinxera del power point, sino des de l'experiencia real. Sé que se sent quan el mercat baixa."},
+            {ic:'◎', tit:"Skin in the game real",
+             txt:"Hi tinc els meus diners. No et recomanaré mai un actiu o una estratègia en la qual jo mateix no estaria disposat a invertir. Si no m'ho crec jo, no t'ho proposaré a tu."},
+            {ic:'◈', tit:"Sense conflicte d'interessos",
+             txt:'Cobro únicament pels meus serveis. Cap comissió de cap entitat. Cap incentiu per recomanar un producte concret. Els teus interessos i els meus estan alineats des del primer dia.'},
+            {ic:'◉', tit:"He provat (gairebé) de tot",
+             txt:"No parlo des de la trinxera d'un PowerPoint. Parlo des de l'experiència real: he vist el mercat baixar un 30% i he sentit el que se sent quan la pantalla et diu que has perdut diners."},
+            {ic:'◐', tit:"Formació contínua",
+             txt:'Estic estudiant per a la certificació EFA (European Financial Advisor, juny 2026). No per posar un títol, sinó perquè crec que si assessoro algú en alguna cosa tan important com els seus diners, m\'ho he de guanyar.'},
           ].map(item =>
             '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:10px;padding:14px 16px">' +
               '<div style="display:flex;gap:10px;align-items:start">' +
-                '<span style="font-size:18px;color:var(--accent);flex-shrink:0;line-height:1.3">' + item.icon + '</span>' +
+                '<span style="font-size:17px;color:var(--accent);flex-shrink:0;line-height:1.3;margin-top:1px">' + item.ic + '</span>' +
                 '<div>' +
-                  '<div style="font-size:12px;font-weight:500;color:var(--black);margin-bottom:4px">' + item.tit + '</div>' +
-                  '<div style="font-size:11px;color:var(--gray-500);line-height:1.6">' + item.txt + '</div>' +
+                  '<div style="font-size:12px;font-weight:500;color:var(--black);margin-bottom:5px">' + item.tit + '</div>' +
+                  '<div style="font-size:11px;color:var(--gray-500);line-height:1.65">' + item.txt + '</div>' +
                 '</div>' +
               '</div>' +
             '</div>'
@@ -3128,18 +3165,22 @@ function renderQuiSoc() {
         </div>
       </div>
 
-      <!-- CTA -->
-      <div style="background:var(--black);border-radius:var(--radius);padding:22px 26px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:14px">
-        <div>
-          <div style="font-size:15px;font-weight:500;color:white;margin-bottom:4px">En que et puc ajudar?</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">Sense fum. Sense promeses irreals. Metodologia, disciplina i sentit comu aplicats als teus diners.</div>
+      <!-- INVITACIÓ FINAL / CTA -->
+      <div style="background:var(--black);border-radius:var(--radius);padding:24px 28px;margin-bottom:14px">
+        <div style="font-size:13px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Per on comencem?</div>
+        <div style="font-size:16px;font-weight:500;color:white;line-height:1.6;margin-bottom:6px">
+          Una conversa de 20 minuts pot canviar la trajectòria dels teus estalvis per als propers 20 anys.
         </div>
-        <button onclick="navigate('serveis')" style="padding:10px 20px;background:white;color:var(--black);border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body);flex-shrink:0">
-          Veure serveis →
+        <div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:18px">
+          Sense fum. Sense promeses irreals. Metodologia, disciplina i sentit comú aplicats als teus diners.
+          I si resulta que no puc ajudar-te, t'ho diré sense embuts.
+        </div>
+        <button onclick="navigate('serveis')" style="padding:11px 22px;background:white;color:var(--black);border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">
+          Veure serveis i tarifes →
         </button>
       </div>
 
-      <div class="disclaimer">Activitat d'educació i analisi financera independent. Pendent de certificació EFA (juny 2026). No constiteix assessorament regulat MiFID II.</div>
+      <div class="disclaimer">Activitat d'educació i anàlisi financera independent. Pendent de certificació EFA (juny 2026). No constitueix assessorament regulat MiFID II.</div>
     </div>
   `;
 }
