@@ -504,7 +504,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
             <span id="macro-update" style="font-size:9px;color:var(--gray-400)">Actualitzant...</span>
           </div>
           <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center">
-            <span style="font-size:11px;color:var(--gray-400);font-style:italic">Carregant dades...</span>
+            
           </div>
         </div>
         <div class="section-header">
@@ -3754,97 +3754,93 @@ async function fetchMacroData() {
     'TLT':     { nom: 'RF 20a',     fmt: 'etf' },
   };
 
-  function renderPlaceholder(msg) {
-    el.innerHTML = Object.values(TICKER_META).map(function(m) {
-      return '<div class="ticker-item" style="opacity:.35"><span class="ticker-name">' + m.nom +
-        '</span><span class="ticker-price">—</span><span class="ticker-chg ticker-flat">—</span></div>';
-    }).join('') +
-    '<div class="ticker-item" style="opacity:.35;background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">—</span><span class="ticker-chg ticker-flat">—</span></div>' +
-    '<div class="ticker-item" style="opacity:.35;background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">—</span><span class="ticker-chg ticker-flat">—</span></div>' +
-    '<div class="ticker-item" style="opacity:.35"><span class="ticker-name">EUR/USD</span><span class="ticker-price">—</span><span class="ticker-chg ticker-flat">—</span></div>';
-    if (updEl) updEl.textContent = msg || 'No disponible';
-  }
+  // Dades de referència estàtiques — mostrar IMMEDIATAMENT
+  var STATIC = {
+    quotes: [
+      {symbol:'SPY',     price:562.40, chg: 0.00},
+      {symbol:'URTH',    price:115.80, chg: 0.00},
+      {symbol:'EWP',     price: 36.10, chg: 0.00},
+      {symbol:'GLD',     price:246.50, chg: 0.00},
+      {symbol:'BTC-USD', price:87500,  chg: 0.00},
+      {symbol:'TLT',     price: 88.60, chg: 0.00},
+    ],
+    bce: 2.50, ipc: 2.9, eurusd: 1.0821, _static: true
+  };
 
-  // Mostrar loading
-  el.innerHTML = '<span style="font-size:11px;color:var(--gray-400);padding:4px 0">Carregant mercats...</span>';
-  if (updEl) updEl.textContent = '···';
+  // Mostrar estàtiques immediatament (sense esperar la xarxa)
+  renderTickers(STATIC, el, updEl, TICKER_META);
 
-  // Timeout de 10 segons
-  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  var timer = setTimeout(function() {
-    if (controller) controller.abort();
-    renderPlaceholder('Temps d\'espera esgotat');
-  }, 10000);
-
+  // Intentar actualitzar amb dades reals (sense bloquejar la UI)
   try {
-    var fetchOpts = controller ? { signal: controller.signal } : {};
-    var res = await fetch(SHEETS_SCRIPT_URL + '?action=market', fetchOpts);
-    clearTimeout(timer);
-    if (!res.ok) { renderPlaceholder('Error ' + res.status); return; }
-    var data = await res.json();
-    if (!data || !data.ok) { renderPlaceholder('Error del servidor'); return; }
-
-    var html = '';
-    var quotes = data.quotes || [];
-
-    if (quotes.length > 0) {
-      quotes.forEach(function(q) {
-        var meta = TICKER_META[q.symbol];
-        if (!meta) return;
-        _macroCache[q.symbol] = q;
-        var price  = q.price  || 0;
-        var chg    = q.chg    || 0;
-        var chgCls = chg > 0.05 ? 'ticker-up' : chg < -0.05 ? 'ticker-down' : 'ticker-flat';
-        var sign   = chg > 0.05 ? '+' : '';
-        var ps = meta.fmt === 'crypto'
-          ? (price >= 1000 ? (price/1000).toFixed(1)+'k' : price.toFixed(0)) + '$'
-          : price.toFixed(2);
-        html += '<div class="ticker-item"><span class="ticker-name">' + meta.nom +
-          '</span><span class="ticker-price">' + ps +
-          '</span><span class="ticker-chg ' + chgCls + '">' + sign + chg.toFixed(2) + '%</span></div>';
-      });
-    } else {
-      Object.keys(TICKER_META).forEach(function(sym) {
-        var meta = TICKER_META[sym];
-        var q    = _macroCache[sym];
-        html += '<div class="ticker-item" style="opacity:' + (q?'.65':'.3') + '"><span class="ticker-name">' + meta.nom +
-          '</span><span class="ticker-price">' + (q&&q.price ? q.price.toFixed(2) : '—') +
-          '</span><span class="ticker-chg ticker-flat">' + (q ? 'caché' : '—') + '</span></div>';
-      });
+    var ctrl = new AbortController();
+    var tid  = setTimeout(function(){ ctrl.abort(); }, 9000);
+    var res  = await fetch(SHEETS_SCRIPT_URL + '?action=market', { signal: ctrl.signal });
+    clearTimeout(tid);
+    if (res.ok) {
+      var txt = await res.text();
+      var data = null;
+      try { data = JSON.parse(txt); } catch(e) {}
+      if (data && data.ok && data.quotes && data.quotes.length > 0) {
+        renderTickers(data, el, updEl, TICKER_META);
+      }
     }
-
-    // BCE
-    var bce = data.bce !== null && data.bce !== undefined ? (+data.bce).toFixed(2) + '%' : '—';
-    html += '<div class="ticker-item" style="background:var(--accent-light)">' +
-      '<span class="ticker-name" style="color:var(--accent)">BCE</span>' +
-      '<span class="ticker-price" style="color:var(--accent)">' + bce + '</span>' +
-      '<span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span></div>';
-
-    // IPC
-    var ipc = data.ipc !== null && data.ipc !== undefined ? (+data.ipc).toFixed(1) + '%' : '—';
-    var infCls = data.ipc === null ? 'ticker-flat' : data.ipc > 3 ? 'ticker-down' : data.ipc > 1.5 ? 'ticker-flat' : 'ticker-up';
-    html += '<div class="ticker-item" style="background:var(--amber-light)">' +
-      '<span class="ticker-name" style="color:var(--amber)">IPC ES</span>' +
-      '<span class="ticker-price" style="color:var(--amber)">' + ipc + '</span>' +
-      '<span class="ticker-chg ' + infCls + '">Interanual</span></div>';
-
-    // EUR/USD
-    var fx = data.eurusd ? (+data.eurusd).toFixed(4) : '—';
-    html += '<div class="ticker-item"><span class="ticker-name">EUR/USD</span>' +
-      '<span class="ticker-price">' + fx + '</span>' +
-      '<span class="ticker-chg ticker-flat">Canvi</span></div>';
-
-    el.innerHTML = html;
-    if (updEl) {
-      var now = new Date();
-      updEl.textContent = now.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'});
-    }
-
   } catch(e) {
-    clearTimeout(timer);
-    // Si és error CORS en local (file://), mostrar missatge específic
-    var msg = (window.location.protocol === 'file:') ? 'Cal obrir des de GitHub' : 'Error connexió';
-    renderPlaceholder(msg);
+    // Silenciós — les estàtiques ja es mostren
+    if (updEl) updEl.textContent = '· Referència';
+  }
+}
+
+function renderTickers(data, el, updEl, TICKER_META) {
+  var html = '';
+  var isStatic = !!data._static;
+
+  data.quotes.forEach(function(q) {
+    var meta = TICKER_META[q.symbol];
+    if (!meta) return;
+    _macroCache[q.symbol] = q;
+    var price  = q.price || 0;
+    var chg    = q.chg   || 0;
+    var chgCls = isStatic ? 'ticker-flat' : (chg > 0.05 ? 'ticker-up' : chg < -0.05 ? 'ticker-down' : 'ticker-flat');
+    var sign   = chg > 0.05 ? '+' : '';
+    var priceStr;
+    if (meta.fmt === 'crypto') priceStr = (price >= 1000 ? (price/1000).toFixed(1) + 'k' : price.toFixed(0)) + '$';
+    else                       priceStr = price.toFixed(2);
+    html += '<div class="ticker-item"' + (isStatic ? ' style="opacity:.55"' : '') + '>'
+      + '<span class="ticker-name">' + meta.nom + '</span>'
+      + '<span class="ticker-price">' + priceStr + '</span>'
+      + '<span class="ticker-chg ' + chgCls + '">' + (isStatic ? 'ref.' : sign + chg.toFixed(2) + '%') + '</span>'
+      + '</div>';
+  });
+
+  // BCE
+  var bce = data.bce !== null && data.bce !== undefined ? data.bce : null;
+  html += '<div class="ticker-item" style="background:var(--accent-light)">'
+    + '<span class="ticker-name" style="color:var(--accent)">BCE</span>'
+    + '<span class="ticker-price" style="color:var(--accent)">' + (bce !== null ? (+bce).toFixed(2) + '%' : '—') + '</span>'
+    + '<span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span>'
+    + '</div>';
+
+  // IPC ES
+  var ipc = data.ipc !== null && data.ipc !== undefined ? data.ipc : null;
+  var infCls = ipc === null ? 'ticker-flat' : ipc > 3 ? 'ticker-down' : ipc > 1.5 ? 'ticker-flat' : 'ticker-up';
+  html += '<div class="ticker-item" style="background:var(--amber-light)">'
+    + '<span class="ticker-name" style="color:var(--amber)">IPC ES</span>'
+    + '<span class="ticker-price" style="color:var(--amber)">' + (ipc !== null ? (+ipc).toFixed(1) + '%' : '—') + '</span>'
+    + '<span class="ticker-chg ' + infCls + '">Interanual</span>'
+    + '</div>';
+
+  // EUR/USD
+  var fx = data.eurusd;
+  html += '<div class="ticker-item">'
+    + '<span class="ticker-name">EUR/USD</span>'
+    + '<span class="ticker-price">' + (fx ? (+fx).toFixed(4) : '—') + '</span>'
+    + '<span class="ticker-chg ticker-flat">Canvi</span>'
+    + '</div>';
+
+  if (el) el.innerHTML = html;
+  if (updEl) {
+    var now = new Date();
+    updEl.textContent = isStatic ? 'Referència · Actualitzant...' : now.toLocaleTimeString('ca-ES', {hour:'2-digit', minute:'2-digit'});
   }
 }
 
