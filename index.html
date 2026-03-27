@@ -3547,7 +3547,7 @@ const TRANSLATIONS = {
 // Comprova cada 30 seg si hi ha onboardings nous
 // ══════════════════════════════════════════════════════
 
-const SHEETS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbgvRfItzTY3K161jJhTHRxIMGH1fY3eYUgvpri1fgbEEQfgNYRhNWIA1RO6dtO48b/exec";
+const SHEETS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE__3ybWTxaiqCBeZ9Ehu1VxePmTUHqzyxAsR87cjXtaZRHbtPAqPO02jfxf2ElON8/exec";
 let _syncInterval = null;
 let _lastSyncTime = null;
 let _syncEnabled  = false;
@@ -3754,41 +3754,89 @@ async function fetchMacroData() {
     'TLT':     { nom: 'RF 20a',     fmt: 'etf' },
   };
 
-  // Dades de referència estàtiques — mostrar IMMEDIATAMENT
+  // Valors de referència (mostrar immediatament)
   var STATIC = {
     quotes: [
-      {symbol:'SPY',     price:562.40, chg: 0.00},
-      {symbol:'URTH',    price:115.80, chg: 0.00},
-      {symbol:'EWP',     price: 36.10, chg: 0.00},
-      {symbol:'GLD',     price:246.50, chg: 0.00},
-      {symbol:'BTC-USD', price:87500,  chg: 0.00},
-      {symbol:'TLT',     price: 88.60, chg: 0.00},
+      {symbol:'SPY',     price:562.40, chg: 0},
+      {symbol:'URTH',    price:115.80, chg: 0},
+      {symbol:'EWP',     price: 36.10, chg: 0},
+      {symbol:'GLD',     price:246.50, chg: 0},
+      {symbol:'BTC-USD', price:87500,  chg: 0},
+      {symbol:'TLT',     price: 88.60, chg: 0},
     ],
     bce: 2.50, ipc: 2.9, eurusd: 1.0821, _static: true
   };
-
-  // Mostrar estàtiques immediatament (sense esperar la xarxa)
   renderTickers(STATIC, el, updEl, TICKER_META);
 
-  // Intentar actualitzar amb dades reals (sense bloquejar la UI)
-  try {
-    var ctrl = new AbortController();
-    var tid  = setTimeout(function(){ ctrl.abort(); }, 9000);
-    var res  = await fetch(SHEETS_SCRIPT_URL + '?action=market', { signal: ctrl.signal });
-    clearTimeout(tid);
-    if (res.ok) {
-      var txt = await res.text();
-      var data = null;
-      try { data = JSON.parse(txt); } catch(e) {}
-      if (data && data.ok && data.quotes && data.quotes.length > 0) {
-        renderTickers(data, el, updEl, TICKER_META);
-      }
-    }
-  } catch(e) {
-    // Silenciós — les estàtiques ja es mostren
-    if (updEl) updEl.textContent = '· Referència';
+  // Peticions paral·leles: les que tenen CORS obert van directes
+  var live = { quotes: [], bce: null, ipc: null, eurusd: null };
+
+  var results = await Promise.allSettled([
+    // Yahoo via Apps Script
+    fetch(SHEETS_SCRIPT_URL + '?action=market')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .catch(function(){ return null; }),
+    // BCE — CORS obert
+    fetch('https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.MRR_FR.LEV?lastNObservations=1&format=jsondata')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .catch(function(){ return null; }),
+    // INE — CORS obert
+    fetch('https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/IPC251858?nultimos=2')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .catch(function(){ return null; }),
+    // Frankfurter — CORS obert
+    fetch('https://api.frankfurter.app/latest?from=EUR&to=USD')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .catch(function(){ return null; }),
+  ]);
+
+  var yhData  = results[0].value || null;
+  var bceData = results[1].value || null;
+  var ineData = results[2].value || null;
+  var fxData  = results[3].value || null;
+
+  // Yahoo (via Apps Script)
+  if (yhData && yhData.ok && yhData.quotes && yhData.quotes.length > 0) {
+    live.quotes = yhData.quotes;
+  } else {
+    live.quotes = STATIC.quotes; live._staticQuotes = true;
   }
+
+  // BCE directe
+  if (!yhData && bceData) {
+    try {
+      var obs = bceData.dataSets[0].series['0:0:0:0:0:0:0'].observations;
+      var k   = Object.keys(obs).sort(function(a,b){ return +b-+a; })[0];
+      live.bce = obs[k][0];
+    } catch(e) {}
+  } else if (yhData && yhData.bce !== null && yhData.bce !== undefined) {
+    live.bce = yhData.bce;
+  } else if (bceData) {
+    try {
+      var obs2 = bceData.dataSets[0].series['0:0:0:0:0:0:0'].observations;
+      var k2   = Object.keys(obs2).sort(function(a,b){ return +b-+a; })[0];
+      live.bce = obs2[k2][0];
+    } catch(e) { live.bce = STATIC.bce; }
+  } else { live.bce = STATIC.bce; }
+
+  // INE directe
+  if (yhData && yhData.ipc !== null && yhData.ipc !== undefined) {
+    live.ipc = yhData.ipc;
+  } else if (ineData && Array.isArray(ineData) && ineData.length > 0) {
+    live.ipc = ineData[ineData.length - 1].Valor;
+  } else { live.ipc = STATIC.ipc; }
+
+  // EUR/USD directe
+  if (yhData && yhData.eurusd) {
+    live.eurusd = yhData.eurusd;
+  } else if (fxData && fxData.rates && fxData.rates.USD) {
+    live.eurusd = fxData.rates.USD;
+  } else { live.eurusd = STATIC.eurusd; }
+
+  live._static = !!live._staticQuotes;
+  renderTickers(live, el, updEl, TICKER_META);
 }
+
 
 function renderTickers(data, el, updEl, TICKER_META) {
   var html = '';
