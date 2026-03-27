@@ -581,9 +581,6 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
 
       <!-- ════ P4 SERVEIS ════ -->
       <div class="screen" id="screen-serveis">
@@ -594,6 +591,10 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
       <div class="screen" id="screen-quisoc">
         <div id="quisoc-content"></div>
       </div>
+
+    </div>
+  </div>
+</div>
 
 
 <!-- ── MODALS ── -->
@@ -3740,91 +3741,135 @@ let _macroTimer = null;
 let _macroData  = {};
 
 async function fetchMacroData() {
-  const el = document.getElementById('macro-tickers');
+  const el    = document.getElementById('macro-tickers');
   const updEl = document.getElementById('macro-update');
   if (!el) return;
 
-  // Construir URL de Yahoo Finance per a tots els símbols
   const syms = MACRO_TICKERS.map(t => t.sym).join(',');
-  const yhUrl = encodeURIComponent(
-    'https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&symbols=' + syms
-  );
-  const proxyUrl = 'https://api.allorigins.win/raw?url=' + yhUrl;
 
+  // Proxies CORS en cascade — prova cada un fins que un funcioni
+  const PROXIES = [
+    url => 'https://corsproxy.io/?' + encodeURIComponent(url),
+    url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    url => 'https://thingproxy.freeboard.io/fetch/' + url,
+  ];
+
+  const YH_URL = 'https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=ES&symbols=' + syms;
+
+  async function fetchWithProxy(targetUrl) {
+    for (const makeProxy of PROXIES) {
+      try {
+        const proxyUrl = makeProxy(targetUrl);
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && !data.error) return data;
+        }
+      } catch(e) { /* prova el següent */ }
+    }
+    return null;
+  }
+
+  // Mostrar loading si és la primera càrrega
+  if (Object.keys(_macroCache).length === 0) {
+    el.innerHTML = MACRO_TICKERS.map(t =>
+      '<div class="ticker-item"><span class="ticker-name">' + t.nom +
+      '</span><span class="ticker-price" style="color:var(--gray-300)">···</span>' +
+      '<span class="ticker-chg ticker-flat">—</span></div>'
+    ).join('') +
+    '<div class="ticker-item"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--gray-300)">···</span><span class="ticker-chg ticker-flat">—</span></div>' +
+    '<div class="ticker-item"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--gray-300)">···</span><span class="ticker-chg ticker-flat">—</span></div>' +
+    '<div class="ticker-item"><span class="ticker-name">EUR/USD</span><span class="ticker-price" style="color:var(--gray-300)">···</span><span class="ticker-chg ticker-flat">—</span></div>';
+  }
+
+  // Fer totes les peticions en paral·lel
+  const [yhData, fxData, bceData, ineData] = await Promise.all([
+    fetchWithProxy(YH_URL),
+    fetch('https://api.frankfurter.app/latest?from=EUR&to=USD').then(r => r.json()).catch(() => null),
+    fetch('https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.MRR_FR.LEV?lastNObservations=1&format=jsondata').then(r => r.json()).catch(() => null),
+    fetch('https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/IPC251858?nultimos=2').then(r => r.json()).catch(() => null),
+  ]);
+
+  let html = '';
+
+  // ── Yahoo Finance: índexs ──
+  const quotes = yhData?.quoteResponse?.result || null;
+  if (quotes && quotes.length > 0) {
+    quotes.forEach(q => {
+      const ticker = MACRO_TICKERS.find(t => t.sym === q.symbol);
+      if (!ticker) return;
+      _macroCache[ticker.sym] = q;
+      const price  = q.regularMarketPrice || 0;
+      const chg    = q.regularMarketChangePercent || 0;
+      const chgCls = chg > 0.05 ? 'ticker-up' : chg < -0.05 ? 'ticker-down' : 'ticker-flat';
+      const sign   = chg > 0.05 ? '+' : '';
+      let priceStr;
+      if (ticker.fmt === 'crypto')     priceStr = price >= 1000 ? (price/1000).toFixed(1) + 'k$' : price.toFixed(0) + '$';
+      else if (ticker.fmt === 'idx')   priceStr = price >= 10000 ? (price/1000).toFixed(1) + 'k' : price.toFixed(0);
+      else if (ticker.fmt === 'com')   priceStr = price.toFixed(0) + '$';
+      else                             priceStr = price.toFixed(2);
+      html += '<div class="ticker-item">' +
+        '<span class="ticker-name">' + ticker.nom + '</span>' +
+        '<span class="ticker-price">' + priceStr + '</span>' +
+        '<span class="ticker-chg ' + chgCls + '">' + sign + chg.toFixed(2) + '%</span>' +
+        '</div>';
+    });
+  } else {
+    // Caché o placeholder
+    MACRO_TICKERS.forEach(t => {
+      const q = _macroCache[t.sym];
+      const price = q ? q.regularMarketPrice : null;
+      const chg   = q ? q.regularMarketChangePercent : null;
+      const cls   = chg === null ? 'ticker-flat' : chg > 0.05 ? 'ticker-up' : chg < -0.05 ? 'ticker-down' : 'ticker-flat';
+      html += '<div class="ticker-item" style="opacity:' + (q ? '.75' : '.4') + '">' +
+        '<span class="ticker-name">' + t.nom + '</span>' +
+        '<span class="ticker-price">' + (price !== null ? (t.fmt==='idx'&&price>=10000?(price/1000).toFixed(1)+'k':price.toFixed(t.fmt==='crypto'?0:2)) : '—') + '</span>' +
+        '<span class="ticker-chg ' + cls + '">' + (chg !== null ? (chg>0?'+':'') + chg.toFixed(2) + '%' : '—') + '</span>' +
+        '</div>';
+    });
+  }
+
+  // ── BCE ──
+  let bceRate = null;
   try {
-    const [yhRes, fxRes] = await Promise.all([
-      fetch(proxyUrl, { cache: 'no-cache' }),
-      fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,GBP'),
-    ]);
+    const obs = bceData?.dataSets?.[0]?.series?.['0:0:0:0:0:0:0']?.observations;
+    if (obs) bceRate = obs[Object.keys(obs).sort((a,b)=>+b-+a)[0]]?.[0];
+  } catch(e) {}
+  html += '<div class="ticker-item" style="background:var(--accent-light)">' +
+    '<span class="ticker-name" style="color:var(--accent)">BCE</span>' +
+    '<span class="ticker-price" style="color:var(--accent)">' + (bceRate !== null ? bceRate.toFixed(2) + '%' : '—') + '</span>' +
+    '<span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span>' +
+    '</div>';
 
-    let quotes = null;
-    if (yhRes.ok) {
-      const yhData = await yhRes.json();
-      quotes = (yhData.quoteResponse && yhData.quoteResponse.result) || null;
-    }
+  // ── INE Inflació ──
+  let inflacio = null;
+  try {
+    const series = Array.isArray(ineData) ? ineData : null;
+    if (series && series.length > 0) inflacio = series[series.length - 1]?.Valor ?? null;
+  } catch(e) {}
+  const infCls = inflacio === null ? 'ticker-flat' : inflacio > 3 ? 'ticker-down' : inflacio > 1.5 ? 'ticker-flat' : 'ticker-up';
+  html += '<div class="ticker-item" style="background:var(--amber-light)">' +
+    '<span class="ticker-name" style="color:var(--amber)">IPC ES</span>' +
+    '<span class="ticker-price" style="color:var(--amber)">' + (inflacio !== null ? inflacio.toFixed(1) + '%' : '—') + '</span>' +
+    '<span class="ticker-chg ' + infCls + '">Interanual</span>' +
+    '</div>';
 
-    let eur_usd = null;
-    if (fxRes.ok) {
-      const fxData = await fxRes.json();
-      eur_usd = fxData.rates && fxData.rates.USD ? fxData.rates.USD : null;
-    }
+  // ── EUR/USD ──
+  const eurUsd = fxData?.rates?.USD ?? null;
+  html += '<div class="ticker-item">' +
+    '<span class="ticker-name">EUR/USD</span>' +
+    '<span class="ticker-price">' + (eurUsd ? eurUsd.toFixed(4) : '—') + '</span>' +
+    '<span class="ticker-chg ticker-flat">Canvi</span>' +
+    '</div>';
 
-    // Construir HTML dels tickers
-    let html = '';
-
-    if (quotes) {
-      quotes.forEach(q => {
-        const ticker = MACRO_TICKERS.find(t => t.sym === q.symbol);
-        if (!ticker) return;
-        const price = q.regularMarketPrice || 0;
-        const chg   = q.regularMarketChangePercent || 0;
-        const chgCls = chg > 0 ? 'ticker-up' : chg < 0 ? 'ticker-down' : 'ticker-flat';
-        const chgSign = chg > 0 ? '+' : '';
-        const priceStr = ticker.showUSD
-          ? (price >= 1000 ? (price/1000).toFixed(1) + 'k' : price.toFixed(0)) + '$'
-          : price >= 1000 ? (price/1000).toFixed(2) + 'k' : price.toFixed(2);
-        html += '<div class="ticker-item">'
-          + '<span class="ticker-name">' + ticker.nom + '</span>'
-          + '<span class="ticker-price">' + priceStr + '</span>'
-          + '<span class="ticker-chg ' + chgCls + '">' + chgSign + chg.toFixed(2) + '%</span>'
-          + '</div>';
-        _macroData[ticker.sym] = { price, chg, nom: ticker.nom };
-      });
-    } else {
-      // Fallback: mostrar dades en caché o placeholder
-      html = renderMacroFallback();
-    }
-
-    // Afegir EUR/USD si tenim dades de Frankfurter
-    if (eur_usd) {
-      html += '<div class="ticker-item">'
-        + '<span class="ticker-name">EUR/USD</span>'
-        + '<span class="ticker-price">' + eur_usd.toFixed(4) + '</span>'
-        + '<span class="ticker-chg ticker-flat">Canvi</span>'
-        + '</div>';
-    }
-
-    if (el) el.innerHTML = html || renderMacroFallback();
-    if (updEl) {
-      const now = new Date();
-      updEl.textContent = now.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' });
-    }
-  } catch (err) {
-    if (el) el.innerHTML = renderMacroFallback();
-    if (updEl) updEl.textContent = 'Error de connexió';
+  if (el) el.innerHTML = html;
+  if (updEl) {
+    const now = new Date();
+    const prefix = quotes && quotes.length > 0 ? '' : '~';
+    updEl.textContent = prefix + now.toLocaleTimeString('ca-ES', {hour:'2-digit', minute:'2-digit'});
   }
 }
 
-function renderMacroFallback() {
-  // Mostrar tickers en gris (sense dades)
-  return MACRO_TICKERS.map(t =>
-    '<div class="ticker-item">' +
-      '<span class="ticker-name">' + t.nom + '</span>' +
-      '<span class="ticker-price" style="color:var(--gray-300)">—</span>' +
-      '<span class="ticker-chg ticker-flat">—</span>' +
-    '</div>'
-  ).join('');
-}
 
 function iniciarMacro() {
   fetchMacroData();
