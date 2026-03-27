@@ -294,6 +294,15 @@ function tOnb(key, subkey) {
   return UI_ES[key] || null;
 }
 
+function sliderDescribe(q, v) {
+  if (ONB_LANG === 'es') {
+    if (q.id === 'D2P2') {
+      return v<=5?'Muy ajustado — cada euro cuenta':v<=15?'Moderado — tienes algo de margen':v<=30?'Buen margen — puedes invertir cómodamente':'Excelente capacidad de ahorro';
+    }
+  }
+  return q.describe(v);
+}
+
 function getQText(q) {
   if (ONB_LANG === 'es' && QS_ES[q.id]) return QS_ES[q.id].text || q.text;
   return q.text;
@@ -720,22 +729,22 @@ function buildQ(q){
           <span class="slider-num" id="sv-${q.id}">${raw}</span>
           <span class="slider-unit">${q.unit}</span>
         </div>
-        <div class="slider-desc" id="sd-${q.id}">${q.describe(raw)}</div>
+        <div class="slider-desc" id="sd-${q.id}">${sliderDescribe(q, raw)}</div>
       </div>`;
   }
 
   if(q.type==='cartera') return `${d}
     <div class="q-text">${q.text}</div>
     <div class="actiu-hdr">
-      <span class="form-lbl" style="padding:0 2px">Producte</span>
+      <span class="form-lbl" style="padding:0 2px">${ONB_LANG==='es'?'Producto':'Producte'}</span>
       <span class="form-lbl" style="text-align:center">%</span>
-      <span class="form-lbl" style="padding:0 2px">Plataforma</span>
+      <span class="form-lbl" style="padding:0 2px">${ONB_LANG==='es'?'Plataforma':'Plataforma'}</span>
       <span></span>
     </div>
     <div id="aw">${renderActius()}</div>
     <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
       <button class="btn-add" onclick="addA()">${uiT('cartera_add')}</button>
-      <button onclick="normalitzar()" style="padding:5px 10px;border-radius:5px;font-size:10px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.45);font-family:var(--fb)" title="Repartir proporcionalment fins a 100%">= 100%</button>
+      <button onclick="normalitzar()" style="padding:5px 10px;border-radius:5px;font-size:10px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.45);font-family:var(--fb)" title="${ONB_LANG==='es'?'Repartir proporcionalmente hasta 100%':'Repartir proporcionalment fins a 100%'}">= 100%</button>
     </div>
     <textarea class="inp-sm" id="obs" placeholder="${uiT('cartera_obs')}" style="margin-top:10px;min-height:58px;resize:none;width:100%;" oninput="txt.obs=this.value">${txt.obs||''}</textarea>`;
 
@@ -793,10 +802,14 @@ const PORTRAITS={
   eremita:'https://theboringinvestor.github.io/assessoria/portraits/eremita.png'
 };
 
+
 function renderPortrait(ar, pSrc) {
   const ini = ar.nom.split(' ').map(function(w){return w[0];}).join('').slice(0,2);
   if (!pSrc) { return '<div class="res-av">'+ini+'</div>'; }
-  return '<img src="'+pSrc+'" data-fb="'+ini+'" style="width:100%;height:100%;object-fit:cover;filter:grayscale(100%) contrast(1.1);border-radius:10px" onerror="imgFallback(this)">';
+  return '<img src="'+pSrc+'" data-fb="'+ini
+    +'" style="width:100%;height:100%;object-fit:cover;filter:grayscale(100%) contrast(1.1);border-radius:10px"'
+    
+    +' onerror="imgFallback(this)">';
 }
 
 function imgFallback(img) {
@@ -851,7 +864,7 @@ function buildResult(){
       </div>
       <div class="res-hero-info">
         <div style="font-size:10px;font-weight:500;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">${uiT('result_eyebrow')}</div>
-        <div style="font-family:var(--fd);font-size:clamp(24px,4vw,36px);font-weight:400;line-height:1.1;color:white;margin-bottom:4px">${ar.nom}</div>
+        <div style="font-family:var(--fd);font-size:clamp(24px,4vw,36px);font-weight:400;line-height:1.1;color:white;margin-bottom:4px">${arT(ar,'nom')||ar.nom}</div>
         <div style="font-family:var(--fd);font-size:13px;font-style:italic;color:rgba(255,255,255,.4);margin-bottom:12px">${ar.ep}</div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
           <div style="font-family:var(--fm);font-size:22px;font-weight:500;color:${scoreColor}">${pct}<span style="font-size:12px;color:rgba(255,255,255,.3)">/100</span></div>
@@ -859,13 +872,13 @@ function buildResult(){
             <div style="width:${pct}%;height:100%;background:${scoreColor};border-radius:99px;transition:width .6s ease"></div>
           </div>
         </div>
-        <div style="font-size:12px;color:rgba(255,255,255,.55);font-style:italic;border-left:2px solid ${archColor};padding-left:10px;line-height:1.5">"${ar.lema}"</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.55);font-style:italic;border-left:2px solid ${archColor};padding-left:10px;line-height:1.5">"${arT(ar,'lema')}"</div>
       </div>
     </div>
 
     <!-- ── DESCRIPCIÓ ── -->
     <div class="res-section">
-      <div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.75">${ar.desc}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.65);line-height:1.75">${arT(ar,'desc')}</div>
     </div>
 
     <!-- ── CARTERA RECOMANADA ── -->
@@ -873,9 +886,9 @@ function buildResult(){
       <div class="res-section-title">${uiT('cartera_rec')}</div>
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
         <span style="font-family:var(--fm);font-size:11px;color:${archColor};background:rgba(255,255,255,.06);padding:4px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.1)">${ar.cartera}</span>
-        <span style="font-size:12px;color:rgba(255,255,255,.45)">${ar.cartDesc||''}</span>
+        <span style="font-size:12px;color:rgba(255,255,255,.45)">${arT(ar,'cartDesc')||''}</span>
       </div>
-      ${ar.alloc ? ar.alloc.map(b=>{
+      ${ar.alloc ? arAlloc(ar).map(b=>{
         const w = Math.round(b.p * 0.85);
         return '<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
           +'<div style="width:'+w+'px;max-width:85px;height:3px;background:'+archColor+';border-radius:99px;flex-shrink:0;opacity:.7"></div>'
@@ -1276,7 +1289,7 @@ function generarPDF(){
       .footer{margin-top:40px;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:16px}
     </style></head><body>
     <div style="font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">${ONB_LANG==='es'?'Tu perfil inversor':'El teu perfil inversor'}</div>
-    <h1>${ar.nom}</h1>
+    <h1>${arT(ar,'nom')||ar.nom}</h1>
     <div class="ep">${ar.ep}</div>
     <div class="score">Puntuació: ${sc}/${84} pts · ${Math.round(sc/84*100)}%</div>
     <div class="section">
