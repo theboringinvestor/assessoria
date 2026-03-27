@@ -504,7 +504,15 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
             <span id="macro-update" style="font-size:9px;color:var(--gray-400)">Actualitzant...</span>
           </div>
           <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center">
-            
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">S&P 500</span><span class="ticker-price">562</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">MSCI World</span><span class="ticker-price">115.8</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">IBEX 35</span><span class="ticker-price">36.1</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">Or</span><span class="ticker-price">246</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">BTC</span><span class="ticker-price">87k$</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">RF 20a</span><span class="ticker-price">88.6</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5;background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">2.50%</span><span class="ticker-chg ticker-flat" style="color:var(--accent);opacity:.7">Deposit</span></div>
+            <div class="ticker-item" style="opacity:.5;background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">2.9%</span><span class="ticker-chg ticker-flat">Interanual</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">EUR/USD</span><span class="ticker-price">1.0821</span><span class="ticker-chg ticker-flat">Canvi</span></div>
           </div>
         </div>
         <div class="section-header">
@@ -3740,155 +3748,105 @@ const MACRO_TICKERS = [
 let _macroTimer = null;
 let _macroData  = {};
 
+var _macroCache = {};
+
 async function fetchMacroData() {
-  const el    = document.getElementById('macro-tickers');
-  const updEl = document.getElementById('macro-update');
+  var el    = document.getElementById('macro-tickers');
+  var updEl = document.getElementById('macro-update');
   if (!el) return;
 
-  const TICKER_META = {
-    'SPY':     { nom: 'S&P 500',    fmt: 'etf' },
-    'URTH':    { nom: 'MSCI World', fmt: 'etf' },
-    'EWP':     { nom: 'IBEX 35',    fmt: 'etf' },
-    'GLD':     { nom: 'Or',         fmt: 'etf' },
-    'BTC-USD': { nom: 'BTC',        fmt: 'crypto' },
-    'TLT':     { nom: 'RF 20a',     fmt: 'etf' },
-  };
+  // Mostrar IMMEDIATAMENT dades de referència (sense esperar la xarxa)
+  var FALLBACK = { quotes:[], bce:2.50, ipc:2.9, eurusd:1.0821, _isFallback:true };
+  renderTickers(FALLBACK, el, updEl);
 
-  // Valors de referència (mostrar immediatament)
-  var STATIC = {
-    quotes: [
-      {symbol:'SPY',     price:562.40, chg: 0},
-      {symbol:'URTH',    price:115.80, chg: 0},
-      {symbol:'EWP',     price: 36.10, chg: 0},
-      {symbol:'GLD',     price:246.50, chg: 0},
-      {symbol:'BTC-USD', price:87500,  chg: 0},
-      {symbol:'TLT',     price: 88.60, chg: 0},
-    ],
-    bce: 2.50, ipc: 2.9, eurusd: 1.0821, _static: true
-  };
-  renderTickers(STATIC, el, updEl, TICKER_META);
+  var data = null;
 
-  // Peticions paral·leles: les que tenen CORS obert van directes
-  var live = { quotes: [], bce: null, ipc: null, eurusd: null };
+  // Intentar Apps Script (Yahoo + BCE + INE + FX en un sol request)
+  try {
+    var res = await fetch(SHEETS_SCRIPT_URL + '?action=market');
+    if (res.ok) {
+      var txt = await res.text();
+      data = JSON.parse(txt);
+    }
+  } catch(e) {}
 
-  var results = await Promise.allSettled([
-    // Yahoo via Apps Script
-    fetch(SHEETS_SCRIPT_URL + '?action=market')
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .catch(function(){ return null; }),
-    // BCE — CORS obert
-    fetch('https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.MRR_FR.LEV?lastNObservations=1&format=jsondata')
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .catch(function(){ return null; }),
-    // INE — CORS obert
-    fetch('https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/IPC251858?nultimos=2')
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .catch(function(){ return null; }),
-    // Frankfurter — CORS obert
-    fetch('https://api.frankfurter.app/latest?from=EUR&to=USD')
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .catch(function(){ return null; }),
-  ]);
-
-  var yhData  = results[0].value || null;
-  var bceData = results[1].value || null;
-  var ineData = results[2].value || null;
-  var fxData  = results[3].value || null;
-
-  // Yahoo (via Apps Script)
-  if (yhData && yhData.ok && yhData.quotes && yhData.quotes.length > 0) {
-    live.quotes = yhData.quotes;
-  } else {
-    live.quotes = STATIC.quotes; live._staticQuotes = true;
+  // Si Apps Script falla, intentar fonts directes (CORS ok)
+  if (!data || !data.quotes || data.quotes.length === 0) {
+    data = { quotes: [], bce: null, ipc: null, eurusd: null };
+    try {
+      var fxRes = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD');
+      if (fxRes.ok) { var fxD = await fxRes.json(); data.eurusd = fxD.rates && fxD.rates.USD; }
+    } catch(e) {}
+    try {
+      var ineRes = await fetch('https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/IPC251858?nultimos=2');
+      if (ineRes.ok) { var ineD = await ineRes.json(); if (Array.isArray(ineD) && ineD.length) data.ipc = ineD[ineD.length-1].Valor; }
+    } catch(e) {}
+    try {
+      var bceRes = await fetch('https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.MRR_FR.LEV?lastNObservations=1&format=jsondata');
+      if (bceRes.ok) {
+        var bceD = await bceRes.json();
+        var obs = bceD.dataSets && bceD.dataSets[0] && bceD.dataSets[0].series && bceD.dataSets[0].series['0:0:0:0:0:0:0'] && bceD.dataSets[0].series['0:0:0:0:0:0:0'].observations;
+        if (obs) { var k = Object.keys(obs).sort(function(a,b){return +b-+a;})[0]; data.bce = obs[k][0]; }
+      }
+    } catch(e) {}
   }
 
-  // BCE directe
-  if (!yhData && bceData) {
-    try {
-      var obs = bceData.dataSets[0].series['0:0:0:0:0:0:0'].observations;
-      var k   = Object.keys(obs).sort(function(a,b){ return +b-+a; })[0];
-      live.bce = obs[k][0];
-    } catch(e) {}
-  } else if (yhData && yhData.bce !== null && yhData.bce !== undefined) {
-    live.bce = yhData.bce;
-  } else if (bceData) {
-    try {
-      var obs2 = bceData.dataSets[0].series['0:0:0:0:0:0:0'].observations;
-      var k2   = Object.keys(obs2).sort(function(a,b){ return +b-+a; })[0];
-      live.bce = obs2[k2][0];
-    } catch(e) { live.bce = STATIC.bce; }
-  } else { live.bce = STATIC.bce; }
+  if (!data) { if (updEl) updEl.textContent = 'Error connexió'; return; }
 
-  // INE directe
-  if (yhData && yhData.ipc !== null && yhData.ipc !== undefined) {
-    live.ipc = yhData.ipc;
-  } else if (ineData && Array.isArray(ineData) && ineData.length > 0) {
-    live.ipc = ineData[ineData.length - 1].Valor;
-  } else { live.ipc = STATIC.ipc; }
-
-  // EUR/USD directe
-  if (yhData && yhData.eurusd) {
-    live.eurusd = yhData.eurusd;
-  } else if (fxData && fxData.rates && fxData.rates.USD) {
-    live.eurusd = fxData.rates.USD;
-  } else { live.eurusd = STATIC.eurusd; }
-
-  live._static = !!live._staticQuotes;
-  renderTickers(live, el, updEl, TICKER_META);
+  renderTickers(data, el, updEl);
 }
 
 
-function renderTickers(data, el, updEl, TICKER_META) {
+function renderTickers(data, el, updEl) {
+  var META = {
+    'SPY':{'nom':'S&P 500'}, 'URTH':{'nom':'MSCI World'}, 'EWP':{'nom':'IBEX 35'},
+    'GLD':{'nom':'Or'}, 'BTC-USD':{'nom':'BTC','crypto':true}, 'TLT':{'nom':'RF 20a'}
+  };
   var html = '';
-  var isStatic = !!data._static;
+  var hasQuotes = data.quotes && data.quotes.length > 0;
 
-  data.quotes.forEach(function(q) {
-    var meta = TICKER_META[q.symbol];
-    if (!meta) return;
-    _macroCache[q.symbol] = q;
-    var price  = q.price || 0;
-    var chg    = q.chg   || 0;
-    var chgCls = isStatic ? 'ticker-flat' : (chg > 0.05 ? 'ticker-up' : chg < -0.05 ? 'ticker-down' : 'ticker-flat');
-    var sign   = chg > 0.05 ? '+' : '';
-    var priceStr;
-    if (meta.fmt === 'crypto') priceStr = (price >= 1000 ? (price/1000).toFixed(1) + 'k' : price.toFixed(0)) + '$';
-    else                       priceStr = price.toFixed(2);
-    html += '<div class="ticker-item"' + (isStatic ? ' style="opacity:.55"' : '') + '>'
-      + '<span class="ticker-name">' + meta.nom + '</span>'
-      + '<span class="ticker-price">' + priceStr + '</span>'
-      + '<span class="ticker-chg ' + chgCls + '">' + (isStatic ? 'ref.' : sign + chg.toFixed(2) + '%') + '</span>'
-      + '</div>';
-  });
+  if (hasQuotes) {
+    data.quotes.forEach(function(q) {
+      var m = META[q.symbol]; if (!m) return;
+      var price = q.price || 0;
+      var chg   = q.chg   || 0;
+      var cls   = chg > 0.05 ? 'ticker-up' : chg < -0.05 ? 'ticker-down' : 'ticker-flat';
+      var sign  = chg > 0.05 ? '+' : '';
+      var ps    = m.crypto ? ((price>=1000?(price/1000).toFixed(1)+'k':price.toFixed(0))+'$') : price.toFixed(2);
+      html += '<div class="ticker-item"><span class="ticker-name">'+m.nom+'</span><span class="ticker-price">'+ps+'</span><span class="ticker-chg '+cls+'">'+sign+chg.toFixed(2)+'%</span></div>';
+    });
+  } else {
+    // Sense dades de Yahoo: mostrar placeholders de cada índex
+    var REFS = [
+      {nom:'S&P 500', val:'562'}, {nom:'MSCI World', val:'115.8'},
+      {nom:'IBEX 35', val:'36.1'}, {nom:'Or', val:'246'},
+      {nom:'BTC', val:'87k$'}, {nom:'RF 20a', val:'88.6'}
+    ];
+    REFS.forEach(function(r) {
+      html += '<div class="ticker-item" style="opacity:.45"><span class="ticker-name">'+r.nom+'</span><span class="ticker-price">'+r.val+'</span><span class="ticker-chg ticker-flat">ref.</span></div>';
+    });
+  }
 
   // BCE
-  var bce = data.bce !== null && data.bce !== undefined ? data.bce : null;
-  html += '<div class="ticker-item" style="background:var(--accent-light)">'
-    + '<span class="ticker-name" style="color:var(--accent)">BCE</span>'
-    + '<span class="ticker-price" style="color:var(--accent)">' + (bce !== null ? (+bce).toFixed(2) + '%' : '—') + '</span>'
-    + '<span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span>'
-    + '</div>';
+  html += '<div class="ticker-item" style="background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">'+(data.bce!==null&&data.bce!==undefined?(+data.bce).toFixed(2)+'%':'2.50%')+'</span><span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span></div>';
 
-  // IPC ES
-  var ipc = data.ipc !== null && data.ipc !== undefined ? data.ipc : null;
-  var infCls = ipc === null ? 'ticker-flat' : ipc > 3 ? 'ticker-down' : ipc > 1.5 ? 'ticker-flat' : 'ticker-up';
-  html += '<div class="ticker-item" style="background:var(--amber-light)">'
-    + '<span class="ticker-name" style="color:var(--amber)">IPC ES</span>'
-    + '<span class="ticker-price" style="color:var(--amber)">' + (ipc !== null ? (+ipc).toFixed(1) + '%' : '—') + '</span>'
-    + '<span class="ticker-chg ' + infCls + '">Interanual</span>'
-    + '</div>';
+  // IPC
+  var ipc = data.ipc!==null&&data.ipc!==undefined ? +data.ipc : null;
+  var icls = ipc===null?'ticker-flat':ipc>3?'ticker-down':ipc>1.5?'ticker-flat':'ticker-up';
+  html += '<div class="ticker-item" style="background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">'+(ipc!==null?ipc.toFixed(1)+'%':'2.9%')+'</span><span class="ticker-chg '+icls+'">Interanual</span></div>';
 
   // EUR/USD
   var fx = data.eurusd;
-  html += '<div class="ticker-item">'
-    + '<span class="ticker-name">EUR/USD</span>'
-    + '<span class="ticker-price">' + (fx ? (+fx).toFixed(4) : '—') + '</span>'
-    + '<span class="ticker-chg ticker-flat">Canvi</span>'
-    + '</div>';
+  html += '<div class="ticker-item"><span class="ticker-name">EUR/USD</span><span class="ticker-price">'+(fx?(+fx).toFixed(4):'1.0821')+'</span><span class="ticker-chg ticker-flat">Canvi</span></div>';
 
-  if (el) el.innerHTML = html;
+  if (html && el) el.innerHTML = html;
   if (updEl) {
-    var now = new Date();
-    updEl.textContent = isStatic ? 'Referència · Actualitzant...' : now.toLocaleTimeString('ca-ES', {hour:'2-digit', minute:'2-digit'});
+    if (data._isFallback) {
+      updEl.textContent = 'Referència · actualitzant...';
+    } else {
+      var now = new Date();
+      updEl.textContent = (hasQuotes ? '' : '~ ') + now.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'});
+    }
   }
 }
 
