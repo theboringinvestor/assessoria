@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="ca">
-<head>
+<html lang="ca"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Boring Investor — Assessoria</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Playfair+Display:ital,wght@0,400;0,500&amp;display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root {
@@ -422,11 +421,11 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     <div class="logo-wrap">
       <div class="logo-symbol">
         <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
-        <circle cx="8.5" cy="10" r="2" fill="white"/>
-        <circle cx="8.5" cy="17" r="2" fill="white"/>
-        <rect x="12" y="13" width="6" height="1.5" rx=".75" fill="white"/>
-        <rect x="20" y="8" width="1.5" height="12" rx=".75" fill="white"/>
+        <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"></rect>
+        <circle cx="8.5" cy="10" r="2" fill="white"></circle>
+        <circle cx="8.5" cy="17" r="2" fill="white"></circle>
+        <rect x="12" y="13" width="6" height="1.5" rx=".75" fill="white"></rect>
+        <rect x="20" y="8" width="1.5" height="12" rx=".75" fill="white"></rect>
       </svg>
         <div>
           <div class="logo-text">The Boring Investor</div>
@@ -440,11 +439,11 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
       <div id="sync-btn" onclick="toggleSync()" title="Sincronitzar clients des de Google Sheets" style="margin-top:8px;display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
         <div id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gray-400);flex-shrink:0;transition:all .3s"></div>
         <span id="sync-lbl" style="font-size:10px;color:rgba(255,255,255,.4);flex:1">Sync Sheets</span>
-        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M13.5 2.5A7 7 0 0 0 2 8M2.5 13.5A7 7 0 0 0 14 8"/><path d="M2 2v4h4M14 14v-4h-4"/></svg>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M13.5 2.5A7 7 0 0 0 2 8M2.5 13.5A7 7 0 0 0 14 8"></path><path d="M2 2v4h4M14 14v-4h-4"></path></svg>
       </div>
-      <button id="deploy-btn" onclick="deployToGitHub()" style="margin-top:6px;display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:transparent;cursor:pointer;font-family:var(--font-body);width:100%;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
-        <div id="deploy-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gray-400);flex-shrink:0"></div>
-        <span id="deploy-lbl" style="font-size:10px;color:rgba(255,255,255,.5)">↑ Deploy a GitHub</span>
+      <button id="deploy-btn" onclick="deployToGitHub()" style="margin-top: 6px; display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); background: none; cursor: wait; font-family: var(--font-body); width: 100%; transition: 0.12s; opacity: 0.6;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'" disabled="">
+        <div id="deploy-dot" style="width: 7px; height: 7px; border-radius: 50%; background: rgb(245, 166, 35); flex-shrink: 0;"></div>
+        <span id="deploy-lbl" style="font-size:10px;color:rgba(255,255,255,.5)">↑ Pujant...</span>
       </button>
         <button id="deploy-btn" onclick="deployToGitHub()" class="deploy-btn">
           <div class="deploy-dot" id="deploy-dot"></div>
@@ -455,28 +454,28 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     <div class="nav">
       <div class="nav-section">Principal</div>
       <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"></rect><rect x="9" y="1" width="6" height="6" rx="1"></rect><rect x="1" y="9" width="6" height="6" rx="1"></rect><rect x="9" y="9" width="6" height="6" rx="1"></rect></svg>
         Dashboard
-        <span class="nav-badge" id="nav-alert-badge" style="display:none"></span>
+        <span class="nav-badge" id="nav-alert-badge" style="display: block;">1</span>
       </div>
 
       <div class="nav-section">Clients</div>
       <div class="nav-item" id="nav-fitxa" onclick="navigate('fitxa')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"></circle><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"></path></svg>
         Fitxa client
       </div>
       <div class="nav-item" id="nav-scoring" onclick="navigate('scoring')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"></circle><path d="M8 4v4l3 2"></path></svg>
         Scoring
       </div>
 
       <div class="nav-section">Assessoria</div>
       <div class="nav-item" id="nav-serveis" onclick="navigate('serveis')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M5 3V2M11 3V2M1 7h14"/></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"></rect><path d="M5 3V2M11 3V2M1 7h14"></path></svg>
         Serveis i tarifes
       </div>
       <div class="nav-item" id="nav-quisoc" onclick="navigate('quisoc')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zM2 13s1-4 6-4 6 4 6 4"/><path d="M11 6l1.5 1.5M12.5 4.5l1 1"/></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zM2 13s1-4 6-4 6 4 6 4"></path><path d="M11 6l1.5 1.5M12.5 4.5l1 1"></path></svg>
         Qui soc
       </div>
 
@@ -513,8 +512,10 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <div class="topbar-title" id="topbar-title">Dashboard</div>
       </div>
       <div class="topbar-actions" id="topbar-actions">
-        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')"><span data-i18n="dash.nou_client">+ Nou client</span></button>
-      </div>
+      <button class="btn btn-sm" onclick="importarDades()" title="Importar backup o perfil onboarding d'un client">Importar ↑</button>
+      <button class="btn btn-sm" onclick="exportarDades()" title="Descarregar totes les dades en JSON">Exportar dades</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">+ Nou client</button>
+    </div>
     </div>
 
     <!-- CONTENT -->
@@ -522,27 +523,22 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 
       <!-- ════ P1 DASHBOARD ════ -->
       <div class="screen active" id="screen-dashboard">
-        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Clients actius</div><div class="kpi-value">4</div><div class="kpi-sub">MVP · objectiu 20</div></div>
+    <div class="kpi"><div class="kpi-label">Scoring mitjà</div><div class="kpi-value accent">42/100</div><div class="kpi-sub">Cartera global</div></div>
+    <div class="kpi"><div class="kpi-label">Revisions pendents</div><div class="kpi-value amber">1</div><div class="kpi-sub">Revisió anual deguda</div></div>
+    <div class="kpi"><div class="kpi-label">Alertes crítiques</div><div class="kpi-value red">1</div><div class="kpi-sub">Scoring &lt;30</div></div>
+  </div>
         <div id="macro-widget" style="margin-bottom:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:10px 16px;overflow:hidden">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em">Mercats · Temps real</span>
-            <span id="macro-update" style="font-size:9px;color:var(--gray-400)">Actualitzant...</span>
+            <span id="macro-update" style="font-size:9px;color:var(--gray-400)">~ 18:39</span>
           </div>
-          <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center">
-            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">S&P 500</span><span class="ticker-price">562</span><span class="ticker-chg ticker-flat">ref.</span></div>
-            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">MSCI World</span><span class="ticker-price">115.8</span><span class="ticker-chg ticker-flat">ref.</span></div>
-            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">IBEX 35</span><span class="ticker-price">36.1</span><span class="ticker-chg ticker-flat">ref.</span></div>
-            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">Or</span><span class="ticker-price">246</span><span class="ticker-chg ticker-flat">ref.</span></div>
-            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">BTC</span><span class="ticker-price">87k$</span><span class="ticker-chg ticker-flat">ref.</span></div>
-            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">RF 20a</span><span class="ticker-price">88.6</span><span class="ticker-chg ticker-flat">ref.</span></div>
-            <div class="ticker-item" style="opacity:.5;background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">2.50%</span><span class="ticker-chg ticker-flat" style="color:var(--accent);opacity:.7">Deposit</span></div>
-            <div class="ticker-item" style="opacity:.5;background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">2.9%</span><span class="ticker-chg ticker-flat">Interanual</span></div>
-            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">EUR/USD</span><span class="ticker-price">1.0821</span><span class="ticker-chg ticker-flat">Canvi</span></div>
-          </div>
+          <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center"><div class="ticker-item" style="opacity:.45"><span class="ticker-name">S&amp;P 500</span><span class="ticker-price">562</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">MSCI World</span><span class="ticker-price">115.8</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">IBEX 35</span><span class="ticker-price">36.1</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">Or</span><span class="ticker-price">246</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">BTC</span><span class="ticker-price">87k$</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">RF 20a</span><span class="ticker-price">88.6</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">2.15%</span><span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span></div><div class="ticker-item" style="background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">2.9%</span><span class="ticker-chg ticker-flat">Interanual</span></div><div class="ticker-item"><span class="ticker-name">EUR/USD</span><span class="ticker-price">1.1517</span><span class="ticker-chg ticker-flat">Canvi</span></div></div>
         </div>
         <div class="section-header">
           <span class="section-title"><span data-i18n="dash.tots_clients">Tots els clients</span></span>
-          <span class="section-title" id="kpi-count" style="color:var(--gray-300)"></span>
+          <span class="section-title" id="kpi-count" style="color:var(--gray-300)">4 clients</span>
         </div>
         <div class="table-wrap">
           <table>
@@ -557,7 +553,59 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
                 <th></th>
               </tr>
             </thead>
-            <tbody id="clients-tbody"></tbody>
+            <tbody id="clients-tbody"><tr class="clickable" onclick="navigate('fitxa','jv002')">
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <div class="av av-amber">JV</div>
+          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Joan Vidal</div><div style="font-size:10px;color:var(--gray-400)">joan.vidal@email.com</div></div>
+        </div></td>
+        <td><span class="badge badge-blue">L'Alquimista</span></td>
+        <td style="color:var(--gray-700)"><span style="font-size:11px">VII · L'Alambí</span></td>
+        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:22%;background:#8B1A1A"></div></div><span class="score-num" style="color:#8B1A1A">22</span></div></td>
+        <td style="color:var(--gray-400);font-size:11px">15 febr. 2026</td>
+        <td><span class="badge badge-red">Crític</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','jv002')" style="font-size:10px;padding:3px 8px">Scoring</button>
+        </td>
+      </tr><tr class="clickable" onclick="navigate('fitxa','ap003')">
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <div class="av av-green">AP</div>
+          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Anna Puig</div><div style="font-size:10px;color:var(--gray-400)">anna.puig@email.com</div></div>
+        </div></td>
+        <td><span class="badge badge-blue">El Navegant</span></td>
+        <td style="color:var(--gray-700)"><span style="font-size:11px">III · El Galeó</span></td>
+        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:68%;background:#1B3A6B"></div></div><span class="score-num" style="color:#1B3A6B">68</span></div></td>
+        <td style="color:var(--gray-400);font-size:11px">10 març 2026</td>
+        <td><span class="badge badge-amber">Revisió</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','ap003')" style="font-size:10px;padding:3px 8px">Scoring</button>
+        </td>
+      </tr><tr class="clickable" onclick="navigate('fitxa','gm001')">
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <div class="av av-blue">GM</div>
+          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Guillem Morales</div><div style="font-size:10px;color:var(--gray-400)">guillem.morales@email.com</div></div>
+        </div></td>
+        <td><span class="badge badge-blue">El Tresorer</span></td>
+        <td style="color:var(--gray-700)"><span style="font-size:11px">V · La Muralla</span></td>
+        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:76%;background:#1A5C3A"></div></div><span class="score-num" style="color:#1A5C3A">76</span></div></td>
+        <td style="color:var(--gray-400);font-size:11px">1 març 2026</td>
+        <td><span class="badge badge-green">OK</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','gm001')" style="font-size:10px;padding:3px 8px">Scoring</button>
+        </td>
+      </tr><tr class="clickable" onclick="navigate('fitxa','nb004')">
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <div class="av av-gray">CN</div>
+          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Client Nou</div><div style="font-size:10px;color:var(--gray-400)">-</div></div>
+        </div></td>
+        <td><span class="badge badge-blue">Pendent</span></td>
+        <td style="color:var(--gray-700)"><span style="font-size:11px">Pendent qüestionari</span></td>
+        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:0%;background:#8B1A1A"></div></div><span class="score-num" style="color:#8B1A1A">0</span></div></td>
+        <td style="color:var(--gray-400);font-size:11px">Invalid Date</td>
+        <td><span class="badge badge-green">OK</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" onclick="event.stopPropagation();obrirOnboarding('nb004')" style="font-size:10px;padding:3px 8px;background:var(--accent);color:white;border-color:var(--accent)">Onboarding →</button>
+        </td>
+      </tr></tbody>
           </table>
         </div>
       </div>
@@ -636,8 +684,8 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 <div class="modal-bg" id="modal-nou-client">
   <div class="modal">
     <div class="modal-title">Nou client</div>
-    <div class="form-field"><label class="form-label">Nom complet</label><input class="form-input" id="nc-nom" placeholder="Ex: Guillem Morales" /></div>
-    <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@exemple.com" /></div>
+    <div class="form-field"><label class="form-label">Nom complet</label><input class="form-input" id="nc-nom" placeholder="Ex: Guillem Morales"></div>
+    <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@exemple.com"></div>
     <div class="form-field"><label class="form-label">Arquetip</label>
       <select class="form-select" id="nc-arquetip">
         <option value="">— Selecciona —</option>
@@ -666,7 +714,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 <div class="modal-bg" id="modal-nova-entrada">
   <div class="modal">
     <div class="modal-title">Nova entrada a l'historial</div>
-    <div class="form-field"><label class="form-label">Títol</label><input class="form-input" id="he-titol" placeholder="Ex: Revisió trimestral Q1 2026" /></div>
+    <div class="form-field"><label class="form-label">Títol</label><input class="form-input" id="he-titol" placeholder="Ex: Revisió trimestral Q1 2026"></div>
     <div class="form-field"><label class="form-label">Descripció</label><textarea class="form-textarea" id="he-desc" placeholder="Resum de la sessió, decisions preses, accions acordades..."></textarea></div>
     <div class="form-field"><label class="form-label">Tipus</label>
       <select class="form-select" id="he-tipus">
@@ -682,7 +730,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast">Token invàlid — esborra't. Torna a fer Deploy per introduir-ne un de nou.</div>
 
 <script>
 
@@ -4765,5 +4813,6 @@ loadData();
 navigate('dashboard');
 
 </script>
-</body>
-</html>
+
+
+</body></html>
