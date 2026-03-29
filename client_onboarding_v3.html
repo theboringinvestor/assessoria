@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" id="html-root">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -182,6 +182,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
 // ══════════════════════════════════════════════
 // TRADUCCIONS CASTELLÀ — ONBOARDING
 // ══════════════════════════════════════════════
+const DIM_ES = {"Benvingut": "Bienvenido", "Contacte": "Contacto", "D1 · Objectius": "D1 · Objetivos", "D2 · Situació": "D2 · Situación", "D3 · Horitzó": "D3 · Horizonte", "D4 · Coneixement": "D4 · Conocimiento", "D5 · Risc financer": "D5 · Riesgo financiero", "D6 · Comportament": "D6 · Comportamiento", "D7 · Preferències": "D7 · Preferencias", "Cartera actual": "Cartera actual"};
+
 let ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
 
 const QS_ES = {
@@ -247,25 +249,30 @@ const QS_ES = {
 
 // Textos UI en castellà
 const UI_ES = {
-  welcome_dim:  'Bienvenido',
-  contact_dim:  'Contacto',
+  welcome_dim: 'Bienvenido', contact_dim: 'Contacto',
   result_eyebrow: 'Tu perfil inversor',
   perf_de_7_dims: 'Perfil de las 7 dimensiones',
-  cartera_rec:    'CARTERA RECOMENDADA',
-  ter_label:      'TER',
-  retorn_label:   'Retorno esperado',
-  send_btn:       'Enviar a mi asesor →',
-  send_note:      'Tus datos se enviarán a Guillem Puig. Pronto se pondrá en contacto contigo.',
-  send_copy:      'Si prefieres, puedes descargar una copia de tu perfil.',
-  restart_btn:    'Volver a empezar',
-  back_btn:       '← Atrás',
-  next_btn:       'Continuar →',
-  back_web_btn:   'Volver a la web →',
-  press_enter:    'Pulsa Enter para continuar',
-  min_label:      'min',
-  de_label:       'de',
-  obligatori:     'Este campo es obligatorio',
-  email_invalid:  'El email no parece válido',
+  cartera_rec: 'CARTERA RECOMENDADA',
+  cartera_actual_lbl: 'TU CARTERA ACTUAL',
+  ter_label: 'TER', retorn_label: 'Retorno esperado',
+  send_btn: '📤  Enviar al asesor',
+  download_btn: '⬇  Descargar PDF',
+  pdf_generating: '⏳  Generando PDF...',
+  sending: '✓  Enviando...',
+  download_ok: 'PDF generado',
+  send_note: 'Datos enviados a Guillem Puig. En breve te contactará.',
+  send_copy: 'Puedes descargar una copia en PDF de tu perfil.',
+  restart_btn: 'Repetir el test',
+  back_btn: '← Atrás', next_btn: 'Continuar →',
+  back_web_btn: 'Volver a la web →',
+  press_enter: 'Pulsa Enter para continuar',
+  min_label: 'min', de_label: 'de',
+  obligatori: 'Este campo es obligatorio',
+  email_invalid: 'El email no parece válido',
+  cartera_placeholder: 'Ej: Fondo MSCI World / Cuenta corriente',
+  cartera_pct_total: 'Total',
+  cartera_add: '+ Añadir activo',
+  cartera_obs: 'Observaciones (opcional)',
 };
 
 function setOnbLang(lang) {
@@ -667,6 +674,23 @@ function updateProg(){
 // ════════════════════════════════════════════
 // RENDER
 // ════════════════════════════════════════════
+
+function getOptTxt(q, idx, o) {
+  if (ONB_LANG === 'es' && typeof QS_ES !== 'undefined' && QS_ES[q.id] && QS_ES[q.id].opts && QS_ES[q.id].opts[idx]) {
+    return QS_ES[q.id].opts[idx];
+  }
+  return o.txt;
+}
+
+function getSliderDescribe(q, val) {
+  if (ONB_LANG === 'es' && typeof QS_ES !== 'undefined' && QS_ES[q.id] && QS_ES[q.id].describes) {
+    const d = QS_ES[q.id].describes;
+    const v = parseInt(val)||0;
+    return v<=5?d[0]:v<=15?d[1]:v<=30?d[2]:d[3];
+  }
+  return q.toScore ? (parseInt(val)<=5?'Molt ajustat — cada euro compta':parseInt(val)<=15?'Moderat — tens algun marge':parseInt(val)<=30?'Bon marge — pots invertir còmodament':"Excel·lent capacitat d'estalvi") : '';
+}
+
 function render(dir){
   const wrap = document.getElementById('q-wrap');
   if(dir!=='none'){
@@ -702,12 +726,12 @@ function render(dir){
 
 function buildQ(q){
   if(q.type==='result') return buildResult();
-  const d=`<div class="dim-tag">${q.dim}</div>`;
+  const d=`<div class="dim-tag">${(ONB_LANG==='es'&&typeof DIM_ES!=='undefined'&&DIM_ES[q.dim])||q.dim}</div>`;
 
   if(q.type==='text') return `${d}
-    <div class="q-text">${q.text}</div>
+    <div class="q-text">${(ONB_LANG==='es'&&typeof QS_ES!=='undefined'&&QS_ES[q.id]&&QS_ES[q.id].text)||q.text}</div>
     <input class="form-inp" id="inp-${q.id}" type="${q.isEmail?'email':'text'}"
-      placeholder="${q.ph}" value="${txt[q.id]||''}"
+      placeholder="${(ONB_LANG==='es'&&typeof QS_ES!=='undefined'&&QS_ES[q.id]&&QS_ES[q.id].ph)||q.ph}" value="${txt[q.id]||''}"
       autocomplete="${q.id==='nom'?'given-name':'email'}">`;
 
   if(q.type==='choice') return `${d}
@@ -715,7 +739,7 @@ function buildQ(q){
     <div class="opts">${q.opts.map((o,i)=>`
       <div class="opt${ans[q.id]===o.s?' sel':''}" onclick="pick(this,'${q.id}',${o.s})">
         <div class="opt-sym">${o.sym}</div>
-        <div><div class="opt-lbl">${getOptLbl(q,i)}</div><div class="opt-txt">${getOptTxt(q,i)}</div></div>
+        <div><div class="opt-lbl">${getOptLbl(q,i)}</div><div class="opt-txt">${getOptTxt(q,i,o)}</div></div>
       </div>`).join('')}</div>`;
 
   if(q.type==='slider'){
@@ -802,6 +826,66 @@ const PORTRAITS={
   eremita:'https://theboringinvestor.github.io/assessoria/portraits/eremita.png'
 };
 
+
+
+const ARQUETIPS_ES = {
+  'estoic': {
+    nom: 'El Estoico',
+    lema: 'La disciplina es libertad. El mercado fluctúa; el plan no.',
+    desc: 'Como el emperador filósofo, actúas sobre lo que controlas e ignoras lo que no. La volatilidad no te altera porque tienes el plan claro y la convicción sólida. Tu disciplina es tu verdadera ventaja competitiva.',
+    cartDesc: 'Máxima RV, mínima fricción, horizonte ilimitado',
+    alloc: ['RV Global (MSCI World)', 'RV Emergentes', 'RV Small Cap', 'Crypto BTC/ETH'],
+  },
+  'explorador': {
+    nom: 'El Explorador',
+    lema: 'Cualquier terreno es navegable con el plan adecuado.',
+    desc: 'Como Shackleton, te adaptas al entorno sin perder el rumbo. Asumes riesgos calculados y sabes gestionar la incertidumbre. Tu activo es la capacidad de adaptar la estrategia manteniendo el objetivo final.',
+    cartDesc: 'RV diversificada con cobertura sistémica activa',
+    alloc: ['RV Global (MSCI World)', 'RV Temática (sectores)', 'Oro físico ETP', 'REITs Global', 'RF Corta (Gov)'],
+  },
+  'navegant': {
+    nom: 'El Navegante',
+    lema: 'Con buen mapa y paciencia, todo puerto es alcanzable.',
+    desc: 'Tienes el rumbo claro y sabes adónde quieres llegar. Tu reto es no mirar demasiado el barómetro cuando el cielo se nubla. La brújula es el plan a largo plazo, no las noticias del día.',
+    cartDesc: 'Equilibrio entre crecimiento y estabilidad emocional',
+    alloc: ['RV Global Indexada', 'Dividend ETF Global', 'RF Diversificada', 'Oro físico ETP', 'REITs Global'],
+  },
+  'arquitecte': {
+    nom: 'El Arquitecto',
+    lema: 'Toda gran obra comienza con unos cimientos sólidos.',
+    desc: 'Construyes con precisión y visión a largo plazo. Tu riesgo es la complejidad — a veces el mejor diseño es el más simple. Regla de oro: 7 bloques máximo, cada uno con función estructural clara.',
+    cartDesc: 'Complejo pero coherente — cada bloque tiene función estructural',
+    alloc: ['RV Global Core', 'RV Factor (Value+Quality)', 'RF Corporativa IG', 'REITs Global', 'Oro físico ETP', 'Private Equity/Crowd', 'Liquidez estratégica'],
+  },
+  'tresorer': {
+    nom: 'El Tesorero',
+    lema: 'La prudencia es el inicio de toda sabiduría financiera.',
+    desc: 'Valoras la preservación y la consistencia por encima de la especulación. Tu reto es que la prudencia extrema tiene su propio coste: la inflación silenciosa que erosiona el cofre año tras año.',
+    cartDesc: 'Preservación del capital real contra la inflación',
+    alloc: ['RF Corta (Gov AAA)', 'Oro físico ETP', 'RV Global Defensiva', 'Liquidez (remunerada)', 'REITs defensivo'],
+  },
+  'cronista': {
+    nom: 'El Cronista',
+    lema: 'Quien conoce la historia raramente la repite.',
+    desc: 'Observas y documentas antes de actuar. Valoras el conocimiento por encima de la rapidez. Tu reto es que el análisis excelente sin ejecución sistemática no genera retorno.',
+    cartDesc: 'Cartera pedagógica que genera aprendizaje y ejecución',
+    alloc: ['RV Global Indexada', 'RF Diversificada', 'Oro físico ETP', 'Dividend ETF', 'REITs'],
+  },
+  'alquimista': {
+    nom: 'El Alquimista',
+    lema: 'El oro no se transforma con prisa, sino con proceso.',
+    desc: 'Crees en la transformación y el potencial oculto. Tu energía es un activo. Necesitas un laboratorio ordenado: un proceso claro que canalice el entusiasmo en resultados consistentes.',
+    cartDesc: 'Energía canalizada con proceso estricto y válvula de vapor',
+    alloc: ['RV Global Core', 'RF Corta', 'Oro físico ETP', 'REITs', 'Satélite libre'],
+  },
+  'eremita': {
+    nom: 'El Ermitaño',
+    lema: 'El mejor patrimonio es no necesitar demasiado.',
+    desc: 'Valoras la simplicidad y la seguridad por encima de todo. La inversión te genera desconfianza natural. El punto de partida es construir confianza en el proceso paso a paso.',
+    cartDesc: 'La cartera más simple posible que realmente funcione',
+    alloc: ['Fondo indexado global (1 solo)', 'Cuenta remunerada/Monetario'],
+  },
+};
 
 function renderPortrait(ar, pSrc) {
   const ini = ar.nom.split(' ').map(function(w){return w[0];}).join('').slice(0,2);
@@ -1353,3 +1437,21 @@ render('none');
 </script>
 </body>
 </html>
+function arT(ar, field) {
+  if (ONB_LANG === 'es' && ARQUETIPS_ES[ar.id] && ARQUETIPS_ES[ar.id][field] !== undefined) {
+    return ARQUETIPS_ES[ar.id][field];
+  }
+  return ar[field];
+}
+
+function arAlloc(ar) {
+  if (ONB_LANG === 'es' && ARQUETIPS_ES[ar.id] && ARQUETIPS_ES[ar.id].alloc) {
+    return ar.alloc ? ar.alloc.map(function(b, i) {
+      var esNom = ARQUETIPS_ES[ar.id].alloc[i] || b.n;
+      return { n: esNom, p: b.p };
+    }) : [];
+  }
+  return ar.alloc || [];
+}
+
+

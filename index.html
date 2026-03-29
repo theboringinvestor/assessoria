@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ca"><head>
+<html lang="ca">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Boring Investor — Assessoria</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Playfair+Display:ital,wght@0,400;0,500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root {
@@ -421,11 +422,11 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     <div class="logo-wrap">
       <div class="logo-symbol">
         <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"></rect>
-        <circle cx="8.5" cy="10" r="2" fill="white"></circle>
-        <circle cx="8.5" cy="17" r="2" fill="white"></circle>
-        <rect x="12" y="13" width="6" height="1.5" rx=".75" fill="white"></rect>
-        <rect x="20" y="8" width="1.5" height="12" rx=".75" fill="white"></rect>
+        <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+        <circle cx="8.5" cy="10" r="2" fill="white"/>
+        <circle cx="8.5" cy="17" r="2" fill="white"/>
+        <rect x="12" y="13" width="6" height="1.5" rx=".75" fill="white"/>
+        <rect x="20" y="8" width="1.5" height="12" rx=".75" fill="white"/>
       </svg>
         <div>
           <div class="logo-text">The Boring Investor</div>
@@ -436,14 +437,14 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <button id="lang-ca" onclick="setLang('ca')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:white;font-family:var(--font-body);transition:all .12s">CA</button>
         <button id="lang-es" onclick="setLang('es')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-family:var(--font-body);transition:all .12s">ES</button>
       </div>
-      <div id="sync-btn" onclick="toggleSync()" title="Sincronitzar clients des de Google Sheets" style="margin-top: 8px; display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer; transition: 0.12s; background: none;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+      <div id="sync-btn" onclick="toggleSync()" title="Sincronitzar clients des de Google Sheets" style="margin-top:8px;display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
         <div id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gray-400);flex-shrink:0;transition:all .3s"></div>
         <span id="sync-lbl" style="font-size:10px;color:rgba(255,255,255,.4);flex:1">Sync Sheets</span>
-        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M13.5 2.5A7 7 0 0 0 2 8M2.5 13.5A7 7 0 0 0 14 8"></path><path d="M2 2v4h4M14 14v-4h-4"></path></svg>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M13.5 2.5A7 7 0 0 0 2 8M2.5 13.5A7 7 0 0 0 14 8"/><path d="M2 2v4h4M14 14v-4h-4"/></svg>
       </div>
-      <button id="deploy-btn" onclick="deployToGitHub()" style="margin-top: 6px; display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); background: none; cursor: wait; font-family: var(--font-body); width: 100%; transition: 0.12s; opacity: 0.6;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'" disabled="">
-        <div id="deploy-dot" style="width: 7px; height: 7px; border-radius: 50%; background: rgb(245, 166, 35); flex-shrink: 0; box-shadow: none;"></div>
-        <span id="deploy-lbl" style="font-size:10px;color:rgba(255,255,255,.5)">↑ Pujant...</span>
+      <button id="deploy-btn" onclick="deployToGitHub()" style="margin-top:6px;display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:transparent;cursor:pointer;font-family:var(--font-body);width:100%;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+        <div id="deploy-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gray-400);flex-shrink:0"></div>
+        <span id="deploy-lbl" style="font-size:10px;color:rgba(255,255,255,.5)">↑ Deploy a GitHub</span>
       </button>
         <button id="deploy-btn" onclick="deployToGitHub()" class="deploy-btn">
           <div class="deploy-dot" id="deploy-dot"></div>
@@ -454,28 +455,32 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     <div class="nav">
       <div class="nav-section">Principal</div>
       <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"></rect><rect x="9" y="1" width="6" height="6" rx="1"></rect><rect x="1" y="9" width="6" height="6" rx="1"></rect><rect x="9" y="9" width="6" height="6" rx="1"></rect></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
         Dashboard
-        <span class="nav-badge" id="nav-alert-badge" style="display: block;">1</span>
+        <span class="nav-badge" id="nav-alert-badge" style="display:none"></span>
       </div>
 
       <div class="nav-section">Clients</div>
       <div class="nav-item" id="nav-fitxa" onclick="navigate('fitxa')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"></circle><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"></path></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
         Fitxa client
       </div>
       <div class="nav-item" id="nav-scoring" onclick="navigate('scoring')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"></circle><path d="M8 4v4l3 2"></path></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
         Scoring
       </div>
 
       <div class="nav-section">Assessoria</div>
       <div class="nav-item" id="nav-serveis" onclick="navigate('serveis')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"></rect><path d="M5 3V2M11 3V2M1 7h14"></path></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M5 3V2M11 3V2M1 7h14"/></svg>
         Serveis i tarifes
       </div>
-      <div class="nav-item" id="nav-quisoc" onclick="navigate('quisoc')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zM2 13s1-4 6-4 6 4 6 4"></path><path d="M11 6l1.5 1.5M12.5 4.5l1 1"></path></svg>
+      <div class="nav-item" id="nav-glossari" onclick="navigate('glossari')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="9" height="14" rx="1.5"/><path d="M5 5h5M5 8h5M5 11h3"/><path d="M11 4l2 2-2 2"/></svg>
+          <span data-i18n="nav.glossari">Glossari</span>
+        </div>
+        <div class="nav-item" id="nav-quisoc" onclick="navigate('quisoc')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zM2 13s1-4 6-4 6 4 6 4"/><path d="M11 6l1.5 1.5M12.5 4.5l1 1"/></svg>
         Qui soc
       </div>
 
@@ -512,10 +517,8 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <div class="topbar-title" id="topbar-title">Dashboard</div>
       </div>
       <div class="topbar-actions" id="topbar-actions">
-      <button class="btn btn-sm" onclick="importarDades()" title="Importar backup o perfil onboarding d'un client">Importar ↑</button>
-      <button class="btn btn-sm" onclick="exportarDades()" title="Descarregar totes les dades en JSON">Exportar dades</button>
-      <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">+ Nou client</button>
-    </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')"><span data-i18n="dash.nou_client">+ Nou client</span></button>
+      </div>
     </div>
 
     <!-- CONTENT -->
@@ -523,22 +526,27 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 
       <!-- ════ P1 DASHBOARD ════ -->
       <div class="screen active" id="screen-dashboard">
-        <div class="kpi-grid" id="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Clients actius</div><div class="kpi-value">4</div><div class="kpi-sub">MVP · objectiu 20</div></div>
-    <div class="kpi"><div class="kpi-label">Scoring mitjà</div><div class="kpi-value accent">42/100</div><div class="kpi-sub">Cartera global</div></div>
-    <div class="kpi"><div class="kpi-label">Revisions pendents</div><div class="kpi-value amber">1</div><div class="kpi-sub">Revisió anual deguda</div></div>
-    <div class="kpi"><div class="kpi-label">Alertes crítiques</div><div class="kpi-value red">1</div><div class="kpi-sub">Scoring &lt;30</div></div>
-  </div>
+        <div class="kpi-grid" id="kpi-grid"></div>
         <div id="macro-widget" style="margin-bottom:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:10px 16px;overflow:hidden">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em">Mercats · Temps real</span>
-            <span id="macro-update" style="font-size:9px;color:var(--gray-400)">~ 22:25</span>
+            <span id="macro-update" style="font-size:9px;color:var(--gray-400)">Actualitzant...</span>
           </div>
-          <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center"><div class="ticker-item" style="opacity:.45"><span class="ticker-name">S&amp;P 500</span><span class="ticker-price">562</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">MSCI World</span><span class="ticker-price">115.8</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">IBEX 35</span><span class="ticker-price">36.1</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">Or</span><span class="ticker-price">246</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">BTC</span><span class="ticker-price">87k$</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">RF 20a</span><span class="ticker-price">88.6</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">2.15%</span><span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span></div><div class="ticker-item" style="background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">2.9%</span><span class="ticker-chg ticker-flat">Interanual</span></div><div class="ticker-item"><span class="ticker-name">EUR/USD</span><span class="ticker-price">1.1517</span><span class="ticker-chg ticker-flat">Canvi</span></div></div>
+          <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center">
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">S&P 500</span><span class="ticker-price">562</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">MSCI World</span><span class="ticker-price">115.8</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">IBEX 35</span><span class="ticker-price">36.1</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">Or</span><span class="ticker-price">246</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">BTC</span><span class="ticker-price">87k$</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">RF 20a</span><span class="ticker-price">88.6</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5;background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">2.50%</span><span class="ticker-chg ticker-flat" style="color:var(--accent);opacity:.7">Deposit</span></div>
+            <div class="ticker-item" style="opacity:.5;background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">2.9%</span><span class="ticker-chg ticker-flat">Interanual</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">EUR/USD</span><span class="ticker-price">1.0821</span><span class="ticker-chg ticker-flat">Canvi</span></div>
+          </div>
         </div>
         <div class="section-header">
           <span class="section-title"><span data-i18n="dash.tots_clients">Tots els clients</span></span>
-          <span class="section-title" id="kpi-count" style="color:var(--gray-300)">4 clients</span>
+          <span class="section-title" id="kpi-count" style="color:var(--gray-300)"></span>
         </div>
         <div class="table-wrap">
           <table>
@@ -553,59 +561,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
                 <th></th>
               </tr>
             </thead>
-            <tbody id="clients-tbody"><tr class="clickable" onclick="navigate('fitxa','jv002')">
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="av av-amber">JV</div>
-          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Joan Vidal</div><div style="font-size:10px;color:var(--gray-400)">joan.vidal@email.com</div></div>
-        </div></td>
-        <td><span class="badge badge-blue">L'Alquimista</span></td>
-        <td style="color:var(--gray-700)"><span style="font-size:11px">VII · L'Alambí</span></td>
-        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:22%;background:#8B1A1A"></div></div><span class="score-num" style="color:#8B1A1A">22</span></div></td>
-        <td style="color:var(--gray-400);font-size:11px">15 febr. 2026</td>
-        <td><span class="badge badge-red">Crític</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','jv002')" style="font-size:10px;padding:3px 8px">Scoring</button>
-        </td>
-      </tr><tr class="clickable" onclick="navigate('fitxa','ap003')">
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="av av-green">AP</div>
-          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Anna Puig</div><div style="font-size:10px;color:var(--gray-400)">anna.puig@email.com</div></div>
-        </div></td>
-        <td><span class="badge badge-blue">El Navegant</span></td>
-        <td style="color:var(--gray-700)"><span style="font-size:11px">III · El Galeó</span></td>
-        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:68%;background:#1B3A6B"></div></div><span class="score-num" style="color:#1B3A6B">68</span></div></td>
-        <td style="color:var(--gray-400);font-size:11px">10 març 2026</td>
-        <td><span class="badge badge-amber">Revisió</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','ap003')" style="font-size:10px;padding:3px 8px">Scoring</button>
-        </td>
-      </tr><tr class="clickable" onclick="navigate('fitxa','gm001')">
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="av av-blue">GM</div>
-          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Guillem Morales</div><div style="font-size:10px;color:var(--gray-400)">guillem.morales@email.com</div></div>
-        </div></td>
-        <td><span class="badge badge-blue">El Tresorer</span></td>
-        <td style="color:var(--gray-700)"><span style="font-size:11px">V · La Muralla</span></td>
-        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:76%;background:#1A5C3A"></div></div><span class="score-num" style="color:#1A5C3A">76</span></div></td>
-        <td style="color:var(--gray-400);font-size:11px">1 març 2026</td>
-        <td><span class="badge badge-green">OK</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','gm001')" style="font-size:10px;padding:3px 8px">Scoring</button>
-        </td>
-      </tr><tr class="clickable" onclick="navigate('fitxa','nb004')">
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="av av-gray">CN</div>
-          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Client Nou</div><div style="font-size:10px;color:var(--gray-400)">-</div></div>
-        </div></td>
-        <td><span class="badge badge-blue">Pendent</span></td>
-        <td style="color:var(--gray-700)"><span style="font-size:11px">Pendent qüestionari</span></td>
-        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:0%;background:#8B1A1A"></div></div><span class="score-num" style="color:#8B1A1A">0</span></div></td>
-        <td style="color:var(--gray-400);font-size:11px">Invalid Date</td>
-        <td><span class="badge badge-green">OK</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();obrirOnboarding('nb004')" style="font-size:10px;padding:3px 8px;background:var(--accent);color:white;border-color:var(--accent)">Onboarding →</button>
-        </td>
-      </tr></tbody>
+            <tbody id="clients-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -671,6 +627,10 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
       </div>
 
       <!-- ════ P5 QUI SOC ════ -->
+      <div class="screen" id="screen-glossari">
+        <div id="glossari-content"></div>
+      </div>
+
       <div class="screen" id="screen-quisoc">
         <div id="quisoc-content"></div>
       </div>
@@ -684,8 +644,8 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 <div class="modal-bg" id="modal-nou-client">
   <div class="modal">
     <div class="modal-title">Nou client</div>
-    <div class="form-field"><label class="form-label">Nom complet</label><input class="form-input" id="nc-nom" placeholder="Ex: Guillem Morales"></div>
-    <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@exemple.com"></div>
+    <div class="form-field"><label class="form-label">Nom complet</label><input class="form-input" id="nc-nom" placeholder="Ex: Guillem Morales" /></div>
+    <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@exemple.com" /></div>
     <div class="form-field"><label class="form-label">Arquetip</label>
       <select class="form-select" id="nc-arquetip">
         <option value="">— Selecciona —</option>
@@ -714,7 +674,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 <div class="modal-bg" id="modal-nova-entrada">
   <div class="modal">
     <div class="modal-title">Nova entrada a l'historial</div>
-    <div class="form-field"><label class="form-label">Títol</label><input class="form-input" id="he-titol" placeholder="Ex: Revisió trimestral Q1 2026"></div>
+    <div class="form-field"><label class="form-label">Títol</label><input class="form-input" id="he-titol" placeholder="Ex: Revisió trimestral Q1 2026" /></div>
     <div class="form-field"><label class="form-label">Descripció</label><textarea class="form-textarea" id="he-desc" placeholder="Resum de la sessió, decisions preses, accions acordades..."></textarea></div>
     <div class="form-field"><label class="form-label">Tipus</label>
       <select class="form-select" id="he-tipus">
@@ -730,7 +690,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
   </div>
 </div>
 
-<div class="toast" id="toast">Token invàlid — esborra't. Torna a fer Deploy per introduir-ne un de nou.</div>
+<div class="toast" id="toast"></div>
 
 <script>
 
@@ -820,6 +780,10 @@ function navigate(screen, clientId) {
     topbarTitle.textContent = t('nav.serveis');
     topbarActions.innerHTML = '';
     renderServeis();
+  } else if (screen === 'glossari') {
+    topbarTitle.textContent = t('nav.glossari');
+    topbarActions.innerHTML = '';
+    renderGlossari();
   } else if (screen === 'quisoc') {
     topbarTitle.textContent = t('nav.quisoc');
     topbarActions.innerHTML = '';
@@ -858,10 +822,10 @@ function renderDashboard() {
       const scorePct = c.scoring !== null ? c.scoring : 50;
       const scoreColor = c.scoring === null ? '#C8C5BE' : c.scoring>=70?'#1A5C3A':c.scoring>=50?'#1B3A6B':c.scoring>=30?'#7A4A00':'#8B1A1A';
       const estatBadge = {
-        'ok': '<span class="badge badge-green">OK</span>',
-        'revisio': '<span class="badge badge-amber">Revisió</span>',
-        'critic': '<span class="badge badge-red">Crític</span>',
-        'nou': '<span class="badge badge-gray">Nou</span>'
+        'ok':     '<span class="badge badge-green">OK</span>',
+        'revisio':'<span class="badge badge-amber">'+t('estat.revisio')+'</span>',
+        'critic': '<span class="badge badge-red">'+t('estat.critic')+'</span>',
+        'nou':    '<span class="badge badge-gray">'+t('estat.nou')+'</span>',
       }[c.estat] || '';
       const scoreDisplay = c.scoring !== null
         ? `<div class="score-cell"><div class="score-track"><div class="score-fill" style="width:${scorePct}%;background:${scoreColor}"></div></div><span class="score-num" style="color:${scoreColor}">${c.scoring}</span></div>`
@@ -936,64 +900,64 @@ function renderTabPerfil(c) {
   document.getElementById('tab-perfil').innerHTML = `
     <div class="fields-grid">
       <div class="field-group">
-        <div class="field-group-title">Dades financeres</div>
-        ${Object.entries({
-          'Capital inicial': c.perfil.capitalInicial,
-          'Aportació mensual': c.perfil.aportacioMensual,
-          'Despeses mensuals': c.perfil.despesesMensuals||'Pendent',
-          'Horitzó': c.perfil.horitzo,
-          'Objectiu': c.perfil.objectiu,
-          'Segment': c.perfil.segment
-        }).map(([k,v]) => `<div class="field-row"><span class="field-label">${k}</span><span class="field-val">${v}</span></div>`).join('')}
+        <div class="field-group-title">${t('perfil.dades_financeres')}</div>
+        ${[
+          [t('perfil.capital_inicial'),  c.perfil.capitalInicial],
+          [t('perfil.aportacio'),        c.perfil.aportacioMensual],
+          [t('perfil.despeses'),         c.perfil.despesesMensuals||t('btn.pendent')],
+          [t('perfil.horitzo'),          c.perfil.horitzo],
+          [t('perfil.objectiu'),         c.perfil.objectiu],
+          [t('perfil.segment'),          c.perfil.segment],
+        ].map(([k,v]) => '<div class="field-row"><span class="field-label">'+k+'</span><span class="field-val">'+v+'</span></div>').join('')}
       </div>
       <div class="field-group">
-        <div class="field-group-title">Perfil de risc</div>
-        ${Object.entries({
-          'Risc financer': [c.perfil.riscFinancer, 'accent'],
-          'Risc emocional': [c.perfil.riscEmocional, 'green'],
-          'Coneixement': [c.perfil.coneixement, ''],
-          'Vol. tolerable': [c.perfil.volTolerable, ''],
-          'Drawdown màx.': [c.perfil.drawdownMax, 'red']
-        }).map(([k,[v,cls]]) => `<div class="field-row"><span class="field-label">${k}</span><span class="field-val ${cls}">${v}</span></div>`).join('')}
+        <div class="field-group-title">${t('perfil.risc')}</div>
+        ${[
+          [t('perfil.risc_financer'),  c.perfil.riscFinancer,  'accent'],
+          [t('perfil.risc_emocional'), c.perfil.riscEmocional, 'green'],
+          [t('perfil.coneixement'),    c.perfil.coneixement,   ''],
+          [t('perfil.vol_tolerable'),  c.perfil.volTolerable,  ''],
+          [t('perfil.drawdown_max'),   c.perfil.drawdownMax,   'red'],
+        ].map(([k,v,cls]) => '<div class="field-row"><span class="field-label">'+k+'</span><span class="field-val '+cls+'">'+v+'</span></div>').join('')}
       </div>
     </div>
     <div class="nota-box">
-      <div class="nota-label">Nota de l'assessor</div>
+      <div class="nota-label">${t('perfil.nota_assessor')}</div>
       <textarea style="width:100%;padding:8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body);min-height:70px;resize:vertical;line-height:1.5" id="nota-edit" oninput="getCurrentClient().nota=this.value;saveData()">${c.nota||''}</textarea>
     </div>
     <div class="nota-box" style="margin-top:10px">
-      <div class="nota-label" style="margin-bottom:8px">Propera reunió planificada</div>
+      <div class="nota-label" style="margin-bottom:8px">${t('perfil.propera_reunio')}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
         <div>
-          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Data i hora</div>
+          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">${t('perfil.data_hora')}</div>
           <input type="datetime-local" id="reunio-data" value="${c.properaReunio&&c.properaReunio.data||''}"
             onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
         </div>
         <div>
-          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Format</div>
+          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">${t('perfil.format')}</div>
           <select id="reunio-format" onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
             <option value="">- Selecciona -</option>
-            <option value="Presencial" ${c.properaReunio&&c.properaReunio.format==='Presencial'?'selected':''}>Presencial</option>
-            <option value="Videollamada" ${c.properaReunio&&c.properaReunio.format==='Videollamada'?'selected':''}>Videollamada</option>
-            <option value="Telèfon" ${c.properaReunio&&c.properaReunio.format==='Telèfon'?'selected':''}>Telèfon</option>
+            <option value="Presencial" ${c.properaReunio&&c.properaReunio.format===t('perfil.format_presencial')?'selected':''}>${t('perfil.format_presencial')}</option>
+            <option value="Videollamada" ${c.properaReunio&&c.properaReunio.format===t('perfil.format_video')?'selected':''}>${t('perfil.format_video')}</option>
+            <option value="Telèfon" ${c.properaReunio&&c.properaReunio.format===t('perfil.format_tel')?'selected':''}>${t('perfil.format_tel')}</option>
           </select>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
         <div>
-          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Tema</div>
+          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">${t('perfil.tema')}</div>
           <select id="reunio-tema" onchange="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
             <option value="">- Selecciona -</option>
-            <option value="Primera sessió" ${c.properaReunio&&c.properaReunio.tema==='Primera sessió'?'selected':''}>Primera sessió</option>
-            <option value="Seguiment trimestral" ${c.properaReunio&&c.properaReunio.tema==='Seguiment trimestral'?'selected':''}>Seguiment trimestral</option>
-            <option value="Revisió cartera" ${c.properaReunio&&c.properaReunio.tema==='Revisió cartera'?'selected':''}>Revisió cartera</option>
-            <option value="Nou actiu" ${c.properaReunio&&c.properaReunio.tema==='Nou actiu'?'selected':''}>Nou actiu</option>
-            <option value="Dubte client" ${c.properaReunio&&c.properaReunio.tema==='Dubte client'?'selected':''}>Dubte client</option>
-            <option value="Tancament" ${c.properaReunio&&c.properaReunio.tema==='Tancament'?'selected':''}>Tancament</option>
+            <option value="Primera sessió" ${c.properaReunio&&c.properaReunio.tema===t('perfil.tema_primera')?'selected':''}>${t('perfil.tema_primera')}</option>
+            <option value="Seguiment trimestral" ${c.properaReunio&&c.properaReunio.tema===t('perfil.tema_seguiment')?'selected':''}>${t('perfil.tema_seguiment')}</option>
+            <option value="Revisió cartera" ${c.properaReunio&&c.properaReunio.tema===t('perfil.tema_revisio')?'selected':''}>${t('perfil.tema_revisio')}</option>
+            <option value="Nou actiu" ${c.properaReunio&&c.properaReunio.tema===t('perfil.tema_actiu')?'selected':''}>${t('perfil.tema_actiu')}</option>
+            <option value="Dubte client" ${c.properaReunio&&c.properaReunio.tema===t('perfil.tema_dubte')?'selected':''}>${t('perfil.tema_dubte')}</option>
+            <option value="Tancament" ${c.properaReunio&&c.properaReunio.tema===t('perfil.tema_tancament')?'selected':''}>${t('perfil.tema_tancament')}</option>
           </select>
         </div>
         <div>
-          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">Lloc / Enllaç</div>
+          <div style="font-size:10px;color:var(--gray-400);margin-bottom:3px">${t('perfil.lloc')}</div>
           <input id="reunio-lloc" placeholder="Ex: Google Meet, Cafè Central..." value="${c.properaReunio&&c.properaReunio.lloc||''}"
             oninput="actualitzarReunio()" style="width:100%;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
         </div>
@@ -1333,7 +1297,13 @@ function updateScoring() {
   gaugeEl.style.width = total+'%';
   gaugeEl.style.background = color;
 
-  const verdicts = [
+  const verdicts = LANG === 'es' ? [
+    [85,'Excelente','La cartera es eficiente y bien construida. Mantener el rumbo es la decisión correcta.','background:var(--green-light);color:var(--green)'],
+    [70,'Buena base','Estructura sólida con áreas de mejora. Cambios graduales sin urgencia.','background:var(--accent-light);color:var(--accent)'],
+    [50,'Mejorable','Ineficiencias identificables. Plan de transición gradual recomendado.','background:var(--amber-light);color:var(--amber)'],
+    [30,'Débil','Problemas significativos en múltiples dimensiones. Revisión priorizada.','background:var(--red-light);color:var(--red)'],
+    [0,'Crítica','Riesgos importantes. Revisión urgente y plan de transición estructurado.','background:var(--red-light);color:var(--red)'],
+  ] : [
     [85,'Excel·lent','La cartera és eficient i ben construïda. Mantenir el rumb és la decisió correcta.','background:var(--green-light);color:var(--green)'],
     [70,'Bona base','Estructura sòlida amb àrees de millora. Canvis graduals sense urgència.','background:var(--accent-light);color:var(--accent)'],
     [50,'Millorable','Ineficiències identificables. Pla de transició gradual recomanat.','background:var(--amber-light);color:var(--amber)'],
@@ -3755,6 +3725,185 @@ td:first-child{color:#0A0A0A;font-weight:500}
   toast('Informe generat per a ' + c.nom);
 }
 
+
+// ══════════════════════════════════════════════════════
+// GLOSSARI DE CONCEPTES FINANCERS
+// CA + ES, amb cerca i filtre per categoria
+// ══════════════════════════════════════════════════════
+
+const GLOSSARI_TERMES = [
+  // Renda Variable
+  { id:'rv', cat:'rv', ca:'Renda Variable', es:'Renta Variable',
+    def_ca:'Actius financers (accions, ETFs de borsa) on el rendiment no està garantit i depèn de l\'evolució del mercat. Potencial de retorn alt a llarg termini, però amb volatilitat.',
+    def_es:'Activos financieros (acciones, ETFs de bolsa) donde el rendimiento no está garantizado y depende de la evolución del mercado. Alto potencial de retorno a largo plazo, pero con volatilidad.' },
+  { id:'rf', cat:'rf', ca:'Renda Fixa', es:'Renta Fija',
+    def_ca:'Actius que paguen un interès predefinit (bons, lletres, dipòsits). Menor volatilitat que la renda variable, però retorns més modestos.',
+    def_es:'Activos que pagan un interés predefinido (bonos, letras, depósitos). Menor volatilidad que la renta variable, pero retornos más modestos.' },
+  { id:'etf', cat:'rv', ca:'ETF (Fons Cotitzat)', es:'ETF (Fondo Cotizado)',
+    def_ca:'Fons d\'inversió que cotitza a borsa com si fos una acció. Permet diversificar en centenars d\'empreses amb una sola compra, habitualment amb costos molt baixos.',
+    def_es:'Fondo de inversión que cotiza en bolsa como si fuera una acción. Permite diversificar en cientos de empresas con una sola compra, habitualmente con costes muy bajos.' },
+  { id:'fons_indexat', cat:'rv', ca:'Fons Indexat', es:'Fondo Indexado',
+    def_ca:'Fons que replica un índex de mercat (MSCI World, S&P 500) de forma passiva, sense gestor actiu. Sol tenir comissions molt baixes (0,05-0,20% TER).',
+    def_es:'Fondo que replica un índice de mercado (MSCI World, S&P 500) de forma pasiva, sin gestor activo. Suele tener comisiones muy bajas (0,05-0,20% TER).' },
+  { id:'diversificacio', cat:'estrategia', ca:'Diversificació', es:'Diversificación',
+    def_ca:'Repartir el capital entre actius, sectors i geografies per reduir el risc de concentració. La diversificació real implica actius amb baixa correlació entre ells.',
+    def_es:'Repartir el capital entre activos, sectores y geografías para reducir el riesgo de concentración. La diversificación real implica activos con baja correlación entre ellos.' },
+  { id:'ter', cat:'costos', ca:'TER (Total Expense Ratio)', es:'TER (Ratio de Gastos Totales)',
+    def_ca:'Cost total anual d\'un fons o ETF expressat en percentatge. Inclou comissió de gestió, custòdia i altres despeses. Un TER >0,5% es considera car per a fons indexats.',
+    def_es:'Coste total anual de un fondo o ETF expresado en porcentaje. Incluye comisión de gestión, custodia y otros gastos. Un TER >0,5% se considera caro para fondos indexados.' },
+  { id:'rebalanceig', cat:'estrategia', ca:'Rebalanceig', es:'Rebalanceo',
+    def_ca:'Ajust periòdic de la cartera per tornar als pesos objectiu originals. Si la RV ha crescut molt i ara és el 70% quan hauria de ser el 60%, es ven una part i es compra RF.',
+    def_es:'Ajuste periódico de la cartera para volver a los pesos objetivo originales. Si la RV ha crecido mucho y ahora es el 70% cuando debería ser el 60%, se vende una parte y se compra RF.' },
+  { id:'dca', cat:'estrategia', ca:'DCA (Dollar Cost Averaging)', es:'DCA (Promedio del Coste)',
+    def_ca:'Estratègia d\'invertir una quantitat fixa de forma periòdica (ex: 300€/mes), independentment del preu. Elimina la necessitat de "encertar el moment" i redueix el risc d\'entrada.',
+    def_es:'Estrategia de invertir una cantidad fija de forma periódica (ej: 300€/mes), independientemente del precio. Elimina la necesidad de "acertar el momento" y reduce el riesgo de entrada.' },
+  { id:'drawdown', cat:'risc', ca:'Drawdown Màxim', es:'Drawdown Máximo',
+    def_ca:'Caiguda màxima del valor d\'una cartera des del seu punt màxim fins al punt mínim. Un drawdown del -30% vol dir que la cartera ha perdut el 30% des del seu màxim.',
+    def_es:'Caída máxima del valor de una cartera desde su punto máximo hasta el punto mínimo. Un drawdown del -30% significa que la cartera ha perdido el 30% desde su máximo.' },
+  { id:'volatilitat', cat:'risc', ca:'Volatilitat', es:'Volatilidad',
+    def_ca:'Mesura de la variació del preu d\'un actiu al llarg del temps. Alta volatilitat = moviments bruscos. S\'expressa com a desviació estàndard anualitzada.',
+    def_es:'Medida de la variación del precio de un activo a lo largo del tiempo. Alta volatilidad = movimientos bruscos. Se expresa como desviación estándar anualizada.' },
+  { id:'sharpe', cat:'risc', ca:'Ràtio de Sharpe', es:'Ratio de Sharpe',
+    def_ca:'Mesura la rendibilitat ajustada al risc: (Retorn - Taxa lliure de risc) / Volatilitat. Un Sharpe >0,5 es considera bo; >1 és excel·lent.',
+    def_es:'Mide la rentabilidad ajustada al riesgo: (Retorno - Tasa libre de riesgo) / Volatilidad. Un Sharpe >0,5 se considera bueno; >1 es excelente.' },
+  { id:'correlacio', cat:'risc', ca:'Correlació', es:'Correlación',
+    def_ca:'Indica com es mouen dos actius junts. Correlació +1 = es mouen igual. Correlació -1 = es mouen en sentit contrari. Combinar actius amb baixa correlació redueix el risc total.',
+    def_es:'Indica cómo se mueven dos activos juntos. Correlación +1 = se mueven igual. Correlación -1 = se mueven en sentido contrario. Combinar activos con baja correlación reduce el riesgo total.' },
+  { id:'inflacio', cat:'macro', ca:'Inflació', es:'Inflación',
+    def_ca:'Augment general del nivell de preus. L\'IPC (Índex de Preus al Consum) mesura la variació interanual. La inflació erosiona el poder adquisitiu dels estalvis en efectiu.',
+    def_es:'Aumento general del nivel de precios. El IPC (Índice de Precios al Consumo) mide la variación interanual. La inflación erosiona el poder adquisitivo de los ahorros en efectivo.' },
+  { id:'bce', cat:'macro', ca:'BCE (Tipus d\'Interès)', es:'BCE (Tipo de Interés)',
+    def_ca:'El Banc Central Europeu fixa el tipus de referència que afecta tot el sistema financer. Quan el BCE puja tipus, els comptes remunerats i dipòsits paguen més; la borsa sol patir.',
+    def_es:'El Banco Central Europeo fija el tipo de referencia que afecta a todo el sistema financiero. Cuando el BCE sube tipos, las cuentas remuneradas y depósitos pagan más; la bolsa suele sufrir.' },
+  { id:'interes_compost', cat:'estrategia', ca:'Interès Compost', es:'Interés Compuesto',
+    def_ca:'El fenomen pel qual els interessos generats també generen interessos. Einstein l\'atribuïa com "la 8a meravella del món". A llarg termini, és la força més poderosa en inversió.',
+    def_es:'El fenómeno por el cual los intereses generados también generan intereses. Einstein lo atribuía como "la 8ª maravilla del mundo". A largo plazo, es la fuerza más poderosa en inversión.' },
+  { id:'mpt', cat:'estrategia', ca:'Teoria Moderna de Carteres (MPT)', es:'Teoría Moderna de Carteras (MPT)',
+    def_ca:'Model de Harry Markowitz (1952) que demostra que combinant actius de manera óptima es pot maximitzar el retorn per un nivell de risc donat. Base de tota construcció de carteres moderna.',
+    def_es:'Modelo de Harry Markowitz (1952) que demuestra que combinando activos de forma óptima se puede maximizar el retorno para un nivel de riesgo dado. Base de toda construcción de carteras moderna.' },
+  { id:'mifid', cat:'regulacio', ca:'MiFID II', es:'MiFID II',
+    def_ca:'Directiva europea de mercats financers que regula l\'assessorament. Obliga els assessors a classificar clients, documentar recomanacions i declarar conflictes d\'interès.',
+    def_es:'Directiva europea de mercados financieros que regula el asesoramiento. Obliga a los asesores a clasificar clientes, documentar recomendaciones y declarar conflictos de interés.' },
+  { id:'fee_only', cat:'regulacio', ca:'Fee-only', es:'Fee-only',
+    def_ca:'Model d\'assessorament on el professional cobra únicament honoraris del client, sense cap comissió de productes o entitats financeres. Elimina els conflictes d\'interès.',
+    def_es:'Modelo de asesoramiento donde el profesional cobra únicamente honorarios del cliente, sin ninguna comisión de productos o entidades financieras. Elimina los conflictos de interés.' },
+  { id:'efa', cat:'regulacio', ca:'EFA (European Financial Advisor)', es:'EFA (Asesor Financiero Europeo)',
+    def_ca:'Certificació professional reconeguda a Europa que acredita competències en planificació financera personal. Requerida o recomanada per exercir assessorament financer independent.',
+    def_es:'Certificación profesional reconocida en Europa que acredita competencias en planificación financiera personal. Requerida o recomendada para ejercer asesoramiento financiero independiente.' },
+  { id:'fons_emergencia', cat:'liquiditat', ca:"Fons d'Emergència", es:'Fondo de Emergencia',
+    def_ca:"Capital líquid equivalent a 3-6 mesos de despeses totals, guardat en comptes d'accés immediat. Protegeix davant pèrdua de feina, emergències mèdiques o imprevistos greus.",
+    def_es:'Capital líquido equivalente a 3-6 meses de gastos totales, guardado en cuentas de acceso inmediato. Protege ante pérdida de empleo, emergencias médicas o imprevistos graves.' },
+  { id:'compte_remunerat', cat:'liquiditat', ca:'Compte Remunerat', es:'Cuenta Remunerada',
+    def_ca:"Compte bancari que paga interessos sobre el saldo disponible, amb liquiditat immediata. Alternativa als dipòsits per a l'efectiu del fons d'emergència i reserves de curt termini.",
+    def_es:'Cuenta bancaria que paga intereses sobre el saldo disponible, con liquidez inmediata. Alternativa a los depósitos para el efectivo del fondo de emergencia y reservas de corto plazo.' },
+  { id:'fons_monetari', cat:'liquiditat', ca:'Fons Monetari', es:'Fondo Monetario',
+    def_ca:"Fons d'inversió que inverteix en instruments de deute a molt curt termini. Segueix l'€STR (≈BCE). Bona liquiditat (1-3 dies), rendiment similar al BCE. Opció per al Nivell 3 del FE.",
+    def_es:'Fondo de inversión que invierte en instrumentos de deuda a muy corto plazo. Sigue el €STR (≈BCE). Buena liquidez (1-3 días), rendimiento similar al BCE. Opción para el Nivel 3 del FE.' },
+  { id:'plusvalues', cat:'fiscal', ca:'Plusvàlues i Fiscalitat', es:'Plusvalías y Fiscalidad',
+    def_ca:"Guany obtingut en vendre un actiu per més del que es va pagar. A Espanya tributen al 19-28% (IRPF). Cal tenir en compte la fiscalitat abans de rebalancejar o desinvertir.",
+    def_es:'Ganancia obtenida al vender un activo por más de lo que se pagó. En España tributan al 19-28% (IRPF). Hay que tener en cuenta la fiscalidad antes de rebalancear o desinvertir.' },
+  { id:'plan_pensions', cat:'fiscal', ca:'Pla de Pensions', es:'Plan de Pensiones',
+    def_ca:"Producte d'estalvi finalista per a la jubilació amb avantatge fiscal (deducció a l'IRPF fins 1.500€/any). Però tiene baixa liquiditat (rescatable en jubilació o supòsits especials).",
+    def_es:'Producto de ahorro finalista para la jubilación con ventaja fiscal (deducción en el IRPF hasta 1.500€/año). Pero tiene baja liquidez (rescatable en jubilación o supuestos especiales).' },
+  { id:'reits', cat:'rv', ca:'REITs (Fons Immobiliaris)', es:'REITs (Fondos Inmobiliarios)',
+    def_ca:"Societats que inverteixen en béns immobles i cotitzen a borsa. Obligades a distribuir el 90% dels seus beneficis com a dividends. Bona font de rendes per a carteres diversificades.",
+    def_es:'Sociedades que invierten en bienes inmuebles y cotizan en bolsa. Obligadas a distribuir el 90% de sus beneficios como dividendos. Buena fuente de rentas para carteras diversificadas.' },
+  { id:'or', cat:'rv', ca:'Or (Actiu Refugi)', es:'Oro (Activo Refugio)',
+    def_ca:'Metal preciós amb correlació negativa amb la renda variable en moments de crisi. No genera ingressos, però actua com a cobertura davant inflació i col·lapses del sistema financer.',
+    def_es:'Metal precioso con correlación negativa con la renta variable en momentos de crisis. No genera ingresos, pero actúa como cobertura ante inflación y colapsos del sistema financiero.' },
+  { id:'montecarlo', cat:'eines', ca:'Simulació Montecarlo', es:'Simulación Montecarlo',
+    def_ca:'Mètode estadístic que genera centenars de trajectòries aleatòries per a una cartera. Els percentils P10/P50/P90 mostren els escenaris pessimistes, centrals i optimistes.',
+    def_es:'Método estadístico que genera cientos de trayectorias aleatorias para una cartera. Los percentiles P10/P50/P90 muestran los escenarios pesimistas, centrales y optimistas.' },
+  { id:'scoring', cat:'eines', ca:'Scoring de Cartera', es:'Scoring de Cartera',
+    def_ca:"Puntuació de 0-100 que avalua la qualitat d'una cartera en 7 dimensions: costos, diversificació, concentració, coherència amb el perfil, robustesa, simplicitat i procés d'inversió.",
+    def_es:'Puntuación de 0-100 que evalúa la calidad de una cartera en 7 dimensiones: costes, diversificación, concentración, coherencia con el perfil, robustez, simplicidad y proceso de inversión.' },
+];
+
+const GLOSSARI_CATS = {
+  rv:        { ca: 'Renda Variable', es: 'Renta Variable' },
+  rf:        { ca: 'Renda Fixa',     es: 'Renta Fija' },
+  estrategia:{ ca: 'Estratègia',     es: 'Estrategia' },
+  risc:      { ca: 'Risc',           es: 'Riesgo' },
+  macro:     { ca: 'Macro',          es: 'Macro' },
+  liquiditat:{ ca: 'Liquiditat',     es: 'Liquidez' },
+  costos:    { ca: 'Costos',         es: 'Costes' },
+  fiscal:    { ca: 'Fiscal',         es: 'Fiscal' },
+  regulacio: { ca: 'Regulació',      es: 'Regulación' },
+  eines:     { ca: 'Eines TBI',      es: 'Herramientas TBI' },
+};
+
+let _glossariFilter = '';
+let _glossariCat    = '';
+
+function renderGlossari() {
+  const el = document.getElementById('glossari-content');
+  if (!el) return;
+
+  const termes = GLOSSARI_TERMES.filter(function(t) {
+    const q = _glossariFilter.toLowerCase();
+    const matchText = !q ||
+      t.ca.toLowerCase().includes(q) || t.es.toLowerCase().includes(q) ||
+      t.def_ca.toLowerCase().includes(q) || t.def_es.toLowerCase().includes(q);
+    const matchCat = !_glossariCat || t.cat === _glossariCat;
+    return matchText && matchCat;
+  });
+
+  el.innerHTML = `
+    <div style="max-width:760px;margin:0 auto;padding:0 4px">
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">${LANG==='es'?'Conceptos financieros esenciales':'Conceptes financers essencials'}</div>
+        <div style="font-size:24px;font-weight:500;color:var(--black);margin-bottom:8px">${t('nav.glossari')}</div>
+        <div style="font-size:13px;color:var(--gray-500)">${LANG==='es'?'28 términos clave explicados de forma clara, sin jerga innecesaria.':'28 termes clau explicats de forma clara, sense argot innecessari.'}</div>
+      </div>
+
+      <!-- Cerca + filtre -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <input id="glossari-search" type="text" placeholder="${LANG==='es'?'Buscar término...':'Cercar terme...'}"
+          value="${_glossariFilter}"
+          oninput="_glossariFilter=this.value;renderGlossari()"
+          style="flex:1;min-width:180px;padding:8px 12px;border:.5px solid var(--gray-300);border-radius:8px;font-size:13px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+        <select onchange="_glossariCat=this.value;renderGlossari()"
+          style="padding:8px 12px;border:.5px solid var(--gray-300);border-radius:8px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+          <option value="">${LANG==='es'?'Todas las categorías':'Totes les categories'}</option>
+          ${Object.entries(GLOSSARI_CATS).map(function([k,v]) {
+            return '<option value="'+k+'" '+(k===_glossariCat?'selected':'')+'>'+v[LANG]+'</option>';
+          }).join('')}
+        </select>
+      </div>
+
+      <!-- Llista de termes -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${termes.length === 0
+          ? '<div style="padding:40px;text-align:center;color:var(--gray-400);font-size:13px">'+(LANG==='es'?'No se encontraron términos.':'No s\'han trobat termes.')+'</div>'
+          : termes.map(function(terme) {
+              const nom = LANG==='es' ? terme.es : terme.ca;
+              const def = LANG==='es' ? terme.def_es : terme.def_ca;
+              const cat = GLOSSARI_CATS[terme.cat];
+              const catLabel = cat ? cat[LANG] : terme.cat;
+              return '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:14px 16px;cursor:pointer" onclick="this.querySelector(\'.glos-def\').style.display=this.querySelector(\'.glos-def\').style.display===\'none\'?\'block\':\'none\'">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                  '<div>' +
+                    '<span style="font-size:13px;font-weight:500;color:var(--black)">' + nom + '</span>' +
+                    '<span style="font-size:10px;padding:2px 7px;background:var(--gray-100);color:var(--gray-500);border-radius:99px;margin-left:8px">' + catLabel + '</span>' +
+                  '</div>' +
+                  '<span style="font-size:14px;color:var(--gray-400)">+</span>' +
+                '</div>' +
+                '<div class="glos-def" style="display:none;font-size:12px;color:var(--gray-600);line-height:1.7;margin-top:10px;padding-top:10px;border-top:.5px solid var(--gray-200)">' + def + '</div>' +
+              '</div>';
+            }).join('')
+        }
+      </div>
+
+      <div style="margin-top:16px;font-size:11px;color:var(--gray-400);text-align:center">
+        ${termes.length} / ${GLOSSARI_TERMES.length} ${LANG==='es'?'términos':'termes'}
+      </div>
+    </div>
+  `;
+  // Restaurar focus cerca
+  const si = document.getElementById('glossari-search');
+  if (si && _glossariFilter) si.focus();
+}
+
 // ══════════════════════════════════════════════
 // RENDER SERVEIS I TARIFES
 // ══════════════════════════════════════════════
@@ -3767,10 +3916,10 @@ function renderServeis() {
 
       <!-- Capçalera -->
       <div style="margin-bottom:28px">
-        <div style="font-size:11px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Model fee-only · Sense comissions de tercers</div>
-        <div style="font-size:26px;font-weight:500;color:var(--black);margin-bottom:8px">Serveis i tarifes</div>
+        <div style="font-size:11px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">${LANG==='es'?'Modelo fee-only · Sin comisiones de terceros':'Model fee-only · Sense comissions de tercers'}</div>
+        <div style="font-size:26px;font-weight:500;color:var(--black);margin-bottom:8px">${t('nav.serveis')}</div>
         <div style="font-size:14px;color:var(--gray-500);line-height:1.7;max-width:560px">
-          Assessorament financer independent. Cobro únicament pels meus serveis, mai per la venda de productes. Els teus interessos i els meus estan alineats.
+          ${LANG==='es'?'Asesoramiento financiero independiente. Cobro únicamente por mis servicios, nunca por la venta de productos. Tus intereses y los míos están alineados.':'Assessorament financer independent. Cobro únicament pels meus serveis, mai per la venda de productes. Els teus interessos i els meus estan alineats.'}
         </div>
       </div>
 
@@ -3779,7 +3928,7 @@ function renderServeis() {
 
         <div style="background:var(--black);border-radius:var(--radius);padding:22px 24px;color:white">
           <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:12px">Pack 01</div>
-          <div style="font-size:18px;font-weight:500;margin-bottom:6px">Diagnòstic Financer</div>
+          <div style="font-size:18px;font-weight:500;margin-bottom:6px">${LANG==='es'?'Diagnóstico Financiero':'Diagnòstic Financer'}</div>
           <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);margin-bottom:14px">300<span style="font-size:14px;color:rgba(255,255,255,.5)"> – 500€</span></div>
           <div style="height:1px;background:rgba(255,255,255,.1);margin-bottom:14px"></div>
           <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.8">
@@ -3794,7 +3943,7 @@ function renderServeis() {
 
         <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
           <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Pack 02</div>
-          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">Disseny de Cartera</div>
+          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">${LANG==='es'?'Diseño de Cartera':'Disseny de Cartera'}</div>
           <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">800<span style="font-size:14px;color:var(--gray-400)"> – 1.500€</span></div>
           <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
           <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
@@ -3810,7 +3959,7 @@ function renderServeis() {
 
         <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
           <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Pack 03</div>
-          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">Seguiment Recurrent</div>
+          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">${LANG==='es'?'Seguimiento Recurrente':'Seguiment Recurrent'}</div>
           <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">100<span style="font-size:14px;color:var(--gray-400)"> – 200€/trim.</span></div>
           <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
           <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
@@ -3825,7 +3974,7 @@ function renderServeis() {
 
         <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
           <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Consultoria</div>
-          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">Sessió Puntual</div>
+          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">${LANG==='es'?'Sesión Puntual':'Sessió Puntual'}</div>
           <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">150<span style="font-size:14px;color:var(--gray-400)"> – 250€/hora</span></div>
           <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
           <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
@@ -3840,24 +3989,24 @@ function renderServeis() {
 
       <!-- Model fee-only explicat -->
       <div style="background:var(--gray-100);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px">
-        <div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:10px">Per que fee-only?</div>
+        <div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:10px">${LANG==='es'?'¿Por qué fee-only?':'Per que fee-only?'}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
           <div>
-            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">Sense conflicte d'interessos</div>
+            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">${LANG==='es'?'Sin conflicto de intereses':"Sense conflicte d'interessos"}</div>
             <div style="font-size:11px;color:var(--gray-500);line-height:1.6">No cobro comissions de cap entitat financera. No tinc incentiu per recomanar cap producte específic.</div>
           </div>
           <div>
-            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">Transparència total</div>
+            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">${LANG==='es'?'Transparencia total':'Transparència total'}</div>
             <div style="font-size:11px;color:var(--gray-500);line-height:1.6">Saps exactament el que pagues i per que. L'únic cost ets tu, no productes de tercers.</div>
           </div>
           <div>
-            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">Alineació d'objectius</div>
+            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">${LANG==='es'?"Alineación de objetivos":"Alineació d'objectius"}</div>
             <div style="font-size:11px;color:var(--gray-500);line-height:1.6">El meu èxit depèn del teu resultat a llarg termini, no del volum de productes col·locats.</div>
           </div>
         </div>
       </div>
 
-      <div class="disclaimer">Tarifes orientatives. El preu final s'acorda en la primera sessió gratuïta de 20 min. IVA no inclòs. Activitat pendent de certificació EFA (juny 2026).</div>
+      <div class="disclaimer">${LANG==='es'?'Tarifas orientativas. El precio final se acuerda en la primera sesión gratuita de 20 min. IVA no incluido. Actividad pendiente de certificación EFA (junio 2026).':"Tarifes orientatives. El preu final s'acorda en la primera sessió gratuïta de 20 min. IVA no inclòs. Activitat pendent de certificació EFA (juny 2026)."}</div>
     </div>
   `;
 }
@@ -3869,6 +4018,7 @@ function renderQuiSoc() {
   const el = document.getElementById('quisoc-content');
   if(!el) return;
 
+  if (LANG === 'es') { renderQuiSocES(el); return; }
   el.innerHTML = `
     <div style="max-width:680px;margin:0 auto;padding:0 4px">
 
@@ -4002,6 +4152,88 @@ function renderQuiSoc() {
 }
 
 
+function renderQuiSocES(el) {
+  if (!el) return;
+  el.innerHTML = `
+    <div style="max-width:680px;margin:0 auto;padding:0 4px">
+      <div style="display:flex;gap:24px;align-items:start;margin-bottom:36px;padding-bottom:28px;border-bottom:1px solid var(--gray-200)">
+        <div style="width:72px;height:72px;border-radius:50%;background:var(--black);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:24px;font-weight:400;color:white;font-family:var(--font-serif)">GP</span>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:500;color:var(--black);margin-bottom:3px;letter-spacing:-.3px">Guillem Puig</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:10px">The Boring Investor · Asesoría Financiera Independiente · Barcelona</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-size:10px;padding:3px 9px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">Candidato EFA junio 2026</span>
+            <span style="font-size:10px;padding:3px 9px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">Fee-only</span>
+            <span style="font-size:10px;padding:3px 9px;background:var(--gray-100);border-radius:99px;color:var(--gray-500)">@the_boringinvestor</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:28px">
+        <div style="font-size:18px;font-weight:500;color:var(--black);line-height:1.5;margin-bottom:12px;letter-spacing:-.2px">
+          Haces bien todas las cosas que te dijeron que debías hacer.<br>Y aun así, cada año llegas un poco más justo.
+        </div>
+        <div style="font-size:14px;color:var(--gray-500);line-height:1.8">
+          Trabajas. Te esfuerzas. Asumes responsabilidades. Haces horas. Ahorras lo que puedes.
+          Y sin embargo el carro de la compra sube, el alquiler o la hipoteca sube, la energía sube...
+          mientras tu sueldo hace lo que siempre ha hecho: esperar la revisión anual que nunca llega del todo.
+        </div>
+      </div>
+      <div style="border-left:3px solid var(--black);padding:16px 20px;margin-bottom:28px;background:var(--gray-100);border-radius:0 8px 8px 0">
+        <div style="font-size:14px;font-weight:500;color:var(--black);line-height:1.6;margin-bottom:8px">Yo he estado exactamente aquí.</div>
+        <div style="font-size:13px;color:var(--gray-600);line-height:1.8">
+          Durante años trabajé en una gran empresa industrial dándolo todo. Y me costó mucho tiempo reconocer algo sencillo y molesto:
+          <em>mi esfuerzo no se traducía en un aumento real del poder adquisitivo.</em> Trabajaba más. Pero no vivía mejor.
+        </div>
+      </div>
+      <div style="font-size:14px;color:var(--gray-600);line-height:1.85;margin-bottom:28px">
+        <p style="margin-bottom:14px">Un día me hice la pregunta que quizás tú también te has hecho, pero en voz muy baja:</p>
+        <div style="font-size:15px;font-style:italic;color:var(--black);padding:14px 18px;background:var(--gray-100);border-radius:8px;line-height:1.7;margin-bottom:14px">
+          "¿De verdad el único plan es confiar en la nómina y esperar que todo vaya bien... mientras la inflación me come los ahorros?"
+        </div>
+        <p>En lugar de resignarme, estudié seriamente inversión y finanzas personales. ETFs, fondos indexados, roboadvisors, acciones individuales. Lo he vivido con mi propio dinero.</p>
+      </div>
+      <div style="margin-bottom:28px;padding:20px 22px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius)">
+        <div style="font-size:11px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">El descubrimiento</div>
+        <div style="font-size:15px;font-weight:500;color:var(--black);line-height:1.6;margin-bottom:10px">
+          No hacen falta cosas espectaculares para tener buenos resultados.<br>Hace falta metodología, disciplina y paciencia.
+        </div>
+        <div style="font-size:13px;color:var(--gray-500);line-height:1.75">
+          La mayoría de personas que conozco con buenas finanzas lo han conseguido siendo <strong style="color:var(--black)">consistentes durante mucho tiempo</strong>
+          en cosas aburridas: invertir regularmente, no tocar la cartera en las caídas y pagar el mínimo de costes. The Boring Investor nace de aquí.
+        </div>
+      </div>
+      <div style="margin-bottom:28px">
+        <div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:14px">Lo que me juego en esto</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${[
+            {ic:'◎', tit:'Skin in the game real', txt:'Tengo mi dinero puesto. Nunca recomendaré un activo en el que yo mismo no invertiría.'},
+            {ic:'◈', tit:'Sin conflicto de intereses', txt:'Cobro solo por mis servicios. Ninguna comisión. Ningún incentivo para recomendar ningún producto concreto.'},
+            {ic:'◉', tit:'He probado (casi) de todo', txt:'No hablo desde un PowerPoint. Hablo desde la experiencia real: he visto el mercado bajar un 30% y sé lo que se siente.'},
+            {ic:'◐', tit:'Formación continua', txt:'Candidato a la certificación EFA (junio 2026). No para poner un título, sino porque creo que hay que ganárselo.'},
+          ].map(item =>
+            '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:10px;padding:14px 16px">' +
+              '<div style="display:flex;gap:10px;align-items:start">' +
+                '<span style="font-size:17px;color:var(--accent);flex-shrink:0;line-height:1.3">' + item.ic + '</span>' +
+                '<div><div style="font-size:12px;font-weight:500;color:var(--black);margin-bottom:5px">' + item.tit + '</div>' +
+                '<div style="font-size:11px;color:var(--gray-500);line-height:1.65">' + item.txt + '</div></div>' +
+              '</div></div>'
+          ).join('')}
+        </div>
+      </div>
+      <div style="background:var(--black);border-radius:var(--radius);padding:24px 28px;margin-bottom:14px">
+        <div style="font-size:13px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">¿Por dónde empezamos?</div>
+        <div style="font-size:16px;font-weight:500;color:white;line-height:1.6;margin-bottom:6px">Una conversación de 20 minutos puede cambiar la trayectoria de tus ahorros para los próximos 20 años.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:18px">Sin humo. Sin promesas irreales. Metodología, disciplina y sentido común aplicados a tu dinero.</div>
+        <button onclick="navigate('serveis')" style="padding:11px 22px;background:white;color:var(--black);border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">Ver servicios y tarifas →</button>
+      </div>
+      <div class="disclaimer">Actividad de educación y análisis financiero independiente. Pendiente de certificación EFA (junio 2026). No constituye asesoramiento regulado MiFID II.</div>
+    </div>
+  `;
+}
+
+
 // ══════════════════════════════════════════════════════
 // SISTEMA DE TRADUCCIONS CA/ES
 // ══════════════════════════════════════════════════════
@@ -4057,6 +4289,7 @@ function updateNavLabels() {
     'nav-scoring':   'nav.scoring',
     'nav-serveis':   'nav.serveis',
     'nav-quisoc':    'nav.quisoc',
+    'nav-glossari':  'nav.glossari',
   };
   Object.entries(navMap).forEach(([id, key]) => {
     const el = document.getElementById(id);
@@ -4087,6 +4320,7 @@ const TRANSLATIONS = {
     'nav.scoring':     'Scoring',
     'nav.serveis':     'Serveis i tarifes',
     'nav.quisoc':      'Qui soc',
+    'nav.glossari':    'Glossari',
     // Dashboard
     'dash.title':          'Dashboard',
     'dash.clients_actius': 'Clients actius',
@@ -4117,6 +4351,7 @@ const TRANSLATIONS = {
     'estat.ok':      'OK',
     'estat.revisio': 'Revisió',
     'estat.critic':  'Crític',
+    'estat.nou':     'Nou',
     // Perfil labels
     'perfil.dades_financeres': 'Dades financeres',
     'perfil.capital_inicial':  'Capital inicial',
@@ -4190,6 +4425,7 @@ const TRANSLATIONS = {
     'btn.exportar':   'Exportar dades ↓',
     'btn.reiniciar':  'Reiniciar demo',
     'btn.afegir':     '+ Afegir',
+    'btn.pendent':    'Pendent',
     // Missatges
     'msg.dades_local':   'Dades guardades localment.',
     'msg.exporta':       "Exporta per fer còpia o canviar d'ordinador.",
@@ -4214,6 +4450,13 @@ const TRANSLATIONS = {
     'mc.p90': 'P90 Optimista',
     // Disclaimer
     'disclaimer.pre_efa': "Eina d'educació financera independent. Recomanació per classe d'actiu, no producte específic. No és assessorament regulat MiFID II.",
+    // Historial
+    'hist.sense_entrades': 'Sense entrades.',
+    'hist.afegir': '+ Afegir entrada',
+    'cartera.distribucio': 'Distribució de cartera',
+    'scoring.sobre': 'sobre',
+    'seguiment.activar_dca': 'Afegeix les posicions reals del client per activar el motor DCA',
+    'seguiment.on_aportar': 'On aportar aquest mes',
   },
 
   es: {
@@ -4226,6 +4469,7 @@ const TRANSLATIONS = {
     'nav.scoring':     'Scoring',
     'nav.serveis':     'Servicios y tarifas',
     'nav.quisoc':      'Quién soy',
+    'nav.glossari':    'Glosario',
     // Dashboard
     'dash.title':          'Panel principal',
     'dash.clients_actius': 'Clientes activos',
@@ -4256,6 +4500,7 @@ const TRANSLATIONS = {
     'estat.ok':      'OK',
     'estat.revisio': 'Revisión',
     'estat.critic':  'Crítico',
+    'estat.nou':     'Nuevo',
     // Perfil labels
     'perfil.dades_financeres': 'Datos financieros',
     'perfil.capital_inicial':  'Capital inicial',
@@ -4329,6 +4574,7 @@ const TRANSLATIONS = {
     'btn.exportar':   'Exportar datos ↓',
     'btn.reiniciar':  'Reiniciar demo',
     'btn.afegir':     '+ Añadir',
+    'btn.pendent':    'Pendiente',
     // Missatges
     'msg.dades_local':   'Datos guardados localmente.',
     'msg.exporta':       'Exporta para hacer copia o cambiar de ordenador.',
@@ -4353,6 +4599,13 @@ const TRANSLATIONS = {
     'mc.p90': 'P90 Optimista',
     // Disclaimer
     'disclaimer.pre_efa': 'Herramienta de educación financiera independiente. Recomendación por clase de activo, no producto específico. No es asesoramiento regulado MiFID II.',
+    // Historial
+    'hist.sense_entrades': 'Sin entradas.',
+    'hist.afegir': '+ Añadir entrada',
+    'cartera.distribucio': 'Distribución de cartera',
+    'scoring.sobre': 'sobre',
+    'seguiment.activar_dca': 'Añade las posiciones reales del cliente para activar el motor DCA',
+    'seguiment.on_aportar': 'Dónde aportar este mes',
   }
 };
 
@@ -4813,6 +5066,5 @@ loadData();
 navigate('dashboard');
 
 </script>
-
-
-</body></html>
+</body>
+</html>
