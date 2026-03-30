@@ -155,6 +155,55 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   .stage{padding:20px 14px}
   .score-section{grid-template-columns:repeat(4,1fr)}
 }
+
+/* ── RESULT PAGE (classes originals de buildResult) ── */
+.result-outer{display:flex;flex-direction:column;gap:18px;padding-bottom:16px}
+.res-hero{border-radius:14px;overflow:hidden;background:var(--black);display:flex;min-height:180px}
+.res-hero-img{width:140px;flex-shrink:0;overflow:hidden;position:relative}
+.res-hero-img img{width:100%;height:100%;object-fit:cover;filter:grayscale(100%) contrast(1.1)}
+.res-av{width:140px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:42px;color:rgba(255,255,255,.25);font-family:var(--fd)}
+.res-hero-info{flex:1;padding:24px 28px;display:flex;flex-direction:column;justify-content:center}
+.res-eyebrow{font-size:9px;font-weight:500;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.res-nom{font-family:var(--fd);font-size:clamp(22px,4vw,30px);font-weight:400;color:var(--white);line-height:1.1;margin-bottom:5px}
+.ep{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:14px;font-style:italic}
+.lema{font-size:12px;color:rgba(255,255,255,.7);line-height:1.6;font-style:italic;border-left:2px solid rgba(255,255,255,.2);padding-left:12px}
+.score{display:flex;align-items:baseline;gap:4px;margin-bottom:8px}
+.res-section{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:18px 22px}
+.res-section-title,.section-title{font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px;border-bottom:1px solid var(--g200);padding-bottom:8px}
+.desc{font-size:13px;color:var(--g500);line-height:1.75}
+/* Cartera */
+.res-cartera-block{background:var(--accent);border-radius:12px;padding:18px 22px}
+.res-cartera-lbl{font-size:9px;font-weight:500;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.res-cartera-nom{font-size:15px;font-weight:500;color:var(--white);margin-bottom:3px}
+.res-cartera-desc{font-size:11px;color:rgba(255,255,255,.6);margin-bottom:12px}
+.alloc-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.alloc-name{font-size:11px;color:rgba(255,255,255,.8);min-width:140px}
+.alloc-bar{flex:1;height:3px;border-radius:99px;overflow:hidden;background:rgba(255,255,255,.15)}
+.alloc-pct{font-size:10px;font-family:var(--fm);color:rgba(255,255,255,.6);min-width:30px;text-align:right}
+/* Dims / Scoring */
+.score-section{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px}
+.dim-item{text-align:center;padding:9px 4px;background:var(--g100);border-radius:8px}
+.dim-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.dim-name{font-size:11px;color:var(--g500);flex:1}
+.dim-bar{flex:1;height:3px;background:var(--g200);border-radius:99px;overflow:hidden}
+.dim-val{font-family:var(--fm);font-size:12px;font-weight:500;color:var(--accent);margin-bottom:2px}
+.dim-lbl{font-size:9px;color:var(--g400);line-height:1.3}
+/* Radar */
+.radar-block{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:18px 22px}
+.radar-title{font-size:11px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.radar-wrap{position:relative;width:100%;max-width:260px;margin:0 auto}
+/* Botons */
+.result-btns{display:flex;flex-direction:column;gap:9px;padding-bottom:8px}
+.btn-send{width:100%;padding:13px;background:var(--black);color:var(--white);border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:opacity .15s}
+.btn-send:hover{opacity:.85}
+.btn-dl,.btn-secondary{width:100%;padding:11px;background:transparent;color:var(--black);border:1.5px solid var(--g200);border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--fb);transition:all .15s}
+.btn-dl:hover,.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-reset{background:none;border:none;font-size:12px;color:var(--g400);cursor:pointer;font-family:var(--fb);text-align:center;padding:4px;transition:color .15s}
+.btn-reset:hover{color:var(--black)}
+.section{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:18px 22px}
+.footer{font-size:10px;color:var(--g300);text-align:center;padding-bottom:8px;line-height:1.5}
+.send-ok{font-size:12px;color:var(--green);text-align:center;padding:6px}
+.send-note{font-size:12px;color:var(--g500);text-align:center;padding:4px}
 </style>
 
 </head>
