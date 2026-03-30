@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ca"><head>
+<html lang="ca">
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Boring Investor — Assessoria</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Playfair+Display:ital,wght@0,400;0,500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root {
@@ -421,11 +422,11 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     <div class="logo-wrap">
       <div class="logo-symbol">
         <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"></rect>
-        <circle cx="8.5" cy="10" r="2" fill="white"></circle>
-        <circle cx="8.5" cy="17" r="2" fill="white"></circle>
-        <rect x="12" y="13" width="6" height="1.5" rx=".75" fill="white"></rect>
-        <rect x="20" y="8" width="1.5" height="12" rx=".75" fill="white"></rect>
+        <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+        <circle cx="8.5" cy="10" r="2" fill="white"/>
+        <circle cx="8.5" cy="17" r="2" fill="white"/>
+        <rect x="12" y="13" width="6" height="1.5" rx=".75" fill="white"/>
+        <rect x="20" y="8" width="1.5" height="12" rx=".75" fill="white"/>
       </svg>
         <div>
           <div class="logo-text">The Boring Investor</div>
@@ -436,14 +437,14 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <button id="lang-ca" onclick="setLang('ca')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:white;font-family:var(--font-body);transition:all .12s">CA</button>
         <button id="lang-es" onclick="setLang('es')" style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-family:var(--font-body);transition:all .12s">ES</button>
       </div>
-      <div id="sync-btn" onclick="toggleSync()" title="Sincronitzar clients des de Google Sheets" style="margin-top: 8px; display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); cursor: pointer; transition: 0.12s; background: none;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+      <div id="sync-btn" onclick="toggleSync()" title="Sincronitzar clients des de Google Sheets" style="margin-top:8px;display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
         <div id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gray-400);flex-shrink:0;transition:all .3s"></div>
         <span id="sync-lbl" style="font-size:10px;color:rgba(255,255,255,.4);flex:1">Sync Sheets</span>
-        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M13.5 2.5A7 7 0 0 0 2 8M2.5 13.5A7 7 0 0 0 14 8"></path><path d="M2 2v4h4M14 14v-4h-4"></path></svg>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M13.5 2.5A7 7 0 0 0 2 8M2.5 13.5A7 7 0 0 0 14 8"/><path d="M2 2v4h4M14 14v-4h-4"/></svg>
       </div>
-      <button id="deploy-btn" onclick="deployToGitHub()" style="margin-top: 6px; display: flex; align-items: center; gap: 7px; padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); background: none; cursor: wait; font-family: var(--font-body); width: 100%; transition: 0.12s; opacity: 0.6;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'" disabled="">
-        <div id="deploy-dot" style="width: 7px; height: 7px; border-radius: 50%; background: rgb(245, 166, 35); flex-shrink: 0; box-shadow: none;"></div>
-        <span id="deploy-lbl" style="font-size:10px;color:rgba(255,255,255,.5)">↑ Pujant...</span>
+      <button id="deploy-btn" onclick="deployToGitHub()" style="margin-top:6px;display:flex;align-items:center;gap:7px;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:transparent;cursor:pointer;font-family:var(--font-body);width:100%;transition:all .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+        <div id="deploy-dot" style="width:7px;height:7px;border-radius:50%;background:var(--gray-400);flex-shrink:0"></div>
+        <span id="deploy-lbl" style="font-size:10px;color:rgba(255,255,255,.5)">↑ Deploy a GitHub</span>
       </button>
         <button id="deploy-btn" onclick="deployToGitHub()" class="deploy-btn">
           <div class="deploy-dot" id="deploy-dot"></div>
@@ -454,32 +455,32 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     <div class="nav">
       <div class="nav-section">Principal</div>
       <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"></rect><rect x="9" y="1" width="6" height="6" rx="1"></rect><rect x="1" y="9" width="6" height="6" rx="1"></rect><rect x="9" y="9" width="6" height="6" rx="1"></rect></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
         Dashboard
-        <span class="nav-badge" id="nav-alert-badge" style="display: block;">1</span>
+        <span class="nav-badge" id="nav-alert-badge" style="display:none"></span>
       </div>
 
       <div class="nav-section">Clients</div>
       <div class="nav-item" id="nav-fitxa" onclick="navigate('fitxa')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"></circle><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"></path></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
         Fitxa client
       </div>
       <div class="nav-item" id="nav-scoring" onclick="navigate('scoring')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"></circle><path d="M8 4v4l3 2"></path></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
         Scoring
       </div>
 
       <div class="nav-section">Assessoria</div>
       <div class="nav-item" id="nav-serveis" onclick="navigate('serveis')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"></rect><path d="M5 3V2M11 3V2M1 7h14"></path></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M5 3V2M11 3V2M1 7h14"/></svg>
         Serveis i tarifes
       </div>
       <div class="nav-item" id="nav-glossari" onclick="navigate('glossari')">
-          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="9" height="14" rx="1.5"></rect><path d="M5 5h5M5 8h5M5 11h3"></path><path d="M11 4l2 2-2 2"></path></svg>
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="9" height="14" rx="1.5"/><path d="M5 5h5M5 8h5M5 11h3"/><path d="M11 4l2 2-2 2"/></svg>
           <span data-i18n="nav.glossari">Glossari</span>
         </div>
         <div class="nav-item" id="nav-quisoc" onclick="navigate('quisoc')">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zM2 13s1-4 6-4 6 4 6 4"></path><path d="M11 6l1.5 1.5M12.5 4.5l1 1"></path></svg>
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a3 3 0 100 6 3 3 0 000-6zM2 13s1-4 6-4 6 4 6 4"/><path d="M11 6l1.5 1.5M12.5 4.5l1 1"/></svg>
         Qui soc
       </div>
 
@@ -516,10 +517,8 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
         <div class="topbar-title" id="topbar-title">Dashboard</div>
       </div>
       <div class="topbar-actions" id="topbar-actions">
-      <button class="btn btn-sm" onclick="importarDades()" title="Importar backup o perfil onboarding d'un client">Importar ↑</button>
-      <button class="btn btn-sm" onclick="exportarDades()" title="Descarregar totes les dades en JSON">Exportar dades</button>
-      <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')">+ Nou client</button>
-    </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')"><span data-i18n="dash.nou_client">+ Nou client</span></button>
+      </div>
     </div>
 
     <!-- CONTENT -->
@@ -527,22 +526,27 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 
       <!-- ════ P1 DASHBOARD ════ -->
       <div class="screen active" id="screen-dashboard">
-        <div class="kpi-grid" id="kpi-grid">
-    <div class="kpi"><div class="kpi-label">Clients actius</div><div class="kpi-value">4</div><div class="kpi-sub">MVP · objectiu 20</div></div>
-    <div class="kpi"><div class="kpi-label">Scoring mitjà</div><div class="kpi-value accent">42/100</div><div class="kpi-sub">Cartera global</div></div>
-    <div class="kpi"><div class="kpi-label">Revisions pendents</div><div class="kpi-value amber">1</div><div class="kpi-sub">Revisió anual deguda</div></div>
-    <div class="kpi"><div class="kpi-label">Alertes crítiques</div><div class="kpi-value red">1</div><div class="kpi-sub">Scoring &lt;30</div></div>
-  </div>
+        <div class="kpi-grid" id="kpi-grid"></div>
         <div id="macro-widget" style="margin-bottom:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:10px 16px;overflow:hidden">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <span style="font-size:9px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em">Mercats · Temps real</span>
-            <span id="macro-update" style="font-size:9px;color:var(--gray-400)">Referència · actualitzant...</span>
+            <span id="macro-update" style="font-size:9px;color:var(--gray-400)">Actualitzant...</span>
           </div>
-          <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center"><div class="ticker-item" style="opacity:.45"><span class="ticker-name">S&amp;P 500</span><span class="ticker-price">562</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">MSCI World</span><span class="ticker-price">115.8</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">IBEX 35</span><span class="ticker-price">36.1</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">Or</span><span class="ticker-price">246</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">BTC</span><span class="ticker-price">87k$</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="opacity:.45"><span class="ticker-name">RF 20a</span><span class="ticker-price">88.6</span><span class="ticker-chg ticker-flat">ref.</span></div><div class="ticker-item" style="background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">2.50%</span><span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span></div><div class="ticker-item" style="background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">2.9%</span><span class="ticker-chg ticker-flat">Interanual</span></div><div class="ticker-item"><span class="ticker-name">EUR/USD</span><span class="ticker-price">1.0821</span><span class="ticker-chg ticker-flat">Canvi</span></div></div>
+          <div id="macro-tickers" style="display:flex;gap:12px;flex-wrap:wrap;min-height:36px;align-items:center">
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">S&P 500</span><span class="ticker-price">562</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">MSCI World</span><span class="ticker-price">115.8</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">IBEX 35</span><span class="ticker-price">36.1</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">Or</span><span class="ticker-price">246</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">BTC</span><span class="ticker-price">87k$</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">RF 20a</span><span class="ticker-price">88.6</span><span class="ticker-chg ticker-flat">ref.</span></div>
+            <div class="ticker-item" style="opacity:.5;background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">2.50%</span><span class="ticker-chg ticker-flat" style="color:var(--accent);opacity:.7">Deposit</span></div>
+            <div class="ticker-item" style="opacity:.5;background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">2.9%</span><span class="ticker-chg ticker-flat">Interanual</span></div>
+            <div class="ticker-item" style="opacity:.5"><span class="ticker-name">EUR/USD</span><span class="ticker-price">1.0821</span><span class="ticker-chg ticker-flat">Canvi</span></div>
+          </div>
         </div>
         <div class="section-header">
           <span class="section-title"><span data-i18n="dash.tots_clients">Tots els clients</span></span>
-          <span class="section-title" id="kpi-count" style="color:var(--gray-300)">4 clients</span>
+          <span class="section-title" id="kpi-count" style="color:var(--gray-300)"></span>
         </div>
         <div class="table-wrap">
           <table>
@@ -557,59 +561,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
                 <th></th>
               </tr>
             </thead>
-            <tbody id="clients-tbody"><tr class="clickable" onclick="navigate('fitxa','jv002')">
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="av av-amber">JV</div>
-          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Joan Vidal</div><div style="font-size:10px;color:var(--gray-400)">joan.vidal@email.com</div></div>
-        </div></td>
-        <td><span class="badge badge-blue">L'Alquimista</span></td>
-        <td style="color:var(--gray-700)"><span style="font-size:11px">VII · L'Alambí</span></td>
-        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:22%;background:#8B1A1A"></div></div><span class="score-num" style="color:#8B1A1A">22</span></div></td>
-        <td style="color:var(--gray-400);font-size:11px">15 febr. 2026</td>
-        <td><span class="badge badge-red">Crític</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','jv002')" style="font-size:10px;padding:3px 8px">Scoring</button>
-        </td>
-      </tr><tr class="clickable" onclick="navigate('fitxa','ap003')">
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="av av-green">AP</div>
-          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Anna Puig</div><div style="font-size:10px;color:var(--gray-400)">anna.puig@email.com</div></div>
-        </div></td>
-        <td><span class="badge badge-blue">El Navegant</span></td>
-        <td style="color:var(--gray-700)"><span style="font-size:11px">III · El Galeó</span></td>
-        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:68%;background:#1B3A6B"></div></div><span class="score-num" style="color:#1B3A6B">68</span></div></td>
-        <td style="color:var(--gray-400);font-size:11px">10 març 2026</td>
-        <td><span class="badge badge-amber">Revisió</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','ap003')" style="font-size:10px;padding:3px 8px">Scoring</button>
-        </td>
-      </tr><tr class="clickable" onclick="navigate('fitxa','gm001')">
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="av av-blue">GM</div>
-          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Guillem Morales</div><div style="font-size:10px;color:var(--gray-400)">guillem.morales@email.com</div></div>
-        </div></td>
-        <td><span class="badge badge-blue">El Tresorer</span></td>
-        <td style="color:var(--gray-700)"><span style="font-size:11px">V · La Muralla</span></td>
-        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:76%;background:#1A5C3A"></div></div><span class="score-num" style="color:#1A5C3A">76</span></div></td>
-        <td style="color:var(--gray-400);font-size:11px">1 març 2026</td>
-        <td><span class="badge badge-green">OK</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();navigate('scoring','gm001')" style="font-size:10px;padding:3px 8px">Scoring</button>
-        </td>
-      </tr><tr class="clickable" onclick="navigate('fitxa','nb004')">
-        <td><div style="display:flex;align-items:center;gap:10px">
-          <div class="av av-gray">CN</div>
-          <div><div class="client-nom" style="font-weight:500;color:var(--black)">Client Nou</div><div style="font-size:10px;color:var(--gray-400)">-</div></div>
-        </div></td>
-        <td><span class="badge badge-blue">Pendent</span></td>
-        <td style="color:var(--gray-700)"><span style="font-size:11px">Pendent qüestionari</span></td>
-        <td><div class="score-cell"><div class="score-track"><div class="score-fill" style="width:0%;background:#8B1A1A"></div></div><span class="score-num" style="color:#8B1A1A">0</span></div></td>
-        <td style="color:var(--gray-400);font-size:11px">Invalid Date</td>
-        <td><span class="badge badge-green">OK</span></td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-sm" onclick="event.stopPropagation();obrirOnboarding('nb004')" style="font-size:10px;padding:3px 8px;background:var(--accent);color:white;border-color:var(--accent)">Onboarding →</button>
-        </td>
-      </tr></tbody>
+            <tbody id="clients-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -692,8 +644,8 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 <div class="modal-bg" id="modal-nou-client">
   <div class="modal">
     <div class="modal-title">Nou client</div>
-    <div class="form-field"><label class="form-label">Nom complet</label><input class="form-input" id="nc-nom" placeholder="Ex: Guillem Morales"></div>
-    <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@exemple.com"></div>
+    <div class="form-field"><label class="form-label">Nom complet</label><input class="form-input" id="nc-nom" placeholder="Ex: Guillem Morales" /></div>
+    <div class="form-field"><label class="form-label">Email</label><input class="form-input" id="nc-email" type="email" placeholder="email@exemple.com" /></div>
     <div class="form-field"><label class="form-label">Arquetip</label>
       <select class="form-select" id="nc-arquetip">
         <option value="">— Selecciona —</option>
@@ -722,7 +674,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 <div class="modal-bg" id="modal-nova-entrada">
   <div class="modal">
     <div class="modal-title">Nova entrada a l'historial</div>
-    <div class="form-field"><label class="form-label">Títol</label><input class="form-input" id="he-titol" placeholder="Ex: Revisió trimestral Q1 2026"></div>
+    <div class="form-field"><label class="form-label">Títol</label><input class="form-input" id="he-titol" placeholder="Ex: Revisió trimestral Q1 2026" /></div>
     <div class="form-field"><label class="form-label">Descripció</label><textarea class="form-textarea" id="he-desc" placeholder="Resum de la sessió, decisions preses, accions acordades..."></textarea></div>
     <div class="form-field"><label class="form-label">Tipus</label>
       <select class="form-select" id="he-tipus">
@@ -738,7 +690,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
   </div>
 </div>
 
-<div class="toast" id="toast">Deploy OK — 2 fitxers pujats a GitHub Pages</div>
+<div class="toast" id="toast"></div>
 
 <script>
 
@@ -1607,217 +1559,177 @@ function generarInforme() {
   const c = getCurrentClient();
   if (!c) { toast('Cap client seleccionat'); return; }
 
-  const data = new Date().toLocaleDateString('ca-ES', {day:'numeric',month:'long',year:'numeric'});
-  const scoreTotal = c.scoringMods ? Math.round(c.scoringMods.reduce((s,v)=>s+v,0)/c.scoringMods.length*10) : c.scoring;
-
-  // Càlcul scoring per mòdul
-  const modNoms = ['Costos','Diversificació','Concentració','Coherència','Robustesa','Simplicitat','Procés'];
+  const data     = new Date().toLocaleDateString('ca-ES', {day:'numeric',month:'long',year:'numeric'});
+  const sc       = c.scoring !== null ? c.scoring : 0;
+  const scoreColor = sc>=70?'#1A5C3A':sc>=50?'#1B3A6B':sc>=30?'#7A4A00':'#8B1A1A';
+  const scoreBg    = sc>=70?'#EAF3DE':sc>=50?'#EBF0FA':sc>=30?'#FEF5E7':'#FDF0F0';
+  const scoreLabel = sc>=70?'Excel·lent':sc>=50?'Bona base':sc>=30?'Millorable':'Feble';
+  const modNoms  = ['Costos','Diversificació','Concentració','Coherència','Robustesa','Simplicitat','Procés'];
   const modPesos = [20,20,15,20,10,5,10];
-  const scoringRows = c.scoringMods ? c.scoringMods.map((v,i) => `
-    <tr>
-      <td>${modNoms[i]}</td>
-      <td style="text-align:center;font-family:var(--fm)">${modPesos[i]}%</td>
-      <td style="text-align:center">
-        <div style="display:inline-flex;align-items:center;gap:8px">
-          <div style="width:80px;height:4px;background:#E8E6E1;border-radius:99px;overflow:hidden">
-            <div style="width:${v*10}%;height:100%;background:${v>=7?'#1A5C3A':v>=5?'#7A4A00':'#8B1A1A'};border-radius:99px"></div>
-          </div>
-          <span style="font-family:var(--fm);font-size:11px">${v}/10</span>
+
+  // ── Cartera composició: barres horitzontals CSS ──
+  const carteraRows = (c.carteraComposicio||[]).map(a => {
+    const barW = Math.round(a.pct * 1.4);
+    return `<tr>
+      <td style="padding:6px 8px;font-size:12px;color:#0A0A0A;font-weight:500;vertical-align:middle">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${a.color||'#888'};margin-right:7px;vertical-align:middle"></span>${a.nom}
+      </td>
+      <td style="padding:6px 8px;width:200px;vertical-align:middle">
+        <div style="background:#F4F3F0;border-radius:99px;overflow:hidden;height:5px">
+          <div style="width:${barW}px;max-width:100%;height:100%;background:${a.color||'#888'};border-radius:99px"></div>
         </div>
       </td>
-    </tr>`).join('') : '<tr><td colspan="3" style="color:#9A9690">Scoring pendent</td></tr>';
+      <td style="padding:6px 8px;font-family:'DM Mono',monospace;font-size:12px;color:#1B3A6B;text-align:right;font-weight:500">${a.pct}%</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" style="color:#9A9690;font-size:12px;padding:8px">Cartera pendent de definir</td></tr>';
 
-  // Cartera composició
-  const carteraRows = c.carteraComposicio && c.carteraComposicio.length
-    ? c.carteraComposicio.map(a => `
-        <tr>
-          <td><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${a.color||'#888'};margin-right:8px"></span>${a.nom}</td>
-          <td style="text-align:center;font-family:var(--fm);color:#1B3A6B">${a.pct}%</td>
-          <td>
-            <div style="width:${a.pct*2}px;height:4px;background:${a.color||'#888'};border-radius:99px"></div>
-          </td>
-        </tr>`).join('')
-    : '<tr><td colspan="3" style="color:#9A9690">Cartera pendent de definir</td></tr>';
+  // ── Scoring per mòdul ──
+  const scoringRows = (c.scoringMods||[]).map((v,i) => {
+    const pct = v*10;
+    const col = v>=7?'#1A5C3A':v>=5?'#1B3A6B':v>=3?'#7A4A00':'#8B1A1A';
+    return `<tr>
+      <td style="padding:5px 8px;font-size:12px;color:#0A0A0A">${modNoms[i]}</td>
+      <td style="padding:5px 8px;font-size:10px;color:#9A9690;text-align:center">${modPesos[i]}%</td>
+      <td style="padding:5px 8px;width:140px">
+        <div style="background:#F4F3F0;border-radius:99px;overflow:hidden;height:4px">
+          <div style="width:${pct}%;height:100%;background:${col};border-radius:99px"></div>
+        </div>
+      </td>
+      <td style="padding:5px 8px;font-family:'DM Mono',monospace;font-size:11px;color:${col};text-align:right">${v}/10</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4" style="color:#9A9690;font-size:12px;padding:8px">Scoring pendent</td></tr>';
 
-  // Historial últimes 3 entrades
-  const histItems = (c.historial||[]).slice(0,3).map(h => `
-    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #F4F3F0">
-      <div style="font-size:10px;color:#9A9690;min-width:80px;padding-top:1px">${h.data}</div>
-      <div>
-        <div style="font-size:12px;font-weight:500;color:#0A0A0A;margin-bottom:2px">${h.titol}</div>
-        <div style="font-size:11px;color:#6B6762;line-height:1.5">${h.desc}</div>
-      </div>
-    </div>`).join('');
-
-  // Diagnòstic automàtic basat en scoring
-  const sc = c.scoring || 0;
-  let diagColor, diagBg, diagText;
-  if (sc >= 70) { diagColor='#1A5C3A'; diagBg='#EAF3DE'; diagText='Cartera eficient. Manteniment estàndard recomanat.'; }
-  else if (sc >= 50) { diagColor='#7A4A00'; diagBg='#FEF5E7'; diagText='Cartera acceptable amb marge de millora. Revisar coherència i costos.'; }
-  else { diagColor='#8B1A1A'; diagBg='#FDF0F0'; diagText='Cartera amb problemes estructurals. Revisió urgent recomanada.'; }
-
-  // Mètriques de la cartera
-  const mData = (typeof METRICS_BY_ARQUETIP !== 'undefined' && METRICS_BY_ARQUETIP[c.arquetip])
-    ? METRICS_BY_ARQUETIP[c.arquetip]
-    : null;
-
-  const metricColors = {good:'#1A5C3A', warn:'#7A4A00', danger:'#8B1A1A', '':'#6B6762'};
-  const metricBg     = {good:'#EAF3DE', warn:'#FEF5E7', danger:'#FDF0F0', '':'#F4F3F0'};
-  const metricLabels = {
-    drawdown:    {lbl:'Màxima caiguda',    sub:'Pitjor escenari històric'},
-    recuperacio: {lbl:'Temps recuperació', sub:'Per recuperar el màxim'},
-    horitzo:     {lbl:'Horitzó mínim',     sub:'Per probabilitat alta'},
-    volatilitat: {lbl:'Volatilitat anual', sub:'Moviment diari'},
-    sharpe:      {lbl:'Retorn/Risc',       sub:'Sharpe >0.5 = eficient'},
-    correlacio:  {lbl:'Correlació mercat', sub:'% que cau amb mercat'},
+  // ── Mètriques de la cartera ──
+  const mData = (typeof METRICS_BY_ARQUETIP!=='undefined' && METRICS_BY_ARQUETIP[c.arquetip]) || null;
+  const metLabels = {
+    drawdown:'Caiguda màxima', recuperacio:'Temps recuperació',
+    horitzo:'Horitzó mínim', volatilitat:'Volatilitat anual',
+    sharpe:'Retorn/Risc (Sharpe)', correlacio:'Correlació mercat'
   };
+  const metColors = {good:'#1A5C3A',warn:'#7A4A00',danger:'#8B1A1A','':'#6B6762'};
+  const metBg     = {good:'#EAF3DE',warn:'#FEF5E7',danger:'#FDF0F0','':'#F4F3F0'};
+  const metricsGrid = mData ? Object.entries(metLabels).map(([k,lbl]) => {
+    const cls = (mData.mClass||{})[k]||'';
+    return `<div style="padding:10px 12px;background:${metBg[cls]};border-radius:8px">
+      <div style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">${lbl}</div>
+      <div style="font-size:16px;font-weight:500;color:${metColors[cls]};font-family:'DM Mono',monospace">${mData[k]||'—'}</div>
+    </div>`;
+  }).join('') : '';
 
-  const metricsSection = mData ? '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">' +
-    Object.entries(metricLabels).map(([k,ml]) => {
-      const cls = mData.mClass[k] || '';
-      return '<div style="background:' + (metricBg[cls]||'#F4F3F0') + ';border-radius:8px;padding:10px 12px">' +
-        '<div style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">' + ml.lbl + '</div>' +
-        '<div style="font-size:16px;font-weight:500;color:' + (metricColors[cls]||'#6B6762') + ';font-family:var(--fm)">' + mData[k] + '</div>' +
-        '<div style="font-size:10px;color:#9A9690;margin-top:2px">' + ml.sub + '</div>' +
-        '</div>';
-    }).join('') + '</div>' : '';
+  // ── Historial (últimes 4 entrades) ──
+  const histItems = (c.historial||[]).slice(0,4).map(h => {
+    const dotCol = h.tipus==='alerta'?'#C0392B':h.tipus==='pendent'?'#D4700A':'#1B3A6B';
+    return `<div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #F4F3F0">
+      <div style="width:8px;height:8px;border-radius:50%;background:${dotCol};flex-shrink:0;margin-top:4px"></div>
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:500;color:#0A0A0A;margin-bottom:2px">${h.titol}</div>
+        <div style="font-size:10px;color:#9A9690">${h.data}</div>
+        <div style="font-size:11px;color:#6B6762;margin-top:2px;line-height:1.5">${h.desc}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:#9A9690;font-size:12px">Sense entrades</div>';
 
-  // ── Scoring de la cartera actual (si hi ha posicions) ──
-  const carteraActual = c.posicions || [];
-  const mCarteraActual = carteraActual.length > 0 ? calcMetriques(carteraActual) : null;
-  const gapAlerts = calcGapAnalysis(c);
-  const suggeriments = calcSuggeriments(c);
+  // ── Projeccions Montecarlo ──
+  const proj = c.projeccions || {};
+  const totalAportat = proj.totalAportat || '—';
 
-  // Scoring de cartera (0-100) basat en mètriques calculades
-  let scoringCartera = null;
-  let recomanacionsMillora = [];
+  // ── Accions immediates del scoring ──
+  const improveDescs = {
+    's1':['Substituir fons >0,5% TER per indexats equivalents.','Revisar productes de major cost.','Cost eficient.'],
+    's2':['Ampliar diversificació geogràfica.','Ampliar sectorial.','Bona diversificació.'],
+    's3':['Cap posició >10%. Límit estricte.','Revisar concentracions.','Distribució equilibrada.'],
+    's4':['Revisió urgent: risc real no s\'alinea amb perfil.','Ajustar algunes posicions.','Bona coherència.'],
+    's5':['Simplificar i preparar kit anti-pànic.','Preparar kit anti-pànic.','Robustesa bona.'],
+    's6':['Reduir a màxim 5-7 productes.','Valorar consolidar posicions.','Bona simplicitat.'],
+    's7':['Aportació automàtica + rebalanceig anual.','Formalitzar protocol de rebalanceig.','Bon procés.'],
+  };
+  const MODULES_LOCAL = [
+    {id:'s1',label:'Costos',weight:.20},{id:'s2',label:'Diversificació',weight:.20},
+    {id:'s3',label:'Concentració',weight:.15},{id:'s4',label:'Coherència',weight:.20},
+    {id:'s5',label:'Robustesa',weight:.10},{id:'s6',label:'Simplicitat',weight:.05},
+    {id:'s7',label:'Procés',weight:.10},
+  ];
+  const sorted = (c.scoringMods||[5,5,5,5,5,5,5]).map((s,i)=>({...MODULES_LOCAL[i],score:s})).sort((a,b)=>a.score-b.score);
+  const accionsRows = sorted.slice(0,3).map((m,i) => {
+    const bg = i===0?'#FDF0F0':i===1?'#FEF5E7':'#EBF0FA';
+    const col = i===0?'#C0392B':i===1?'#D4700A':'#1B3A6B';
+    const desc = (improveDescs[m.id]||['—','—','—'])[m.score<=3?0:m.score<=6?1:2];
+    return `<div style="display:flex;gap:10px;padding:9px 12px;background:${bg};border-radius:8px;margin-bottom:6px">
+      <div style="width:20px;height:20px;border-radius:50%;background:${col};color:white;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:#0A0A0A">${m.label} — ${m.score}/10</div>
+        <div style="font-size:11px;color:#4A4845;margin-top:2px">${desc}</div>
+      </div>
+    </div>`;
+  }).join('');
 
-  if(mCarteraActual) {
-    // Calcular score de la cartera actual
-    const sharpe = parseFloat(mCarteraActual.sharpe) || 0;
-    const vol = parseInt(mCarteraActual.volatilitat) || 50;
-    const dd = parseInt(mCarteraActual.drawdown.replace('-','')) || 50;
-    const corr = parseInt(mCarteraActual.correlacio) || 80;
-
-    // Puntuació simple: Sharpe bo = bon score, vol i dd alts = penalització
-    let s = 50;
-    s += sharpe > 0.6 ? 20 : sharpe > 0.4 ? 10 : sharpe > 0.2 ? 0 : -10;
-    s += vol < 10 ? 15 : vol < 18 ? 5 : vol < 25 ? -5 : -15;
-    s += dd < 20 ? 10 : dd < 35 ? 0 : dd < 50 ? -10 : -15;
-    s += corr < 50 ? 10 : corr < 70 ? 5 : 0;
-    scoringCartera = Math.min(100, Math.max(0, Math.round(s)));
-
-    // Recomanacions de millora
-    if(sharpe < 0.4) recomanacionsMillora.push({
-      tipus: "warn",
-      text: "Relació retorn/risc (Sharpe " + mCarteraActual.sharpe + ") per sota de l'optim. Considera diversificar amb actius de baixa correlació."
-    });
-    if(vol > 20) recomanacionsMillora.push({
-      tipus: "warn",
-      text: "Volatilitat anual del " + mCarteraActual.volatilitat + " és elevada. Afegir renda fixa o or pot estabilitzar la cartera."
-    });
-    if(dd > 40) recomanacionsMillora.push({
-      tipus: "danger",
-      text: "Maxima caiguda potencial del " + mCarteraActual.drawdown + ". Verifica que el client pot aguantar psicologicament."
-    });
-    if(corr > 75) recomanacionsMillora.push({
-      tipus: "warn",
-      text: "Correlació amb el mercat del " + mCarteraActual.correlacio + ". La cartera te poca diversificació real entre actius."
-    });
-  }
-
-  gapAlerts.forEach(a => recomanacionsMillora.push({tipus: a.tipus, text: a.msg + ' (' + a.ref + ')'}));
-
-  const scoringCarteraHTML = scoringCartera !== null ? (() => {
-    const col = scoringCartera >= 70 ? '#1A5C3A' : scoringCartera >= 50 ? '#7A4A00' : '#8B1A1A';
-    const bg  = scoringCartera >= 70 ? '#EAF3DE' : scoringCartera >= 50 ? '#FEF5E7' : '#FDF0F0';
-    const txt = scoringCartera >= 70 ? 'Cartera real eficient' : scoringCartera >= 50 ? 'Cartera acceptable, marge de millora' : 'Cartera real amb problemes estructurals';
-    const recHTML = recomanacionsMillora.length > 0
-      ? recomanacionsMillora.map(r => '<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #F4F3F0">' +
-          '<span style="color:' + (r.tipus==='danger'?'#C0392B':'#D4700A') + ';font-size:13px;flex-shrink:0">' + (r.tipus==='danger'?'!':'~') + '</span>' +
-          '<div style="font-size:12px;color:#4A4845;line-height:1.6">' + r.text + '</div></div>').join('')
-      : '<div style="font-size:12px;color:#6A6864;padding:8px 0">Cap recomanació de millora urgent.</div>';
-    return '<div class="section">' +
-      '<div class="section-title">Scoring de la cartera actual</div>' +
-      '<div style="display:grid;grid-template-columns:80px 1fr;gap:16px;align-items:start;margin-bottom:16px">' +
-        '<div style="text-align:center;padding:14px;background:' + bg + ';border-radius:12px">' +
-          '<div style="font-size:28px;font-weight:600;color:' + col + '">' + scoringCartera + '</div>' +
-          '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:' + col + ';opacity:.7">/ 100</div>' +
-        '</div>' +
-        '<div>' +
-          '<div style="font-size:13px;font-weight:500;color:' + col + ';margin-bottom:4px">' + txt + '</div>' +
-          '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px">' +
-            ['drawdown','volatilitat','sharpe'].map(k => {
-              const cls = mCarteraActual.mClass[k]||'';
-              const col2 = cls==='good'?'#1A5C3A':cls==='danger'?'#C0392B':cls==='warn'?'#D4700A':'#6A6864';
-              const bg2  = cls==='good'?'#EAF3DE':cls==='danger'?'#FDF0F0':cls==='warn'?'#FEF5E7':'#F4F3F0';
-              return '<div style="padding:6px 8px;background:'+bg2+';border-radius:6px;text-align:center">' +
-                '<div style="font-size:11px;font-weight:500;color:'+col2+'">' + mCarteraActual[k] + '</div>' +
-                '<div style="font-size:9px;color:#9A9690;text-transform:uppercase">' + {drawdown:'Caiguda',volatilitat:'Volatilitat',sharpe:'Sharpe'}[k] + '</div></div>';
-            }).join('') +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-      '<div style="font-size:11px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Recomanacions de millora</div>' +
-      recHTML +
-      '</div>';
-  })() : '';
-
-  const html = `<!DOCTYPE html>
+  const htmlContent = `<!DOCTYPE html>
 <html lang="ca">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Informe - ${c.nom}</title>
+<title>Informe — ${c.nom}</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--black:#0A0A0A;--white:#FAFAF8;--g100:#F4F3F0;--g200:#E8E6E1;--g400:#9A9690;--g500:#6B6762;--accent:#1B3A6B;--fd:'Playfair Display',Georgia,serif;--fb:'DM Sans',system-ui,sans-serif;--fm:'DM Mono',monospace}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--fb);background:var(--white);color:var(--black);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased}
-.page{max-width:720px;margin:0 auto;padding:48px 40px 64px}
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:20px;border-bottom:2px solid var(--black);margin-bottom:32px}
-.logo-row{display:flex;align-items:center;gap:10px}
-.logo-name{font-size:13px;font-weight:500}
-.logo-sub{font-size:10px;color:var(--g400);margin-top:1px}
-.doc-type{font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;text-align:right}
-.doc-date{font-family:var(--fm);font-size:11px;color:var(--g400);text-align:right}
-.client-grid{display:grid;grid-template-columns:1fr auto;gap:24px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--g200)}
-.client-name{font-family:var(--fd);font-size:32px;font-weight:400;line-height:1.1;letter-spacing:-.5px;margin-bottom:4px}
-.client-email{font-family:var(--fm);font-size:11px;color:var(--g400);margin-bottom:12px}
-.client-data{display:flex;gap:20px;flex-wrap:wrap}
-.datum .lbl{font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
-.datum .val{font-size:12px;font-weight:500}
-.arquetip-box{background:var(--black);border-radius:10px;padding:16px 20px;min-width:180px;text-align:right}
-.arq-label{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-.arq-nom{font-family:var(--fd);font-size:17px;color:#fff;margin-bottom:3px;line-height:1.2}
-.arq-ep{font-size:10px;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:8px}
-.arq-cart{font-size:11px;color:rgba(255,255,255,.5);font-family:var(--fm)}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#FAFAF8;color:#0A0A0A;font-size:12px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.page{max-width:740px;margin:0 auto;padding:48px 40px 64px}
+/* HEADER */
+.hdr{display:flex;justify-content:space-between;align-items:start;padding-bottom:18px;border-bottom:2px solid #0A0A0A;margin-bottom:32px}
+.hdr-logo{display:flex;align-items:center;gap:10px}
+.hdr-brand{font-size:13px;font-weight:500}
+.hdr-sub{font-size:10px;color:#9A9690;margin-top:1px}
+.hdr-doc{text-align:right}
+.hdr-doc-type{font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.09em;margin-bottom:3px}
+.hdr-doc-date{font-family:'DM Mono',monospace;font-size:11px;color:#9A9690}
+/* CLIENT HERO */
+.client-hero{display:grid;grid-template-columns:1fr auto;gap:24px;margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid #E8E6E1}
+.client-name{font-family:'Playfair Display',serif;font-size:32px;font-weight:400;letter-spacing:-.5px;margin-bottom:4px;line-height:1.1}
+.client-email{font-family:'DM Mono',monospace;font-size:11px;color:#9A9690;margin-bottom:12px}
+.client-tags{display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-size:10px;padding:3px 9px;background:#F4F3F0;border-radius:99px;color:#6B6762}
+.score-card{background:#0A0A0A;border-radius:12px;padding:18px 22px;text-align:center;min-width:140px}
+.score-num{font-family:'DM Mono',monospace;font-size:40px;font-weight:500;line-height:1}
+.score-denom{font-size:13px;font-weight:400;opacity:.35;margin-left:2px}
+.score-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;opacity:.4;margin-top:4px}
+.score-verdict{font-size:12px;font-weight:500;margin-top:10px;padding:5px 10px;border-radius:6px}
+/* SECTIONS */
 .section{margin-bottom:24px}
-.section-title{font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--g200);padding-bottom:6px;margin-bottom:14px}
+.section-title{font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.09em;border-bottom:1px solid #E8E6E1;padding-bottom:6px;margin-bottom:14px}
+/* GRID 2 cols */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+/* PERFIL */
+.field-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #F4F3F0}
+.field-lbl{font-size:11px;color:#9A9690}
+.field-val{font-size:12px;font-weight:500;color:#0A0A0A}
+.field-val.accent{color:#1B3A6B}
+.field-val.green{color:#1A5C3A}
+.field-val.red{color:#C0392B}
+/* MÈTRIQUES */
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+/* CARTERA / SCORING */
 table{width:100%;border-collapse:collapse}
-th{font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-bottom:1px solid var(--g200);text-align:left}
-td{padding:7px 8px;border-bottom:1px solid var(--g100);font-size:12px;color:var(--g500)}
-td:first-child{color:var(--black);font-weight:500}
-.score-big{font-family:var(--fm);font-size:42px;font-weight:500;color:var(--black);line-height:1}
-.score-track{flex:1;height:6px;background:var(--g200);border-radius:99px;overflow:hidden;max-width:180px}
-.score-fill{height:100%;background:var(--black);border-radius:99px}
-.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-.kpi{background:var(--g100);border-radius:8px;padding:10px;text-align:center}
-.kpi .lbl{font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.kpi .val{font-family:var(--fm);font-size:15px;font-weight:500}
-.diag{padding:12px 14px;border-radius:8px;font-size:12px;line-height:1.5;margin-bottom:16px}
-.nota-box{background:var(--g100);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--g700);line-height:1.6;font-style:italic;border-left:3px solid var(--g300);margin-bottom:16px}
-.disclaimer{margin-top:32px;padding-top:16px;border-top:1px solid var(--g200);font-size:10px;color:var(--g400);line-height:1.6}
-.footer{display:flex;justify-content:space-between;margin-top:20px;padding-top:12px;border-top:1px solid var(--g200);font-size:10px;color:var(--g400)}
-.print-btn{position:fixed;bottom:24px;right:24px;padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-family:var(--fb);cursor:pointer}
-@media print{.print-btn{display:none}@page{margin:15mm}}
-<\/style>
+th{font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.07em;padding:4px 8px;border-bottom:1px solid #E8E6E1;text-align:left}
+/* PROJECCIONS */
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.proj-card{border-radius:8px;padding:12px;text-align:center}
+.proj-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.proj-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:500}
+/* NOTA */
+.nota-box{background:#F4F3F0;border-radius:8px;padding:12px 14px;font-size:12px;color:#4A4845;line-height:1.65;border-left:3px solid #C8C5BE;font-style:italic}
+/* DISCLAIMER */
+.disc{margin-top:32px;padding-top:14px;border-top:1px solid #E8E6E1;font-size:10px;color:#9A9690;line-height:1.6}
+.footer{display:flex;justify-content:space-between;margin-top:14px;font-size:9px;color:#C8C5BE}
+/* PRINT */
+.print-btn{position:fixed;bottom:20px;right:20px;padding:10px 22px;background:#0A0A0A;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',system-ui;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+@media print{.print-btn{display:none}@page{margin:14mm}body{background:white}}
+</style>
 </head>
 <body>
 <div class="page">
 
+  <!-- HEADER -->
   <div class="hdr">
-    <div class="logo-row">
+    <div class="hdr-logo">
       <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
         <rect x="1" y="1" width="30" height="30" rx="3" fill="none" stroke="#0A0A0A" stroke-width="2"/>
         <circle cx="10" cy="11" r="2.2" fill="#0A0A0A"/>
@@ -1826,105 +1738,163 @@ td:first-child{color:var(--black);font-weight:500}
         <rect x="23" y="9" width="2" height="14" rx="1" fill="#0A0A0A"/>
       </svg>
       <div>
-        <div class="logo-name">The Boring Investor</div>
-        <div class="logo-sub">Assessoria Financera Independent</div>
+        <div class="hdr-brand">The Boring Investor</div>
+        <div class="hdr-sub">Assessoria Financera Independent · Fee-only</div>
       </div>
     </div>
-    <div>
-      <div class="doc-type">Informe de perfil inversor</div>
-      <div class="doc-date">${data}</div>
+    <div class="hdr-doc">
+      <div class="hdr-doc-type">Informe de perfil inversor</div>
+      <div class="hdr-doc-date">${data}</div>
     </div>
   </div>
 
-  <div class="client-grid">
+  <!-- CLIENT HERO -->
+  <div class="client-hero">
     <div>
-      <div style="font-size:10px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Client</div>
+      <div style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px">Client</div>
       <div class="client-name">${c.nom}</div>
-      <div class="client-email">${c.email || '-'}</div>
-      <div class="client-data">
-        <div class="datum"><div class="lbl">Capital inicial</div><div class="val">${c.perfil?.capitalInicial || '-'}</div></div>
-        <div class="datum"><div class="lbl">Aportació mensual</div><div class="val">${c.perfil?.aportacioMensual || '-'}</div></div>
-        <div class="datum"><div class="lbl">Horitzó</div><div class="val">${c.perfil?.horitzo || '-'}</div></div>
-        <div class="datum"><div class="lbl">Objectiu</div><div class="val">${c.perfil?.objectiu || '-'}</div></div>
+      <div class="client-email">${c.email||'—'}</div>
+      <div class="client-tags">
+        <span class="tag">${c.arquetip}</span>
+        <span class="tag">${c.cartera}</span>
+        <span class="tag">${c.estat==='ok'?'OK ✓':c.estat==='critic'?'Crític ⚠':c.estat==='revisio'?'Revisió':'Nou'}</span>
+        ${c.dataRevisio ? '<span class="tag">Revisió '+new Date(c.dataRevisio).toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'})+'</span>' : ''}
       </div>
     </div>
-    <div class="arquetip-box">
-      <div class="arq-label">Arquetip</div>
-      <div class="arq-nom">${c.arquetip}</div>
-      <div class="arq-ep">${c.perfil?.segment || 'Inversor particular'}</div>
-      <div class="arq-cart">${c.cartera}</div>
+    <div class="score-card">
+      <div class="score-num" style="color:${scoreColor}">${sc}<span class="score-denom">/100</span></div>
+      <div class="score-lbl" style="color:rgba(255,255,255,.4)">Scoring</div>
+      <div class="score-verdict" style="background:${scoreBg};color:${scoreColor}">${scoreLabel}</div>
     </div>
   </div>
 
+  <!-- GRID: Perfil financer + Risc -->
   <div class="section">
-    <div class="section-title">Scoring global de la cartera</div>
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">
-      <div class="score-big">${c.scoring}</div>
+    <div class="section-title">Dades del client</div>
+    <div class="grid-2">
       <div>
-        <div class="score-track"><div class="score-fill" style="width:${c.scoring}%"></div></div>
-        <div style="font-size:11px;color:#6B6762;margin-top:4px">Sobre 100 punts</div>
+        <div style="font-size:10px;font-weight:500;color:#9A9690;margin-bottom:8px">Dades financeres</div>
+        ${[
+          ['Capital inicial',     c.perfil?.capitalInicial||'—'],
+          ['Aportació mensual',   c.perfil?.aportacioMensual||'—'],
+          ['Despeses mensuals',   c.perfil?.despesesMensuals||'—'],
+          ['Horitzó temporal',    c.perfil?.horitzo||'—'],
+          ['Objectiu',            c.perfil?.objectiu||'—'],
+        ].map(([l,v])=>`<div class="field-row"><span class="field-lbl">${l}</span><span class="field-val">${v}</span></div>`).join('')}
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:500;color:#9A9690;margin-bottom:8px">Perfil de risc</div>
+        ${[
+          ['Risc financer',    c.perfil?.riscFinancer||'—',    'accent'],
+          ['Risc emocional',   c.perfil?.riscEmocional||'—',   'green'],
+          ['Coneixement',      c.perfil?.coneixement||'—',     ''],
+          ['Vol. tolerable',   c.perfil?.volTolerable||'—',    ''],
+          ['Drawdown màx.',    c.perfil?.drawdownMax||'—',     'red'],
+        ].map(([l,v,cls])=>`<div class="field-row"><span class="field-lbl">${l}</span><span class="field-val ${cls}">${v}</span></div>`).join('')}
       </div>
     </div>
-    <div class="diag" style="background:${diagBg};color:${diagColor}">${diagText}</div>
+  </div>
+
+  <!-- SCORING -->
+  <div class="section">
+    <div class="section-title">Scoring de cartera — ${sc}/100</div>
+    <div style="display:flex;gap:20px;align-items:start;margin-bottom:16px">
+      <div style="flex:1">
+        <div style="height:6px;background:#E8E6E1;border-radius:99px;overflow:hidden;margin-bottom:6px">
+          <div style="width:${sc}%;height:100%;background:${scoreColor};border-radius:99px"></div>
+        </div>
+        <div style="font-size:11px;color:#9A9690">Sobre 100 punts · 7 mòduls ponderats</div>
+      </div>
+      <div style="padding:8px 14px;background:${scoreBg};border-radius:8px;font-size:13px;font-weight:500;color:${scoreColor};white-space:nowrap">${scoreLabel}</div>
+    </div>
     <table>
-      <thead><tr><th>Mòdul</th><th>Pes</th><th>Puntuació</th></tr></thead>
+      <thead><tr><th>Mòdul</th><th style="text-align:center">Pes</th><th style="min-width:120px">Puntuació</th><th style="text-align:right">Valor</th></tr></thead>
       <tbody>${scoringRows}</tbody>
     </table>
   </div>
 
+  <!-- ACCIONS PRIORITÀRIES -->
+  ${sorted.slice(0,3).some(m=>m.score<7) ? `
   <div class="section">
- iv class="section-title">Cartera assignada \u2014 ${c.cartera}</div>
-    <div class="kpi-row">
-      <div class="kpi"><div class="lbl">TER estimat</div><div class="val">${c.ter || '\u2014'}</div></div>
-      <div class="kpi"><div class="lbl">Liquiditat</div><div class="val">${c.liquiditat || '\u2014'}</div></div>
-      <div class="kpi"><div class="lbl">Risc financer</div><div class="val">${c.perfil?.riscFinancer || '\u2014'}</div></div>
-    </div>
-    ${metricsSection}
-    <table>
-      <thead><tr><th>Bloc d'actiu</th><th style="text-align:center">Pes</th><th>Distribució</th></tr></thead>
-      <tbody>${carteraRows}</tbody>
-    </table>
-  </div>
-  ${scoringCarteraHTML}
+    <div class="section-title">Accions prioritàries de millora</div>
+    ${accionsRows}
+  </div>` : ''}
 
+  <!-- CARTERA -->
   <div class="section">
-    <div class="section-title">Projecció Montecarlo (escenaris a 10 anys)</div>
-    <div class="kpi-row">
-      <div class="kpi" style="background:#FDF0F0"><div class="lbl" style="color:#8B1A1A">Pessimista P10</div><div class="val" style="color:#8B1A1A">${c.projeccions?.p10 || '-'}</div></div>
-      <div class="kpi" style="background:#EBF0FA"><div class="lbl" style="color:#1B3A6B">Equilibrat P50</div><div class="val" style="color:#1B3A6B">${c.projeccions?.p50 || '-'}</div></div>
-      <div class="kpi" style="background:#EAF3DE"><div class="lbl" style="color:#1A5C3A">Optimista P90</div><div class="val" style="color:#1A5C3A">${c.projeccions?.p90 || '-'}</div></div>
+    <div class="section-title">Composició de cartera — ${c.cartera}</div>
+    <div class="grid-2" style="align-items:start;gap:24px">
+      <div>
+        <table>
+          <thead><tr><th>Actiu</th><th style="min-width:120px">Distribució</th><th style="text-align:right">Pes</th></tr></thead>
+          <tbody>${carteraRows}</tbody>
+        </table>
+        <div class="field-row" style="margin-top:8px"><span class="field-lbl">TER estimat</span><span class="field-val green">${c.ter||'—'}</span></div>
+        <div class="field-row"><span class="field-lbl">Liquiditat</span><span class="field-val">${c.liquiditat||'—'}</span></div>
+      </div>
+      <div>
+        ${metricsGrid ? `<div class="metrics-grid">${metricsGrid}</div>` : ''}
+      </div>
     </div>
-    <div style="font-size:10px;color:#9A9690;font-style:italic">Total aportat estimat: ${c.projeccions?.totalAportat || '-'}. Rendiments passats no garanteixen resultats futurs.</div>
   </div>
 
-  ${c.nota ? `<div class="section">
+  <!-- PROJECCIONS -->
+  <div class="section">
+    <div class="section-title">Projecció Montecarlo — escenaris a llarg termini</div>
+    <div class="proj-grid">
+      <div class="proj-card" style="background:#FDF0F0">
+        <div class="proj-lbl" style="color:#8B1A1A">P10 · Pessimista</div>
+        <div class="proj-val" style="color:#8B1A1A">${proj.p10||'—'}</div>
+      </div>
+      <div class="proj-card" style="background:#EBF0FA">
+        <div class="proj-lbl" style="color:#1B3A6B">P50 · Equilibrat</div>
+        <div class="proj-val" style="color:#1B3A6B">${proj.p50||'—'}</div>
+      </div>
+      <div class="proj-card" style="background:#EAF3DE">
+        <div class="proj-lbl" style="color:#1A5C3A">P90 · Optimista</div>
+        <div class="proj-val" style="color:#1A5C3A">${proj.p90||'—'}</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#9A9690">Total aportat estimat: ${totalAportat}. Simulació basada en model GBM. Els rendiments passats no garanteixen resultats futurs.</div>
+  </div>
+
+  <!-- NOTA ASSESSOR -->
+  ${c.nota ? `
+  <div class="section">
     <div class="section-title">Nota de l'assessor</div>
     <div class="nota-box">${c.nota}</div>
   </div>` : ''}
 
+  <!-- HISTORIAL -->
   <div class="section">
     <div class="section-title">Historial recent</div>
-    ${histItems || '<div style="color:#9A9690;font-size:12px">Sense entrades</div>'}
+    ${histItems}
   </div>
 
-  <div class="disclaimer">
-    <strong>Avís legal:</strong> Aquest informe és el resultat d'una eina d'anàlisi i educació financera independent. No constitueix assessorament d'inversió regulat en els termes de la Directiva MiFID II ni recomanació personalitzada d'inversió. Les projeccions es basen en models estadístics i no garanteixen resultats futurs. Cada inversor ha de valorar la seva situació personal amb un professional regulat i autoritzat. Guillem Puig està en procés d'obtenció de la certificació EFA (European Financial Advisor) - examen juny 2026.
+  <!-- DISCLAIMER -->
+  <div class="disc">
+    <strong>Avís legal:</strong> Aquest informe és el resultat d'una eina d'anàlisi i educació financera independent. No constitueix assessorament d'inversió regulat en els termes de la Directiva MiFID II ni recomanació personalitzada d'inversió. Les projeccions es basen en models estadístics i no garanteixen resultats futurs. Guillem Puig és candidat a la certificació EFA (European Financial Advisor) — examen juny 2026.
   </div>
-
   <div class="footer">
     <span>Guillem Puig · The Boring Investor · Assessoria Financera Independent</span>
-    <span>© 2026 · Document confidencial</span>
+    <span>Document confidencial · ${data}</span>
   </div>
 </div>
-<button class="print-btn" onclick="window.print()">Imprimir / PDF</button>
+<button class="print-btn" onclick="window.print()">Imprimir / PDF ↓</button>
 </body>
 </html>`;
 
-  // Obrir en nova finestra
-  const win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
-  toast('Informe generat - usa Imprimir/PDF per guardar-lo');
+  // Descarregar via Blob (sense popup blockers)
+  var blob = new Blob([htmlContent], {type:'text/html;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  a.download = 'TBI-informe-'+c.nom.replace(/\s+/g,'-').toLowerCase()+'-'+new Date().toISOString().slice(0,10)+'.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+  toast('Informe generat — obre el fitxer i usa Imprimir/PDF');
 }
 
 // ══════════════════════════════════════════════
@@ -5114,6 +5084,5 @@ loadData();
 navigate('dashboard');
 
 </script>
-
-
-</body></html>
+</body>
+</html>
