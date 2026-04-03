@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Boring Investor — Portal Client</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<style>
+:root{
+  --black:#0A0A0A;--white:#FFFFFF;--bg:#F7F6F4;
+  --g100:#F4F3F0;--g200:#E8E6E1;--g300:#C8C5BE;--g400:#9A9690;--g500:#6B6762;
+  --accent:#1B3A6B;--accent-l:#EBF0FA;
+  --green:#1A5C3A;--green-l:#EAF3DE;
+  --amber:#7A4A00;--amber-l:#FEF5E7;
+  --red:#8B1A1A;--red-l:#FDF0F0;
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',system-ui,sans-serif;
+  --fm:'DM Mono',monospace;
+  --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-smoothing:antialiased}
+/* ── TOPBAR ── */
+.topbar{height:56px;background:var(--white);border-bottom:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-brand{font-size:13px;font-weight:500}
+.topbar-sub{font-size:10px;color:var(--g400)}
+.logout-btn{font-size:12px;color:var(--g400);cursor:pointer;background:none;border:none;font-family:var(--fb);padding:6px 12px;border-radius:6px;transition:all .15s}
+.logout-btn:hover{background:var(--g100);color:var(--black)}
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{background:var(--white);border:1px solid var(--g200);border-radius:16px;padding:40px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.login-title{font-family:var(--fd);font-size:26px;font-weight:400;margin-bottom:6px;letter-spacing:-.3px}
+.login-sub{font-size:13px;color:var(--g400);margin-bottom:28px;line-height:1.6}
+.input{width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:8px;font-size:14px;font-family:var(--fb);background:var(--white);color:var(--black);outline:none;transition:border-color .15s;margin-bottom:12px}
+.input:focus{border-color:var(--accent)}
+.btn-primary{width:100%;padding:13px;background:var(--black);color:var(--white);border:none;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.4;cursor:default}
+.login-msg{font-size:12px;color:var(--g500);text-align:center;margin-top:14px;line-height:1.6}
+.login-msg.ok{color:var(--green)}
+.login-msg.err{color:var(--red)}
+/* ── PORTAL ── */
+.portal{max-width:780px;margin:0 auto;padding:32px 20px 60px}
+.portal-hello{margin-bottom:28px}
+.portal-hello-eye{font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px}
+.portal-hello-name{font-family:var(--fd);font-size:30px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px}
+.portal-hello-sub{font-size:13px;color:var(--g500)}
+/* Cards */
+.card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r);padding:20px 24px;margin-bottom:16px}
+.card-title{font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--g200)}
+/* Score */
+.score-hero{background:var(--black);border-radius:var(--r);padding:24px 28px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.score-left{}
+.score-arquetip-eye{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px}
+.score-arquetip{font-family:var(--fd);font-size:24px;font-weight:400;color:var(--white);margin-bottom:3px}
+.score-cartera{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px}
+.score-lema{font-size:12px;color:rgba(255,255,255,.6);font-style:italic;border-left:2px solid rgba(255,255,255,.2);padding-left:10px;line-height:1.6;max-width:340px}
+.score-right{text-align:right}
+.score-num{font-family:var(--fm);font-size:44px;font-weight:500;line-height:1}
+.score-denom{font-size:14px;opacity:.35;margin-left:2px}
+.score-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.4;margin-top:4px}
+/* Perfil grid */
+.perfil-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.perfil-item{padding:10px 12px;background:var(--g100);border-radius:8px}
+.perfil-lbl{font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.perfil-val{font-size:13px;font-weight:500;color:var(--black)}
+/* Cartera */
+.alloc-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--g100)}
+.alloc-row:last-child{border-bottom:none}
+.alloc-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.alloc-nom{font-size:12px;color:var(--black);flex:1}
+.alloc-bar-wrap{width:100px;height:4px;background:var(--g200);border-radius:99px;overflow:hidden}
+.alloc-bar{height:100%;border-radius:99px;background:var(--accent)}
+.alloc-pct{font-family:var(--fm);font-size:11px;color:var(--accent);min-width:32px;text-align:right}
+/* Dims */
+.dims-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px}
+.dim-item{text-align:center;padding:8px 3px;background:var(--g100);border-radius:7px}
+.dim-val{font-family:var(--fm);font-size:13px;font-weight:500}
+.dim-lbl{font-size:8px;color:var(--g400);margin-top:2px;line-height:1.2}
+/* Projeccions */
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.proj-card{padding:12px;border-radius:8px;text-align:center}
+.proj-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.proj-val{font-family:var(--fm);font-size:16px;font-weight:500}
+/* Historial */
+.hist-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--g100)}
+.hist-item:last-child{border-bottom:none}
+.hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.hist-titol{font-size:12px;font-weight:500;color:var(--black);margin-bottom:2px}
+.hist-data{font-size:10px;color:var(--g400)}
+.hist-desc{font-size:11px;color:var(--g500);margin-top:2px;line-height:1.5}
+/* Nota assessor */
+.nota-box{background:var(--g100);border-radius:8px;padding:14px 16px;font-size:13px;color:var(--g600);line-height:1.7;border-left:3px solid var(--g300);font-style:italic}
+/* Disc */
+.disc{font-size:10px;color:var(--g400);line-height:1.6;margin-top:24px;padding-top:14px;border-top:1px solid var(--g200)}
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;min-height:200px;font-size:13px;color:var(--g400)}
+/* Radar */
+.radar-wrap{max-width:260px;height:220px;margin:0 auto}
+@media(max-width:600px){
+  .perfil-grid{grid-template-columns:1fr}
+  .dims-grid{grid-template-columns:repeat(4,1fr)}
+  .proj-grid{grid-template-columns:1fr}
+  .score-hero{flex-direction:column}
+  .score-right{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<!-- ── TOPBAR (sempre visible) ── -->
+<div class="topbar" id="topbar" style="display:none">
+  <div class="topbar-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="#C8C5BE" stroke-width="1.5"/>
+      <circle cx="8.5" cy="10" r="2" fill="#0A0A0A"/>
+      <circle cx="8.5" cy="17" r="2" fill="#0A0A0A"/>
+      <rect x="12" y="13" width="5" height="1.5" rx=".75" fill="#0A0A0A"/>
+      <rect x="19" y="8" width="1.5" height="11" rx=".75" fill="#0A0A0A"/>
+    </svg>
+    <div>
+      <div class="topbar-brand">The Boring Investor</div>
+      <div class="topbar-sub">Portal del client</div>
+    </div>
+  </div>
+  <button class="logout-btn" onclick="logout()">Tancar sessió →</button>
+</div>
+
+<!-- ── LOGIN ── -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="30" height="30" rx="3" fill="none" stroke="#0A0A0A" stroke-width="2"/>
+        <circle cx="10" cy="11" r="2.2" fill="#0A0A0A"/>
+        <circle cx="10" cy="19" r="2.2" fill="#0A0A0A"/>
+        <rect x="14" y="14.2" width="7" height="2" rx="1" fill="#0A0A0A"/>
+        <rect x="23" y="9" width="2" height="14" rx="1" fill="#0A0A0A"/>
+      </svg>
+      <div>
+        <div style="font-size:13px;font-weight:500">The Boring Investor</div>
+        <div style="font-size:10px;color:var(--g400)">Portal del client</div>
+      </div>
+    </div>
+    <div class="login-title">Accedeix al teu perfil</div>
+    <div class="login-sub">Introdueix el teu email i t'enviarem un accés directe. Sense contrasenya.</div>
+    <input type="email" id="login-email" class="input" placeholder="el.teu@email.com" autocomplete="email">
+    <button class="btn-primary" id="login-btn" onclick="sendMagicLink()">Enviar accés →</button>
+    <div class="login-msg" id="login-msg"></div>
+  </div>
+</div>
+
+<!-- ── PORTAL (visible un cop autenticat) ── -->
+<div id="portal-wrap" style="display:none">
+  <div class="portal" id="portal-content">
+    <div class="loading">Carregant el teu perfil...</div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG SUPABASE ──
+const SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ'; // Substituir per la clau real
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── AUTH ──
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) showPortal(session.user.email);
+  else showLogin();
+
+  // Detectar magic link callback
+  sb.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_IN' && session) {
+      showPortal(session.user.email);
+    }
+  });
+}
+
+function showLogin() {
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('portal-wrap').style.display = 'none';
+  document.getElementById('topbar').style.display = 'none';
+}
+
+function showPortal(email) {
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('portal-wrap').style.display = 'block';
+  document.getElementById('topbar').style.display = 'flex';
+  loadClientData(email);
+}
+
+async function sendMagicLink() {
+  var email = document.getElementById('login-email').value.trim();
+  var btn   = document.getElementById('login-btn');
+  var msg   = document.getElementById('login-msg');
+  if (!email || !email.includes('@')) {
+    msg.className = 'login-msg err';
+    msg.textContent = 'Introdueix un email vàlid.';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Enviant...';
+  msg.textContent = '';
+
+  const { error } = await sb.auth.signInWithOtp({
+    email: email,
+    options: { emailRedirectTo: 'https://assessoria-ten.vercel.app/portal.html' }
+  });
+
+  if (error) {
+    msg.className = 'login-msg err';
+    msg.textContent = 'Error: ' + error.message;
+    btn.disabled = false;
+    btn.textContent = 'Enviar accés →';
+  } else {
+    msg.className = 'login-msg ok';
+    msg.textContent = '✓ Comprova el teu email — t\'hem enviat l\'accés. Pots tancar aquesta pestanya.';
+    btn.textContent = 'Enviat ✓';
+  }
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  showLogin();
+}
+
+// ── CARREGAR DADES DEL CLIENT ──
+async function loadClientData(email) {
+  var el = document.getElementById('portal-content');
+
+  // Buscar client per email
+  const { data: clients, error } = await sb
+    .from('clients')
+    .select('*')
+    .eq('email', email)
+    .limit(1);
+
+  if (error || !clients || clients.length === 0) {
+    el.innerHTML = '<div class="loading" style="flex-direction:column;gap:12px">'
+      + '<div style="font-size:32px">👋</div>'
+      + '<div>Benvingut/da! El teu perfil s\'està preparant.</div>'
+      + '<div style="font-size:12px;color:var(--g400)">Guillem Puig ha de completar la teva fitxa. Rebràs un avís quan estigui a punt.</div>'
+      + '</div>';
+    return;
+  }
+
+  var c = clients[0];
+  renderPortal(c, el);
+}
+
+// ── RENDER DEL PORTAL ──
+function renderPortal(c, el) {
+  var sc = c.scoring || 0;
+  var maxSc = 100;
+  var scoreColor = sc>=70?'#4CAF82':sc>=50?'#5B8FD4':sc>=30?'#D4943A':'#C0392B';
+  var scoreBg    = sc>=70?'#EAF3DE':sc>=50?'#EBF0FA':sc>=30?'#FEF5E7':'#FDF0F0';
+  var scoreLabel = sc>=70?'Excel·lent':sc>=50?'Bona base':sc>=30?'Millorable':'En revisió';
+  var perfil = c.perfil || {};
+  var cartera = c.cartera_composicio || [];
+  var mods    = c.scoring_mods || [];
+  var proj    = c.projeccions || {};
+  var hist    = c.historial || [];
+  var dlbls   = ['Objectius','Situació','Horitzó','Coneixement','Risc fin.','Risc em.','Preferències'];
+  var modNoms = ['Costos','Diversificació','Concentració','Coherència','Robustesa','Simplicitat','Procés'];
+  var dataAvui = new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+
+  // Alloc rows
+  var colors = ['#1B3A6B','#4CAF82','#D4943A','#C0392B','#6B6762','#9A9690','#3A3835'];
+  var allocHtml = cartera.map(function(a,i){
+    var col = a.color || colors[i%colors.length];
+    return '<div class="alloc-row">'
+      +'<div class="alloc-dot" style="background:'+col+'"></div>'
+      +'<div class="alloc-nom">'+a.nom+'</div>'
+      +'<div class="alloc-bar-wrap"><div class="alloc-bar" style="width:'+(a.pct||0)+'%;background:'+col+'"></div></div>'
+      +'<div class="alloc-pct">'+a.pct+'%</div>'
+      +'</div>';
+  }).join('') || '<div style="font-size:12px;color:var(--g400)">Pendent de definir</div>';
+
+  // Dims
+  var dimsHtml = dlbls.map(function(lbl,i){
+    var val = mods[i] || 0;
+    var pct = Math.round(val/4*100);
+    var col = pct>=70?'#1A5C3A':pct>=50?'#1B3A6B':pct>=30?'#7A4A00':'#8B1A1A';
+    return '<div class="dim-item">'
+      +'<div class="dim-val" style="color:'+col+'">'+val+'</div>'
+      +'<div class="dim-lbl">'+lbl+'</div>'
+      +'</div>';
+  }).join('');
+
+  // Historial (últimes 3)
+  var histHtml = hist.slice(0,3).map(function(h){
+    var dotCol = h.tipus==='alerta'?'#C0392B':h.tipus==='pendent'?'#D4700A':'#1B3A6B';
+    return '<div class="hist-item">'
+      +'<div class="hist-dot" style="background:'+dotCol+'"></div>'
+      +'<div>'
+        +'<div class="hist-titol">'+h.titol+'</div>'
+        +'<div class="hist-data">'+h.data+'</div>'
+        +(h.desc ? '<div class="hist-desc">'+h.desc+'</div>' : '')
+      +'</div>'
+      +'</div>';
+  }).join('') || '<div style="font-size:12px;color:var(--g400)">Sense entrades</div>';
+
+  el.innerHTML = ''
+    // ── Salutació ──
+    +'<div class="portal-hello">'
+      +'<div class="portal-hello-eye">Portal personal</div>'
+      +'<div class="portal-hello-name">Hola, '+c.nom.split(' ')[0]+' 👋</div>'
+      +'<div class="portal-hello-sub">El teu perfil inversor actualitzat a '+dataAvui+'</div>'
+    +'</div>'
+
+    // ── Score hero ──
+    +'<div class="score-hero">'
+      +'<div class="score-left">'
+        +'<div class="score-arquetip-eye">El teu arquetip inversor</div>'
+        +'<div class="score-arquetip">'+c.arquetip+'</div>'
+        +'<div class="score-cartera">Cartera: '+c.cartera+'</div>'
+      +'</div>'
+      +'<div class="score-right">'
+        +'<div class="score-num" style="color:'+scoreColor+'">'+sc+'<span class="score-denom">/100</span></div>'
+        +'<div style="padding:6px 12px;background:'+scoreBg+';border-radius:6px;font-size:11px;font-weight:500;color:'+scoreColor+';margin-top:6px;display:inline-block">'+scoreLabel+'</div>'
+      +'</div>'
+    +'</div>'
+
+    // ── Dades financeres ──
+    +'<div class="card">'
+      +'<div class="card-title">Dades financeres</div>'
+      +'<div class="perfil-grid">'
+        +[
+          ['Capital inicial', perfil.capitalInicial||'—'],
+          ['Aportació mensual', perfil.aportacioMensual||'—'],
+          ['Horitzó', perfil.horitzo||'—'],
+          ['Objectiu', perfil.objectiu||'—'],
+          ['Risc financer', perfil.riscFinancer||'—'],
+          ['Risc emocional', perfil.riscEmocional||'—'],
+        ].map(function(r){
+          return '<div class="perfil-item"><div class="perfil-lbl">'+r[0]+'</div><div class="perfil-val">'+r[1]+'</div></div>';
+        }).join('')
+      +'</div>'
+    +'</div>'
+
+    // ── Cartera ──
+    +(cartera.length>0 ? '<div class="card">'
+      +'<div class="card-title">Composició de cartera — '+c.cartera+'</div>'
+      +allocHtml
+      +'<div style="display:flex;gap:12px;margin-top:12px;padding-top:10px;border-top:1px solid var(--g100)">'
+        +(c.ter ? '<span style="font-size:10px;color:var(--g400)">TER: <strong>'+c.ter+'</strong></span>' : '')
+      +'</div>'
+    +'</div>' : '')
+
+    // ── Perfil 7 dimensions ──
+    +(mods.length>0 ? '<div class="card">'
+      +'<div class="card-title">Perfil de les 7 dimensions</div>'
+      +'<div class="dims-grid">'+dimsHtml+'</div>'
+      +'<div class="radar-wrap"><canvas id="radarChart"></canvas></div>'
+    +'</div>' : '')
+
+    // ── Projeccions ──
+    +(proj.p50 ? '<div class="card">'
+      +'<div class="card-title">Projecció Montecarlo</div>'
+      +'<div class="proj-grid">'
+        +'<div class="proj-card" style="background:#FDF0F0"><div class="proj-lbl" style="color:#8B1A1A">P10 Pessimista</div><div class="proj-val" style="color:#8B1A1A">'+(proj.p10||'—')+'</div></div>'
+        +'<div class="proj-card" style="background:#EBF0FA"><div class="proj-lbl" style="color:#1B3A6B">P50 Equilibrat</div><div class="proj-val" style="color:#1B3A6B">'+(proj.p50||'—')+'</div></div>'
+        +'<div class="proj-card" style="background:#EAF3DE"><div class="proj-lbl" style="color:#1A5C3A">P90 Optimista</div><div class="proj-val" style="color:#1A5C3A">'+(proj.p90||'—')+'</div></div>'
+      +'</div>'
+      +'<div style="font-size:10px;color:var(--g400);margin-top:10px">Simulació basada en model GBM. Els rendiments passats no garanteixen resultats futurs.</div>'
+    +'</div>' : '')
+
+    // ── Nota assessor ──
+    +(c.nota ? '<div class="card">'
+      +'<div class="card-title">Nota de l\'assessor</div>'
+      +'<div class="nota-box">'+c.nota+'</div>'
+    +'</div>' : '')
+
+    // ── Historial ──
+    +(hist.length>0 ? '<div class="card">'
+      +'<div class="card-title">Activitat recent</div>'
+      +histHtml
+    +'</div>' : '')
+
+    // ── Disclaimer ──
+    +'<div class="disc">Guillem Puig · The Boring Investor · Assessoria Financera Independent · Fee-only. '
+    +'Eina d\'educació financera independent. No constitueix assessorament d\'inversió regulat MiFID II. '
+    +'Candidat a la certificació EFA (juny 2026). Document confidencial generat el '+dataAvui+'.</div>';
+
+  // Radar
+  if (mods.length > 0) {
+    setTimeout(function(){
+      var canvas = document.getElementById('radarChart');
+      if (!canvas) return;
+      var maxV = Math.max(...[1,2,3,4,5,6,7].map(function(dn){
+        var qs = [1,2,3].length; return qs * 4;
+      }));
+      new Chart(canvas, {
+        type:'radar',
+        data:{
+          labels: dlbls,
+          datasets:[{
+            label:'El teu perfil',
+            data: mods,
+            borderColor:'rgba(27,58,107,0.9)',
+            backgroundColor:'rgba(27,58,107,0.12)',
+            borderWidth:2,
+            pointBackgroundColor:'#1B3A6B',
+            pointBorderColor:'white',
+            pointRadius:4,
+          },{
+            label:'Màxim',
+            data: dlbls.map(function(){return 12;}),
+            borderColor:'rgba(0,0,0,0.06)',
+            backgroundColor:'rgba(0,0,0,0.02)',
+            borderWidth:1,
+            borderDash:[4,4],
+            pointRadius:0,
+          }]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{r:{
+            min:0, max:12,
+            ticks:{stepSize:4,color:'rgba(0,0,0,.25)',backdropColor:'transparent',font:{size:9}},
+            grid:{color:'rgba(0,0,0,0.06)'},
+            pointLabels:{color:'#6B6762',font:{size:9}},
+            angleLines:{color:'rgba(0,0,0,0.06)'}
+          }}
+        }
+      });
+    }, 200);
+  }
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
