@@ -61,7 +61,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
   text-transform:uppercase;letter-spacing:.1em;
   padding:6px 12px;background:var(--accent-l);border-radius:99px;
   margin-bottom:28px;
-  animation:fadeUp .6s ease both;
+  
 }
 .hero-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent)}
 .hero-h1{
@@ -71,18 +71,18 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
   letter-spacing:-.5px;
   color:var(--black);
   margin-bottom:24px;
-  animation:fadeUp .6s .1s ease both;
+  
 }
 .hero-h1 em{font-style:italic;color:var(--accent)}
 .hero-sub{
   font-size:clamp(15px,2vw,18px);
   color:var(--g500);line-height:1.7;
   max-width:560px;margin-bottom:40px;
-  animation:fadeUp .6s .2s ease both;
+  
 }
 .hero-actions{
   display:flex;gap:12px;flex-wrap:wrap;
-  animation:fadeUp .6s .3s ease both;
+  
 }
 .btn-hero{
   padding:14px 28px;background:var(--black);color:var(--white);
@@ -100,7 +100,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
 .btn-hero-sec:hover{border-color:var(--black)}
 .hero-proof{
   margin-top:52px;display:flex;align-items:center;gap:20px;
-  animation:fadeUp .6s .4s ease both;
+  
 }
 .hero-proof-line{width:40px;height:1px;background:var(--g300)}
 .hero-proof-txt{font-size:12px;color:var(--g400);font-style:italic}
@@ -111,12 +111,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
 }
 .numbers-inner{
   max-width:900px;margin:0 auto;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
-  background:rgba(255,255,255,.08);
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;
 }
 .num-item{
-  padding:36px 32px;background:var(--black);text-align:center;
+  padding:40px 32px;background:var(--black);text-align:center;
+  border-right:1px solid rgba(255,255,255,.08);
 }
+.num-item:last-child{border-right:none}
 .num-val{
   font-family:var(--fd);font-size:clamp(36px,5vw,52px);
   font-weight:400;color:var(--white);margin-bottom:6px;letter-spacing:-.5px;
@@ -264,10 +266,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
 
 /* ── ANIMATIONS ── */
 @keyframes fadeUp{
-  from{opacity:0;transform:translateY(20px)}
+  from{opacity:0;transform:translateY(16px)}
   to{opacity:1;transform:translateY(0)}
 }
-.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease, transform .6s ease}
+/* Hero elements: visibles per defecte, animació com a millora progressiva */
+.hero-tag,.hero-h1,.hero-sub,.hero-actions,.hero-proof{
+  opacity:1;transform:none;
+}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .55s ease, transform .55s ease}
 .reveal.visible{opacity:1;transform:none}
 
 /* ── RESPONSIVE ── */
@@ -289,7 +295,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
 .pricing{padding:96px 32px;background:var(--white)}
 .pricing-sub{font-size:15px;color:var(--g500);margin-bottom:48px;line-height:1.6;max-width:560px}
 .pricing-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
+  display:grid;grid-template-columns:repeat(5,1fr);gap:14px;
   align-items:start;margin-bottom:40px;
 }
 .pack-card{
@@ -347,8 +353,11 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
 .pricing-guarantee-icon{font-size:24px;flex-shrink:0}
 .pricing-guarantee-title{font-size:12px;font-weight:500;color:var(--black);margin-bottom:3px}
 .pricing-guarantee-txt{font-size:11px;color:var(--g500);line-height:1.6}
-@media(max-width:900px){
-  .pricing-grid{grid-template-columns:repeat(2,1fr)}
+@media(max-width:1100px){
+  .pricing-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:700px){
+  .pricing-grid{grid-template-columns:repeat(1,1fr)}
   .pack-star{transform:none}
   .pricing-footer{grid-template-columns:1fr}
 }
@@ -615,6 +624,33 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
 
     <div class="pricing-grid">
 
+      <!-- PACK 00 -->
+      <div class="pack-card reveal">
+        <div class="pack-header">
+          <div class="pack-num">00</div>
+          <div class="pack-name">Senyal</div>
+          <div class="pack-tagline">Inverteix sense pensar-ho</div>
+        </div>
+        <div class="pack-price">
+          <span class="price-val">9,97€</span>
+          <span class="price-per">/mes</span>
+        </div>
+        <div class="pack-price-alt">o 79€/any <span class="price-save">— 2 mesos gratis</span></div>
+        <div class="pack-anchor">Menys que un cafè a la setmana. Sense reunions. Sense compromisos.</div>
+        <ul class="pack-features">
+          <li>✓ <strong>Senyal mensual</strong>: manté, rebalanceja o ajusta pes</li>
+          <li>✓ Seguiment de la cartera model TBI vs benchmark</li>
+          <li>✓ 1 consulta setmanal col·lectiva per email/newsletter</li>
+          <li>✓ Accés a l'arxiu de senyals anteriors</li>
+          <li class="muted">✗ Sense assessorament personalitzat</li>
+          <li class="muted">✗ Sense sessions individuals</li>
+        </ul>
+        <div class="pack-note">Per a qui vol orientació sense compromís</div>
+        <a class="pack-cta pack-cta-sec" href="/cdn-cgi/l/email-protection#aec9dbc7c2c2cbc3eedac6cbccc1dcc7c0c9c7c0d8cbdddac1dc80cdc1c391dddbccc4cbcdda93fecfcdc58efdcbc0d7cfc2">
+          Subscriure's →
+        </a>
+      </div>
+
       <!-- PACK 01 -->
       <div class="pack-card reveal">
         <div class="pack-header">
@@ -678,11 +714,11 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
           <div class="pack-tagline">Quelqu'un al teu costat</div>
         </div>
         <div class="pack-price">
-          <span class="price-val">67€</span>
+          <span class="price-val">49€</span>
           <span class="price-per">/mes</span>
         </div>
-        <div class="pack-price-alt">o 597€/any <span class="price-save">— 2 mesos gratis</span></div>
-        <div class="pack-anchor">Menys de 2,30€ al dia. Menys que un cafè i mitja.</div>
+        <div class="pack-price-alt">o 397€/any <span class="price-save">— 2 mesos gratis</span></div>
+        <div class="pack-anchor">Menys d'1,60€ al dia. Menys que un cafè.</div>
         <ul class="pack-features">
           <li>✓ Tot el que inclou Mapa</li>
           <li>✓ <strong>Revisió trimestral de cartera</strong></li>
@@ -702,25 +738,26 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
       <div class="pack-card reveal">
         <div class="pack-header">
           <div class="pack-num">04</div>
-          <div class="pack-name">Timoner</div>
-          <div class="pack-tagline">El timó a les teves mans</div>
+          <div class="pack-name">Family Office</div>
+          <div class="pack-tagline">El teu CFO personal</div>
         </div>
         <div class="pack-price">
-          <span class="price-val">127€</span>
+          <span class="price-val">99€</span>
           <span class="price-per">/mes</span>
         </div>
-        <div class="pack-price-alt">o 997€/any <span class="price-save">— estalvia 527€</span></div>
-        <div class="pack-anchor">Per a qui vol el màxim i no vol pensar-hi mai més.</div>
+        <div class="pack-price-alt">o 997€/any <span class="price-save">— 2 mesos gratis</span></div>
+        <div class="pack-anchor">El teu director financer personal. Per menys del que creus.</div>
         <ul class="pack-features">
           <li>✓ Tot el que inclou Rumb</li>
-          <li>✓ <strong>Pla de jubilació / independència financera</strong></li>
-          <li>✓ Sessió trimestral (en lloc d'anual)</li>
-          <li>✓ Optimització fiscal anual (IRPF, plus-vàlues)</li>
-          <li>✓ Accés prioritari (resposta &lt;12h)</li>
-          <li>✓ Cobertura familiar (fins 2 persones)</li>
-          <li>✓ Revisió i adaptació per canvis vitals</li>
+          <li>✓ <strong>Planificació financera familiar completa</strong></li>
+          <li>✓ Pla de jubilació i independència financera</li>
+          <li>✓ Consultoria fiscal: IRPF, plus-vàlues, optimització</li>
+          <li>✓ Qualsevol consulta financera 24/7 (resposta &lt;4h)</li>
+          <li>✓ Sessió mensual (vídeo o presencial)</li>
+          <li>✓ Cobertura familiar (fins 4 persones)</li>
+          <li>✓ Revisió per canvis vitals (feina, fills, herència, divorci)</li>
         </ul>
-        <div class="pack-note">Per a qui vol un copilot financer de per vida</div>
+        <div class="pack-note">Places limitades · Màxim 5 famílies simultànies</div>
         <a class="pack-cta pack-cta-sec" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
           Parlem →
         </a>
@@ -819,7 +856,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // FAQ toggle
 function toggleFaq(el) {
   var item = el.parentElement;
@@ -828,9 +865,26 @@ function toggleFaq(el) {
   if (!isOpen) item.classList.add('open');
 }
 
-// Scroll reveal
+// Scroll reveal — activar immediament si ja és visible al viewport
 var observer = new IntersectionObserver(function(entries) {
   entries.forEach(function(e) {
     if (e.isIntersecting) {
       e.target.classList.add('visible');
       observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+
+document.querySelectorAll('.reveal').forEach(function(el, i) {
+  el.style.transitionDelay = (i % 3 * 0.1) + 's';
+  var rect = el.getBoundingClientRect();
+  if (rect.top < window.innerHeight) {
+    setTimeout(function(){ el.classList.add('visible'); }, i * 60);
+  } else {
+    observer.observe(el);
+  }
+});
+</script>
+
+</body>
+</html>

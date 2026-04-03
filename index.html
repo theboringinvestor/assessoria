@@ -415,6 +415,34 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 .deploy-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.3); flex-shrink: 0; }
 .deploy-dot.active { background: #7FD9A0; box-shadow: 0 0 0 3px rgba(127,217,160,.2); }
 
+
+/* ── SCORING MÒDULS ── */
+.mod-block{background:var(--white);border:1px solid var(--gray-200);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.mod-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;transition:background .12s;user-select:none}
+.mod-header:hover{background:var(--gray-100)}
+.mod-header-left{display:flex;align-items:center;gap:10px}
+.mod-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.mod-label-main{font-size:13px;font-weight:500;color:var(--black)}
+.mod-label-weight{font-size:10px;color:var(--gray-400)}
+.mod-header-right{display:flex;align-items:center;gap:10px}
+.mod-score-pill{font-size:12px;font-weight:500;padding:3px 10px;border-radius:99px;color:var(--black);font-family:var(--font-mono)}
+.mod-chevron{font-size:11px;color:var(--gray-400);transition:transform .15s}
+.mod-body{padding:12px 16px;border-top:1px solid var(--gray-100)}
+.mod-rubrica{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.rubrica-row{display:flex;align-items:start;gap:10px;padding:8px 10px;border-radius:7px;cursor:pointer;transition:background .12s;border:1px solid transparent}
+.rubrica-row:hover{background:var(--gray-100);border-color:var(--gray-200)}
+.rubrica-row input[type=checkbox]{margin-top:2px;flex-shrink:0;accent-color:var(--accent);width:14px;height:14px;cursor:pointer}
+.rubrica-content{flex:1}
+.rubrica-lbl{font-size:12px;font-weight:500;color:var(--black);line-height:1.4;margin-bottom:2px}
+.rubrica-info{font-size:10px;color:var(--gray-400);line-height:1.4}
+.rubrica-pts{font-size:11px;font-weight:500;color:var(--accent);min-width:24px;text-align:right;font-family:var(--font-mono)}
+.mod-score-row{border-top:1px solid var(--gray-100);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.mod-score-auto{font-size:12px;color:var(--gray-500);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mod-score-auto strong{color:var(--black);font-family:var(--font-mono)}
+.btn-apply-auto{font-size:11px;padding:3px 10px;border-radius:6px;background:var(--accent);color:white;border:none;cursor:pointer;font-family:var(--font-body)}
+.btn-apply-auto:hover{opacity:.85}
+.mod-slider-row{display:flex;align-items:center;gap:10px}
+.mod-val{font-size:13px;font-weight:500;min-width:36px;text-align:right;font-family:var(--font-mono)}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -803,13 +831,56 @@ async function sincronitzarTotSupabase() {
 const CLIENTS_INICIALS = [{"id": "gm001", "nom": "Guillem Morales", "email": "guillem.morales@email.com", "arquetip": "El Tresorer", "cartera": "V · La Muralla", "avColor": "av-blue", "scoring": 76, "dataRevisio": "2026-03-01", "estat": "ok", "perfil": {"capitalInicial": "2.000 €", "aportacioMensual": "300 €/mes", "horitzo": "10 anys", "objectiu": "Protegir els estalvis", "segment": "Classe mitjana inversora", "riscFinancer": "Moderat (4/12)", "riscEmocional": "Baix (3/12)", "coneixement": "Iniciació (5/12)", "volTolerable": "-10%", "drawdownMax": "-15%"}, "nota": "Primera sessió 01/03/2026. Conservador real. Fons emergència insuficient. Prioritat: construir coixí abans d'augmentar RV.", "carteraComposicio": [{"nom": "RF Curta (Gov AAA)", "pct": 40, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 25, "color": "#BA7517"}, {"nom": "RV Global Defensiva", "pct": 20, "color": "#185FA5"}, {"nom": "Liquiditat (remunerat)", "pct": 10, "color": "#B4B2A9"}, {"nom": "REITs defensiu", "pct": 5, "color": "#3B6D11"}], "ter": "~0.14%", "liquiditat": "Alta", "projeccions": {"p10": "7.800€", "p50": "18.400€", "p90": "32.100€", "totalAportat": "38.000€"}, "historial": [{"data": "1 mar 2026", "titol": "Sessió inicial", "desc": "Perfil conservador confirmat. Fons emergència al 30%.", "tipus": "normal"}, {"data": "1 feb 2026", "titol": "Onboarding completat", "desc": "Arquetip: El Tresorer. Score: 38/84.", "tipus": "normal"}], "scoringMods": [4, 5, 4, 6, 3, 4, 3]}, {"id": "jv002", "nom": "Joan Vidal", "email": "joan.vidal@email.com", "arquetip": "L'Alquimista", "cartera": "VII · L'Alambí", "avColor": "av-amber", "scoring": 22, "dataRevisio": "2026-02-15", "estat": "critic", "perfil": {"capitalInicial": "15.000 €", "aportacioMensual": "500 €/mes", "horitzo": "8 anys", "objectiu": "Creixement accelerat", "segment": "Classe mitjana inversora", "riscFinancer": "Alt (10/12)", "riscEmocional": "Molt baix (2/12)", "coneixement": "Mig (7/12)", "volTolerable": "-30%", "drawdownMax": "-40%"}, "nota": "Alta energia sense procés. Historial de decisions impulsives. Necessita la valvula de vapor del 10% satellit.", "carteraComposicio": [{"nom": "RV Global Core", "pct": 50, "color": "#185FA5"}, {"nom": "RF Curta", "pct": 20, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 10, "color": "#BA7517"}, {"nom": "REITs", "pct": 10, "color": "#3B6D11"}, {"nom": "Satellit lliure", "pct": 10, "color": "#534AB7"}], "ter": "~0.20%", "liquiditat": "Mitja", "projeccions": {"p10": "18.200€", "p50": "52.400€", "p90": "98.700€", "totalAportat": "63.000€"}, "historial": [{"data": "15 feb 2026", "titol": "Alerta: decisió impulsiva", "desc": "Ha comprat 3.000 en crypto sense consultar.", "tipus": "alert"}, {"data": "1 feb 2026", "titol": "Sessió inicial", "desc": "Perfil Alquimista confirmat. Risc emocional molt baix.", "tipus": "normal"}], "scoringMods": [2, 1, 2, 5, 8, 1, 3]}, {"id": "ap003", "nom": "Anna Puig", "email": "anna.puig@email.com", "arquetip": "El Navegant", "cartera": "III · El Galeó", "avColor": "av-green", "scoring": 68, "dataRevisio": "2026-03-10", "estat": "revisio", "perfil": {"capitalInicial": "25.000 €", "aportacioMensual": "400 €/mes", "horitzo": "15 anys", "objectiu": "Acumular capital jubilació", "segment": "Classe mitjana inversora", "riscFinancer": "Mig-Alt (8/12)", "riscEmocional": "Mig (6/12)", "coneixement": "Mig (7/12)", "volTolerable": "-20%", "drawdownMax": "-25%"}, "nota": "Bon perfil equilibrat. Dividend ETF funciona com a ancoratge psicologic. Pendent revisar REITs.", "carteraComposicio": [{"nom": "RV Global Indexada", "pct": 45, "color": "#185FA5"}, {"nom": "Dividend ETF Global", "pct": 20, "color": "#3B6D11"}, {"nom": "RF Diversificada", "pct": 20, "color": "#888780"}, {"nom": "Or físic ETP", "pct": 10, "color": "#BA7517"}, {"nom": "REITs Global", "pct": 5, "color": "#639922"}], "ter": "~0.15%", "liquiditat": "Mitja-Alta", "projeccions": {"p10": "28.400€", "p50": "78.600€", "p90": "142.300€", "totalAportat": "97.000€"}, "historial": [{"data": "10 mar 2026", "titol": "Revisió trimestral", "desc": "Cartera alineada. REITs a vigilar.", "tipus": "normal"}, {"data": "1 gen 2026", "titol": "Sessió inicial", "desc": "Arquetip El Navegant. Score: 52/84.", "tipus": "normal"}], "scoringMods": [7, 6, 8, 7, 7, 6, 7]}, {"id": "nb004", "nom": "Client Nou", "email": "", "arquetip": "Pendent", "cartera": "Pendent qüestionari", "avColor": "av-gray", "scoring": 0, "dataRevisio": "-", "estat": "ok", "perfil": {"capitalInicial": "-", "aportacioMensual": "-", "horitzo": "-", "objectiu": "-", "segment": "-", "riscFinancer": "-", "riscEmocional": "-", "coneixement": "-", "volTolerable": "-", "drawdownMax": "-"}, "nota": "Primer contacte pendent. Enviar qüestionari d'onboarding.", "carteraComposicio": [], "ter": "-", "liquiditat": "-", "projeccions": {"p10": "-", "p50": "-", "p90": "-", "totalAportat": "-"}, "historial": [{"data": "20 mar 2026", "titol": "Alta al sistema", "desc": "Client creat. Pendent sessió inicial.", "tipus": "normal"}], "scoringMods": [5, 5, 5, 5, 5, 5, 5]}];
 
 const MODULES = [
-  {id:'s1', label:'S1 · Costos', weight:.20, color:'#E24B4A'},
-  {id:'s2', label:'S2 · Diversificació', weight:.20, color:'#185FA5'},
-  {id:'s3', label:'S3 · Concentració', weight:.15, color:'#BA7517'},
-  {id:'s4', label:'S4 · Coherència', weight:.20, color:'#3B6D11'},
-  {id:'s5', label:'S5 · Robustesa', weight:.10, color:'#534AB7'},
-  {id:'s6', label:'S6 · Simplicitat', weight:.05, color:'#888780'},
-  {id:'s7', label:'S7 · Procés', weight:.10, color:'#0F6E56'},
+  {id:'s1', label:'Costos',          weight:.20, color:'#E24B4A',
+   rubrica: [
+     {lbl:'TER mig ponderat <0,20%',  pts:4, info:'ETFs indexats purs (Vanguard, iShares core, Amundi Prime)'},
+     {lbl:'TER mig ponderat <0,50%',  pts:2, info:'Fons indexats o ETFs de baix cost acceptables'},
+     {lbl:'TER mig ponderat <1,50%',  pts:1, info:'Considera alternatives indexades equivalents'},
+     {lbl:'Sense comissions de custòdia o plataforma innecessàries', pts:2, info:'MyInvestor, DEGIRO, IB: zero custòdia'},
+     {lbl:'Menys de 2 capes de cost (broker + producte)', pts:2, info:'Evitar roboadvisors a sobre d\'ETFs'},
+   ]},
+  {id:'s2', label:'Diversificació',   weight:.20, color:'#185FA5',
+   rubrica: [
+     {lbl:'Cobertura global: 40+ països (MSCI World o equivalent)', pts:3, info:'Un sol ETF MSCI World cobreix ~85% del mercat global'},
+     {lbl:'Diversificació d\'actius: RV + RF o alternatius',         pts:3, info:'RV pura és vàlida per horitzons >10 anys'},
+     {lbl:'Diversificació geogràfica: mercats emergents inclosos',   pts:2, info:'>10% emergents o fons global que els inclogui'},
+     {lbl:'Diversificació de divises (EUR + USD + altres)',          pts:2, info:'ETFs globals ja incorporen diversificació natural de divisa'},
+   ]},
+  {id:'s3', label:'Concentració',     weight:.15, color:'#BA7517',
+   rubrica: [
+     {lbl:'Cap posició individual >25% del total',                   pts:4, info:'Risc de concentració elevat per sobre d\'aquest llindar'},
+     {lbl:'Cap país o sector >40% del total',                        pts:3, info:'Inclou exposició indirecta via ETFs'},
+     {lbl:'Mínim 4 actius diferenciats a la cartera',                pts:2, info:'Diversificació mínima funcional'},
+     {lbl:'Cap actiu especulatiu (crypto, leveraged) >5%',           pts:1, info:'Satèl·lit permès fins al 5% si és conscient'},
+   ]},
+  {id:'s4', label:'Coherència',       weight:.20, color:'#3B6D11',
+   rubrica: [
+     {lbl:'% RV s\'alinea amb risc declarat al perfil (±15%)',       pts:4, info:'Perfil conservador: <40% RV. Moderat: 40-70%. Creixement: >70%'},
+     {lbl:'Horitzó temporal coherent amb la volatilitat de la cartera', pts:3, info:'Cartera 80% RV amb horitzó <5 anys = incoherent'},
+     {lbl:'Capacitat d\'estalvi permet fer aportacions planificades', pts:2, info:'DCA consistent sense liquidar en mal moment'},
+     {lbl:'Fons d\'emergència separat i operatiu (≥3 mesos despeses)', pts:1, info:'El FE mai ha de ser part de la cartera d\'inversió'},
+   ]},
+  {id:'s5', label:'Robustesa',        weight:.10, color:'#534AB7',
+   rubrica: [
+     {lbl:'Kit anti-pànic escrit: pla d\'acció per caiguda >20%',   pts:4, info:'Documentar: "si cau X% faré Y" — evita decisions emocionals'},
+     {lbl:'Diversificació de plataformes (no tot en un sol broker)',  pts:3, info:'Risc operatiu: Lehman Brothers tenia SIPC però va costar anys'},
+     {lbl:'No hi ha préstecs o crèdit vinculat a inversions',         pts:2, info:'Deute i inversió barrejats multipliquen el risc psicològic'},
+     {lbl:'Revisió anual de la cartera planificada al calendari',     pts:1, info:'Sense data concreta no es revisa. Posar al calendari ara.'},
+   ]},
+  {id:'s6', label:'Simplicitat',      weight:.05, color:'#888780',
+   rubrica: [
+     {lbl:'Màxim 7 posicions a la cartera (regla Buffett)',           pts:4, info:'Cada posició addicional requereix seguiment i complica les decisions'},
+     {lbl:'Màxim 2 plataformes de broker',                           pts:3, info:'Més plataformes = més friccions i risc d\'oblit'},
+     {lbl:'Sense productes que l\'inversor no entén al 100%',         pts:2, info:'Si no pots explicar per a què serveix, no hauries de tenir-lo'},
+     {lbl:'Tot es pot gestionar en <1 hora/trimestre',                pts:1, info:'Cartera simple = cartera que es manté i no s\'abandona'},
+   ]},
+  {id:'s7', label:'Procés',           weight:.10, color:'#0F6E56',
+   rubrica: [
+     {lbl:'Aportació automàtica mensual configurada (DCA)',           pts:4, info:'Automatitzar = eliminar la decisió emocional de "quan entrar"'},
+     {lbl:'Protocol de rebalanceig definit (criteris i freqüència)',  pts:3, info:'Exemple: "rebalanceig anual o si algun actiu desvia >10%"'},
+     {lbl:'Registre de decisions i raonaments (diari inversor)',      pts:2, info:'Escriure "per qué vaig comprar X" evita decisions irracionals futures'},
+     {lbl:'Revisió anual amb assessor o seguint un checklist propi',  pts:1, info:'Una hora a l\'any per revisar l\'estratègia global'},
+   ]},
 ];
 
 // ══════════════════════════════════════════════
@@ -1370,17 +1441,143 @@ function renderTabHistorial(c) {
 // ══════════════════════════════════════════════
 function renderScoring() {
   const c = getCurrentClient();
-  const initScores = (c && c.scoringMods) ? c.scoringMods : [5,5,5,5,5,5,5];
+  const saved = (c && c.scoringMods) ? c.scoringMods : [5,5,5,5,5,5,5];
+  const savedChecks = (c && c.scoringChecks) ? c.scoringChecks : {};
 
-  document.getElementById('sliders-container').innerHTML = MODULES.map((m,i) => `
-    <div class="mod-row">
-      <div class="mod-label">${m.label}<br><span style="font-size:9px;color:var(--gray-300)">${Math.round(m.weight*100)}%</span></div>
-      <input type="range" min="0" max="10" step="1" value="${initScores[i]}" id="sl-${m.id}" oninput="updateScoring()">
-      <div class="mod-val" id="sv-${m.id}" style="color:${m.color}">${initScores[i]}/10</div>
-    </div>
-  `).join('');
+  // Intentar auto-calcular S1 (TER), S3 (concentració), S6 (nombre actius) des de cartera
+  const cartera = (c && c.carteraComposicio) || [];
+  const ter = parseFloat(c && c.ter) || null;
+
+  document.getElementById('sliders-container').innerHTML = MODULES.map((m, mi) => {
+    const sv = saved[mi] || 0;
+    const checks = savedChecks[m.id] || {};
+
+    // Auto-hint per S1 (Costos) si tenim TER
+    let autoHint = '';
+    if (m.id === 's1' && ter) {
+      autoHint = `<div style="font-size:10px;color:var(--accent);margin-bottom:6px;padding:4px 8px;background:var(--accent-light);border-radius:4px">
+        ℹ TER actual: ${ter} — marca els criteris corresponents manualment
+      </div>`;
+    }
+    if (m.id === 's3' && cartera.length > 0) {
+      const maxPct = Math.max(...cartera.map(a => parseFloat(a.pct) || 0));
+      autoHint = `<div style="font-size:10px;color:var(--accent);margin-bottom:6px;padding:4px 8px;background:var(--accent-light);border-radius:4px">
+        ℹ Posició màxima actual: ${maxPct}%${maxPct > 25 ? ' ⚠ supera el 25%' : ' ✓'}
+      </div>`;
+    }
+    if (m.id === 's6' && cartera.length > 0) {
+      autoHint = `<div style="font-size:10px;color:var(--accent);margin-bottom:6px;padding:4px 8px;background:var(--accent-light);border-radius:4px">
+        ℹ Actius actuals: ${cartera.length}${cartera.length > 7 ? ' ⚠ supera el màxim recomanat de 7' : ' ✓'}
+      </div>`;
+    }
+
+    const maxPts = m.rubrica.reduce((s,r) => s+r.pts, 0);
+    const checkedPts = m.rubrica.reduce((s,r,ri) => s+(checks[ri]?r.pts:0), 0);
+    const autoScore = Math.round(checkedPts / maxPts * 10);
+
+    return `<div class="mod-block" id="mod-${m.id}">
+      <div class="mod-header" onclick="toggleMod('${m.id}')">
+        <div class="mod-header-left">
+          <div class="mod-dot" style="background:${m.color}"></div>
+          <div>
+            <div class="mod-label-main">${m.label}</div>
+            <div class="mod-label-weight">${Math.round(m.weight*100)}% del total</div>
+          </div>
+        </div>
+        <div class="mod-header-right">
+          <div class="mod-score-pill" id="pill-${m.id}" style="background:${scoreColor(sv)}">
+            ${sv}/10
+          </div>
+          <div class="mod-chevron">▸</div>
+        </div>
+      </div>
+
+      <div class="mod-body" id="body-${m.id}" style="display:none">
+        ${autoHint}
+        <div class="mod-rubrica">
+          ${m.rubrica.map((r,ri) => `
+            <label class="rubrica-row" onclick="recalcMod('${m.id}', ${mi})">
+              <input type="checkbox" id="chk-${m.id}-${ri}"
+                ${checks[ri] ? 'checked' : ''}
+                onchange="recalcMod('${m.id}', ${mi})">
+              <div class="rubrica-content">
+                <div class="rubrica-lbl">${r.lbl}</div>
+                <div class="rubrica-info">${r.info}</div>
+              </div>
+              <div class="rubrica-pts">+${r.pts}</div>
+            </label>
+          `).join('')}
+        </div>
+
+        <div class="mod-score-row">
+          <div class="mod-score-auto">
+            Puntuació calculada: <strong id="auto-${m.id}">${autoScore}/10</strong>
+            <button onclick="applyAutoScore('${m.id}', ${mi})" class="btn-apply-auto">Aplicar →</button>
+          </div>
+          <div class="mod-slider-row">
+            <span style="font-size:11px;color:var(--gray-400)">Ajust manual:</span>
+            <input type="range" min="0" max="10" step="1" value="${sv}"
+              id="sl-${m.id}" oninput="updateScoring()"
+              style="flex:1">
+            <div class="mod-val" id="sv-${m.id}" style="color:${m.color}">${sv}/10</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 
   updateScoring();
+}
+
+function scoreColor(v) {
+  return v>=8?'#EAF3DE':v>=6?'#EBF0FA':v>=4?'#FEF5E7':'#FDF0F0';
+}
+
+function toggleMod(id) {
+  const body = document.getElementById('body-'+id);
+  const chevron = document.querySelector('#mod-'+id+' .mod-chevron');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (chevron) chevron.textContent = open ? '▸' : '▾';
+}
+
+function recalcMod(id, mi) {
+  const m = MODULES[mi];
+  const maxPts = m.rubrica.reduce((s,r) => s+r.pts, 0);
+  let pts = 0;
+  m.rubrica.forEach((r,ri) => {
+    const chk = document.getElementById('chk-'+id+'-'+ri);
+    if (chk && chk.checked) pts += r.pts;
+  });
+  const autoScore = Math.round(pts / maxPts * 10);
+  const autoEl = document.getElementById('auto-'+id);
+  if (autoEl) autoEl.textContent = autoScore + '/10';
+  // Guardar checks
+  saveChecks(id, mi);
+}
+
+function applyAutoScore(id, mi) {
+  const autoEl = document.getElementById('auto-'+id);
+  if (!autoEl) return;
+  const score = parseInt(autoEl.textContent);
+  const sl = document.getElementById('sl-'+id);
+  if (sl) { sl.value = score; updateScoring(); }
+  // Feedback visual
+  const btn = document.querySelector('#mod-'+id+' .btn-apply-auto');
+  if (btn) { btn.textContent = '✓'; setTimeout(() => btn.textContent='Aplicar →', 1200); }
+}
+
+function saveChecks(id, mi) {
+  const c = getCurrentClient();
+  if (!c) return;
+  c.scoringChecks = c.scoringChecks || {};
+  c.scoringChecks[id] = {};
+  const m = MODULES[mi];
+  m.rubrica.forEach((r,ri) => {
+    const chk = document.getElementById('chk-'+id+'-'+ri);
+    c.scoringChecks[id][ri] = chk ? chk.checked : false;
+  });
+  saveData();
 }
 
 function getScores() {
@@ -4034,105 +4231,142 @@ function renderGlossari() {
 // RENDER SERVEIS I TARIFES
 // ══════════════════════════════════════════════
 function renderServeis() {
-  const el = document.getElementById('serveis-content');
-  if(!el) return;
+  const el = document.getElementById('screen-serveis');
+  if (!el) return;
+
+  const isEs = LANG === 'es';
+
+  const packs = [
+    {
+      num:'00', name: isEs?'Señal':'Senyal',
+      tagline: isEs?'Invierte sin pensarlo':'Inverteix sense pensar-ho',
+      preu: '9,97€', per: isEs?'/mes':'/mes',
+      anual: isEs?'79€/año — 2 meses gratis':'79€/any — 2 mesos gratis',
+      anchor: isEs?'Menos que un café a la semana. Sin reuniones.':'Menys que un cafè a la setmana. Sense reunions.',
+      items: isEs
+        ? ['Señal mensual: mantén, rebalancea o ajusta peso','Seguimiento cartera modelo TBI vs benchmark','1 consulta semanal colectiva (newsletter)','Acceso al archivo de señales anteriores']
+        : ['Senyal mensual: manté, rebalanceja o ajusta pes','Seguiment de la cartera model TBI vs benchmark','1 consulta setmanal col·lectiva (newsletter)','Accés a l\'arxiu de senyals anteriors'],
+      nota: isEs?'Para quien quiere orientación sin compromiso':'Per a qui vol orientació sense compromís',
+      color:'var(--g700)',
+    },
+    {
+      num:'01', name: isEs?'Brújula':'Brúixola',
+      tagline: isEs?'Sabes dónde estás':'Saps on estàs',
+      preu: '47€', per: isEs?'pago único':'pagament únic',
+      anual: '',
+      anchor: isEs?'Menos que una cena. Más útil que diez.':'Menys que un sopar. Més útil que deu.',
+      items: isEs
+        ? ['Qüestionario de perfil inversor (7 dimensiones)','Informe de diagnóstico personalizado','Cartera modelo recomendada','Scoring de cartera actual','Acceso al portal personal 30 días']
+        : ['Qüestionari de perfil inversor (7 dimensions)','Informe de diagnòstic personalitzat','Cartera model recomanada','Scoring de cartera actual','Accés al portal personal 30 dies'],
+      nota: isEs?'100% digital · Entrega en 48h · Sin reuniones':'100% digital · Entrega en 48h · Zero reunions',
+      color:'var(--accent)',
+    },
+    {
+      num:'02', name: isEs?'Mapa':'Mapa',
+      tagline: isEs?'Sabes adónde ir':'Saps on anar',
+      preu: '147€', per: isEs?'pago único':'pagament únic',
+      anual: '',
+      anchor: isEs?'Menos que una consulta médica privada.':'Menys que una consulta d\'especialista privat.',
+      items: isEs
+        ? ['Todo lo de Brújula','1 sesión de 90 min (presencial o vídeo)','Plan de inversión personalizado por objetivo','Análisis fondo de emergencia y liquidez','Cartera detallada por broker y producto','Acceso al portal personal 90 días']
+        : ['Tot el que inclou Brúixola','1 sessió de 90 min (presencial o vídeo)','Pla d\'inversió personalitzat per objectiu','Anàlisi del fons d\'emergència i liquiditat','Cartera detallada per broker i producte','Accés al portal personal 90 dies'],
+      nota: isEs?'Ideal si nunca has tenido un plan financiero':'Ideal si mai has tingut un pla financer clar',
+      color:'var(--accent)',
+    },
+    {
+      num:'03', name: 'Rumb',
+      tagline: isEs?'Alguien a tu lado':'Quelqu\'un al teu costat',
+      preu: '49€', per: isEs?'/mes':'/mes',
+      anual: isEs?'o 397€/año — 2 meses gratis':'o 397€/any — 2 mesos gratis',
+      anchor: isEs?'Menos de 1,60\u20ac al día. Menos que un café.':'Menys d\u20191,60\u20ac al dia. Menys que un caf\u00e8.',
+      items: isEs
+        ? ['Todo lo de Mapa','Revisión trimestral de cartera','Seguimiento DCA mensual automatizado','Q&A email/WhatsApp (respuesta <48h)','Alertas si hay que rebalancear','Portal personal permanente']
+        : ['Tot el que inclou Mapa','Revisió trimestral de cartera','Seguiment DCA mensual automatitzat','Q&A email/WhatsApp (resposta <48h)','Alertes si cal rebalancejar','Portal personal permanent'],
+      nota: isEs?'La mayoría de clientes eligen este plan':'La majoria de clients trien aquest pla',
+      color:'var(--accent)',
+      star: true,
+    },
+    {
+      num:'04', name: 'Family Office',
+      tagline: isEs?'Tu CFO personal':'El teu CFO personal',
+      preu: '99€', per: isEs?'/mes':'/mes',
+      anual: isEs?'o 997€/año — 2 meses gratis':'o 997€/any — 2 mesos gratis',
+      anchor: isEs?'Tu director financiero personal. Por menos de lo que crees.':'El teu director financer personal. Per menys del que creus.',
+      items: isEs
+        ? ['Todo lo de Rumb','Planificación financiera familiar completa','Plan de jubilación e independencia financiera','Consultoría fiscal: IRPF, plusvalías, optimización','Cualquier consulta financiera 24/7 (respuesta <4h)','Sesión mensual (vídeo o presencial)','Cobertura familiar (hasta 4 personas)','Revisión por cambios vitales (trabajo, hijos, herencia)']
+        : ['Tot el que inclou Rumb','Planificació financera familiar completa','Pla de jubilació i independència financera','Consultoria fiscal: IRPF, plus-vàlues, optimització','Qualsevol consulta financera 24/7 (resposta <4h)','Sessió mensual (vídeo o presencial)','Cobertura familiar (fins 4 persones)','Revisió per canvis vitals (feina, fills, herència)'],
+      nota: isEs?'Plazas limitadas · Máximo 5 familias simultáneas':'Places limitades · Màxim 5 famílies simultànies',
+      color:'var(--black)',
+    },
+  ];
+
+  const onboardingUrl = 'https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html';
 
   el.innerHTML = `
-    <div style="max-width:780px;margin:0 auto;padding:0 4px">
+    <div style="max-width:900px;margin:0 auto;padding:0 4px">
 
-      <!-- Capçalera -->
       <div style="margin-bottom:28px">
-        <div style="font-size:11px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">${LANG==='es'?'Modelo fee-only · Sin comisiones de terceros':'Model fee-only · Sense comissions de tercers'}</div>
-        <div style="font-size:26px;font-weight:500;color:var(--black);margin-bottom:8px">${t('nav.serveis')}</div>
-        <div style="font-size:14px;color:var(--gray-500);line-height:1.7;max-width:560px">
-          ${LANG==='es'?'Asesoramiento financiero independiente. Cobro únicamente por mis servicios, nunca por la venta de productos. Tus intereses y los míos están alineados.':'Assessorament financer independent. Cobro únicament pels meus serveis, mai per la venda de productes. Els teus interessos i els meus estan alineats.'}
+        <div style="font-size:10px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">
+          ${isEs?'Servicios y tarifas':'Serveis i tarifes'}
+        </div>
+        <div style="font-family:var(--font-serif);font-size:26px;font-weight:400;color:var(--black);margin-bottom:8px;letter-spacing:-.3px">
+          ${isEs?'Comienza por lo que necesitas.<br>Crece cuando quieras.':'Comença pel que necessites.<br>Creix quan vulguis.'}
+        </div>
+        <div style="font-size:13px;color:var(--gray-500);line-height:1.6;max-width:560px">
+          ${isEs
+            ?'Modelo fee-only: cobro únicamente por mis servicios, nunca comisiones de productos. Transparencia total.'
+            :'Model fee-only: cobro únicament pels meus serveis, mai comissions de productes. Transparència total.'}
         </div>
       </div>
 
-      <!-- Grid de serveis -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px">
-
-        <div style="background:var(--black);border-radius:var(--radius);padding:22px 24px;color:white">
-          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:12px">Pack 01</div>
-          <div style="font-size:18px;font-weight:500;margin-bottom:6px">${LANG==='es'?'Diagnóstico Financiero':'Diagnòstic Financer'}</div>
-          <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);margin-bottom:14px">300<span style="font-size:14px;color:rgba(255,255,255,.5)"> – 500€</span></div>
-          <div style="height:1px;background:rgba(255,255,255,.1);margin-bottom:14px"></div>
-          <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.8">
-            ✓ Qüestionari d'onboarding complet<br>
-            ✓ Anàlisi del perfil inversor (7 dimensions)<br>
-            ✓ Informe de diagnòstic personalitzat<br>
-            ✓ Cartera model recomanada<br>
-            ✓ 1 sessió de 90 min (presencial o videotrucada)
+      <!-- PACKS GRID -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:32px">
+        ${packs.map(p => `
+          <div style="background:${p.star?'var(--white)':'var(--white)'};border:${p.star?'2px solid var(--accent)':'1px solid var(--gray-200)'};border-radius:14px;padding:20px 18px;position:relative;${p.star?'box-shadow:0 6px 24px rgba(27,58,107,.12);transform:translateY(-4px)':''}">
+            ${p.star?`<div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;font-size:10px;font-weight:500;padding:3px 12px;border-radius:99px;white-space:nowrap">${isEs?'Más elegido':'Més escollit'}</div>`:''}
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--gray-400);margin-bottom:5px">${p.num}</div>
+            <div style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--black);margin-bottom:2px">${p.name}</div>
+            <div style="font-size:11px;color:var(--gray-400);font-style:italic;margin-bottom:14px">${p.tagline}</div>
+            <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:3px">
+              <span style="font-family:var(--font-serif);font-size:28px;font-weight:400;color:var(--black)">${p.preu}</span>
+              <span style="font-size:12px;color:var(--gray-400)">${p.per}</span>
+            </div>
+            ${p.anual?`<div style="font-size:11px;color:var(--gray-400);margin-bottom:6px">${p.anual}</div>`:''}
+            <div style="font-size:10px;color:var(--gray-500);font-style:italic;padding:6px 8px;background:var(--gray-100);border-radius:5px;margin-bottom:14px;line-height:1.5">${p.anchor}</div>
+            <ul style="list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:14px">
+              ${p.items.map(it=>`<li style="font-size:11px;color:var(--gray-600);line-height:1.5">✓ ${it}</li>`).join('')}
+            </ul>
+            <div style="font-size:9px;color:var(--gray-400);text-align:center;margin-bottom:12px;font-style:italic">${p.nota}</div>
+            <a href="${onboardingUrl}" target="_blank"
+              style="display:block;text-align:center;padding:10px;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;cursor:pointer;font-family:var(--font-body);transition:opacity .15s;${p.star?'background:var(--accent);color:white':'background:transparent;color:var(--black);border:1.5px solid var(--gray-200)'}">
+              ${isEs?'Empezar →':'Començar →'}
+            </a>
           </div>
-          <div style="margin-top:16px;font-size:10px;color:rgba(255,255,255,.3)">Sessió única · Sense compromís de continuïtat</div>
+        `).join('')}
+      </div>
+
+      <!-- ROI BOX -->
+      <div style="background:var(--gray-100);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center">
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--black);margin-bottom:6px">${isEs?'El coste de no hacer nada':'El cost de no fer res'}</div>
+          <div style="font-size:12px;color:var(--gray-500);line-height:1.7">
+            ${isEs
+              ?'Un fondo de gestión activa cobra 1,5-2% anual. Un ETF indexado equivalente: 0,12%. Sobre 30.000€, la diferencia es <strong style="color:var(--black)">+414€/año para siempre</strong>. El Pack Brújula son 47€.'
+              :'Un fons de gestió activa cobra 1,5-2% anual. Un ETF indexat equivalent: 0,12%. Sobre 30.000€, la diferència és <strong style="color:var(--black)">+414€/any per sempre</strong>. El Pack Brúixola és 47€.'}
+          </div>
         </div>
-
-        <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
-          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Pack 02</div>
-          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">${LANG==='es'?'Diseño de Cartera':'Disseny de Cartera'}</div>
-          <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">800<span style="font-size:14px;color:var(--gray-400)"> – 1.500€</span></div>
-          <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
-          <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
-            ✓ Tot el Pack 01 inclòs<br>
-            ✓ Selecció de productes específics (ETFs, fons)<br>
-            ✓ Pla d'implementació pas a pas<br>
-            ✓ Fiscalitat i optimització fiscal<br>
-            ✓ Simulació Montecarlo personalitzada<br>
-            ✓ 2 sessions de seguiment (3 mesos)
-          </div>
-          <div style="margin-top:16px;font-size:10px;color:var(--gray-400)">Recomanat per a noves carteres o reestructuració</div>
-        </div>
-
-        <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
-          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Pack 03</div>
-          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">${LANG==='es'?'Seguimiento Recurrente':'Seguiment Recurrent'}</div>
-          <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">100<span style="font-size:14px;color:var(--gray-400)"> – 200€/trim.</span></div>
-          <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
-          <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
-            ✓ Revisió trimestral de cartera<br>
-            ✓ Recomanació DCA mensual<br>
-            ✓ Alertes de rebalanceig<br>
-            ✓ 1 sessió trimestral de 45 min<br>
-            ✓ Suport per missatgeria (dubtes puntuals)
-          </div>
-          <div style="margin-top:16px;font-size:10px;color:var(--gray-400)">Disponible per a clients amb Pack 02 completat</div>
-        </div>
-
-        <div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:22px 24px">
-          <div style="font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-400);margin-bottom:12px">Consultoria</div>
-          <div style="font-size:18px;font-weight:500;color:var(--black);margin-bottom:6px">${LANG==='es'?'Sesión Puntual':'Sessió Puntual'}</div>
-          <div style="font-size:28px;font-weight:400;font-family:var(--font-mono);color:var(--black);margin-bottom:14px">150<span style="font-size:14px;color:var(--gray-400)"> – 250€/hora</span></div>
-          <div style="height:1px;background:var(--gray-200);margin-bottom:14px"></div>
-          <div style="font-size:12px;color:var(--gray-500);line-height:1.8">
-            ✓ Dubte concret o decisió puntual<br>
-            ✓ Revisió d'una inversió específica<br>
-            ✓ Planificació d'un event financer (herència, canvi feina...)<br>
-            ✓ Sense compromís de continuïtat
-          </div>
-          <div style="margin-top:16px;font-size:10px;color:var(--gray-400)">Mínim 1 hora · Format lliure</div>
+        <div style="text-align:center;padding:16px 20px;background:var(--white);border-radius:10px;border:1px solid var(--gray-200)">
+          <div style="font-size:24px;margin-bottom:4px">🤝</div>
+          <div style="font-size:11px;font-weight:500;color:var(--black);margin-bottom:3px">${isEs?'Sin compromiso inicial':'Sense compromís inicial'}</div>
+          <div style="font-size:10px;color:var(--gray-400);line-height:1.5">${isEs?'20 min gratis para todos los packs':'20 min gratis per a tots els packs'}</div>
         </div>
       </div>
 
-      <!-- Model fee-only explicat -->
-      <div style="background:var(--gray-100);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px">
-        <div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:10px">${LANG==='es'?'¿Por qué fee-only?':'Per que fee-only?'}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
-          <div>
-            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">${LANG==='es'?'Sin conflicto de intereses':"Sense conflicte d'interessos"}</div>
-            <div style="font-size:11px;color:var(--gray-500);line-height:1.6">No cobro comissions de cap entitat financera. No tinc incentiu per recomanar cap producte específic.</div>
-          </div>
-          <div>
-            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">${LANG==='es'?'Transparencia total':'Transparència total'}</div>
-            <div style="font-size:11px;color:var(--gray-500);line-height:1.6">Saps exactament el que pagues i per que. L'únic cost ets tu, no productes de tercers.</div>
-          </div>
-          <div>
-            <div style="font-size:11px;font-weight:500;color:var(--accent);margin-bottom:4px">${LANG==='es'?"Alineación de objetivos":"Alineació d'objectius"}</div>
-            <div style="font-size:11px;color:var(--gray-500);line-height:1.6">El meu èxit depèn del teu resultat a llarg termini, no del volum de productes col·locats.</div>
-          </div>
-        </div>
+      <div style="font-size:10px;color:var(--gray-400);text-align:center;line-height:1.6">
+        ${isEs
+          ?'Tarifas orientativas. Precio final acordado en primera sesión gratuita. IVA no incluido. Actividad pendiente de certificación EFA (junio 2026).'
+          :'Tarifes orientatives. Preu final acordat en primera sessió gratuïta. IVA no inclòs. Activitat pendent de certificació EFA (juny 2026).'}
       </div>
-
-      <div class="disclaimer">${LANG==='es'?'Tarifas orientativas. El precio final se acuerda en la primera sesión gratuita de 20 min. IVA no incluido. Actividad pendiente de certificación EFA (junio 2026).':"Tarifes orientatives. El preu final s'acorda en la primera sessió gratuïta de 20 min. IVA no inclòs. Activitat pendent de certificació EFA (juny 2026)."}</div>
     </div>
   `;
 }
