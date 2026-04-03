@@ -1,4 +1,8 @@
-<!DOCTYPE html>
+<button onclick="sincronitzarTotSupabase()" title="Sincronitzar tots els clients a Supabase"
+        style="padding:6px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:transparent;color:var(--g500);font-family:var(--fb)">
+        ☁ Sync Supabase
+      </button>
+      <!DOCTYPE html>
 <html lang="ca">
 <head>
 <meta charset="UTF-8">
@@ -412,6 +416,105 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 .deploy-dot.active { background: #7FD9A0; box-shadow: 0 0 0 3px rgba(127,217,160,.2); }
 
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+
+
+// ══════════════════════════════════════════════════════
+// SUPABASE — Sincronització clients + accés portal
+// ══════════════════════════════════════════════════════
+
+const SUPA_URL  = 'https://nvcmwhzcskihgktltavm.supabase.co';
+const SUPA_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
+const PORTAL_URL = 'https://assessoria-ten.vercel.app/portal.html';
+let _sb = null;
+
+function getSb() {
+  if (!_sb) {
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+      _sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+    }
+  }
+  return _sb;
+}
+
+async function sincronitzarSupabase(clientId) {
+  const c = clients.find(function(x){ return x.id === clientId; });
+  if (!c) { toast('Client no trobat'); return false; }
+  if (!c.email) { toast('El client necessita email per sincronitzar'); return false; }
+  const sb = getSb();
+  if (!sb) { toast('Supabase no disponible'); return false; }
+
+  const payload = {
+    id:                 c.id,
+    nom:                c.nom,
+    email:              c.email,
+    arquetip:           c.arquetip || null,
+    cartera:            c.cartera  || null,
+    scoring:            c.scoring  !== undefined ? parseInt(c.scoring) : null,
+    estat:              c.estat    || 'nou',
+    perfil:             c.perfil   || {},
+    cartera_composicio: c.carteraComposicio || [],
+    scoring_mods:       c.scoringMods || [],
+    projeccions:        c.projeccions || {},
+    nota:               c.nota     || null,
+    historial:          c.historial || [],
+    ter:                c.ter      || null,
+    liquiditat:         c.liquiditat || null,
+  };
+
+  try {
+    const res = await sb.from('clients').upsert(payload, { onConflict: 'id' });
+    if (res.error) throw res.error;
+    return true;
+  } catch (e) {
+    toast('Error Supabase: ' + (e.message||e));
+    return false;
+  }
+}
+
+async function donarAccesPortal(clientId) {
+  const c = clients.find(function(x){ return x.id === clientId; });
+  if (!c || !c.email) { toast('Necessites un email per enviar l\'accés'); return; }
+  const sb = getSb();
+  if (!sb) { toast('Supabase no disponible'); return; }
+
+  var btn = document.getElementById('btn-portal-' + clientId);
+  if (btn) { btn.textContent = '⏳ Enviant...'; btn.disabled = true; }
+
+  var synced = await sincronitzarSupabase(clientId);
+  if (!synced) {
+    if (btn) { btn.textContent = '🌐 Portal client'; btn.disabled = false; }
+    return;
+  }
+
+  try {
+    var res = await sb.auth.signInWithOtp({
+      email: c.email,
+      options: { emailRedirectTo: PORTAL_URL, shouldCreateUser: true }
+    });
+    if (res.error) throw res.error;
+    if (btn) { btn.textContent = '✓ Accés enviat'; btn.disabled = false; }
+    toast('✓ Magic link enviat a ' + c.email);
+  } catch (e) {
+    if (btn) { btn.textContent = '🌐 Portal client'; btn.disabled = false; }
+    toast('Error: ' + (e.message||e));
+  }
+}
+
+async function sincronitzarTotSupabase() {
+  var ok = 0, err = 0;
+  for (var i = 0; i < clients.length; i++) {
+    var c = clients[i];
+    if (!c.email) continue;
+    var res = await sincronitzarSupabase(c.id);
+    res ? ok++ : err++;
+  }
+  toast('Sync Supabase: ' + ok + ' clients' + (err ? ' · ' + err + ' errors' : ''));
+}
+
+</script>
 </head>
 <body>
 
@@ -767,6 +870,11 @@ function navigate(screen, clientId) {
       <button class="btn btn-sm" onclick="navigate('dashboard')">← Dashboard</button>
       <button class="btn btn-sm" onclick="navigate('scoring', currentClientId)">Scoring ↗</button>
       <button class="btn btn-sm btn-primary" onclick="generarInforme()">${t('btn.informe')}</button>
+      <button id="btn-portal-${currentClientId}" onclick="donarAccesPortal('${currentClientId}')"
+        style="padding:8px 14px;background:#1B3A6B;color:white;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:opacity .15s;margin-left:8px"
+        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+        🌐 Portal client
+      </button>
     `;
     renderFitxa();
   } else if (screen === 'scoring') {
@@ -4633,7 +4741,7 @@ const TRANSLATIONS = {
 // Comprova cada 30 seg si hi ha onboardings nous
 // ══════════════════════════════════════════════════════
 
-const SHEETS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzE__3ybWTxaiqCBeZ9Ehu1VxePmTUHqzyxAsR87cjXtaZRHbtPAqPO02jfxf2ElON8/exec";
+const SHEETS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvkgxmH-vgSr5iJeOphiZPgySnjs5r0MDeZozc8MaPH8mbT6Out50GJUcUMtkB7VRW/exec";
 let _syncInterval = null;
 let _lastSyncTime = null;
 let _syncEnabled  = false;
@@ -4876,55 +4984,95 @@ async function fetchMacroData() {
 
 
 function renderTickers(data, el, updEl) {
+  // Mapa de símbols Yahoo Finance → nom display
+  // Només índexs reals (no ETFs proxy)
   var META = {
-    'SPY':{'nom':'S&P 500'}, 'URTH':{'nom':'MSCI World'}, 'EWP':{'nom':'IBEX 35'},
-    'GLD':{'nom':'Or'}, 'BTC-USD':{'nom':'BTC','crypto':true}, 'TLT':{'nom':'RF 20a'}
+    '^GSPC':    {nom:'S&P 500',       decimals:0},
+    '^STOXX50E':{nom:'EuroStoxx 50',  decimals:0},
+    '^IBEX':    {nom:'IBEX 35',       decimals:0},
+    'GLD':      {nom:'Or (ETF)',       decimals:2},
+    'BTC-USD':  {nom:'BTC/USD',       decimals:0, crypto:true},
+    '^TNX':     {nom:'US Bond 10Y',   decimals:2, suffix:'%'},
   };
+
   var html = '';
   var hasQuotes = data.quotes && data.quotes.length > 0;
 
+  // ── Mercats (Yahoo Finance via proxy) ──
   if (hasQuotes) {
+    var rendered = 0;
     data.quotes.forEach(function(q) {
-      var m = META[q.symbol]; if (!m) return;
+      var m = META[q.symbol];
+      if (!m) return;
       var price = q.price || 0;
       var chg   = q.chg   || 0;
       var cls   = chg > 0.05 ? 'ticker-up' : chg < -0.05 ? 'ticker-down' : 'ticker-flat';
-      var sign  = chg > 0.05 ? '+' : '';
-      var ps    = m.crypto ? ((price>=1000?(price/1000).toFixed(1)+'k':price.toFixed(0))+'$') : price.toFixed(2);
-      html += '<div class="ticker-item"><span class="ticker-name">'+m.nom+'</span><span class="ticker-price">'+ps+'</span><span class="ticker-chg '+cls+'">'+sign+chg.toFixed(2)+'%</span></div>';
+      var sign  = chg > 0 ? '+' : '';
+      var dec   = m.decimals !== undefined ? m.decimals : 2;
+      var priceStr = m.crypto
+        ? price.toLocaleString('ca-ES', {maximumFractionDigits:0})
+        : price.toLocaleString('ca-ES', {minimumFractionDigits:dec, maximumFractionDigits:dec}) + (m.suffix||'');
+      html += '<div class="ticker-item '+cls+'">'
+        +'<span class="ticker-nom">'+m.nom+'</span>'
+        +'<span class="ticker-price">'+priceStr+'</span>'
+        +'<span class="ticker-chg">'+sign+chg.toFixed(2)+'%</span>'
+        +'</div>';
+      rendered++;
     });
-  } else {
-    // Sense dades de Yahoo: mostrar placeholders de cada índex
-    var REFS = [
-      {nom:'S&P 500', val:'562'}, {nom:'MSCI World', val:'115.8'},
-      {nom:'IBEX 35', val:'36.1'}, {nom:'Or', val:'246'},
-      {nom:'BTC', val:'87k$'}, {nom:'RF 20a', val:'88.6'}
-    ];
-    REFS.forEach(function(r) {
-      html += '<div class="ticker-item" style="opacity:.45"><span class="ticker-name">'+r.nom+'</span><span class="ticker-price">'+r.val+'</span><span class="ticker-chg ticker-flat">ref.</span></div>';
-    });
+    if (rendered > 0) html += '<div class="ticker-sep"></div>';
   }
 
-  // BCE
-  html += '<div class="ticker-item" style="background:var(--accent-light)"><span class="ticker-name" style="color:var(--accent)">BCE</span><span class="ticker-price" style="color:var(--accent)">'+(data.bce!==null&&data.bce!==undefined?(+data.bce).toFixed(2)+'%':'2.50%')+'</span><span class="ticker-chg ticker-flat" style="color:var(--accent-mid)">Deposit</span></div>';
+  // ── Macro (fonts obertes directes) ──
 
-  // IPC
-  var ipc = data.ipc!==null&&data.ipc!==undefined ? +data.ipc : null;
-  var icls = ipc===null?'ticker-flat':ipc>3?'ticker-down':ipc>1.5?'ticker-flat':'ticker-up';
-  html += '<div class="ticker-item" style="background:var(--amber-light)"><span class="ticker-name" style="color:var(--amber)">IPC ES</span><span class="ticker-price" style="color:var(--amber)">'+(ipc!==null?ipc.toFixed(1)+'%':'2.9%')+'</span><span class="ticker-chg '+icls+'">Interanual</span></div>';
+  // BCE — tipus de referència
+  if (data.bce !== null && data.bce !== undefined) {
+    var bce = parseFloat(data.bce);
+    window._macroCache = window._macroCache || {};
+    window._macroCache['BCE_RATE'] = bce;
+    html += '<div class="ticker-item ticker-flat">'
+      +'<span class="ticker-nom">BCE tipus</span>'
+      +'<span class="ticker-price">'+bce.toFixed(2)+'%</span>'
+      +'<span class="ticker-chg" style="color:var(--g400)">ref</span></div>';
+  }
 
-  // EUR/USD
-  var fx = data.eurusd;
-  html += '<div class="ticker-item"><span class="ticker-name">EUR/USD</span><span class="ticker-price">'+(fx?(+fx).toFixed(4):'1.0821')+'</span><span class="ticker-chg ticker-flat">Canvi</span></div>';
+  // EUR/USD — Frankfurter
+  if (data.eurusd) {
+    html += '<div class="ticker-item ticker-flat">'
+      +'<span class="ticker-nom">EUR/USD</span>'
+      +'<span class="ticker-price">'+parseFloat(data.eurusd).toFixed(4)+'</span>'
+      +'<span class="ticker-chg" style="color:var(--g400)">fx</span></div>';
+  }
 
-  if (html && el) el.innerHTML = html;
-  if (updEl) {
-    if (data._isFallback) {
-      updEl.textContent = 'Referència · actualitzant...';
-    } else {
-      var now = new Date();
-      updEl.textContent = (hasQuotes ? '' : '~ ') + now.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'});
-    }
+  html += '<div class="ticker-sep"></div>';
+
+  // IPC Espanya — INE
+  if (data.ipc !== null && data.ipc !== undefined) {
+    var ipc = parseFloat(data.ipc);
+    var cls = ipc > 3 ? 'ticker-down' : ipc > 2 ? 'ticker-flat' : 'ticker-up';
+    html += '<div class="ticker-item '+cls+'">'
+      +'<span class="ticker-nom">IPC Spain</span>'
+      +'<span class="ticker-price">'+ipc.toFixed(1)+'%</span>'
+      +'<span class="ticker-chg">INE</span></div>';
+  }
+
+  // IPC Eurozona — Eurostat HICP
+  if (data.ipcEZ !== null && data.ipcEZ !== undefined) {
+    var ipcEZ = parseFloat(data.ipcEZ);
+    var clsEZ = ipcEZ > 3 ? 'ticker-down' : ipcEZ > 2 ? 'ticker-flat' : 'ticker-up';
+    html += '<div class="ticker-item '+clsEZ+'">'
+      +'<span class="ticker-nom">IPC Eurozona</span>'
+      +'<span class="ticker-price">'+ipcEZ.toFixed(1)+'%</span>'
+      +'<span class="ticker-chg">Eurostat</span></div>';
+  }
+
+  if (!html) {
+    html = '<span style="font-size:11px;color:var(--g400);padding:0 8px">Connectant...</span>';
+  }
+
+  if (el) el.innerHTML = html;
+  if (updEl && data.ts) {
+    var d = new Date(data.ts);
+    updEl.textContent = d.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'});
   }
 }
 
