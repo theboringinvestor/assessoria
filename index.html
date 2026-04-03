@@ -449,6 +449,288 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 <script>
 
 
+
+// ══════════════════════════════════════════════════════
+// GOOGLE CALENDAR — Link pre-emplenat
+// ══════════════════════════════════════════════════════
+function generarLinkCalendari(c) {
+  if (!c || !c.properaReunio || !c.properaReunio.data) return null;
+
+  var data = new Date(c.properaReunio.data);
+  if (isNaN(data.getTime())) return null;
+
+  var dataFi = new Date(data.getTime() + 90 * 60000); // 90 min per defecte
+
+  // Format Google Calendar: YYYYMMDDTHHmmssZ
+  function toGcalDate(d) {
+    return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  }
+
+  var titol = 'The Boring Investor · ' + c.nom;
+  if (c.properaReunio.tema) titol += ' · ' + c.properaReunio.tema;
+
+  var descripcio = 'Reunió d\'assessorament financer\n'
+    + 'Client: ' + c.nom + '\n'
+    + (c.properaReunio.tema ? 'Tema: ' + c.properaReunio.tema + '\n' : '')
+    + (c.properaReunio.format ? 'Format: ' + c.properaReunio.format + '\n' : '')
+    + (c.properaReunio.lloc ? 'Lloc/Enllaç: ' + c.properaReunio.lloc + '\n' : '')
+    + (c.email ? 'Email client: ' + c.email : '');
+
+  var lloc = c.properaReunio.lloc || c.properaReunio.format || 'Per definir';
+
+  var params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: titol,
+    dates: toGcalDate(data) + '/' + toGcalDate(dataFi),
+    details: descripcio,
+    location: lloc,
+  });
+
+  return 'https://calendar.google.com/calendar/render?' + params.toString();
+}
+
+function obrirCalendari() {
+  var c = getCurrentClient();
+  if (!c) return;
+  var link = generarLinkCalendari(c);
+  if (link) {
+    window.open(link, '_blank');
+  } else {
+    toast(t('btn.pendent') + ' — ' + (LANG==='es'?'Selecciona una fecha de reunión primero':'Selecciona una data de reunió primer'));
+  }
+}
+
+
+// ══════════════════════════════════════════════════════
+// EDUCACIÓ FINANCERA — Seminaris i material
+// ══════════════════════════════════════════════════════
+
+const SEMINARIS = [
+  {
+    id: 's01',
+    num: '01',
+    titol: 'Inversió for Beginners',
+    subtitol: 'Introducció i fonaments',
+    slides: '1–13',
+    temes: ['Què és invertir?','Per què invertir?','Risc i gestió','Glossari bàsic','Interès compost','Rendibilitat & Volatilitat','Perfil inversor'],
+    durada: '90 min',
+    icona: '🧭',
+    color: '#1B3A6B',
+    colorL: '#EBF0FA',
+    pptxUrl: 'https://theboringinvestor.github.io/assessoria/The_Boring_Investor.pptx',
+  },
+  {
+    id: 's02',
+    num: '02',
+    titol: 'Mètodes d\'Inversió',
+    subtitol: 'Hype, Trading, Long Term, Immobles',
+    slides: '14–21',
+    temes: ['Hype i trampes','Trading i Swing','Inversió a llarg termini','Cash i immobles','Cicles de mercat'],
+    durada: '90 min',
+    icona: '📈',
+    color: '#1A5C3A',
+    colorL: '#EAF3DE',
+    pptxUrl: 'https://theboringinvestor.github.io/assessoria/The_Boring_Investor.pptx',
+  },
+  {
+    id: 's03',
+    num: '03',
+    titol: 'Actius Financers I',
+    subtitol: 'Accions, Bons, Matèries Primeres',
+    slides: '22–27',
+    temes: ['Accions i tipus','Bons i renda fixa','Matèries primeres','Diversificació entre actius'],
+    durada: '90 min',
+    icona: '🏦',
+    color: '#7A4A00',
+    colorL: '#FEF5E7',
+    pptxUrl: 'https://theboringinvestor.github.io/assessoria/The_Boring_Investor.pptx',
+  },
+  {
+    id: 's04',
+    num: '04',
+    titol: 'Actius Financers II',
+    subtitol: 'ETFs, Fons Indexats, Crypto i alternatius',
+    slides: '28–42',
+    temes: ['ETFs','Fons indexats vs gestió activa','Plans de pensions i PIAS','Crowdlending','Crypto-actius','Fons monetaris'],
+    durada: '90 min',
+    icona: '⚡',
+    color: '#534AB7',
+    colorL: '#EDEAF9',
+    pptxUrl: 'https://theboringinvestor.github.io/assessoria/The_Boring_Investor.pptx',
+  },
+  {
+    id: 's05',
+    num: '05',
+    titol: 'Preparació i Estratègia',
+    subtitol: 'Pla, Fons d\'emergència, Entrada i Sortida',
+    slides: '43–54',
+    temes: ['Pla i objectius financers','Fons d\'emergència','Deute bo vs dolent','Cicles econòmics i borsaris','ATH: com invertir en màxims','Estratègia d\'entrada i sortida'],
+    durada: '90 min',
+    icona: '🎯',
+    color: '#0F6E56',
+    colorL: '#E5F5F1',
+    pptxUrl: 'https://theboringinvestor.github.io/assessoria/The_Boring_Investor.pptx',
+  },
+  {
+    id: 's06',
+    num: '06',
+    titol: 'Construcció de Carteres',
+    subtitol: 'Teoria, predefinides, per risc i estratègia',
+    slides: '55–59',
+    temes: ['Teoria Moderna de Carteres','Carteres predefinides','Carteres per perfil de risc','Carteres per estratègia d\'inversió'],
+    durada: '90 min',
+    icona: '🗂️',
+    color: '#1B3A6B',
+    colorL: '#EBF0FA',
+    pptxUrl: 'https://theboringinvestor.github.io/assessoria/The_Boring_Investor.pptx',
+  },
+  {
+    id: 's07',
+    num: '07',
+    titol: 'Fiscalitat de les Inversions',
+    subtitol: 'IRPF, planificació i regulació',
+    slides: '60–67',
+    temes: ['Bases fiscals','Planificació fiscal anual','IRPF Catalunya 2024','Optimització de plusvàlues','Regulacions fiscals a tenir en compte'],
+    durada: '90 min',
+    icona: '📋',
+    color: '#8B1A1A',
+    colorL: '#FDF0F0',
+    pptxUrl: 'https://theboringinvestor.github.io/assessoria/The_Boring_Investor.pptx',
+  },
+  {
+    id: 's08',
+    num: '08',
+    titol: 'Plataformes i Seguretat',
+    subtitol: 'Brokers, Roboadvisors, Estafes i bones pràctiques',
+    slides: '68–83',
+    temes: ['Bancs tradicionals vs neo-bancs','Brokers online','Roboadvisors','Plataformes de crypto','Crowdlending','Detectar estafes','Bones pràctiques de seguretat'],
+    durada: '90 min',
+    icona: '🛡️',
+    color: '#1A5C3A',
+    colorL: '#EAF3DE',
+    pptxUrl: 'https://theboringinvestor.github.io/assessoria/The_Boring_Investor.pptx',
+  },
+];
+
+// Dates dels seminaris: cada dilluns a partir del proper
+function getProperDilluns() {
+  var d = new Date();
+  var dia = d.getDay(); // 0=dg, 1=dl...
+  var daysToMon = dia === 1 ? 7 : (8 - dia) % 7 || 7;
+  d.setDate(d.getDate() + daysToMon);
+  d.setHours(18, 0, 0, 0); // 18:00h per defecte
+  return d;
+}
+
+function getSeminarDates() {
+  var primer = getProperDilluns();
+  return SEMINARIS.map(function(s, i) {
+    var d = new Date(primer.getTime());
+    d.setDate(d.getDate() + i * 7);
+    return d;
+  });
+}
+
+function generarLinkSeminari(seminari, data) {
+  if (!data) return null;
+  var fi = new Date(data.getTime() + 90 * 60000);
+  function fmt(d){ return d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''); }
+  var titol = 'TBI Seminari ' + seminari.num + ': ' + seminari.titol;
+  var desc = 'Seminari d\'educació financera — The Boring Investor\n'
+    + 'Tema: ' + seminari.subtitol + '\n'
+    + 'Diapositives: ' + seminari.slides + '\n'
+    + 'Temes: ' + seminari.temes.join(', ') + '\n'
+    + 'Material: ' + seminari.pptxUrl;
+  var params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: titol,
+    dates: fmt(data) + '/' + fmt(fi),
+    details: desc,
+    location: 'Google Meet / Presencial',
+  });
+  return 'https://calendar.google.com/calendar/render?' + params.toString();
+}
+
+function renderEducacio() {
+  var el = document.getElementById('educacio-content');
+  if (!el) return;
+  var dates = getSeminarDates();
+  var avui = new Date();
+
+  el.innerHTML = '<div style="max-width:860px;margin:0 auto;padding:0 4px">'
+
+    // Header
+    + '<div style="margin-bottom:24px">'
+      + '<div style="font-size:10px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">The Boring Investor · Programa formatiu</div>'
+      + '<div style="font-family:var(--font-serif);font-size:26px;font-weight:400;color:var(--black);margin-bottom:8px;letter-spacing:-.3px">Educació Financera</div>'
+      + '<div style="font-size:13px;color:var(--gray-500);line-height:1.6">8 seminaris setmanals · 90 min cadascun · Basats en el material <em>Inversió for Beginners</em></div>'
+    + '</div>'
+
+    // Resum ràpid
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px">'
+      + '<div style="text-align:center;padding:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:10px"><div style="font-family:var(--font-mono);font-size:20px;font-weight:500;color:var(--black)">8</div><div style="font-size:10px;color:var(--gray-400);margin-top:2px">Seminaris</div></div>'
+      + '<div style="text-align:center;padding:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:10px"><div style="font-family:var(--font-mono);font-size:20px;font-weight:500;color:var(--black)">12h</div><div style="font-size:10px;color:var(--gray-400);margin-top:2px">Total formació</div></div>'
+      + '<div style="text-align:center;padding:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:10px"><div style="font-family:var(--font-mono);font-size:20px;font-weight:500;color:var(--black)">83</div><div style="font-size:10px;color:var(--gray-400);margin-top:2px">Diapositives</div></div>'
+      + '<div style="text-align:center;padding:14px;background:var(--white);border:1px solid var(--gray-200);border-radius:10px"><div style="font-family:var(--font-mono);font-size:20px;font-weight:500;color:var(--black)">8</div><div style="font-size:10px;color:var(--gray-400);margin-top:2px">Setmanes</div></div>'
+    + '</div>'
+
+    // Llista de seminaris
+    + '<div style="display:flex;flex-direction:column;gap:10px">'
+    + SEMINARIS.map(function(s, i) {
+        var data = dates[i];
+        var dataStr = data.toLocaleDateString('ca-ES', {weekday:'long', day:'numeric', month:'long'});
+        var horaStr = data.toLocaleTimeString('ca-ES', {hour:'2-digit', minute:'2-digit'}) + 'h';
+        var esPast = data < avui;
+        var esProper = !esPast && dates.findIndex(function(d){ return d >= avui; }) === i;
+        var calLink = generarLinkSeminari(s, data);
+
+        return '<div style="background:var(--white);border:1px solid ' + (esProper ? s.color : 'var(--gray-200)') + ';border-radius:12px;padding:16px 20px;' + (esProper ? 'box-shadow:0 4px 16px rgba(0,0,0,.08)' : '') + '">'
+          + '<div style="display:flex;gap:14px;align-items:start">'
+
+            // Número i icona
+            + '<div style="width:44px;height:44px;border-radius:10px;background:' + s.colorL + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">' + s.icona + '</div>'
+
+            // Contingut
+            + '<div style="flex:1;min-width:0">'
+              + '<div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:6px;margin-bottom:6px">'
+                + '<div>'
+                  + '<div style="font-size:9px;font-family:var(--font-mono);color:var(--gray-400);margin-bottom:2px">Seminari ' + s.num + ' · ' + s.slides + ' diapositives</div>'
+                  + '<div style="font-size:15px;font-weight:500;color:var(--black)">' + s.titol + '</div>'
+                  + '<div style="font-size:12px;color:var(--gray-500);margin-top:1px">' + s.subtitol + '</div>'
+                + '</div>'
+                + '<div style="text-align:right;flex-shrink:0">'
+                  + '<div style="font-size:11px;font-weight:500;color:' + (esPast ? 'var(--gray-400)' : s.color) + ';margin-bottom:2px">' + (esProper ? '▶ PROPER · ' : '') + dataStr + '</div>'
+                  + '<div style="font-size:11px;color:var(--gray-400)">' + horaStr + ' · ' + s.durada + '</div>'
+                + '</div>'
+              + '</div>'
+
+              // Temes
+              + '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">'
+                + s.temes.map(function(t){ return '<span style="font-size:10px;padding:2px 8px;background:' + s.colorL + ';color:' + s.color + ';border-radius:99px">' + t + '</span>'; }).join('')
+              + '</div>'
+
+              // Botons
+              + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+                + (calLink ? '<a href="' + calLink + '" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:' + s.color + ';color:white;border-radius:7px;font-size:11px;font-weight:500;text-decoration:none;font-family:var(--font-body)">📅 Afegir al calendari</a>' : '')
+                + '<a href="' + s.pptxUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--gray-200);border-radius:7px;font-size:11px;color:var(--gray-600);text-decoration:none;font-family:var(--font-body)">⬇ Descarregar PPTX</a>'
+                + (esPast ? '<span style="padding:6px 10px;font-size:10px;color:var(--gray-400);align-self:center">✓ Completat</span>' : '')
+              + '</div>'
+            + '</div>'
+          + '</div>'
+        + '</div>';
+      }).join('')
+    + '</div>'
+
+    // Peu
+    + '<div style="margin-top:20px;padding:14px 18px;background:var(--gray-100);border-radius:10px;font-size:12px;color:var(--gray-500);line-height:1.6">'
+      + '📎 <strong>Material:</strong> El PPTX "Inversió for Beginners" conté les 83 diapositives dels 8 seminaris. '
+      + 'Cada seminari cobreix les diapositives indicades. Les dates s\'han calculat automàticament a partir del proper dilluns. '
+      + 'Pots ajustar l\'hora i el lloc des de Google Calendar un cop l\'hagis afegit.'
+    + '</div>'
+
+  + '</div>';
+}
+
 // ══════════════════════════════════════════════════════
 // SUPABASE — Sincronització clients + accés portal
 // ══════════════════════════════════════════════════════
@@ -606,7 +888,11 @@ async function sincronitzarTotSupabase() {
         <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M5 3V2M11 3V2M1 7h14"/></svg>
         Serveis i tarifes
       </div>
-      <div class="nav-item" id="nav-glossari" onclick="navigate('glossari')">
+      <div class="nav-item" id="nav-educacio" onclick="navigate('educacio')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L2 5l6 3 6-3-6-3z"/><path d="M2 5v4c0 1.66 2.69 3 6 3s6-1.34 6-3V5"/><path d="M5.5 12.5V10"/></svg>
+          <span data-i18n="nav.educacio">Educació</span>
+        </div>
+        <div class="nav-item" id="nav-glossari" onclick="navigate('glossari')">
           <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="9" height="14" rx="1.5"/><path d="M5 5h5M5 8h5M5 11h3"/><path d="M11 4l2 2-2 2"/></svg>
           <span data-i18n="nav.glossari">Glossari</span>
         </div>
@@ -758,6 +1044,10 @@ async function sincronitzarTotSupabase() {
       </div>
 
       <!-- ════ P5 QUI SOC ════ -->
+      <div class="screen" id="screen-educacio">
+        <div id="educacio-content"></div>
+      </div>
+
       <div class="screen" id="screen-glossari">
         <div id="glossari-content"></div>
       </div>
@@ -941,6 +1231,11 @@ function navigate(screen, clientId) {
       <button class="btn btn-sm" onclick="navigate('dashboard')">← Dashboard</button>
       <button class="btn btn-sm" onclick="navigate('scoring', currentClientId)">Scoring ↗</button>
       <button class="btn btn-sm btn-primary" onclick="generarInforme()">${t('btn.informe')}</button>
+      <button onclick="obrirCalendari()" title="${LANG==='es'?'Abrir en Google Calendar':'Obrir a Google Calendar'}"
+        style="padding:8px 14px;background:#1B6B4A;color:white;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body);margin-left:8px"
+        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+        📅 Calendari
+      </button>
       <button id="btn-portal-${currentClientId}" onclick="donarAccesPortal('${currentClientId}')"
         style="padding:8px 14px;background:#1B3A6B;color:white;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:opacity .15s;margin-left:8px"
         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
@@ -959,6 +1254,10 @@ function navigate(screen, clientId) {
     topbarTitle.textContent = t('nav.serveis');
     topbarActions.innerHTML = '';
     renderServeis();
+  } else if (screen === 'educacio') {
+    topbarTitle.textContent = t('nav.educacio');
+    topbarActions.innerHTML = '';
+    renderEducacio();
   } else if (screen === 'glossari') {
     topbarTitle.textContent = t('nav.glossari');
     topbarActions.innerHTML = '';
@@ -1145,7 +1444,14 @@ function renderTabPerfil(c) {
         if(!c.properaReunio||!c.properaReunio.data) return '';
         const d = new Date(c.properaReunio.data).toLocaleDateString('ca-ES',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
         const tema = c.properaReunio.tema ? ' · '+c.properaReunio.tema : '';
-        return '<div style="font-size:11px;color:var(--accent);padding:6px 8px;background:var(--acc-l);border-radius:6px;display:flex;justify-content:space-between;align-items:center"><span>'+d+tema+'</span><button onclick=\"esborrarReunio()\" style=\"background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;font-family:var(--font-body)\">Esborrar</button></div>';
+        const calLink = generarLinkCalendari(c);
+        return '<div style="font-size:11px;color:var(--accent);padding:8px 10px;background:var(--acc-l);border-radius:6px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+            +'<span style="font-weight:500">'+d+tema+'</span>'
+            +'<button onclick=\"esborrarReunio()\" style=\"background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;font-family:var(--font-body)\">✕ Esborrar</button>'
+          +'</div>'
+          +(calLink ? '<a href=\"'+calLink+'\" target=\"_blank\" style=\"display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:white;border:1px solid var(--accent);border-radius:6px;font-size:11px;font-weight:500;color:var(--accent);text-decoration:none;font-family:var(--font-body)\">📅 Afegir a Google Calendar</a>' : '')
+          +'</div>';
       })()}
     </div>
     <div style="margin-top:12px;padding:12px 14px;background:var(--gray-100);border-radius:var(--radius)">
@@ -4650,6 +4956,7 @@ function updateNavLabels() {
     'nav-serveis':   'nav.serveis',
     'nav-quisoc':    'nav.quisoc',
     'nav-glossari':  'nav.glossari',
+    'nav-educacio':  'nav.educacio',
   };
   Object.entries(navMap).forEach(([id, key]) => {
     const el = document.getElementById(id);
@@ -4681,6 +4988,7 @@ const TRANSLATIONS = {
     'nav.serveis':     'Serveis i tarifes',
     'nav.quisoc':      'Qui soc',
     'nav.glossari':    'Glossari',
+    'nav.educacio':    'Educació',
     // Dashboard
     'dash.title':          'Dashboard',
     'dash.clients_actius': 'Clients actius',
@@ -4830,6 +5138,7 @@ const TRANSLATIONS = {
     'nav.serveis':     'Servicios y tarifas',
     'nav.quisoc':      'Quién soy',
     'nav.glossari':    'Glosario',
+    'nav.educacio':    'Educación',
     // Dashboard
     'dash.title':          'Panel principal',
     'dash.clients_actius': 'Clientes activos',
