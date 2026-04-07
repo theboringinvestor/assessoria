@@ -364,6 +364,43 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
 @media(max-width:600px){
   .pricing-grid{grid-template-columns:1fr}
 }
+
+/* ── METODOLOGIA ── */
+.metodo{padding:96px 32px;background:var(--white)}
+.metodo-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:48px}
+.metodo-steps{display:flex;flex-direction:column;gap:20px}
+.metodo-step{display:flex;gap:16px;align-items:start}
+.metodo-step-num{
+  width:32px;height:32px;border-radius:50%;background:var(--black);
+  color:white;font-family:var(--fm);font-size:11px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
+}
+.metodo-step-title{font-size:14px;font-weight:500;color:var(--black);margin-bottom:4px}
+.metodo-step-txt{font-size:13px;color:var(--g500);line-height:1.65}
+/* Visual mock */
+.metodo-visual{background:var(--bg);border:1px solid var(--g200);border-radius:16px;padding:24px;position:relative;overflow:hidden}
+.metodo-visual-badge{font-size:9px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px}
+.metodo-visual-title{font-family:var(--fd);font-size:18px;font-weight:400;color:var(--black);margin-bottom:20px}
+/* Radar mock SVG */
+.radar-mock{margin:0 auto 20px;display:block}
+/* Score bars */
+.score-bars{display:flex;flex-direction:column;gap:7px}
+.score-bar-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--g500)}
+.score-bar-lbl{width:100px;flex-shrink:0;font-size:10px}
+.score-bar-track{flex:1;height:5px;background:var(--g200);border-radius:99px;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:99px;background:var(--accent)}
+.score-bar-val{width:28px;text-align:right;font-family:var(--fm);font-size:10px;color:var(--accent)}
+/* Tech stack */
+.tech-section{padding:64px 32px;background:var(--bg)}
+.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:36px}
+.tech-item{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:18px 16px;text-align:center}
+.tech-item-icon{font-size:24px;margin-bottom:8px}
+.tech-item-name{font-size:12px;font-weight:500;color:var(--black);margin-bottom:3px}
+.tech-item-desc{font-size:11px;color:var(--g400);line-height:1.5}
+@media(max-width:768px){
+  .metodo-grid{grid-template-columns:1fr}
+  .tech-grid{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
@@ -402,7 +439,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
       <a class="btn-hero" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
         Descobreix el teu perfil inversor →
       </a>
-      <a class="btn-hero-sec" href="#serveis">Veure serveis →</a>
+      <a class="btn-hero-sec" href="#metodologia">Com funciona →</a>
     </div>
     <div class="hero-proof">
       <div class="hero-proof-line"></div>
@@ -801,6 +838,183 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
       </div>
     </div>
 
+  </div>
+</section>
+
+
+<!-- METODOLOGIA -->
+<section class="metodo" id="metodologia">
+  <div class="section-inner">
+    <p class="section-eye reveal">Com treballem</p>
+    <h2 class="section-h2 reveal">Una metodologia basada en dades,<br>no en intuïció.</h2>
+
+    <div class="metodo-grid">
+      <!-- Passos -->
+      <div class="metodo-steps">
+        <div class="metodo-step reveal">
+          <div class="metodo-step-num">1</div>
+          <div>
+            <div class="metodo-step-title">Anàlisi de les 7 dimensions</div>
+            <div class="metodo-step-txt">Avaluem el teu perfil en profunditat: objectius financers, situació actual, horitzó temporal, coneixement financer, tolerància al risc, comportament emocional i preferències d'inversió.</div>
+          </div>
+        </div>
+        <div class="metodo-step reveal">
+          <div class="metodo-step-num">2</div>
+          <div>
+            <div class="metodo-step-title">Scoring de cartera objectiu</div>
+            <div class="metodo-step-txt">Si ja tens una cartera, l'analitzem amb 7 mòduls de rúbriques precises: costos (TER), diversificació, concentració, coherència, robustesa, simplicitat i procés. Resultat: puntuació de 0 a 100 amb pla de millora.</div>
+          </div>
+        </div>
+        <div class="metodo-step reveal">
+          <div class="metodo-step-num">3</div>
+          <div>
+            <div class="metodo-step-title">Cartera model personalitzada</div>
+            <div class="metodo-step-txt">Proposta concreta d'actius indexats (ETFs, fons) amb nom de broker, ISIN i pes recomanat. No teoria — un pla que pots implementar el dia següent.</div>
+          </div>
+        </div>
+        <div class="metodo-step reveal">
+          <div class="metodo-step-num">4</div>
+          <div>
+            <div class="metodo-step-title">Projeccions i seguiment</div>
+            <div class="metodo-step-txt">Simulació Montecarlo amb 3 escenaris (P10/P50/P90), DCA automatitzat i revisió periòdica. El teu portal personal sempre actualitzat.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual mock del dashboard -->
+      <div class="metodo-visual reveal">
+        <div class="metodo-visual-badge">Eina d'anàlisi TBI</div>
+        <div class="metodo-visual-title">Scoring de cartera</div>
+
+        <!-- Radar SVG simplificat -->
+        <svg class="radar-mock" width="180" height="160" viewBox="0 0 180 160">
+          <defs>
+            <style>.rg{fill:none;stroke:#E8E6E1;stroke-width:1}.rl{fill:none;stroke:#E8E6E1;stroke-width:.8}.ra{fill:rgba(27,58,107,.12);stroke:#1B3A6B;stroke-width:1.5}</style>
+          </defs>
+          <!-- Graelles -->
+          <polygon class="rg" points="90,20 150,53 150,107 90,140 30,107 30,53"/>
+          <polygon class="rg" points="90,42 133,62 133,98 90,118 47,98 47,62"/>
+          <polygon class="rg" points="90,64 116,77 116,103 90,116 64,103 64,77" opacity=".5"/>
+          <!-- Línies radials -->
+          <line class="rl" x1="90" y1="20" x2="90" y2="140"/>
+          <line class="rl" x1="90" y1="80" x2="150" y2="53"/>
+          <line class="rl" x1="90" y1="80" x2="150" y2="107"/>
+          <line class="rl" x1="90" y1="80" x2="90" y2="140"/>
+          <line class="rl" x1="90" y1="80" x2="30" y2="107"/>
+          <line class="rl" x1="90" y1="80" x2="30" y2="53"/>
+          <!-- Àrea de dades -->
+          <polygon class="ra" points="90,30 143,57 140,102 90,130 40,105 38,60"/>
+          <!-- Punts -->
+          <circle cx="90" cy="30" r="3" fill="#1B3A6B"/>
+          <circle cx="143" cy="57" r="3" fill="#1B3A6B"/>
+          <circle cx="140" cy="102" r="3" fill="#1B3A6B"/>
+          <circle cx="90" cy="130" r="3" fill="#1B3A6B"/>
+          <circle cx="40" cy="105" r="3" fill="#1B3A6B"/>
+          <circle cx="38" cy="60" r="3" fill="#1B3A6B"/>
+          <!-- Labels -->
+          <text x="90" y="14" text-anchor="middle" font-size="8" fill="#6B6762">Costos</text>
+          <text x="156" y="53" text-anchor="start" font-size="8" fill="#6B6762">Divers.</text>
+          <text x="156" y="112" text-anchor="start" font-size="8" fill="#6B6762">Conc.</text>
+          <text x="90" y="152" text-anchor="middle" font-size="8" fill="#6B6762">Coherència</text>
+          <text x="22" y="112" text-anchor="end" font-size="8" fill="#6B6762">Rob.</text>
+          <text x="22" y="53" text-anchor="end" font-size="8" fill="#6B6762">Proc.</text>
+        </svg>
+
+        <!-- Barres de scoring -->
+        <div class="score-bars">
+          <div class="score-bar-row">
+            <div class="score-bar-lbl">S1 · Costos</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:90%"></div></div>
+            <div class="score-bar-val">9/10</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-lbl">S2 · Diversificació</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:80%"></div></div>
+            <div class="score-bar-val">8/10</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-lbl">S3 · Concentració</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:70%;background:#D4943A"></div></div>
+            <div class="score-bar-val">7/10</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-lbl">S4 · Coherència</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:90%"></div></div>
+            <div class="score-bar-val">9/10</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-lbl">S5 · Robustesa</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:50%;background:#C0392B"></div></div>
+            <div class="score-bar-val">5/10</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-lbl">S6 · Simplicitat</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:80%"></div></div>
+            <div class="score-bar-val">8/10</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-lbl">S7 · Procés</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:#D4943A"></div></div>
+            <div class="score-bar-val">6/10</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding:10px 12px;background:var(--white);border-radius:8px;border-left:3px solid #C0392B">
+          <div style="font-size:10px;font-weight:500;color:#8B1A1A;margin-bottom:2px">⚑ Prioritat 1 — Robustesa</div>
+          <div style="font-size:11px;color:var(--g500)">Kit anti-pànic no documentat. Crear protocol per caigudes >20%.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECNOLOGIA -->
+<section class="tech-section">
+  <div class="section-inner">
+    <p class="section-eye reveal">Tecnologia i eines</p>
+    <h2 class="section-h2 reveal" style="margin-bottom:0">Eines professionals.<br>Tracte personal.</h2>
+    <div class="tech-grid" style="margin-top:36px">
+      <div class="tech-item reveal">
+        <div class="tech-item-icon">📊</div>
+        <div class="tech-item-name">Dashboard TBI</div>
+        <div class="tech-item-desc">Eina pròpia de gestió de clients amb scoring, cartera i projeccions Montecarlo</div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-item-icon">🌐</div>
+        <div class="tech-item-name">Portal personal</div>
+        <div class="tech-item-desc">Accés privat per a cada client. Veu la seva cartera, informe i recomanacions en temps real</div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-item-icon">🔒</div>
+        <div class="tech-item-name">Dades segures</div>
+        <div class="tech-item-desc">Base de dades encriptada (Supabase), autenticació sense contrasenya via magic link</div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-item-icon">📋</div>
+        <div class="tech-item-name">Informes PDF</div>
+        <div class="tech-item-desc">Informe professional generat automàticament amb cada revisió. Descarregable i compartible</div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-item-icon">📅</div>
+        <div class="tech-item-name">Google Calendar</div>
+        <div class="tech-item-desc">Reunions programades directament al calendari amb totes les dades pre-emplenades</div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-item-icon">📈</div>
+        <div class="tech-item-name">Mercats en temps real</div>
+        <div class="tech-item-desc">Dades de S&P 500, IBEX, Or, BCE, IPC i tipus de canvi actualitzades automàticament</div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-item-icon">🎓</div>
+        <div class="tech-item-name">Seminaris TBI</div>
+        <div class="tech-item-desc">8 seminaris d'educació financera basats en 83 diapositives de material propi</div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-item-icon">🤝</div>
+        <div class="tech-item-name">Tracte personal</div>
+        <div class="tech-item-desc">Cada client té un assessor real, no un algoritme. Accés directe per WhatsApp i email</div>
+      </div>
+    </div>
   </div>
 </section>
 

@@ -771,7 +771,6 @@ async function sincronitzarSupabase(clientId) {
     nota:               c.nota     || null,
     historial:          c.historial || [],
     ter:                c.ter      || null,
-    liquiditat:         c.liquiditat || null,
   };
 
   try {
@@ -4967,7 +4966,6 @@ function setLang(lang) {
     return el && el.classList.contains('active');
   }) || 'dashboard';
   navigate(currentScreen, currentClientId);
-  applyTranslations();
 }
 
 function updateLangToggle() {
@@ -4999,11 +4997,15 @@ function updateNavLabels() {
     const el = document.getElementById(id);
     if(el) {
       // Preservar el badge i icon - actualitzar només el text
-      const icon = el.querySelector('svg');
-      const badge = el.querySelector('.nav-badge');
-      if(icon) {
-        const txt = el.childNodes[el.childNodes.length-1];
-        if(txt && txt.nodeType === 3) txt.textContent = ' ' + t(key);
+      const span = el.querySelector('[data-i18n]');
+      if (span) {
+        span.textContent = t(key);
+      } else {
+        const icon = el.querySelector('svg');
+        if(icon) {
+          const txt = el.childNodes[el.childNodes.length-1];
+          if(txt && txt.nodeType === 3) txt.textContent = ' ' + t(key);
+        }
       }
     }
   });

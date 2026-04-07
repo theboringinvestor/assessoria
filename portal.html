@@ -108,6 +108,47 @@ html,body{height:100%;font-family:var(--fb);background:var(--bg);color:var(--bla
   .score-hero{flex-direction:column}
   .score-right{text-align:left}
 }
+
+/* ── CARTERA EDITABLE ── */
+.cartera-edit-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--g100)}
+.cartera-edit-row:last-child{border-bottom:none}
+.cartera-edit-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.cartera-edit-nom{font-size:12px;color:var(--black);flex:1;min-width:0}
+.cartera-edit-pct{
+  width:56px;padding:4px 6px;border:1px solid var(--g200);border-radius:5px;
+  font-size:12px;font-family:var(--fm);text-align:right;
+  background:var(--white);color:var(--black);
+}
+.cartera-edit-pct:focus{outline:none;border-color:var(--accent)}
+.cartera-edit-qty{
+  width:72px;padding:4px 6px;border:1px solid var(--g200);border-radius:5px;
+  font-size:12px;font-family:var(--fm);text-align:right;
+  background:var(--white);color:var(--black);
+}
+.cartera-edit-qty:focus{outline:none;border-color:var(--accent)}
+.cartera-edit-bar{width:80px;height:4px;background:var(--g200);border-radius:99px;overflow:hidden}
+.cartera-edit-bar-fill{height:100%;border-radius:99px;transition:width .3s}
+.cartera-total-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:10px;padding-top:10px;border-top:1px solid var(--g200);
+}
+.cartera-total-lbl{font-size:11px;color:var(--g400)}
+.cartera-total-val{font-family:var(--fm);font-size:13px;font-weight:500}
+.cartera-save-btn{
+  margin-top:12px;width:100%;padding:10px;
+  background:var(--accent);color:white;border:none;border-radius:8px;
+  font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);
+  transition:opacity .15s;
+}
+.cartera-save-btn:hover{opacity:.85}
+.cartera-save-btn:disabled{opacity:.4;cursor:default}
+.cartera-projeccio{
+  margin-top:12px;padding:12px;background:var(--g100);border-radius:8px;
+}
+.cartera-proj-title{font-size:10px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.cartera-proj-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.cartera-proj-lbl{color:var(--g500)}
+.cartera-proj-val{font-family:var(--fm);font-weight:500}
 </style>
 </head>
 <body>
@@ -345,12 +386,48 @@ function renderPortal(c, el) {
       +'</div>'
     +'</div>'
 
-    // ── Cartera ──
+    // ── Cartera editable ──
     +(cartera.length>0 ? '<div class="card">'
-      +'<div class="card-title">Composició de cartera — '+c.cartera+'</div>'
-      +allocHtml
-      +'<div style="display:flex;gap:12px;margin-top:12px;padding-top:10px;border-top:1px solid var(--g100)">'
-        +(c.ter ? '<span style="font-size:10px;color:var(--g400)">TER: <strong>'+c.ter+'</strong></span>' : '')
+      +'<div class="card-title" style="display:flex;justify-content:space-between;align-items:center">'
+        +'<span>Composició de cartera — '+c.cartera+'</span>'
+        +'<span style="font-size:10px;color:var(--accent);cursor:pointer;font-weight:500" onclick="toggleEditCartera()">✏ Editar</span>'
+      +'</div>'
+      +'<div id="cartera-view">'
+        +allocHtml
+        +(c.ter ? '<div style="margin-top:8px;font-size:10px;color:var(--g400)">TER: <strong>'+c.ter+'</strong></div>' : '')
+      +'</div>'
+      +'<div id="cartera-edit" style="display:none">'
+        +cartera.map(function(a,i){
+          var col = a.color || colors[i%colors.length];
+          return '<div class="cartera-edit-row">'
+            +'<div class="cartera-edit-dot" style="background:'+col+'"></div>'
+            +'<div class="cartera-edit-nom">'+a.nom+'</div>'
+            +'<div class="cartera-edit-bar"><div class="cartera-edit-bar-fill" id="bar-'+i+'" style="width:'+(a.pct||0)+'%;background:'+col+'"></div></div>'
+            +'<div style="font-size:9px;color:var(--g400);width:20px;text-align:center">%</div>'
+            +'<input class="cartera-edit-pct" type="number" min="0" max="100" step="1" value="'+(a.pct||0)+'" id="pct-'+i+'" oninput="recalcCartera('+i+')" placeholder="%">'
+            +'<div style="font-size:9px;color:var(--g400);width:20px;text-align:center">€</div>'
+            +'<input class="cartera-edit-qty" type="number" min="0" step="100" value="'+(a.qty||'')+'" id="qty-'+i+'" placeholder="Import">'
+          +'</div>';
+        }).join('')
+        +'<div class="cartera-total-row">'
+          +'<span class="cartera-total-lbl">Total assignat</span>'
+          +'<span class="cartera-total-val" id="total-pct-val">'+cartera.reduce(function(s,a){return s+(parseFloat(a.pct)||0);},0)+'%</span>'
+        +'</div>'
+        +'<div class="cartera-total-row" style="margin-top:4px">'
+          +'<span class="cartera-total-lbl">Capital total estimat</span>'
+          +'<span class="cartera-total-val" id="total-qty-val">'+
+            (cartera.some(function(a){return a.qty;}) ?
+              cartera.reduce(function(s,a){return s+(parseFloat(a.qty)||0);},0).toLocaleString('ca-ES')+'€' :
+              '—')
+          +'</span>'
+        +'</div>'
+        +(proj.p50 ? '<div class="cartera-projeccio">'
+            +'<div class="cartera-proj-title">Projecció Montecarlo</div>'
+            +'<div class="cartera-proj-row"><span class="cartera-proj-lbl">P10 Pessimista</span><span class="cartera-proj-val" style="color:#8B1A1A">'+(proj.p10||'—')+'</span></div>'
+            +'<div class="cartera-proj-row"><span class="cartera-proj-lbl">P50 Equilibrat</span><span class="cartera-proj-val" style="color:#1B3A6B">'+(proj.p50||'—')+'</span></div>'
+            +'<div class="cartera-proj-row"><span class="cartera-proj-lbl">P90 Optimista</span><span class="cartera-proj-val" style="color:#1A5C3A">'+(proj.p90||'—')+'</span></div>'
+          +'</div>' : '')
+        +'<button class="cartera-save-btn" onclick="guardarCartera()">Guardar canvis →</button>'
       +'</div>'
     +'</div>' : '')
 
@@ -433,6 +510,82 @@ function renderPortal(c, el) {
         }
       });
     }, 200);
+  }
+}
+
+
+// ── CARTERA EDITABLE ──
+var _carteraEdit = false;
+var _carteraData = [];
+
+function toggleEditCartera() {
+  _carteraEdit = !_carteraEdit;
+  var view = document.getElementById('cartera-view');
+  var edit = document.getElementById('cartera-edit');
+  if (view) view.style.display = _carteraEdit ? 'none' : 'block';
+  if (edit) edit.style.display = _carteraEdit ? 'block' : 'none';
+}
+
+function recalcCartera(idx) {
+  var pct = parseFloat(document.getElementById('pct-'+idx).value) || 0;
+  var bar = document.getElementById('bar-'+idx);
+  if (bar) bar.style.width = Math.min(pct, 100) + '%';
+
+  // Total %
+  var total = 0;
+  document.querySelectorAll('.cartera-edit-pct').forEach(function(inp) {
+    total += parseFloat(inp.value) || 0;
+  });
+  var totalEl = document.getElementById('total-pct-val');
+  if (totalEl) {
+    totalEl.textContent = total.toFixed(1) + '%';
+    totalEl.style.color = Math.abs(total - 100) < 0.5 ? '#1A5C3A' : (total > 100 ? '#8B1A1A' : '#7A4A00');
+  }
+
+  // Total €
+  var totalQty = 0;
+  document.querySelectorAll('.cartera-edit-qty').forEach(function(inp) {
+    totalQty += parseFloat(inp.value) || 0;
+  });
+  var totalQtyEl = document.getElementById('total-qty-val');
+  if (totalQtyEl) totalQtyEl.textContent = totalQty > 0 ? totalQty.toLocaleString('ca-ES') + '€' : '—';
+}
+
+async function guardarCartera() {
+  var btn = document.querySelector('.cartera-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardant...'; }
+
+  var pcts = document.querySelectorAll('.cartera-edit-pct');
+  var qtys = document.querySelectorAll('.cartera-edit-qty');
+
+  // Llegir valors actuals
+  var novaCartera = [];
+  pcts.forEach(function(inp, i) {
+    var qtyEl = qtys[i];
+    novaCartera.push({
+      pct: parseFloat(inp.value) || 0,
+      qty: qtyEl ? (parseFloat(qtyEl.value) || null) : null
+    });
+  });
+
+  // Guardar via Supabase
+  try {
+    var { data: clients } = await sb.from('clients').select('cartera_composicio').eq('email', (await sb.auth.getUser()).data.user.email).limit(1);
+    if (clients && clients[0]) {
+      var carteraActual = clients[0].cartera_composicio || [];
+      var carteraActualitzada = carteraActual.map(function(a, i) {
+        return Object.assign({}, a, {
+          pct: novaCartera[i] ? novaCartera[i].pct : a.pct,
+          qty: novaCartera[i] && novaCartera[i].qty ? novaCartera[i].qty : a.qty,
+        });
+      });
+      var { error } = await sb.from('clients').update({ cartera_composicio: carteraActualitzada }).eq('email', (await sb.auth.getUser()).data.user.email);
+      if (error) throw error;
+      if (btn) { btn.disabled = false; btn.textContent = '✓ Guardat!'; setTimeout(function(){ btn.textContent = 'Guardar canvis →'; }, 2000); }
+      toggleEditCartera();
+    }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Error: ' + e.message; }
   }
 }
 
