@@ -168,6 +168,26 @@ html,body{height:100%;font-family:var(--fb);background:var(--bg);color:var(--bla
 .pc-body{padding:14px 20px}
 .pc-alloc-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--g100)}
 .pc-alloc-row:last-child{border-bottom:none}
+
+/* Freemium overlay */
+.freemium-blur{filter:blur(4px);pointer-events:none;user-select:none;opacity:.5}
+.freemium-overlay{position:relative}
+.freemium-overlay::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 0%,rgba(247,246,244,.95) 60%);
+  z-index:2;pointer-events:none;
+}
+.freemium-cta{
+  position:relative;z-index:3;
+  margin-top:16px;padding:20px;
+  background:var(--white);border:1.5px solid var(--accent);border-radius:12px;
+  text-align:center;
+}
+.freemium-cta-title{font-family:var(--fd);font-size:18px;font-weight:400;color:var(--black);margin-bottom:6px}
+.freemium-cta-sub{font-size:13px;color:var(--g500);margin-bottom:16px;line-height:1.6}
+.freemium-cta-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.freemium-cta-btn{padding:10px 20px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;font-family:var(--fb)}
+.freemium-cta-btn-sec{padding:10px 20px;background:transparent;color:var(--black);border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;font-family:var(--fb)}
 </style>
 </head>
 <body>
@@ -313,6 +333,9 @@ async function loadClientData(email) {
 
   var c = clients[0];
   _portalEmail = email;
+  // Detectar pla del client per freemium
+  var pla = c.perfil && c.perfil.pla ? c.perfil.pla : (c.pla || 'senyal');
+  _clientPla = pla;
   renderPortal(c, el);
 }
 
@@ -547,6 +570,7 @@ function renderPortal(c, el) {
 
 
 // ── CARTERA EDITABLE ──
+var _clientPla = "senyal";
 var _carteraEdit = false;
 var _carteraData = [];
 
@@ -630,12 +654,35 @@ function switchPortalTab(tab, btn) {
   _portalTab = tab;
   document.querySelectorAll('.portal-tab').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
+
+  // Freemium: Senyal veu tabs però amb bloqueig
   ['perfil','assessoria','carteres'].forEach(function(t){
     var el = document.getElementById('portal-tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
-  if (tab === 'assessoria' && _portalEmail) loadPortalAnalisi();
-  if (tab === 'carteres') renderPortalCarteres();
+
+  if (tab === 'assessoria') {
+    if (!isPremium()) {
+      var el = document.getElementById('portal-assessoria-body');
+      if (el) el.innerHTML = freemiumBlock(
+        'Assessoria i Anàlisi Financera',
+        'Accedeix a les anàlisis setmanals de mercats i les recomanacions de The Boring Investor. Disponible des del Pack Brúixola.'
+      );
+    } else if (_portalEmail) {
+      loadPortalAnalisi();
+    }
+  }
+  if (tab === 'carteres') {
+    if (!isPremium()) {
+      var el = document.getElementById('portal-carteres-body');
+      if (el) el.innerHTML = freemiumBlock(
+        'Carteres Model TBI',
+        'Consulta les carteres model de The Boring Investor: composició, pesos, mètriques i lògica d'inversió. Disponible des del Pack Brúixola.'
+      );
+    } else {
+      renderPortalCarteres();
+    }
+  }
 }
 
 async function loadPortalAnalisi() {
@@ -726,6 +773,33 @@ function renderPortalCarteres() {
     + '</div>';
   });
   el.innerHTML = html;
+}
+
+
+// ── FREEMIUM ──
+var PLANS_PREMIUM = ['bruxola','mapa','rumb','family'];
+
+function isPremium() {
+  return PLANS_PREMIUM.indexOf(_clientPla) >= 0;
+}
+
+function freemiumBlock(titol, descripcio) {
+  return '<div class="freemium-overlay">'
+    + '<div class="freemium-blur" style="padding:14px;border:1px solid var(--g200);border-radius:12px;min-height:120px">'
+      + '<div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:8px">' + titol + '</div>'
+      + '<div style="height:8px;background:var(--g200);border-radius:4px;margin-bottom:6px;width:80%"></div>'
+      + '<div style="height:8px;background:var(--g200);border-radius:4px;margin-bottom:6px;width:60%"></div>'
+      + '<div style="height:8px;background:var(--g200);border-radius:4px;width:70%"></div>'
+    + '</div>'
+    + '<div class="freemium-cta">'
+      + '<div class="freemium-cta-title">🔓 ' + titol + '</div>'
+      + '<div class="freemium-cta-sub">' + (descripcio||'Aquesta funcionalitat no està disponible al teu pla actual. Millora el teu pla per accedir-hi.') + '</div>'
+      + '<div class="freemium-cta-btns">'
+        + '<a href="https://wa.me/34629340892?text=Vull%20millorar%20el%20meu%20pla" target="_blank" class="freemium-cta-btn">💬 Millorar pla per WhatsApp</a>'
+        + '<a href="https://assessoria-ten.vercel.app/landing.html#serveis" target="_blank" class="freemium-cta-btn-sec">Veure plans →</a>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
 }
 
 // ── START ──

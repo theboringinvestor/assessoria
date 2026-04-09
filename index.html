@@ -1,4 +1,15 @@
-<button onclick="sincronitzarTotSupabase()" title="Sincronitzar tots els clients a Supabase"
+<button 
+          </div>
+          <div class="field-group">
+            <label>Pla contractat</label>
+            <select id='nou-pla' style="width:100%;padding:8px;border:1px solid var(--gray-200);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+              <option value="pendent">— Pendent —</option>
+              <option value="senyal">00 · Senyal (9,97€/mes)</option>
+              <option value="bruxola">01 · Brúixola (47€)</option>
+              <option value="mapa">02 · Mapa (147€)</option>
+              <option value="rumb">03 · Rumb (49€/mes)</option>
+              <option value="family">04 · Family Office (99€/mes)</option>
+            </select>onclick="sincronitzarTotSupabase()" title="Sincronitzar tots els clients a Supabase"
         style="padding:6px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:transparent;color:var(--g500);font-family:var(--fb)">
         ☁ Sync Supabase
       </button>
@@ -588,6 +599,21 @@ function obrirCalendari() {
 // EDUCACIÓ FINANCERA — Seminaris i material
 // ══════════════════════════════════════════════════════
 
+// Seminaris carregats des de localStorage o per defecte
+var SEMINARIS_CUSTOM = null;
+
+function getSeminaris() {
+  if (!SEMINARIS_CUSTOM) {
+    var stored = localStorage.getItem('tbi_seminaris');
+    SEMINARIS_CUSTOM = stored ? JSON.parse(stored) : null;
+  }
+  return SEMINARIS_CUSTOM || SEMINARIS;
+}
+function saveSeminaris(arr) {
+  SEMINARIS_CUSTOM = arr;
+  localStorage.setItem('tbi_seminaris', JSON.stringify(arr));
+}
+
 const SEMINARIS = [
   {
     id: 's01',
@@ -707,7 +733,7 @@ function getProperDilluns() {
 
 function getSeminarDates() {
   var primer = getProperDilluns();
-  return SEMINARIS.map(function(s, i) {
+  return getSeminaris().map(function(s, i) {
     var d = new Date(primer.getTime());
     d.setDate(d.getDate() + i * 7);
     return d;
@@ -795,8 +821,10 @@ function renderEducacio() {
               // Botons
               + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
                 + (calLink ? '<a href="' + calLink + '" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:' + s.color + ';color:white;border-radius:7px;font-size:11px;font-weight:500;text-decoration:none;font-family:var(--font-body)">📅 Afegir al calendari</a>' : '')
-                + '<a href="' + s.pptxUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--gray-200);border-radius:7px;font-size:11px;color:var(--gray-600);text-decoration:none;font-family:var(--font-body)">⬇ Descarregar PPTX</a>'
+                + (s.teamsUrl ? '<a href="' + s.teamsUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:#5059C9;color:white;border-radius:7px;font-size:11px;font-weight:500;text-decoration:none;font-family:var(--font-body)">🎥 Teams</a>' : '')
+                + (s.pptxUrl ? '<a href="' + s.pptxUrl + '" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid var(--gray-200);border-radius:7px;font-size:11px;color:var(--gray-600);text-decoration:none;font-family:var(--font-body)">⬇ Material</a>' : '')
                 + (esPast ? '<span style="padding:6px 10px;font-size:10px;color:var(--gray-400);align-self:center">✓ Completat</span>' : '')
+                + '<button onclick="editarSeminari(' + i + ')" style="display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border:1px solid var(--gray-200);border-radius:7px;font-size:11px;color:var(--gray-500);background:transparent;cursor:pointer;font-family:var(--font-body)">✏ Editar</button>'
               + '</div>'
             + '</div>'
           + '</div>'
@@ -1012,19 +1040,36 @@ const CARTERES_MODEL = [
   {
     id: 'tbi',
     nom: 'Cartera TBI · The Boring Investor',
-    desc: 'Cartera pròpia de TBI. Combina indexació global de baix cost amb posicions de valor seleccionades en moments de correcció. Estratègia eficient a llarg termini que aprofita les baixades del mercat.',
-    filosofia: 'Indexació passiva (70%) + Value selectiu (30%). Màxima eficiència de costos. DCA mensual + rebalanceig anual.',
+    desc: 'Cartera pròpia de The Boring Investor. Diversificació real en 8 categories d'actius: indexació passiva, dividends, temàtica, immobiliari, crowdlending, metalls, crypto i startups. Estratègia d'eficiència màxima a llarg termini aprofitant baixades al mercat.',
+    filosofia: 'Indexació passiva + Value selectiu + Alternatius descorrelats. DCA mensual + rebalanceig anual + aprofitament de correccions.',
     actius: [
-      {nom:'MSCI World ETF (Vanguard/iShares)',   pct:40, color:'#1B3A6B'},
-      {nom:'S&P 500 ETF (Fidelity/Amundi)',       pct:20, color:'#2E5FA3'},
-      {nom:'Selecció valor IBEX (TBI)',            pct:15, color:'#4CAF82'},
-      {nom:'Emergents (iShares EMIM)',             pct:10, color:'#D4943A'},
-      {nom:'Renda Fixa Gov. EUR',                 pct:10, color:'#9A9690'},
-      {nom:'Or físic ETP',                        pct:5,  color:'#C0392B'},
+      {nom:'Fons Indexats (Roboadvisors)',        pct:34, color:'#1B3A6B', detail:'Finzens 50% + MyInvestor 50% · TER <0,4% · Mercat global'},
+      {nom:'Accions Dividends',                   pct:10, color:'#2E5FA3', detail:'Vanguard High Dividend + IBEX35 value · Dividend >6%'},
+      {nom:'Accions Temàtiques',                  pct:10, color:'#4CAF82', detail:'ETFs new tech US/ASIA/EU · Retorn esp. 10-11%'},
+      {nom:'REITs / Immobiliari',                 pct:10, color:'#0F6E56', detail:'ETF global + SOCIMIs nacionals · Decorrelació parcial'},
+      {nom:'Crowdlending',                        pct:7.5,color:'#D4943A', detail:'Mintos + October + SegoFactoring · P2P/P2B/Factoring'},
+      {nom:'Metalls Preciosos',                   pct:7.5,color:'#C0392B', detail:'Or 60% + Plata 20% + Platí 12,5% + Paladi 7,5%'},
+      {nom:'Crypto (BTC/ETH/SOL)',                pct:10, color:'#534AB7', detail:'BTC 55% + ETH 20% + SOL 15% + Other 10%'},
+      {nom:'Start-ups (Seedrs/Crowdcube)',         pct:1,  color:'#9A9690', detail:'Inversió llarg termini >10 anys · Alt potencial'},
     ],
-    stats: [{lbl:'TER estimat',val:'0,14%'},{lbl:'Retorn esp.',val:'7–9%'},{lbl:'Volatilitat',val:'12–15%'},{lbl:'Sharpe',val:'0,55'}],
-    perfil: 'Creixement · Horitzó >10 anys',
+    stats: [
+      {lbl:'Retorn esp.',val:'10–12%'},
+      {lbl:'Retorn real anual.',val:'~11%'},
+      {lbl:'Categories',val:'8'},
+      {lbl:'Plataformes',val:'XTB+Degiro+Mintos+...'},
+    ],
+    perfil: 'Creixement Diversificat · Horitzó >10 anys · Tolerància alt',
     tbi: true,
+    categories: [
+      {cat:'Indexació Passiva',pct:34,color:'#1B3A6B',target:'8%',real:'12,5%',risc:'Moderat'},
+      {cat:'Dividends',         pct:10,color:'#2E5FA3',target:'8%',real:'10,5%',risc:'Moderat'},
+      {cat:'Temàtiques',        pct:10,color:'#4CAF82',target:'10%',real:'11%', risc:'Moderat-alt'},
+      {cat:'REITs',             pct:10,color:'#0F6E56',target:'6,5%',real:'10,2%',risc:'Moderat-baix'},
+      {cat:'Crowdlending',      pct:7.5,color:'#D4943A',target:'9%',real:'9%', risc:'Alt'},
+      {cat:'Metalls',           pct:7.5,color:'#C0392B',target:'8%',real:'25%', risc:'Moderat-baix'},
+      {cat:'Crypto',            pct:10, color:'#534AB7',target:'20%',real:'25%', risc:'Molt Alt'},
+      {cat:'Start-ups',         pct:1,  color:'#9A9690',target:'20%',real:'8%', risc:'Molt Alt'},
+    ],
   },
   {
     id:'catapulta', nom:'I · La Catapulta', desc:'Perfil agressiu per a inversors joves amb alt horitzó temporal. Màxima exposició a renda variable global, sense renda fixa.',
@@ -1147,11 +1192,35 @@ function renderCarteresBody() {
       var allocHtml = c.actius.map(function(a){
         return '<div class="alloc-item">'
           + '<div class="alloc-item-dot" style="background:' + a.color + '"></div>'
-          + '<div class="alloc-item-nom">' + a.nom + '</div>'
-          + '<div class="alloc-item-bar-wrap"><div class="alloc-item-bar" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
+          + '<div class="alloc-item-nom">' + a.nom + (a.detail ? '<div style="font-size:10px;color:var(--gray-400)">' + a.detail + '</div>' : '') + '</div>'
+          + '<div class="alloc-item-bar-wrap"><div class="alloc-item-bar" style="width:' + (a.pct > 40 ? 40 : a.pct) + '%;background:' + a.color + '"></div></div>'
           + '<div class="alloc-item-pct">' + a.pct + '%</div>'
         + '</div>';
       }).join('');
+      // Taula de categories per TBI
+      var catHtml = '';
+      if (c.categories) {
+        catHtml = '<div style="margin-top:16px;border-top:1px solid var(--gray-100);padding-top:14px">'
+          + '<div style="font-size:10px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Detall per categoria</div>'
+          + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
+          + '<thead><tr style="background:var(--gray-100)">'
+            + '<th style="padding:6px 10px;text-align:left;font-weight:500;color:var(--gray-500)">Categoria</th>'
+            + '<th style="padding:6px 10px;text-align:center;font-weight:500;color:var(--gray-500)">Pes</th>'
+            + '<th style="padding:6px 10px;text-align:center;font-weight:500;color:var(--gray-500)">Retorn target</th>'
+            + '<th style="padding:6px 10px;text-align:center;font-weight:500;color:var(--gray-500)">Retorn real</th>'
+            + '<th style="padding:6px 10px;text-align:center;font-weight:500;color:var(--gray-500)">Risc</th>'
+          + '</tr></thead><tbody>'
+          + c.categories.map(function(cat, i) {
+            return '<tr style="border-bottom:1px solid var(--gray-100)' + (i%2===0?';background:var(--white)':';background:var(--gray-100)') + '">'
+              + '<td style="padding:7px 10px;display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:' + cat.color + '"></div>' + cat.cat + '</td>'
+              + '<td style="padding:7px 10px;text-align:center;font-weight:600;color:var(--black)">' + cat.pct + '%</td>'
+              + '<td style="padding:7px 10px;text-align:center;color:var(--accent)">' + cat.target + '</td>'
+              + '<td style="padding:7px 10px;text-align:center;font-weight:600;color:var(--green)">' + cat.real + '</td>'
+              + '<td style="padding:7px 10px;text-align:center;font-size:10px;color:var(--gray-500)">' + cat.risc + '</td>'
+            + '</tr>';
+          }).join('')
+          + '</tbody></table></div>';
+      }
       var statsHtml = c.stats.map(function(s){
         return '<div class="cartera-stat"><div class="cartera-stat-val">' + s.val + '</div><div class="cartera-stat-lbl">' + s.lbl + '</div></div>';
       }).join('');
@@ -1172,6 +1241,7 @@ function renderCarteresBody() {
             + '<div class="cartera-model-alloc">' + allocHtml + '</div>'
             + '<div class="cartera-model-stats">' + statsHtml + '</div>'
           + '</div>'
+          + catHtml
         + '</div>'
       + '</div>';
     });
@@ -1190,6 +1260,88 @@ function renderCarteresBody() {
     html += '</div>';
     el.innerHTML = html;
   }
+}
+
+
+function obrirVistaClient() {
+  var c = getCurrentClient() || (clients && clients.length > 0 ? clients[0] : null);
+  var email = c ? (c.email || 'demo@theboringinvestor.com') : 'demo@theboringinvestor.com';
+  var url = 'https://assessoria-ten.vercel.app/portal.html?preview=1&email=' + encodeURIComponent(email);
+  window.open(url, '_blank');
+  toast('Obrint portal com a client');
+}
+
+
+// ── EDUCACIÓ EDITABLE ──
+function editarSeminari(idx) {
+  var seminaris = getSeminaris();
+  var s = seminaris[idx];
+  var el = document.getElementById('educacio-content');
+  if (!el) return;
+
+  var origHtml = el.innerHTML;
+  el.innerHTML = '<div style="max-width:700px;margin:0 auto;padding:0 4px">'
+    + '<button onclick="renderEducacio()" style="font-size:12px;color:var(--gray-400);background:none;border:none;cursor:pointer;font-family:var(--font-body);margin-bottom:16px">← Tornar</button>'
+    + '<div style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--black);margin-bottom:20px">Editar seminari ' + s.num + '</div>'
+    + '<div class="analisi-form">'
+      + '<div class="analisi-form-row"><label>Títol</label><input id="se-titol" value="' + (s.titol||'') + '"></div>'
+      + '<div class="analisi-form-row"><label>Subtítol / Tema</label><input id="se-sub" value="' + (s.subtitol||'') + '"></div>'
+      + '<div class="analisi-form-row"><label>Descripció</label><textarea id="se-desc" style="min-height:80px">' + (s.descripcio||s.temes.join('\n')||'') + '</textarea></div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+        + '<div class="analisi-form-row"><label>URL Material (PPTX/PDF)</label><input id="se-pptx" value="' + (s.pptxUrl||'') + '" placeholder="https://..."></div>'
+        + '<div class="analisi-form-row"><label>Enllaç Microsoft Teams</label><input id="se-teams" value="' + (s.teamsUrl||'') + '" placeholder="https://teams.microsoft.com/..."></div>'
+      + '</div>'
+      + '<div class="analisi-form-row"><label>Durada</label><input id="se-durada" value="' + (s.durada||'90 min') + '"></div>'
+      + '<div style="display:flex;gap:8px;margin-top:4px">'
+        + '<button onclick="desarSeminari(' + idx + ')" style="padding:10px 20px;background:var(--black);color:white;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font-body)">Desar canvis</button>'
+        + '<button onclick="renderEducacio()" style="padding:10px 16px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;background:transparent;cursor:pointer;font-family:var(--font-body)">Cancel·lar</button>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+}
+
+function desarSeminari(idx) {
+  var seminaris = JSON.parse(JSON.stringify(getSeminaris()));
+  seminaris[idx].titol    = document.getElementById('se-titol').value;
+  seminaris[idx].subtitol = document.getElementById('se-sub').value;
+  seminaris[idx].descripcio = document.getElementById('se-desc').value;
+  seminaris[idx].pptxUrl  = document.getElementById('se-pptx').value;
+  seminaris[idx].teamsUrl = document.getElementById('se-teams').value;
+  seminaris[idx].durada   = document.getElementById('se-durada').value;
+  // Actualitzar temes des de descripció
+  seminaris[idx].temes = seminaris[idx].descripcio.split('\n').filter(function(t){ return t.trim(); });
+  saveSeminaris(seminaris);
+  toast('✓ Seminari desat!');
+  renderEducacio();
+}
+
+function afegirSeminari() {
+  var seminaris = JSON.parse(JSON.stringify(getSeminaris()));
+  var num = seminaris.length + 1;
+  seminaris.push({
+    id: 's' + String(num).padStart(2,'0'),
+    num: String(num).padStart(2,'0'),
+    titol: 'Nou seminari',
+    subtitol: '',
+    descripcio: '',
+    temes: [],
+    durada: '90 min',
+    icona: '📚',
+    color: '#1B3A6B',
+    colorL: '#EBF0FA',
+    pptxUrl: '',
+    teamsUrl: '',
+  });
+  saveSeminaris(seminaris);
+  editarSeminari(seminaris.length - 1);
+}
+
+function reiniciarSeminaris() {
+  if (!confirm('Reiniciar als seminaris originals? Es perdran els canvis.')) return;
+  localStorage.removeItem('tbi_seminaris');
+  SEMINARIS_CUSTOM = null;
+  renderEducacio();
+  toast('Seminaris reiniciats');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1558,6 +1710,17 @@ async function sincronitzarTotSupabase() {
         <option>V · La Muralla</option><option>VI · El Scriptorium</option>
         <option>VII · L'Alambí</option><option>VIII · El Sarró</option>
       </select>
+        </div>
+        <div style="margin-top:10px">
+          <label style="display:block;font-size:10px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Pla contractat</label>
+          <select id="nc-pla" style="width:100%;padding:8px;border:1px solid var(--gray-200);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+            <option value="pendent">— Pendent —</option>
+            <option value="senyal">00 · Senyal (9,97€/mes)</option>
+            <option value="bruxola">01 · Brúixola (47€)</option>
+            <option value="mapa">02 · Mapa (147€)</option>
+            <option value="rumb">03 · Rumb (49€/mes)</option>
+            <option value="family">04 · Family Office (99€/mes)</option>
+          </select>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('nou-client')">Cancel·lar</button>
@@ -1730,7 +1893,7 @@ function navigate(screen, clientId) {
     renderServeis();
   } else if (screen === 'educacio') {
     topbarTitle.textContent = t('nav.educacio');
-    topbarActions.innerHTML = '';
+    topbarActions.innerHTML = '<div style="display:flex;gap:6px"><button onclick="afegirSeminari()" style="padding:6px 14px;background:var(--black);color:white;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body)">+ Nou seminari</button><button onclick="reiniciarSeminaris()" style="padding:6px 10px;border:1px solid var(--gray-200);border-radius:7px;font-size:11px;color:var(--gray-400);background:transparent;cursor:pointer;font-family:var(--font-body)">↺ Reiniciar</button></div>';
     renderEducacio();
   } else if (screen === 'analisi') {
     topbarTitle.textContent = t('nav.analisi');
@@ -2498,6 +2661,7 @@ function crearClient() {
     nom, email: document.getElementById('nc-email').value.trim(),
     arquetip: document.getElementById('nc-arquetip').value || '-',
     cartera: document.getElementById('nc-cartera').value || '-',
+    pla: (document.getElementById('nc-pla') || {value:'pendent'}).value || 'pendent',
     avColor: 'av-gray', scoring: null,
     dataRevisio: new Date().toISOString().split('T')[0],
     estat: 'nou',
@@ -2850,6 +3014,7 @@ th{font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-s
       <div class="client-tags">
         <span class="tag">${c.arquetip}</span>
         <span class="tag">${c.cartera}</span>
+        ${planBadge(c.pla||'pendent')}
         <span class="tag">${c.estat==='ok'?'OK ✓':c.estat==='critic'?'Crític ⚠':c.estat==='revisio'?'Revisió':'Nou'}</span>
         ${c.dataRevisio ? '<span class="tag">Revisió '+new Date(c.dataRevisio).toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'})+'</span>' : ''}
       </div>
