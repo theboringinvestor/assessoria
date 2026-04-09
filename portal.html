@@ -149,6 +149,25 @@ html,body{height:100%;font-family:var(--fb);background:var(--bg);color:var(--bla
 .cartera-proj-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
 .cartera-proj-lbl{color:var(--g500)}
 .cartera-proj-val{font-family:var(--fm);font-weight:500}
+
+/* ── PORTAL TABS ── */
+.portal-tabs{display:flex;gap:2px;background:var(--g100);padding:4px;border-radius:10px;margin-bottom:28px;overflow-x:auto}
+.portal-tab{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;color:var(--g500);border:none;background:transparent;font-family:var(--fb);white-space:nowrap;transition:all .15s}
+.portal-tab.active{background:var(--white);color:var(--black);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+/* Anàlisi portal */
+.pa-card{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:border-color .15s}
+.pa-card:hover{border-color:var(--g300)}
+.pa-card-title{font-size:14px;font-weight:500;color:var(--black);margin-bottom:4px}
+.pa-card-sub{font-size:12px;color:var(--g400);font-style:italic;margin-bottom:8px}
+.pa-card-resum{font-size:12px;color:var(--g500);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Carteres portal */
+.pc-card{background:var(--white);border:1px solid var(--g200);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.pc-header{padding:16px 20px;border-bottom:1px solid var(--g100)}
+.pc-nom{font-family:var(--fd);font-size:18px;font-weight:400;color:var(--black);margin-bottom:3px}
+.pc-desc{font-size:12px;color:var(--g500);line-height:1.5}
+.pc-body{padding:14px 20px}
+.pc-alloc-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--g100)}
+.pc-alloc-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -293,6 +312,7 @@ async function loadClientData(email) {
   }
 
   var c = clients[0];
+  _portalEmail = email;
   renderPortal(c, el);
 }
 
@@ -349,6 +369,14 @@ function renderPortal(c, el) {
   }).join('') || '<div style="font-size:12px;color:var(--g400)">Sense entrades</div>';
 
   el.innerHTML = ''
+    // ── Tabs de navegació ──
+    +'<div class="portal-tabs">'
+      +'<button class="portal-tab active" onclick="switchPortalTab(\'perfil\',this)">📊 El meu perfil</button>'
+      +'<button class="portal-tab" onclick="switchPortalTab(\'assessoria\',this)">📈 Assessoria</button>'
+      +'<button class="portal-tab" onclick="switchPortalTab(\'carteres\',this)">🗂 Carteres Model</button>'
+    +'</div>'
+    +'<div id="portal-tab-perfil">'
+
     // ── Salutació ──
     +'<div class="portal-hello">'
       +'<div class="portal-hello-eye">Portal personal</div>'
@@ -465,6 +493,10 @@ function renderPortal(c, el) {
     +'<div class="disc">Guillem Puig · The Boring Investor · Assessoria Financera Independent · Fee-only. '
     +'Eina d\'educació financera independent. No constitueix assessorament d\'inversió regulat MiFID II. '
     +'Candidat a la certificació EFA (juny 2026). Document confidencial generat el '+dataAvui+'.</div>';
+
+  +'</div>'// fi tab perfil
+  +'<div id="portal-tab-assessoria" style="display:none"><div id="portal-assessoria-body"><div style="text-align:center;padding:40px;color:var(--g400);font-size:14px">Carregant anàlisis...</div></div></div>'
+  +'<div id="portal-tab-carteres" style="display:none"><div id="portal-carteres-body"></div></div>'
 
   // Radar
   if (mods.length > 0) {
@@ -587,6 +619,113 @@ async function guardarCartera() {
   } catch(e) {
     if (btn) { btn.disabled = false; btn.textContent = 'Error: ' + e.message; }
   }
+}
+
+
+// ── PORTAL TABS ──
+var _portalTab = 'perfil';
+var _portalEmail = '';
+
+function switchPortalTab(tab, btn) {
+  _portalTab = tab;
+  document.querySelectorAll('.portal-tab').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  ['perfil','assessoria','carteres'].forEach(function(t){
+    var el = document.getElementById('portal-tab-' + t);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  if (tab === 'assessoria' && _portalEmail) loadPortalAnalisi();
+  if (tab === 'carteres') renderPortalCarteres();
+}
+
+async function loadPortalAnalisi() {
+  var el = document.getElementById('portal-assessoria-body');
+  if (!el) return;
+  try {
+    var res = await sb.from('analisis').select('*').eq('visible_portal', true).order('data_pub', {ascending:false});
+    if (res.error) throw res.error;
+    var list = res.data || [];
+    if (list.length === 0) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--g400);font-size:14px">Aviat hi haurà noves anàlisis publicades!</div>';
+      return;
+    }
+    var cats = {mercat:{lbl:'Mercat',bg:'#EBF0FA',tc:'#1B3A6B'},sectorial:{lbl:'Sectorial',bg:'#EAF3DE',tc:'#1A5C3A'},value:{lbl:'Value',bg:'#FEF5E7',tc:'#7A4A00'},macro:{lbl:'Macro',bg:'#FDF0F0',tc:'#8B1A1A'},cartera:{lbl:'Cartera',bg:'#EDEAF9',tc:'#534AB7'},setmanal:{lbl:'Setmanal',bg:'#F4F3F0',tc:'#6B6762'}};
+    var html = '<div style="margin-bottom:20px"><div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px">Assessoria i Anàlisi</div><div style="font-size:12px;color:var(--g500)">Anàlisi i informació financera de The Boring Investor</div></div>';
+    list.forEach(function(a) {
+      var cat = cats[a.categoria] || cats.mercat;
+      var data = new Date(a.data_pub).toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+      html += '<div class="pa-card" onclick="obrirPortalAnalisi('' + a.id + '',' + JSON.stringify(a).replace(/'/g,"\'") + ')">'
+        + '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
+          + '<span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:' + cat.bg + ';color:' + cat.tc + '">' + cat.lbl + '</span>'
+          + '<span style="font-size:11px;color:var(--g400)">' + data + '</span>'
+          + (a.destacat ? '<span style="font-size:10px;color:var(--accent)">⭐</span>' : '')
+        + '</div>'
+        + '<div class="pa-card-title">' + a.titol + '</div>'
+        + (a.subtitol ? '<div class="pa-card-sub">' + a.subtitol + '</div>' : '')
+        + '<div class="pa-card-resum">' + (a.resum||'') + '</div>'
+        + (a.tags && a.tags.length ? '<div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">' + a.tags.slice(0,4).map(function(t){return '<span style="font-size:10px;padding:2px 7px;background:var(--g100);border-radius:99px;color:var(--g500)">' + t + '</span>';}).join('') + '</div>' : '')
+      + '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--g400);font-size:13px;padding:20px">Error carregant anàlisis.</div>';
+  }
+}
+
+function obrirPortalAnalisi(id, a) {
+  var el = document.getElementById('portal-assessoria-body');
+  var cats = {mercat:{lbl:'Mercat',bg:'#EBF0FA',tc:'#1B3A6B'},sectorial:{lbl:'Sectorial',bg:'#EAF3DE',tc:'#1A5C3A'},value:{lbl:'Value',bg:'#FEF5E7',tc:'#7A4A00'},macro:{lbl:'Macro',bg:'#FDF0F0',tc:'#8B1A1A'},cartera:{lbl:'Cartera',bg:'#EDEAF9',tc:'#534AB7'},setmanal:{lbl:'Setmanal',bg:'#F4F3F0',tc:'#6B6762'}};
+  var cat = cats[a.categoria] || cats.mercat;
+  var data = new Date(a.data_pub).toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+  el.innerHTML = '<button onclick="loadPortalAnalisi()" style="font-size:12px;color:var(--g400);background:none;border:none;cursor:pointer;font-family:var(--fb);margin-bottom:16px">← Tornar</button>'
+    + '<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">'
+      + '<span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:' + cat.bg + ';color:' + cat.tc + '">' + cat.lbl + '</span>'
+      + '<span style="font-size:11px;color:var(--g400)">' + data + ' · ' + (a.autor||'Guillem Puig') + '</span>'
+    + '</div>'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;color:var(--black);margin-bottom:5px;letter-spacing:-.3px">' + a.titol + '</div>'
+    + (a.subtitol ? '<div style="font-size:14px;color:var(--g400);font-style:italic;margin-bottom:14px">' + a.subtitol + '</div>' : '')
+    + '<div style="border-top:1px solid var(--g200);padding-top:18px">' + (a.contingut||'') + '</div>';
+}
+
+function renderPortalCarteres() {
+  var el = document.getElementById('portal-carteres-body');
+  if (!el) return;
+  var carteres = [
+    {nom:'Cartera TBI · The Boring Investor',desc:'Cartera pròpia TBI. Indexació global (70%) + Value selectiu (30%). DCA mensual + rebalanceig anual.',tbi:true,
+     actius:[{nom:'MSCI World ETF',pct:40,color:'#1B3A6B'},{nom:'S&P 500 ETF',pct:20,color:'#2E5FA3'},{nom:'Selecció valor IBEX',pct:15,color:'#4CAF82'},{nom:'Emergents',pct:10,color:'#D4943A'},{nom:'Renda Fixa Gov.',pct:10,color:'#9A9690'},{nom:'Or físic ETP',pct:5,color:'#C0392B'}],
+     stats:'TER: 0,14% · Retorn esp: 7–9% · Sharpe: 0,55'},
+    {nom:'I · La Catapulta',desc:'100% RV global. Per a inversors joves amb horitzó >15 anys i màxima tolerància al risc.',
+     actius:[{nom:'RV Global MSCI World',pct:60,color:'#1B3A6B'},{nom:'RV USA S&P 500',pct:25,color:'#2E5FA3'},{nom:'Emergents',pct:15,color:'#D4943A'}],
+     stats:'TER: 0,10% · Retorn esp: 8–10% · Sharpe: 0,45'},
+    {nom:'III · El Galeó',desc:'Cartera equilibrada. RV global diversificada amb buffer de RF i or. Referència per a perfils moderats.',
+     actius:[{nom:'RV Global',pct:40,color:'#1B3A6B'},{nom:'RV USA',pct:15,color:'#2E5FA3'},{nom:'Emergents',pct:10,color:'#D4943A'},{nom:'RF Bons',pct:25,color:'#9A9690'},{nom:'Or',pct:10,color:'#C0392B'}],
+     stats:'TER: 0,12% · Retorn esp: 5–7% · Sharpe: 0,48'},
+    {nom:'V · La Muralla',desc:'Preservació de capital. RF de qualitat dominant. Per a inversors conservadors o horitzó curt.',
+     actius:[{nom:'RF Gov. EUR',pct:45,color:'#9A9690'},{nom:'RF Corp. IG',pct:25,color:'#6B6762'},{nom:'Monetari BCE',pct:15,color:'#C8C5BE'},{nom:'RV Global',pct:10,color:'#1B3A6B'},{nom:'Or',pct:5,color:'#C0392B'}],
+     stats:'TER: 0,14% · Retorn esp: 2–3,5% · Sharpe: 0,42'},
+  ];
+  var html = '<div style="margin-bottom:20px"><div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px">Carteres Model</div><div style="font-size:12px;color:var(--g500)">Les carteres model de The Boring Investor. La teva cartera es basa en una d'aquestes.</div></div>';
+  carteres.forEach(function(c) {
+    html += '<div class="pc-card"' + (c.tbi?' style="border-color:var(--accent)"':'') + '>'
+      + '<div class="pc-header">'
+        + (c.tbi ? '<div style="font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">⭐ Cartera Pròpia TBI</div>' : '')
+        + '<div class="pc-nom">' + c.nom + '</div>'
+        + '<div class="pc-desc">' + c.desc + '</div>'
+        + '<div style="font-size:10px;color:var(--g400);margin-top:6px">' + c.stats + '</div>'
+      + '</div>'
+      + '<div class="pc-body">'
+        + c.actius.map(function(a){
+          return '<div class="pc-alloc-row">'
+            + '<div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:' + a.color + '"></div>'
+            + '<div style="font-size:12px;color:var(--black);flex:1">' + a.nom + '</div>'
+            + '<div style="width:80px;height:4px;background:var(--g200);border-radius:99px;overflow:hidden"><div style="height:100%;width:' + a.pct + '%;background:' + a.color + ';border-radius:99px"></div></div>'
+            + '<div style="font-family:var(--fm);font-size:11px;color:var(--g500);min-width:30px;text-align:right">' + a.pct + '%</div>'
+          + '</div>';
+        }).join('')
+      + '</div>'
+    + '</div>';
+  });
+  el.innerHTML = html;
 }
 
 // ── START ──
