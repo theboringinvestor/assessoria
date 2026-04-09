@@ -994,6 +994,36 @@ function arAlloc(ar) {
 }
 
 
+
+function sessioCTA() {
+  var isEs = ONB_LANG === 'es';
+  var waMsg = isEs
+    ? 'Hola Guillem, acabo de hacer el cuestionario de The Boring Investor y me gustaría hablar sobre mis resultados.'
+    : 'Hola Guillem, acabo de fer el qüestionari de The Boring Investor i m\'agradaria parlar sobre els meus resultats.';
+  var waUrl = 'https://wa.me/34600000000?text=' + encodeURIComponent(waMsg);
+  return '<div style="margin-top:8px;background:#0A0A0A;border-radius:12px;padding:18px 16px;text-align:center">'
+    + '<div style="font-size:10px;font-weight:500;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">'
+      + (isEs ? 'Próximo paso' : 'Proper pas')
+    + '</div>'
+    + '<div style="font-family:Georgia,serif;font-size:17px;color:white;margin-bottom:6px">'
+      + (isEs ? 'Sessió gratuïta de 20 min' : 'Sessió gratuïta de 20 min')
+    + '</div>'
+    + '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.5">'
+      + (isEs
+        ? 'Parlem dels teus resultats. Sense compromís ni cost.'
+        : 'Parlem dels teus resultats. Sense compromís ni cost.')
+    + '</div>'
+    + '<a href="' + waUrl + '" target="_blank"'
+      + ' style="display:block;padding:12px;background:#25D366;color:white;border-radius:9px;font-size:14px;font-weight:500;text-decoration:none;margin-bottom:8px">'
+      + '💬 ' + (isEs ? 'Reservar per WhatsApp' : 'Reservar per WhatsApp')
+    + '</a>'
+    + '<a href="mailto:guillem@theboringinvestor.com?subject=Resultats qüestionari TBI"'
+      + ' style="display:block;padding:10px;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);border-radius:9px;font-size:13px;text-decoration:none">'
+      + '✉ guillem@theboringinvestor.com'
+    + '</a>'
+  + '</div>';
+}
+
 function buildResult(){
   const sc    = calcScore();
   const ar    = getArquetip(sc);
@@ -1097,6 +1127,10 @@ function buildResult(){
     +'<div style="display:flex;flex-direction:column;gap:9px">'
       +'<button id="btn-enviar" onclick="enviarITancar()" style="width:100%;padding:13px;background:#0A0A0A;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:opacity .15s">'+uiT('send_btn')+'</button>'
       +'<button onclick="generarPDF()" style="width:100%;padding:12px;background:white;color:#0A0A0A;border:1.5px solid #C8C5BE;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('download_btn')+'</button>'
+      
+      // ── CTA Sessió gratuïta ──
+      +sessioCTA()
+
       +'<button onclick="reiniciar()" style="background:none;border:none;font-size:12px;color:#9A9690;cursor:pointer;font-family:var(--fb);text-align:center;padding:6px;text-decoration:underline">'+uiT('restart_btn')+'</button>'
     +'</div>'
 
@@ -1511,5 +1545,15 @@ document.addEventListener('keydown',e=>{
 render('none');
 
 </script>
+
+<style>
+.wa-fab-onb{position:fixed;bottom:24px;right:24px;z-index:999;width:52px;height:52px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.4);cursor:pointer;text-decoration:none;transition:transform .2s}
+.wa-fab-onb:hover{transform:scale(1.08)}
+.wa-fab-onb svg{width:26px;height:26px;fill:white}
+</style>
+<a class="wa-fab-onb" href="https://wa.me/34600000000?text=Hola%20Guillem%2C%20acabo%20de%20fer%20el%20q%C3%BCestionari%20de%20The%20Boring%20Investor%20i%20m%27agradaria%20parlar%20sobre%20els%20meus%20resultats." target="_blank" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.553 4.117 1.523 5.845L.057 23.882l6.198-1.625A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.785 9.785 0 01-5.032-1.395l-.36-.214-3.732.979 1.001-3.636-.235-.374A9.786 9.786 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
+</a>
+
 </body>
 </html>
