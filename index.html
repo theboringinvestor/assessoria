@@ -1025,7 +1025,7 @@ const CARTERES_MODEL = [
   {
     id: 'tbi',
     nom: 'Cartera TBI · The Boring Investor',
-    desc: 'Cartera pròpia de The Boring Investor. Diversificació real en 8 categories d'actius: indexació passiva, dividends, temàtica, immobiliari, crowdlending, metalls, crypto i startups. Estratègia d'eficiència màxima a llarg termini aprofitant baixades al mercat.',
+    desc: 'Cartera pròpia de The Boring Investor. Diversificació real en 8 categories d’actius: indexació passiva, dividends, temàtica, immobiliari, crowdlending, metalls, crypto i startups. Estratègia d’eficiència màxima a llarg termini aprofitant baixades al mercat.',
     filosofia: 'Indexació passiva + Value selectiu + Alternatius descorrelats. DCA mensual + rebalanceig anual + aprofitament de correccions.',
     actius: [
       {nom:'Fons Indexats (Roboadvisors)',        pct:34, color:'#1B3A6B', detail:'Finzens 50% + MyInvestor 50% · TER <0,4% · Mercat global'},
@@ -1327,6 +1327,12 @@ function reiniciarSeminaris() {
   SEMINARIS_CUSTOM = null;
   renderEducacio();
   toast('Seminaris reiniciats');
+}
+
+
+function updateClientPlanBadge() {
+  // Actualitzar el badge del pla a la llista de clients sense re-renderitzar tot
+  renderDashboard && renderDashboard();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1739,6 +1745,20 @@ async function sincronitzarTotSupabase() {
 <div class="toast" id="toast"></div>
 
 <script>
+// ── PLANS DE SERVEI ──
+var PLANS_CONFIG = {
+  'senyal':  {lbl:'Senyal',       color:'#6B6762', bg:'#F4F3F0'},
+  'bruxola': {lbl:'Brúixola',     color:'#1B3A6B', bg:'#EBF0FA'},
+  'mapa':    {lbl:'Mapa',         color:'#1A5C3A', bg:'#EAF3DE'},
+  'rumb':    {lbl:'Rumb',         color:'#7A4A00', bg:'#FEF5E7'},
+  'family':  {lbl:'Family Office',color:'#534AB7', bg:'#EDEAF9'},
+  'pendent': {lbl:'Pendent',      color:'#9A9690', bg:'#F4F3F0'},
+};
+function planBadge(pla) {
+  var p = PLANS_CONFIG[pla] || PLANS_CONFIG['pendent'];
+  return '<span style="font-size:10px;font-weight:500;padding:2px 8px;border-radius:99px;background:'+p.bg+';color:'+p.color+'">'+p.lbl+'</span>';
+}
+
 
 // ══════════════════════════════════════════════
 // DADES INICIALS
@@ -2035,6 +2055,21 @@ function renderTabPerfil(c) {
     <div class="nota-box">
       <div class="nota-label">${t('perfil.nota_assessor')}</div>
       <textarea style="width:100%;padding:8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body);min-height:70px;resize:vertical;line-height:1.5" id="nota-edit" oninput="getCurrentClient().nota=this.value;saveData()">${c.nota||''}</textarea>
+    </div>
+    <div class="nota-box" style="margin-top:10px;margin-bottom:10px">
+      <div class="nota-label" style="margin-bottom:8px">${LANG==='es'?'Plan contratado':'Pla contractat'}</div>
+      <select onchange="getCurrentClient().pla=this.value;saveData();updateClientPlanBadge()" 
+        style="width:100%;padding:8px 10px;border:1px solid var(--gray-200);border-radius:8px;font-size:13px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+        <option value="pendent" ${!c.pla||c.pla==='pendent'?'selected':''}>— ${LANG==='es'?'Pendiente':'Pendent'} —</option>
+        <option value="senyal"  ${c.pla==='senyal' ?'selected':''}>00 · Senyal (9,97€/mes)</option>
+        <option value="bruxola" ${c.pla==='bruxola'?'selected':''}>01 · ${LANG==='es'?'Brújula':'Brúixola'} (47€)</option>
+        <option value="mapa"    ${c.pla==='mapa'   ?'selected':''}>02 · Mapa (147€)</option>
+        <option value="rumb"    ${c.pla==='rumb'   ?'selected':''}>03 · Rumb (49€/mes)</option>
+        <option value="family"  ${c.pla==='family' ?'selected':''}>04 · Family Office (99€/mes)</option>
+      </select>
+      <div style="font-size:10px;color:var(--gray-400);margin-top:5px">
+        ${LANG==='es'?'El plan determina las funcionalidades del portal del cliente.':'El pla determina les funcionalitats del portal del client.'}
+      </div>
     </div>
     <div class="nota-box" style="margin-top:10px">
       <div class="nota-label" style="margin-bottom:8px">${t('perfil.propera_reunio')}</div>
@@ -3119,7 +3154,7 @@ th{font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-s
 
   <!-- DISCLAIMER -->
   <div class="disc">
-    <strong>Avís legal:</strong> Aquest informe és el resultat d'una eina d'anàlisi i educació financera independent. No constitueix assessorament d'inversió regulat en els termes de la Directiva MiFID II ni recomanació personalitzada d'inversió. Les projeccions es basen en models estadístics i no garanteixen resultats futurs. Guillem Puig és candidat a la certificació EFA (European Financial Advisor) — examen juny 2026.
+    <strong>Avís legal:</strong> Aquest informe és el resultat d'una eina d'anàlisi i educació financera independent. No constitueix assessorament d’inversió regulat en els termes de la Directiva MiFID II ni recomanació personalitzada d'inversió. Les projeccions es basen en models estadístics i no garanteixen resultats futurs. Guillem Puig és candidat a la certificació EFA (European Financial Advisor) — examen juny 2026.
   </div>
   <div class="footer">
     <span>Guillem Puig · The Boring Investor · Assessoria Financera Independent</span>
