@@ -1,19 +1,4 @@
-<button 
-          </div>
-          <div class="field-group">
-            <label>Pla contractat</label>
-            <select id='nou-pla' style="width:100%;padding:8px;border:1px solid var(--gray-200);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
-              <option value="pendent">— Pendent —</option>
-              <option value="senyal">00 · Senyal (9,97€/mes)</option>
-              <option value="bruxola">01 · Brúixola (47€)</option>
-              <option value="mapa">02 · Mapa (147€)</option>
-              <option value="rumb">03 · Rumb (49€/mes)</option>
-              <option value="family">04 · Family Office (99€/mes)</option>
-            </select>onclick="sincronitzarTotSupabase()" title="Sincronitzar tots els clients a Supabase"
-        style="padding:6px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:transparent;color:var(--g500);font-family:var(--fb)">
-        ☁ Sync Supabase
-      </button>
-      <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ca">
 <head>
 <meta charset="UTF-8">
@@ -1265,10 +1250,10 @@ function renderCarteresBody() {
 
 function obrirVistaClient() {
   var c = getCurrentClient() || (clients && clients.length > 0 ? clients[0] : null);
-  var email = c ? (c.email || 'demo@theboringinvestor.com') : 'demo@theboringinvestor.com';
-  var url = 'https://assessoria-ten.vercel.app/portal.html?preview=1&email=' + encodeURIComponent(email);
+  var email = c ? (c.email || '') : '';
+  var url = 'https://assessoria-ten.vercel.app/portal.html?preview=1' + (email ? '&email=' + encodeURIComponent(email) : '');
   window.open(url, '_blank');
-  toast('Obrint portal com a client');
+  toast('Obrint portal' + (c ? ': ' + c.nom : '') + ' (mode previsualització)');
 }
 
 
@@ -1554,6 +1539,7 @@ async function sincronitzarTotSupabase() {
         <div class="topbar-title" id="topbar-title">Dashboard</div>
       </div>
       <div class="topbar-actions" id="topbar-actions">
+        <button onclick="obrirVistaClient()" title="Veure portal com a client" style="padding:5px 12px;border:1px solid var(--gray-200);border-radius:6px;font-size:11px;cursor:pointer;background:transparent;font-family:var(--font-body);color:var(--gray-500);margin-right:6px">👁 Vista client</button>
         <button class="btn btn-primary btn-sm" onclick="openModal('nou-client')"><span data-i18n="dash.nou_client">+ Nou client</span></button>
       </div>
     </div>
@@ -1711,9 +1697,9 @@ async function sincronitzarTotSupabase() {
         <option>VII · L'Alambí</option><option>VIII · El Sarró</option>
       </select>
         </div>
-        <div style="margin-top:10px">
-          <label style="display:block;font-size:10px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Pla contractat</label>
-          <select id="nc-pla" style="width:100%;padding:8px;border:1px solid var(--gray-200);border-radius:6px;font-size:12px;background:var(--white);color:var(--black);font-family:var(--font-body)">
+        <div class="form-field">
+          <label class="form-label">Pla contractat</label>
+          <select class="form-select" id="nc-pla">
             <option value="pendent">— Pendent —</option>
             <option value="senyal">00 · Senyal (9,97€/mes)</option>
             <option value="bruxola">01 · Brúixola (47€)</option>
@@ -1721,6 +1707,8 @@ async function sincronitzarTotSupabase() {
             <option value="rumb">03 · Rumb (49€/mes)</option>
             <option value="family">04 · Family Office (99€/mes)</option>
           </select>
+        </div>
+        <div style="ma
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('nou-client')">Cancel·lar</button>
@@ -2661,7 +2649,7 @@ function crearClient() {
     nom, email: document.getElementById('nc-email').value.trim(),
     arquetip: document.getElementById('nc-arquetip').value || '-',
     cartera: document.getElementById('nc-cartera').value || '-',
-    pla: (document.getElementById('nc-pla') || {value:'pendent'}).value || 'pendent',
+    pla: document.getElementById('nc-pla') ? document.getElementById('nc-pla').value : 'pendent' || 'pendent',
     avColor: 'av-gray', scoring: null,
     dataRevisio: new Date().toISOString().split('T')[0],
     estat: 'nou',

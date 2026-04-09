@@ -802,8 +802,33 @@ function freemiumBlock(titol, descripcio) {
   + '</div>';
 }
 
+// ── MODE PREVIEW (des del dashboard) ──
+function checkPreviewMode() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('preview') === '1') {
+    var email = params.get('email') || '';
+    // Mode preview: saltar l'auth i mostrar el portal directament
+    document.getElementById('login-wrap').style.display = 'none';
+    document.getElementById('portal-wrap').style.display = 'block';
+    document.getElementById('topbar').style.display = 'flex';
+    // Mostrar banner de preview
+    var banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:56px;left:0;right:0;background:#0A0A0A;color:white;text-align:center;padding:8px;font-size:12px;z-index:200;font-family:var(--fb)';
+    banner.innerHTML = '👁 Mode previsualització assessor — ' + email + ' <button onclick="this.parentElement.remove()" style="margin-left:12px;background:rgba(255,255,255,.2);border:none;color:white;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px">×</button>';
+    document.body.appendChild(banner);
+    // Carregar dades si hi ha email
+    if (email) loadClientData(email);
+    else {
+      // Mostrar portal de demo buit
+      document.getElementById('portal-content').innerHTML = '<div style="padding:40px;text-align:center;color:var(--g400)"><div style="font-size:32px;margin-bottom:12px">👁</div><div>Mode previsualització</div><div style="font-size:12px;margin-top:6px">Selecciona un client al dashboard i clica "Vista client" a la seva fitxa</div></div>';
+    }
+    return true;
+  }
+  return false;
+}
+
 // ── START ──
-init();
+if (!checkPreviewMode()) init();
 </script>
 </body>
 </html>
