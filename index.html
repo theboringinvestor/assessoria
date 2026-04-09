@@ -522,6 +522,56 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 .perfil-tag{font-size:9px;padding:2px 7px;border-radius:99px}
 .perfil-desc{font-size:11px;color:var(--gray-500);line-height:1.5}
 
+
+/* Registre aportacions seguiment */
+.seg-registre{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.seg-reg-title{font-size:11px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.seg-entrada{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin-bottom:12px}
+.seg-entrada input,.seg-entrada select{padding:7px 10px;border:1px solid var(--gray-200);border-radius:7px;font-size:12px;font-family:var(--font-body);background:var(--white);color:var(--black)}
+.seg-entrada input:focus,.seg-entrada select:focus{outline:none;border-color:var(--accent)}
+.seg-entrada label{font-size:10px;color:var(--gray-400);display:block;margin-bottom:3px;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.seg-historial{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto}
+.seg-hist-row{display:flex;gap:10px;align-items:center;padding:7px 10px;background:var(--gray-100);border-radius:7px;font-size:12px}
+.seg-hist-data{color:var(--gray-400);font-family:var(--font-mono);font-size:11px;min-width:80px}
+.seg-hist-tipus{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500}
+.seg-hist-import{font-family:var(--font-mono);font-weight:500;color:var(--black);margin-left:auto}
+.seg-hist-del{color:var(--red);background:none;border:none;cursor:pointer;font-size:12px;padding:0 4px}
+/* KPI cards seguiment */
+.seg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.seg-kpi{background:var(--white);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;text-align:center}
+.seg-kpi-val{font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--black);margin-bottom:3px}
+.seg-kpi-lbl{font-size:9px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em}
+
+
+/* ── FIRE CALCULATOR CSS ── */
+.fire-grid{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start}
+.fire-panel{background:var(--white);border:1px solid var(--gray-200);border-radius:14px;padding:22px 24px}
+.fire-panel-title{font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.09em;margin-bottom:16px}
+.fire-row{margin-bottom:14px}
+.fire-row label{display:block;font-size:11px;font-weight:500;color:var(--gray-500);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.fire-row input,.fire-row select{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:14px;font-family:var(--font-body);background:var(--white);color:var(--black);outline:none}
+.fire-row input:focus,.fire-row select:focus{border-color:var(--accent)}
+.fire-row-hint{font-size:10px;color:var(--gray-400);margin-top:3px}
+.fire-type-tabs{display:flex;gap:2px;background:var(--gray-100);padding:3px;border-radius:8px;margin-bottom:16px}
+.fire-type-tab{flex:1;padding:7px;text-align:center;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:none;background:transparent;font-family:var(--font-body);color:var(--gray-500);transition:all .15s}
+.fire-type-tab.active{background:var(--white);color:var(--black);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+/* Resultats FIRE */
+.fire-result-hero{background:var(--black);border-radius:12px;padding:24px;margin-bottom:16px;text-align:center}
+.fire-result-anys{font-family:var(--font-serif);font-size:48px;font-weight:400;color:var(--white);line-height:1}
+.fire-result-any-label{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;margin-bottom:16px}
+.fire-result-data{font-family:var(--font-mono);font-size:20px;color:var(--white);margin-bottom:4px}
+.fire-result-data-sub{font-size:11px;color:rgba(255,255,255,.4)}
+.fire-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+.fire-kpi{background:var(--white);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px}
+.fire-kpi-val{font-family:var(--font-mono);font-size:16px;font-weight:500;color:var(--black);margin-bottom:2px}
+.fire-kpi-lbl{font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em}
+.fire-rules{display:flex;flex-direction:column;gap:8px}
+.fire-rule{padding:12px 14px;background:var(--gray-100);border-radius:9px;border-left:3px solid var(--accent)}
+.fire-rule-name{font-size:12px;font-weight:500;color:var(--black);margin-bottom:3px}
+.fire-rule-desc{font-size:11px;color:var(--gray-500);line-height:1.5}
+.fire-rule-val{font-family:var(--font-mono);font-size:13px;color:var(--accent);font-weight:500;margin-top:4px}
+@media(max-width:900px){.fire-grid{grid-template-columns:1fr}}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -827,6 +877,61 @@ function renderEducacio() {
   + '</div>';
 }
 
+
+
+// ── CATÀLEG D'ACTIUS PREDEFINIT ──
+const ACTIUS_CATALOG = [
+  // FONS INDEXATS / ETFs GLOBALS
+  {cat:'Indexació Global',  nom:'MSCI World ETF (Vanguard / iShares)',        ticker:'IWDA',  tipus:'ETF',      risc:'Moderat',    color:'#1B3A6B'},
+  {cat:'Indexació Global',  nom:'S&P 500 ETF (Amundi / Fidelity)',            ticker:'SXR8',  tipus:'ETF',      risc:'Moderat',    color:'#2E5FA3'},
+  {cat:'Indexació Global',  nom:'MSCI World Sustainable (iShares)',           ticker:'SUWS',  tipus:'ETF',      risc:'Moderat',    color:'#3A7BBF'},
+  {cat:'Indexació Global',  nom:'All World ETF (Vanguard VWCE)',              ticker:'VWCE',  tipus:'ETF',      risc:'Moderat',    color:'#4A8FD4'},
+  {cat:'Indexació Global',  nom:'Emergents (iShares EMIM)',                   ticker:'EMIM',  tipus:'ETF',      risc:'Moderat-alt',color:'#5B9FE0'},
+  {cat:'Indexació Global',  nom:'Europa ETF (iShares STOXX600)',              ticker:'EXW1',  tipus:'ETF',      risc:'Moderat',    color:'#6AAFF0'},
+  // ROBOADVISORS / FONS INDEXATS
+  {cat:'Roboadvisor',       nom:'Finzens Cartera Indexada',                   ticker:'-',     tipus:'Fons',     risc:'Moderat',    color:'#1B3A6B'},
+  {cat:'Roboadvisor',       nom:'MyInvestor Cartera Indexada',                ticker:'-',     tipus:'Fons',     risc:'Moderat',    color:'#2E5FA3'},
+  {cat:'Roboadvisor',       nom:'inbestMe Cartera ISR',                       ticker:'-',     tipus:'Fons',     risc:'Moderat',    color:'#3A7BBF'},
+  // DIVIDEND
+  {cat:'Dividend',          nom:'Vanguard High Dividend ETF (VHYL)',          ticker:'VHYL',  tipus:'ETF',      risc:'Moderat',    color:'#4CAF82'},
+  {cat:'Dividend',          nom:'SPDR S&P Dividend Aristocrats (SPQD)',       ticker:'SPQD',  tipus:'ETF',      risc:'Moderat',    color:'#3D9E72'},
+  {cat:'Dividend',          nom:'Bankinter (dividend >6%)',                   ticker:'BKT',   tipus:'Acció',    risc:'Moderat',    color:'#2E8F62'},
+  {cat:'Dividend',          nom:'CaixaBank (dividend >6%)',                   ticker:'CABK',  tipus:'Acció',    risc:'Moderat',    color:'#1F8052'},
+  {cat:'Dividend',          nom:'Enagás (dividend ~8%)',                      ticker:'ENG',   tipus:'Acció',    risc:'Moderat',    color:'#107040'},
+  {cat:'Dividend',          nom:'Endesa (dividend >7%)',                      ticker:'ELE',   tipus:'Acció',    risc:'Moderat',    color:'#016030'},
+  // TEMÀTIQUES
+  {cat:'Temàtica',          nom:'ETF New Tech USA (iShares / Invesco)',       ticker:'CNDX',  tipus:'ETF',      risc:'Moderat-alt',color:'#D4943A'},
+  {cat:'Temàtica',          nom:'ETF New Tech ASIA (iShares)',                ticker:'IASH',  tipus:'ETF',      risc:'Alt',        color:'#C4841A'},
+  {cat:'Temàtica',          nom:'ETF New Tech Europa (ASML Weight)',          ticker:'IEUR',  tipus:'ETF',      risc:'Moderat-alt',color:'#B47400'},
+  {cat:'Temàtica',          nom:'ETF IA i Semiconductors',                   ticker:'SEMI',  tipus:'ETF',      risc:'Alt',        color:'#A46400'},
+  {cat:'Temàtica',          nom:'ETF Energies Renovables (iClima)',           ticker:'CLMA',  tipus:'ETF',      risc:'Alt',        color:'#945400'},
+  // IMMOBILIARI / REITs
+  {cat:'Immobiliari',       nom:'Global REIT ETF (iShares)',                  ticker:'IWDP',  tipus:'ETF',      risc:'Moderat',    color:'#0F6E56'},
+  {cat:'Immobiliari',       nom:'Merlin Properties (SOCIMI)',                 ticker:'MRL',   tipus:'Acció',    risc:'Moderat',    color:'#0A5E46'},
+  {cat:'Immobiliari',       nom:'Colonial (SOCIMI)',                          ticker:'COL',   tipus:'Acció',    risc:'Moderat',    color:'#054E36'},
+  // RENDA FIXA
+  {cat:'Renda Fixa',        nom:'RF Govern. EUR (iShares Core)',              ticker:'IEAG',  tipus:'ETF',      risc:'Baix',       color:'#9A9690'},
+  {cat:'Renda Fixa',        nom:'RF Corporativa IG EUR (iShares)',            ticker:'IEAA',  tipus:'ETF',      risc:'Baix-Moderat',color:'#8A8680'},
+  {cat:'Renda Fixa',        nom:'RF Short Duration (Xtrackers)',              ticker:'DBXN',  tipus:'ETF',      risc:'Baix',       color:'#7A7670'},
+  {cat:'Renda Fixa',        nom:'Compte Remunerado / Fons Monetari',         ticker:'-',     tipus:'Liquid',   risc:'Molt Baix',  color:'#C8C5BE'},
+  // METALLS
+  {cat:'Metalls',           nom:'Or físic ETC (Invesco / WisdomTree)',        ticker:'PHAU',  tipus:'ETC',      risc:'Moderat-baix',color:'#C0392B'},
+  {cat:'Metalls',           nom:'Plata ETC (Invesco)',                        ticker:'PHAG',  tipus:'ETC',      risc:'Moderat',    color:'#A0291B'},
+  {cat:'Metalls',           nom:'Platí ETC (WisdomTree)',                     ticker:'PHPT',  tipus:'ETC',      risc:'Moderat-alt',color:'#800000'},
+  // CRYPTO
+  {cat:'Crypto',            nom:'Bitcoin ETF / ETC (21Shares, WisdomTree)',   ticker:'ABTC',  tipus:'ETC',      risc:'Molt Alt',   color:'#534AB7'},
+  {cat:'Crypto',            nom:'Ethereum ETC (WisdomTree)',                  ticker:'AETH',  tipus:'ETC',      risc:'Molt Alt',   color:'#433A97'},
+  {cat:'Crypto',            nom:'Crypto diversificat (Hashdex, Invesco)',     ticker:'HASH',  tipus:'ETC',      risc:'Molt Alt',   color:'#332A77'},
+  // ALTERNATIUS
+  {cat:'Crowdlending',      nom:'Mintos (P2P préstecs personals)',            ticker:'-',     tipus:'Alternatiu',risc:'Alt',       color:'#D4943A'},
+  {cat:'Crowdlending',      nom:'October (P2B préstecs empreses)',            ticker:'-',     tipus:'Alternatiu',risc:'Moderat',   color:'#C4841A'},
+  {cat:'Crowdlending',      nom:'Crowdestate (immobiliari P2P)',              ticker:'-',     tipus:'Alternatiu',risc:'Alt',       color:'#B47400'},
+  {cat:'Crowdlending',      nom:'Housers (immobiliari fraccional)',           ticker:'-',     tipus:'Alternatiu',risc:'Alt',       color:'#A46400'},
+  {cat:'Private Equity',    nom:'Seedrs (start-ups globals)',                 ticker:'-',     tipus:'Alternatiu',risc:'Molt Alt',  color:'#7A4A00'},
+  {cat:'Private Equity',    nom:'Crowdcube (start-ups UK/EU)',                ticker:'-',     tipus:'Alternatiu',risc:'Molt Alt',  color:'#6A3A00'},
+];
+
+const ACTIUS_CATS = [...new Set(ACTIUS_CATALOG.map(a => a.cat))];
 
 // ══════════════════════════════════════════════════════
 // ANÀLISI FINANCERA — Dashboard
@@ -1335,6 +1440,299 @@ function updateClientPlanBadge() {
   renderDashboard && renderDashboard();
 }
 
+
+// ── REGISTRE APORTACIONS I VALOR REAL ──
+function renderRegistreSeguiment(c) {
+  var registre = c.registreSeguiment || [];
+  var totalAportat = registre.filter(function(r){ return r.tipus==='aportacio'; }).reduce(function(s,r){ return s+(r.import||0); },0);
+  var lastValor = registre.filter(function(r){ return r.tipus==='valor'; }).slice(-1)[0];
+  var valorActual = lastValor ? lastValor.import : 0;
+  var guanyPct = totalAportat > 0 ? ((valorActual - totalAportat) / totalAportat * 100) : 0;
+  var totalAportMens = parseFloat((c.perfil && c.perfil.aportacioMensual || '0').replace(/[^\d.]/g,'')) || 0;
+
+  var html = '<div class="seg-registre">'
+    + '<div class="seg-reg-title"><span>📥 Registre d\'aportacions i valor real</span>'
+      + '<button onclick="desarRegistre(\'' + c.id + '\')" style="font-size:11px;padding:4px 10px;background:var(--black);color:white;border:none;border-radius:6px;cursor:pointer;font-family:var(--font-body)">+ Afegir</button>'
+    + '</div>'
+
+    // KPIs
+    + '<div class="seg-kpis">'
+      + '<div class="seg-kpi"><div class="seg-kpi-val">' + formatImport(totalAportat) + '</div><div class="seg-kpi-lbl">Total aportat</div></div>'
+      + '<div class="seg-kpi"><div class="seg-kpi-val" style="color:' + (valorActual >= totalAportat?'var(--green)':'var(--red)') + '">' + formatImport(valorActual) + '</div><div class="seg-kpi-lbl">Valor actual</div></div>'
+      + '<div class="seg-kpi"><div class="seg-kpi-val" style="color:' + (guanyPct>=0?'var(--green)':'var(--red)') + '">' + (guanyPct>=0?'+':'') + guanyPct.toFixed(1) + '%</div><div class="seg-kpi-lbl">Rendiment</div></div>'
+      + '<div class="seg-kpi"><div class="seg-kpi-val">' + formatImport(totalAportMens) + '</div><div class="seg-kpi-lbl">DCA mensual</div></div>'
+    + '</div>'
+
+    // Formulari
+    + '<div class="seg-entrada" id="seg-form-' + c.id + '">'
+      + '<div><label>Data</label><input type="date" id="seg-data-' + c.id + '" value="' + new Date().toISOString().split('T')[0] + '"></div>'
+      + '<div><label>Tipus</label><select id="seg-tipus-' + c.id + '"><option value="aportacio">Aportació</option><option value="valor">Valor cartera</option><option value="retirada">Retirada</option></select></div>'
+      + '<div><label>Import (€)</label><input type="number" id="seg-import-' + c.id + '" placeholder="0" min="0" step="100" style="width:120px"></div>'
+      + '<div><label>Nota (opcional)</label><input id="seg-nota-' + c.id + '" placeholder="Ex: DCA mensual" style="width:160px"></div>'
+      + '<button onclick="afegirEntradaSeguiment(\'' + c.id + '\')" style="padding:7px 14px;background:var(--black);color:white;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--font-body);margin-bottom:1px">Guardar</button>'
+    + '</div>'
+
+    // Historial
+    + (registre.length > 0
+      ? '<div class="seg-historial">' + registre.slice().reverse().slice(0,12).map(function(r,i){
+          var idx = registre.length - 1 - i;
+          var color = r.tipus==='aportacio'?'var(--accent)':r.tipus==='valor'?'var(--green)':'var(--red)';
+          var bg = r.tipus==='aportacio'?'var(--accent-light)':r.tipus==='valor'?'var(--green-light)':'var(--red-light)';
+          return '<div class="seg-hist-row">'
+            + '<span class="seg-hist-data">' + r.data + '</span>'
+            + '<span class="seg-hist-tipus" style="color:'+color+';background:'+bg+'">'
+              + (r.tipus==='aportacio'?'Aportació':r.tipus==='valor'?'Valor':'Retirada') + '</span>'
+            + (r.nota ? '<span style="font-size:11px;color:var(--gray-400)">' + r.nota + '</span>' : '')
+            + '<span class="seg-hist-import">' + formatImport(r.import) + '</span>'
+            + '<button class="seg-hist-del" onclick="eliminarEntradaSeguiment(\'' + r.id + '\',\'' + idx + '\')" title="Eliminar">×</button>'
+          + '</div>';
+        }).join('') + '</div>'
+      : '<div style="font-size:12px;color:var(--gray-400);text-align:center;padding:16px">Cap registre. Afegeix la primera aportació.</div>')
+
+  + '</div>';
+  return html;
+}
+
+function formatImport(v) {
+  if (!v && v !== 0) return '—';
+  if (v >= 1000000) return (v/1000000).toFixed(2).replace('.',',') + 'M€';
+  if (v >= 1000) return (v/1000).toFixed(1).replace('.',',') + 'k€';
+  return Math.round(v).toLocaleString('ca-ES') + '€';
+}
+
+function afegirEntradaSeguiment(clientId) {
+  var c = clients.find(function(x){ return x.id === clientId; });
+  if (!c) return;
+  var data   = document.getElementById('seg-data-' + clientId).value;
+  var tipus  = document.getElementById('seg-tipus-' + clientId).value;
+  var import_ = parseFloat(document.getElementById('seg-import-' + clientId).value) || 0;
+  var nota   = document.getElementById('seg-nota-' + clientId).value.trim();
+  if (!import_ || !data) { toast('Cal data i import'); return; }
+
+  if (!c.registreSeguiment) c.registreSeguiment = [];
+  c.registreSeguiment.push({
+    id: 'rs_' + Date.now(),
+    data: data,
+    tipus: tipus,
+    import: import_,
+    nota: nota,
+  });
+  // Ordenar per data
+  c.registreSeguiment.sort(function(a,b){ return a.data.localeCompare(b.data); });
+  saveData();
+  toast('✓ Registre afegit');
+  // Re-renderitzar seguiment
+  navigate('seguiment', clientId);
+}
+
+function eliminarEntradaSeguiment(regId, idx) {
+  var c = getCurrentClient();
+  if (!c || !c.registreSeguiment) return;
+  c.registreSeguiment = c.registreSeguiment.filter(function(r){ return r.id !== regId; });
+  saveData();
+  navigate('seguiment', c.id);
+}
+
+function desarRegistre(clientId) {
+  // Scroll al formulari
+  var form = document.getElementById('seg-form-' + clientId);
+  if (form) { form.scrollIntoView({behavior:'smooth'}); form.querySelector('input[type="number"]').focus(); }
+}
+
+
+// ══════════════════════════════════════════════════════
+// FIRE CALCULATOR
+// ══════════════════════════════════════════════════════
+
+var _fireTipus = 'regular'; // regular | lean | fat | coast | barista
+
+function renderFire() {
+  var el = document.getElementById('fire-content');
+  if (!el) return;
+
+  // Intentar pre-emplenar amb dades del client actual
+  var c = getCurrentClient();
+  var capital0     = c && c.perfil && c.perfil.capitalInicial    ? parseFloat((c.perfil.capitalInicial||'0').replace(/[^\d.,]/g,'').replace(',','.')) : 0;
+  var aportMens    = c && c.perfil && c.perfil.aportacioMensual  ? parseFloat((c.perfil.aportacioMensual||'0').replace(/[^\d.,]/g,'').replace(',','.')) : 500;
+  var despeses     = c && c.perfil && c.perfil.despesesMensuals  ? parseFloat((c.perfil.despesesMensuals||'0').replace(/[^\d.,]/g,'').replace(',','.')) : 2000;
+  var edat         = 35;
+
+  el.innerHTML = '<div style="max-width:1000px;margin:0 auto;padding:0 4px">'
+    + '<div style="margin-bottom:20px">'
+      + '<div style="font-size:10px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">The Boring Investor</div>'
+      + '<div style="font-family:var(--font-serif);font-size:26px;font-weight:400;color:var(--black);margin-bottom:6px;letter-spacing:-.3px">FIRE Calculator</div>'
+      + '<div style="font-size:13px;color:var(--gray-500);line-height:1.6">Financial Independence, Retire Early. Calcula quan podràs viure dels teus inversions.</div>'
+    + '</div>'
+
+    + '<div class="fire-grid">'
+
+      // Panel esquerre — inputs
+      + '<div>'
+        + '<div class="fire-panel">'
+          + '<div class="fire-panel-title">El teu perfil FIRE</div>'
+
+          // Tipus FIRE
+          + '<div class="fire-type-tabs">'
+            + '<button class="fire-type-tab active" onclick="setFireTipus(\'lean\',this)">🥦 Lean</button>'
+            + '<button class="fire-type-tab" onclick="setFireTipus(\'regular\',this)">🎯 Regular</button>'
+            + '<button class="fire-type-tab" onclick="setFireTipus(\'fat\',this)">🏖 Fat</button>'
+            + '<button class="fire-type-tab" onclick="setFireTipus(\'coast\',this)">🏄 Coast</button>'
+            + '<button class="fire-type-tab" onclick="setFireTipus(\'barista\',this)">☕ Barista</button>'
+          + '</div>'
+
+          + '<div class="fire-row"><label>Edat actual</label><input type="number" id="fire-edat" value="' + edat + '" min="18" max="70" oninput="calcFire()"><div class="fire-row-hint">Anys que tens ara</div></div>'
+          + '<div class="fire-row"><label>Capital actual (€)</label><input type="number" id="fire-capital" value="' + Math.round(capital0) + '" min="0" step="1000" oninput="calcFire()"><div class="fire-row-hint">Estalvis i inversions actuals</div></div>'
+          + '<div class="fire-row"><label>Aportació mensual (€)</label><input type="number" id="fire-aport" value="' + Math.round(aportMens) + '" min="0" step="100" oninput="calcFire()"><div class="fire-row-hint">Quant inverteixes cada mes</div></div>'
+          + '<div class="fire-row"><label>Despeses mensuals actuals (€)</label><input type="number" id="fire-desp" value="' + Math.round(despeses) + '" min="100" step="100" oninput="calcFire()"><div class="fire-row-hint">Les teves despeses mensuals actuals</div></div>'
+          + '<div class="fire-row"><label>Despeses mensuals en retir (€)</label><input type="number" id="fire-desp-retir" value="' + Math.round(despeses*0.85) + '" min="100" step="100" oninput="calcFire()"><div class="fire-row-hint">Quant necessites/mes per viure en retir</div></div>'
+          + '<div class="fire-row"><label>Retorn anual esperat (%)</label><input type="number" id="fire-retorn" value="7" min="1" max="15" step="0.5" oninput="calcFire()"><div class="fire-row-hint">Retorn net de la cartera (recomanat 6-8%)</div></div>'
+          + '<div class="fire-row"><label>Inflació anual (%)</label><input type="number" id="fire-inflacio" value="3" min="0" max="8" step="0.5" oninput="calcFire()"><div class="fire-row-hint">Per defecte 3% (BCE objectiu)</div></div>'
+        + '</div>'
+
+        // Regles FIRE
+        + '<div class="fire-panel" style="margin-top:14px">'
+          + '<div class="fire-panel-title">Models FIRE</div>'
+          + '<div class="fire-rules">'
+            + '<div class="fire-rule" style="border-color:var(--accent)"><div class="fire-rule-name">🥦 Lean FIRE</div><div class="fire-rule-desc">Vida frugal. Despeses molt reduïdes. Necessites menys capital però estil de vida auster.</div><div class="fire-rule-val" id="fire-lean-num"></div></div>'
+            + '<div class="fire-rule" style="border-color:var(--green)"><div class="fire-rule-name">🎯 Regular FIRE</div><div class="fire-rule-desc">El model estàndard. Retirada del 4% anual (regla del 4%). Capital = despeses × 25.</div><div class="fire-rule-val" id="fire-regular-num"></div></div>'
+            + '<div class="fire-rule" style="border-color:var(--amber)"><div class="fire-rule-name">🏖 Fat FIRE</div><div class="fire-rule-desc">Retir confortable. Despeses altes, capital 33× les despeses anuals (tasa 3%).</div><div class="fire-rule-val" id="fire-fat-num"></div></div>'
+            + '<div class="fire-rule" style="border-color:var(--gray-400)"><div class="fire-rule-name">🏄 Coast FIRE</div><div class="fire-rule-desc">Ja tens prou capital que, sense aportar res més, creixerà fins al teu objectiu amb el temps.</div><div class="fire-rule-val" id="fire-coast-num"></div></div>'
+            + '<div class="fire-rule" style="border-color:#C0392B"><div class="fire-rule-name">☕ Barista FIRE</div><div class="fire-rule-desc">Semi-retir. Treballes a temps parcial per cobrir una part de les despeses. Necessites menys capital.</div><div class="fire-rule-val" id="fire-barista-num"></div></div>'
+          + '</div>'
+        + '</div>'
+      + '</div>'
+
+      // Panel dret — resultats
+      + '<div id="fire-resultats"></div>'
+    + '</div>'
+  + '</div>';
+
+  calcFire();
+}
+
+function setFireTipus(tipus, btn) {
+  _fireTipus = tipus;
+  document.querySelectorAll('.fire-type-tab').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  calcFire();
+}
+
+function calcFire() {
+  var edat    = parseInt(document.getElementById('fire-edat').value) || 35;
+  var capital = parseFloat(document.getElementById('fire-capital').value) || 0;
+  var aportM  = parseFloat(document.getElementById('fire-aport').value) || 0;
+  var despM   = parseFloat(document.getElementById('fire-desp').value) || 2000;
+  var despMRet= parseFloat(document.getElementById('fire-desp-retir').value) || 1700;
+  var retorn  = (parseFloat(document.getElementById('fire-retorn').value) || 7) / 100;
+  var inflacio= (parseFloat(document.getElementById('fire-inflacio').value) || 3) / 100;
+  var retornReal = retorn - inflacio;
+
+  var despAny = despM * 12;
+  var despAnyRet = despMRet * 12;
+
+  // Calcular objectius per cada model FIRE
+  var objLean     = despAnyRet * 0.7 * 20;   // 5% WR, despeses 70%
+  var objRegular  = despAnyRet * 25;           // 4% regla del 4%
+  var objFat      = despAnyRet * 33;           // 3% WR
+  var objBarista  = despAnyRet * 0.5 * 25;    // Cobreix 50% de despeses
+
+  // Seleccionar objectiu actiu
+  var objectives = {lean:objLean, regular:objRegular, fat:objFat, coast:objRegular, barista:objBarista};
+  var objActiu = objectives[_fireTipus] || objRegular;
+
+  // Calcular anys per arribar a l'objectiu
+  function anysPerObjectiu(obj) {
+    if (capital >= obj) return 0;
+    var v = capital;
+    var mR = retornReal / 12;
+    var mesos = 0;
+    while (v < obj && mesos < 600) {
+      v = v * (1 + mR) + aportM;
+      mesos++;
+    }
+    return mesos / 12;
+  }
+
+  // Coast FIRE: capital que creixerà sol fins a l'objectiu
+  function calcCoast(obj) {
+    var anysFinsRetir = 65 - edat; // assumir retir a 65
+    var coastCapital = obj / Math.pow(1 + retornReal, anysFinsRetir);
+    return coastCapital;
+  }
+
+  var anysLean     = anysPerObjectiu(objLean);
+  var anysRegular  = anysPerObjectiu(objRegular);
+  var anysFat      = anysPerObjectiu(objFat);
+  var anysBarista  = anysPerObjectiu(objBarista);
+  var coastCapital = calcCoast(objRegular);
+
+  // Actualitzar etiquetes dels models
+  function fmtNum(v) { return v>=1e6?(v/1e6).toFixed(1)+'M€':v>=1e3?Math.round(v/1e3)+'k€':Math.round(v).toLocaleString('ca-ES')+'€'; }
+  function fmtAnys(a) { return a<=0?'Ja! 🎉':Math.ceil(a)+(a===1?' any':' anys'); }
+
+  var el = function(id){ return document.getElementById(id); };
+  if (el('fire-lean-num'))    el('fire-lean-num').textContent    = 'Objectiu: ' + fmtNum(objLean) + ' · ' + fmtAnys(anysLean);
+  if (el('fire-regular-num')) el('fire-regular-num').textContent = 'Objectiu: ' + fmtNum(objRegular) + ' · ' + fmtAnys(anysRegular);
+  if (el('fire-fat-num'))     el('fire-fat-num').textContent     = 'Objectiu: ' + fmtNum(objFat) + ' · ' + fmtAnys(anysFat);
+  if (el('fire-coast-num'))   el('fire-coast-num').textContent   = 'Capital Coast FIRE: ' + fmtNum(coastCapital) + (capital >= coastCapital ? ' · ✅ Assolit!' : '');
+  if (el('fire-barista-num')) el('fire-barista-num').textContent = 'Objectiu: ' + fmtNum(objBarista) + ' · ' + fmtAnys(anysBarista);
+
+  // Resultats principals
+  var anysActiu = {lean:anysLean, regular:anysRegular, fat:anysFat, coast:0, barista:anysBarista}[_fireTipus] || anysRegular;
+  var objActiuFmt = fmtNum(objActiu);
+  var anyRetir = edat + Math.ceil(anysActiu);
+  var capitalFinal = objActiu;
+  var rendaAnual = capitalFinal * 0.04;
+  var rendaMens = rendaAnual / 12;
+  var txaEstalvi = aportM * 12 / Math.max(despAny, 1) * 100;
+
+  var colorTipus = {lean:'var(--accent)',regular:'var(--green)',fat:'var(--amber)',coast:'var(--gray-500)',barista:'#C0392B'}[_fireTipus] || 'var(--accent)';
+  var nomTipus = {lean:'Lean FIRE 🥦',regular:'Regular FIRE 🎯',fat:'Fat FIRE 🏖',coast:'Coast FIRE 🏄',barista:'Barista FIRE ☕'}[_fireTipus] || 'FIRE';
+
+  var resEl = document.getElementById('fire-resultats');
+  if (!resEl) return;
+
+  resEl.innerHTML = '<div class="fire-result-hero">'
+    + '<div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px">' + nomTipus + ' · Objectiu: ' + objActiuFmt + '</div>'
+    + (anysActiu <= 0
+      ? '<div style="font-family:var(--font-serif);font-size:36px;color:white;margin-bottom:8px">🎉 Ja has assolit el teu objectiu!</div><div style="font-size:14px;color:rgba(255,255,255,.6)">Pots viure dels teus inversions ara mateix.</div>'
+      : '<div class="fire-result-anys">' + Math.ceil(anysActiu) + '</div>'
+        + '<div class="fire-result-any-label">' + (Math.ceil(anysActiu) === 1 ? 'any' : 'anys') + ' per assolir la independència financera</div>'
+        + '<div class="fire-result-data">' + anyRetir + '</div>'
+        + '<div class="fire-result-data-sub">Any de retir estimat · Tens ' + edat + ' anys ara</div>'
+    )
+  + '</div>'
+
+  + '<div class="fire-kpis">'
+    + '<div class="fire-kpi"><div class="fire-kpi-val">' + fmtNum(objActiu) + '</div><div class="fire-kpi-lbl">Objectiu FIRE</div></div>'
+    + '<div class="fire-kpi"><div class="fire-kpi-val" style="color:' + (capital/objActiu>=1?'var(--green)':'var(--accent)') + '">' + Math.round(capital/objActiu*100) + '%</div><div class="fire-kpi-lbl">Progrés actual</div></div>'
+    + '<div class="fire-kpi"><div class="fire-kpi-val">' + fmtNum(rendaMens) + '/mes</div><div class="fire-kpi-lbl">Renda mensual (4%)</div></div>'
+    + '<div class="fire-kpi"><div class="fire-kpi-val" style="color:' + (txaEstalvi>=50?'var(--green)':txaEstalvi>=30?'var(--amber)':'var(--red)') + '">' + Math.round(txaEstalvi) + '%</div><div class="fire-kpi-lbl">Taxa d\'estalvi</div></div>'
+  + '</div>'
+
+  // Barra de progrés
+  + '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:18px 20px;margin-bottom:14px">'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-500);margin-bottom:8px">'
+      + '<span>Progrés cap al FIRE</span>'
+      + '<span style="font-weight:500;color:var(--black)">' + fmtNum(capital) + ' / ' + fmtNum(objActiu) + '</span>'
+    + '</div>'
+    + '<div style="height:10px;background:var(--gray-200);border-radius:99px;overflow:hidden">'
+      + '<div style="height:100%;border-radius:99px;background:' + colorTipus + ';width:' + Math.min(100,Math.round(capital/objActiu*100)) + '%;transition:width .5s"></div>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--gray-400);margin-top:6px">Falta: ' + fmtNum(Math.max(0,objActiu-capital)) + '</div>'
+  + '</div>'
+
+  // Consells personalitzats
+  + '<div style="background:var(--gray-100);border-radius:12px;padding:16px 18px;">'
+    + '<div style="font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Consells per accelerar el teu FIRE</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">'
+    + (txaEstalvi < 30 ? '<div style="font-size:12px;color:var(--black);padding:8px 12px;background:var(--red-light);border-radius:7px;border-left:3px solid var(--red)">⚠ Taxa d\'estalvi baixa (' + Math.round(txaEstalvi) + '%). Per accelerar el FIRE, intenta arribar al 30-50%.</div>' : '')
+    + (capital < coastCapital ? '<div style="font-size:12px;color:var(--black);padding:8px 12px;background:var(--accent-light);border-radius:7px;border-left:3px solid var(--accent)">💡 Coast FIRE a ' + fmtNum(coastCapital) + ': si arribes a aquest capital, pots parar d\'aportar i el creixement orgànic et portarà al retir.</div>' : '<div style="font-size:12px;color:var(--green);padding:8px 12px;background:var(--green-light);border-radius:7px;border-left:3px solid var(--green)">✅ Ja has assolit el Coast FIRE! Cada euro addicional que inverteixes accelera significativament el retir.</div>')
+    + '<div style="font-size:12px;color:var(--black);padding:8px 12px;background:var(--white);border-radius:7px;border-left:3px solid var(--gray-300)">📊 Augmentar el retorn 1% (de ' + (retorn*100).toFixed(1) + '% a ' + ((retorn+0.01)*100).toFixed(1) + '%) redueix el temps en ~1-3 anys. Optimitzar els costos (TER) és clau.</div>'
+  + '</div>'
++ '</div>';
+}
+
 // ══════════════════════════════════════════════════════
 // SUPABASE — Sincronització clients + accés portal
 // ══════════════════════════════════════════════════════
@@ -1503,6 +1901,10 @@ async function sincronitzarTotSupabase() {
           <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l4-4 3 3 5-6"/><rect x="1" y="1" width="14" height="14" rx="2"/></svg>
           <span data-i18n="nav.analisi">Anàlisi</span>
         </div>
+        <div class="nav-item" id="nav-fire" onclick="navigate('fire')">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2c0 0-4 4-4 8a4 4 0 008 0c0-4-4-8-4-8z"/><path d="M8 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" fill="currentColor" stroke="none"/></svg>
+          <span data-i18n="nav.fire">FIRE</span>
+        </div>
         <div class="nav-item" id="nav-carteres" onclick="navigate('carteres')">
           <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 2v6l4 2"/></svg>
           <span data-i18n="nav.carteres">Carteres Model</span>
@@ -1667,6 +2069,7 @@ async function sincronitzarTotSupabase() {
       <div class="screen" id="screen-analisi">
         <div id="analisi-content"></div>
       </div>
+      <div class="screen" id="screen-fire"><div id="fire-content"></div></div>
       <div class="screen" id="screen-carteres">
         <div id="carteres-content"></div>
       </div>
@@ -1907,6 +2310,10 @@ function navigate(screen, clientId) {
     topbarTitle.textContent = t('nav.analisi');
     topbarActions.innerHTML = '<button onclick="nouAnalisi()" style="padding:6px 14px;background:var(--black);color:white;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font-body)">+ Nova anàlisi</button>';
     renderAnalisi();
+  } else if (screen === 'fire') {
+    topbarTitle.textContent = 'FIRE Calculator';
+    topbarActions.innerHTML = '';
+    renderFire();
   } else if (screen === 'carteres') {
     topbarTitle.textContent = t('nav.carteres');
     topbarActions.innerHTML = '';
@@ -2243,7 +2650,14 @@ function renderTabCartera(c) {
         <button onclick="toggleAfegirActiu()" style="padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;border:.5px solid var(--gray-300);background:transparent;color:var(--gray-500);font-family:var(--font-body)">+ Afegir actiu</button>
       </div>
       <div id="nou-actiu-form" style="display:none;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
-        <input id="nou-actiu-nom" placeholder="Nom del actiu" style="flex:1;min-width:120px;padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;font-family:var(--font-body);background:var(--white);color:var(--black)">
+        <div style="flex:1;min-width:200px;position:relative">
+          <input id="nou-actiu-search" placeholder="Cerca actiu... (ETF, acció, crypto...)" 
+            style="width:100%;padding:6px 10px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;font-family:var(--font-body);background:var(--white);color:var(--black)"
+            oninput="filtrarActiusCataleg(this.value)" onfocus="mostrarDropdownActius()" autocomplete="off">
+          <div id="actius-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--gray-200);border-radius:8px;max-height:260px;overflow-y:auto;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.12);margin-top:2px"></div>
+          <input type="hidden" id="nou-actiu-nom" value="">
+          <input type="hidden" id="nou-actiu-color" value="">
+        </div>
         <input id="nou-actiu-pct" type="number" placeholder="%" min="0" max="100" style="width:56px;padding:6px 8px;border:.5px solid var(--gray-300);border-radius:6px;font-size:12px;font-family:var(--font-mono);background:var(--white);color:var(--black)">
         <button onclick="afegirActiu()" style="padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--black);background:var(--black);color:var(--white);font-family:var(--font-body)">Afegir</button>
         <button onclick="toggleAfegirActiu()" style="padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer;border:.5px solid var(--gray-200);background:transparent;color:var(--gray-500);font-family:var(--font-body)">Cancel</button>
@@ -2352,12 +2766,63 @@ function toggleAfegirActiu() {
 
 const PALETTE_COLORS = ['#185FA5','#3B6D11','#BA7517','#534AB7','#888780','#E24B4A','#0F6E56','#854F0B','#D4537E'];
 
+
+// ── SELECTOR D'ACTIUS DEL CATÀLEG ──
+function mostrarDropdownActius() {
+  filtrarActiusCataleg(document.getElementById('nou-actiu-search').value || '');
+}
+
+function filtrarActiusCataleg(query) {
+  var dd = document.getElementById('actius-dropdown');
+  if (!dd) return;
+  var q = query.toLowerCase();
+  var filtered = ACTIUS_CATALOG.filter(function(a) {
+    return !q || a.nom.toLowerCase().includes(q) || a.cat.toLowerCase().includes(q) || a.ticker.toLowerCase().includes(q);
+  });
+  if (filtered.length === 0) {
+    dd.style.display = 'none';
+    return;
+  }
+  var lastCat = '';
+  dd.innerHTML = filtered.slice(0, 30).map(function(a) {
+    var catHeader = a.cat !== lastCat ? (lastCat = a.cat, '<div style="padding:5px 10px;font-size:9px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;background:var(--gray-100);border-bottom:1px solid var(--gray-100)">' + a.cat + '</div>') : '';
+    return catHeader + '<div onclick="seleccionarActiu(' + JSON.stringify(a).replace(/"/g,"'") + ')" style="padding:8px 12px;cursor:pointer;font-size:12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--gray-100)" onmouseover="this.style.background=\'var(--gray-100)\'" onmouseout="this.style.background=\'white\'">'
+      + '<div><div style="font-weight:500;color:var(--black)">' + a.nom + '</div><div style="font-size:10px;color:var(--gray-400)">' + a.cat + ' · ' + a.tipus + '</div></div>'
+      + '<div style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--gray-100);color:var(--gray-500)">' + a.risc + '</div>'
+    + '</div>';
+  }).join('');
+  dd.style.display = 'block';
+  // Tancar en clicar fora
+  setTimeout(function() {
+    document.addEventListener('click', function closeDD(e) {
+      if (!dd.contains(e.target) && e.target.id !== 'nou-actiu-search') {
+        dd.style.display = 'none';
+        document.removeEventListener('click', closeDD);
+      }
+    });
+  }, 100);
+}
+
+function seleccionarActiu(a) {
+  document.getElementById('nou-actiu-search').value = a.nom;
+  document.getElementById('nou-actiu-nom').value = a.nom;
+  document.getElementById('nou-actiu-color').value = a.color;
+  var dd = document.getElementById('actius-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+
 function afegirActiu() {
-  const nom = document.getElementById('nou-actiu-nom').value.trim();
+  const nomEl = document.getElementById('nou-actiu-nom');
+  const nom = nomEl ? nomEl.value.trim() : '';
+  const searchEl = document.getElementById('nou-actiu-search');
+  const displayNom = searchEl ? searchEl.value.trim() : nom;
   const pct = Math.round(parseFloat(document.getElementById('nou-actiu-pct').value)||0);
-  if(!nom) { toast('El nom és obligatori'); return; }
-  const color = PALETTE_COLORS[_carteraActius.length % PALETTE_COLORS.length];
-  _carteraActius.push({nom, pct, color});
+  if(!displayNom && !nom) { toast(LANG==='es'?'Selecciona un activo del catálogo':'Selecciona un actiu del catàleg'); return; }
+  const nomFinal = displayNom || nom;
+  const colorEl = document.getElementById('nou-actiu-color');
+  const catalogColor = colorEl ? colorEl.value : '';
+  const color = catalogColor || PALETTE_COLORS[_carteraActius.length % PALETTE_COLORS.length];
+  _carteraActius.push({nom:nomFinal, pct, color});
   document.getElementById('nou-actiu-nom').value='';
   document.getElementById('nou-actiu-pct').value='';
   document.getElementById('nou-actiu-form').style.display='none';
@@ -3725,6 +4190,9 @@ function renderTabSeguiment(c) {
   const container = document.getElementById('tab-seguiment');
   if(!container) return;
 
+  // Afegir bloc de registre d'aportacions PRIMER
+  const registreHtml = renderRegistreSeguiment(c);
+
   const posicions = c.posicions || [];
   const carteraObj = c.carteraComposicio || [];
   const rec = posicions.length > 0 ? calcRecomanacioDCA(c, posicions, carteraObj) : null;
@@ -3740,7 +4208,7 @@ function renderTabSeguiment(c) {
 
   const totalReal = posicions.reduce((s,p) => s + (p.valorEur||0), 0);
 
-  container.innerHTML = `
+  container.innerHTML = registreHtml + `
     <div style="display:flex;flex-direction:column;gap:14px">
 
       <!-- KPIs superiors -->
@@ -5664,6 +6132,7 @@ function updateNavLabels() {
     'nav-glossari':  'nav.glossari',
     'nav-analisi':   'nav.analisi',
     'nav-carteres':  'nav.carteres',
+    'nav-fire':      'nav.fire',
     'nav-educacio':  'nav.educacio',
   };
   Object.entries(navMap).forEach(([id, key]) => {
@@ -5702,6 +6171,7 @@ const TRANSLATIONS = {
     'nav.glossari':    'Glossari',
     'nav.analisi':     'Anàlisi',
     'nav.carteres':    'Carteres Model',
+    'nav.fire':        'FIRE Calculator',
     'nav.educacio':    'Educació',
     // Dashboard
     'dash.title':          'Dashboard',
@@ -5854,6 +6324,7 @@ const TRANSLATIONS = {
     'nav.glossari':    'Glosario',
     'nav.analisi':     'Análisis',
     'nav.carteres':    'Carteras Modelo',
+    'nav.fire':        'FIRE Calculator',
     'nav.educacio':    'Educación',
     // Dashboard
     'dash.title':          'Panel principal',
