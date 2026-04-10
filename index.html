@@ -507,8 +507,8 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 .alloc-item-bar-wrap{width:160px;height:5px;background:var(--gray-200);border-radius:99px;overflow:hidden}
 .alloc-item-bar{height:100%;border-radius:99px}
 .alloc-item-pct{font-family:var(--font-mono);font-size:11px;color:var(--gray-500);min-width:32px;text-align:right}
-.cartera-model-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.cartera-stat{background:var(--gray-100);border-radius:8px;padding:10px 12px;text-align:center}
+.cartera-model-stats{display:flex;flex-wrap:wrap;gap:8px}
+.cartera-stat{background:var(--gray-100);border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px}
 .cartera-stat-val{font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--black);margin-bottom:2px}
 .cartera-stat-lbl{font-size:9px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em}
 /* Perfils inversor */
@@ -1127,104 +1127,188 @@ async function eliminarAnalisi(id) {
 // ══════════════════════════════════════════════════════
 
 const CARTERES_MODEL = [
+
   {
-    id: 'tbi',
-    nom: 'Cartera TBI · The Boring Investor',
-    desc: 'Cartera pròpia de The Boring Investor. Diversificació real en 8 categories d’actius: indexació passiva, dividends, temàtica, immobiliari, crowdlending, metalls, crypto i startups. Estratègia d’eficiència màxima a llarg termini aprofitant baixades al mercat.',
-    filosofia: 'Indexació passiva + Value selectiu + Alternatius descorrelats. DCA mensual + rebalanceig anual + aprofitament de correccions.',
-    actius: [
-      {nom:'Fons Indexats (Roboadvisors)',        pct:34, color:'#1B3A6B', detail:'Finzens 50% + MyInvestor 50% · TER <0,4% · Mercat global'},
-      {nom:'Accions Dividends',                   pct:10, color:'#2E5FA3', detail:'Vanguard High Dividend + IBEX35 value · Dividend >6%'},
-      {nom:'Accions Temàtiques',                  pct:10, color:'#4CAF82', detail:'ETFs new tech US/ASIA/EU · Retorn esp. 10-11%'},
-      {nom:'REITs / Immobiliari',                 pct:10, color:'#0F6E56', detail:'ETF global + SOCIMIs nacionals · Decorrelació parcial'},
-      {nom:'Crowdlending',                        pct:7.5,color:'#D4943A', detail:'Mintos + October + SegoFactoring · P2P/P2B/Factoring'},
-      {nom:'Metalls Preciosos',                   pct:7.5,color:'#C0392B', detail:'Or 60% + Plata 20% + Platí 12,5% + Paladi 7,5%'},
-      {nom:'Crypto (BTC/ETH/SOL)',                pct:10, color:'#534AB7', detail:'BTC 55% + ETH 20% + SOL 15% + Other 10%'},
-      {nom:'Start-ups (Seedrs/Crowdcube)',         pct:1,  color:'#9A9690', detail:'Inversió llarg termini >10 anys · Alt potencial'},
-    ],
-    stats: [
-      {lbl:'Retorn esp.',val:'10–12%'},
-      {lbl:'Retorn real anual.',val:'~11%'},
-      {lbl:'Categories',val:'8'},
-      {lbl:'Plataformes',val:'XTB+Degiro+Mintos+...'},
-    ],
-    perfil: 'Creixement Diversificat · Horitzó >10 anys · Tolerància alt',
-    tbi: true,
-    categories: [
-      {cat:'Indexació Passiva',pct:34,color:'#1B3A6B',target:'8%',real:'12,5%',risc:'Moderat'},
-      {cat:'Dividends',         pct:10,color:'#2E5FA3',target:'8%',real:'10,5%',risc:'Moderat'},
-      {cat:'Temàtiques',        pct:10,color:'#4CAF82',target:'10%',real:'11%', risc:'Moderat-alt'},
-      {cat:'REITs',             pct:10,color:'#0F6E56',target:'6,5%',real:'10,2%',risc:'Moderat-baix'},
-      {cat:'Crowdlending',      pct:7.5,color:'#D4943A',target:'9%',real:'9%', risc:'Alt'},
-      {cat:'Metalls',           pct:7.5,color:'#C0392B',target:'8%',real:'25%', risc:'Moderat-baix'},
-      {cat:'Crypto',            pct:10, color:'#534AB7',target:'20%',real:'25%', risc:'Molt Alt'},
-      {cat:'Start-ups',         pct:1,  color:'#9A9690',target:'20%',real:'8%', risc:'Molt Alt'},
-    ],
-  },
-  {
-    id:'catapulta', nom:'I · La Catapulta', desc:'Perfil agressiu per a inversors joves amb alt horitzó temporal. Màxima exposició a renda variable global, sense renda fixa.',
+    id:'tbi', nom:'TBI · The Boring Investor',
+    desc:'Cartera pròpia de TBI. 8 categories amb baixa correlació. Núcli indexat (34%) + renda (20%) + alternatius (46%). DCA mensual + rebalanceig anual.',
+    filosofia:'Núcli indexat + renda recurrent + alternatius descorrelats. Objectiu: màxim rendiment ajustat al risc a llarg termini.',
+    perfil:'Creixement Diversificat · D9 alt · Horitzó >10 anys',
+    d8:'Edat: 25-50 · Horitzó: >10 anys', d9:'Alternatius: 30% (crypto+crowd+PE)',
+    tbi:true,
     actius:[
-      {nom:'RV Global (MSCI World)',pct:60,color:'#1B3A6B'},
-      {nom:'RV USA (S&P 500)',      pct:25,color:'#2E5FA3'},
-      {nom:'Emergents',            pct:15,color:'#D4943A'},
+      {nom:'Fons Indexats',       pct:34, color:'#1B3A6B', detail:'Núcli passiu global. Costos mínims (<0,4%). Comprar i mantenir.'},
+      {nom:'Dividend',            pct:10, color:'#2E5FA3', detail:'Renda passiva recurrent. Dividends >6%. Sou addicional de la cartera.'},
+      {nom:'Temàtiques (ETFs)',    pct:10, color:'#4CAF82', detail:'Tecnologia, IA, energia neta. Potencial superior al benchmark.'},
+      {nom:'REITs / Immobiliari', pct:10, color:'#0F6E56', detail:'Decorrelació parcial amb RV. Protecció parcial contra inflació.'},
+      {nom:'Crowdlending',        pct:7.5,color:'#D4943A', detail:'RF alternativa descorrelada del mercat borsari.'},
+      {nom:'Metalls Preciosos',   pct:7.5,color:'#C0392B', detail:'Refugi anti-inflació. Or (60%), plata (20%), metalls industrials (20%).'},
+      {nom:'Crypto (BTC/ETH/SOL)',pct:10, color:'#534AB7', detail:'Creixement asimètric. BTC: reserva de valor. ETH/SOL: plataformes tech.'},
+      {nom:'Start-ups (PE)',      pct:1,  color:'#9A9690', detail:'Capital risc llarg termini >10 anys. Potencial asimètric alt.'},
     ],
-    stats:[{lbl:'TER',val:'0,10%'},{lbl:'Retorn esp.',val:'8–10%'},{lbl:'Vol.',val:'18–22%'},{lbl:'Sharpe',val:'0,45'}],
-    perfil:'Agressiu · >15 anys',
-  },
-  {
-    id:'caravella', nom:'II · La Caravella', desc:'Creixement moderat-alt. RV global dominant amb un petit coixí de RF per suavitzar la volatilitat.',
-    actius:[
-      {nom:'RV Global',pct:55,color:'#1B3A6B'},
-      {nom:'RV USA',   pct:20,color:'#2E5FA3'},
-      {nom:'Emergents',pct:10,color:'#D4943A'},
-      {nom:'RF Bons',  pct:15,color:'#9A9690'},
+    stats:[{lbl:'Retorn esp.',val:'10–12%'},{lbl:'Retorn real',val:'~11%'},{lbl:'Categories',val:'8'},{lbl:'Sharpe est.',val:'0,55'}],
+    categories:[
+      {cat:'Indexació',  pct:34, color:'#1B3A6B',target:'8%', real:'12,5%',risc:'Moderat'},
+      {cat:'Dividend',    pct:10, color:'#2E5FA3',target:'8%', real:'10,5%',risc:'Moderat'},
+      {cat:'Temàtiques', pct:10, color:'#4CAF82',target:'10%',real:'11%',  risc:'Moderat-alt'},
+      {cat:'REITs',       pct:10, color:'#0F6E56',target:'6,5%',real:'10,2%',risc:'Moderat-baix'},
+      {cat:'Crowdlending',pct:7.5,color:'#D4943A',target:'9%', real:'9%',   risc:'Alt'},
+      {cat:'Metalls',     pct:7.5,color:'#C0392B',target:'8%', real:'25%',  risc:'Moderat-baix'},
+      {cat:'Crypto',      pct:10, color:'#534AB7',target:'20%',real:'25%',  risc:'Molt Alt'},
+      {cat:'Start-ups',   pct:1,  color:'#9A9690',target:'20%',real:'8%',   risc:'Molt Alt'},
     ],
-    stats:[{lbl:'TER',val:'0,11%'},{lbl:'Retorn esp.',val:'7–9%'},{lbl:'Vol.',val:'14–17%'},{lbl:'Sharpe',val:'0,50'}],
-    perfil:'Creixement · >10 anys',
   },
-  {
-    id:'galeo', nom:'III · El Galeó', desc:'Cartera equilibrada. Exposició global diversificada amb buffer de RF i una mica d\'or. Referència per a la majoria de perfils moderats.',
-    actius:[
-      {nom:'RV Global',pct:40,color:'#1B3A6B'},
-      {nom:'RV USA',   pct:15,color:'#2E5FA3'},
-      {nom:'Emergents',pct:10,color:'#D4943A'},
-      {nom:'RF Bons',  pct:25,color:'#9A9690'},
-      {nom:'Or',       pct:10,color:'#C0392B'},
-    ],
-    stats:[{lbl:'TER',val:'0,12%'},{lbl:'Retorn esp.',val:'5–7%'},{lbl:'Vol.',val:'11–13%'},{lbl:'Sharpe',val:'0,48'}],
-    perfil:'Equilibrat · >7 anys',
+
+  {id:'catapulta', nom:'I · La Catapulta',
+   desc:'Màxima exposició a renda variable global. Inversors joves, horitzó >15 anys, sense RF ni alternatius. El temps és la millor cobertura.',
+   perfil:'Agressiu · D9 baix · Horitzó >15 anys',
+   d8:'Edat: 18-35 · Horitzó: >15 anys', d9:'Sense alternatius · 100% mercats regulats',
+   actius:[
+     {nom:'MSCI World ETF',   pct:60, color:'#1B3A6B', detail:'Nucli global diversificat. 1.600 empreses de 23 països.'},
+     {nom:'S&P 500 ETF',      pct:25, color:'#2E5FA3', detail:'Exposició addicional EUA. Màxim rendiment històric.'},
+     {nom:'Emergents (EMIM)', pct:15, color:'#D4943A', detail:'Creixement mercats en desenvolupament: Àsia, Llatinoamèrica.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,10%'},{lbl:'Retorn esp.',val:'8–10%'},{lbl:'Vol.',val:'18–22%'},{lbl:'Sharpe',val:'0,45'}],
   },
-  {
-    id:'catedral', nom:'IV · La Catedral', desc:'Estabilitat amb creixement. Predomini de RF de qualitat amb exposició moderada a RV global.',
-    actius:[
-      {nom:'RV Global',pct:30,color:'#1B3A6B'},
-      {nom:'RF Gov. EUR',pct:35,color:'#9A9690'},
-      {nom:'RF Corp.',   pct:20,color:'#6B6762'},
-      {nom:'Or',         pct:10,color:'#C0392B'},
-      {nom:'Monetari',   pct:5, color:'#C8C5BE'},
-    ],
-    stats:[{lbl:'TER',val:'0,13%'},{lbl:'Retorn esp.',val:'3–5%'},{lbl:'Vol.',val:'7–9%'},{lbl:'Sharpe',val:'0,45'}],
-    perfil:'Conservador-Moderat · >5 anys',
+
+  {id:'caravella', nom:'II · La Caravella',
+   desc:'Creixement moderat-alt amb primera introducció a alternatius. Fase d\'acumulació amb interès per crypto i metalls.',
+   perfil:'Creixement · D9 moderat · Horitzó 10-20 anys',
+   d8:'Edat: 28-45 · Horitzó: 10-20 anys', d9:'Alternatius 15% · Crypto + or',
+   actius:[
+     {nom:'MSCI World ETF',   pct:50, color:'#1B3A6B', detail:'Nucli global indexat de baixos costos.'},
+     {nom:'Temàtica Tech/IA', pct:15, color:'#4CAF82', detail:'Exposició a sectors de creixement secular.'},
+     {nom:'Or físic (ETC)',   pct:10, color:'#C0392B', detail:'Cobertura inflació i risc sistèmic.'},
+     {nom:'Crypto (BTC)',     pct:10, color:'#534AB7', detail:'Reserva de valor digital. Capa d\'alt creixement.'},
+     {nom:'REITs Global',    pct:10, color:'#0F6E56', detail:'Diversificació immobiliària. Dividend recurrent.'},
+     {nom:'RF Curta Gov.',   pct:5,  color:'#9A9690', detail:'Coixí de liquiditat en volatilitat.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,16%'},{lbl:'Retorn esp.',val:'7–9%'},{lbl:'Vol.',val:'14–18%'},{lbl:'Sharpe',val:'0,48'}],
   },
-  {
-    id:'muralla', nom:'V · La Muralla', desc:'Preservació de capital amb retorn modest. Per a inversors conservadors o amb horitzó curt.',
-    actius:[
-      {nom:'RF Gov. EUR',  pct:45,color:'#9A9690'},
-      {nom:'RF Corp. IG',  pct:25,color:'#6B6762'},
-      {nom:'Monetari BCE', pct:15,color:'#C8C5BE'},
-      {nom:'RV Global',    pct:10,color:'#1B3A6B'},
-      {nom:'Or',           pct:5, color:'#C0392B'},
-    ],
-    stats:[{lbl:'TER',val:'0,14%'},{lbl:'Retorn esp.',val:'2–3,5%'},{lbl:'Vol.',val:'4–6%'},{lbl:'Sharpe',val:'0,42'}],
-    perfil:'Conservador · >3 anys',
+
+  {id:'galeo', nom:'III · El Galeó',
+   desc:'Cartera equilibrada estàndard. Creixement global + estabilitat RF + or. Horitzó mig. Model de referència per a la majoria.',
+   perfil:'Equilibrat · D9 baix · Horitzó 7-15 anys',
+   d8:'Edat: 35-55 · Horitzó: 7-15 anys', d9:'Sense alternatius especulatius · or com a cobertura',
+   actius:[
+     {nom:'RV Global Indexada',  pct:45, color:'#1B3A6B', detail:'Nucli de creixement a llarg termini.'},
+     {nom:'Dividend ETF Global', pct:15, color:'#2E5FA3', detail:'Renda recurrent. Estabilitat en bear markets.'},
+     {nom:'RF Gov. EUR',         pct:20, color:'#9A9690', detail:'Protecció en caigudes de RV. Liquiditat.'},
+     {nom:'Or físic (ETC)',      pct:10, color:'#C0392B', detail:'Cobertura inflació i crisi sistèmica.'},
+     {nom:'REITs Global',        pct:10, color:'#0F6E56', detail:'Diversificació. Protecció parcial contra inflació.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,13%'},{lbl:'Retorn esp.',val:'5–7%'},{lbl:'Vol.',val:'11–14%'},{lbl:'Sharpe',val:'0,48'}],
   },
+
+  {id:'catedral', nom:'IV · La Catedral',
+   desc:'Cartera estructurada amb 7 blocs. Inclou crowdlending i PE com a alternatius il·líquids. Per a inversors meticulosos en consolidació.',
+   perfil:'Balancejada Complexa · D9 alt il·líquid · Horitzó 8-15 anys',
+   d8:'Edat: 35-55 · Consolidació', d9:'Alternatius il·líquids 15% · PE + crowdlending B2B',
+   actius:[
+     {nom:'RV Global Core',       pct:35, color:'#1B3A6B', detail:'Base indexada global de baix cost.'},
+     {nom:'RF Corporativa IG',    pct:15, color:'#8A8680', detail:'Renda fixa d\'alta qualitat. Estabilitat.'},
+     {nom:'REITs Global',         pct:10, color:'#0F6E56', detail:'Diversificació immobiliària.'},
+     {nom:'Or físic (ETC)',       pct:10, color:'#C0392B', detail:'Cobertura risc sistèmic.'},
+     {nom:'Crowdlending P2B',     pct:10, color:'#D4943A', detail:'RF alternativa amb millor retorn.'},
+     {nom:'Private Equity (seed)',pct:5,  color:'#7A4A00', detail:'Capital risc llarg termini. Potencial asimètric.'},
+     {nom:'Liquiditat estratègica',pct:15,color:'#C8C5BE',detail:'Compte remunerat. Reserves per oportunitats.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,22%'},{lbl:'Retorn esp.',val:'5–7%'},{lbl:'Vol.',val:'9–12%'},{lbl:'Sharpe',val:'0,47'}],
+  },
+
+  {id:'muralla', nom:'V · La Muralla',
+   desc:'Preservació del capital real. Proper al retir. RF de qualitat + or + dividend defensiu. Objectiu: batre la inflació sense risc de pèrdues grans.',
+   perfil:'Conservadora · D9 cap · Horitzó <8 anys',
+   d8:'Edat: 45-65 · Retir proper o actiu', d9:'Sense alternatius · or com a refugi',
+   actius:[
+     {nom:'RF Gov. EUR (AAA)',    pct:35, color:'#9A9690', detail:'Base preservació. Màxima qualitat crediticia.'},
+     {nom:'Or físic (ETC)',      pct:25, color:'#C0392B', detail:'Refugi anti-inflació. Proves històriques en crisis.'},
+     {nom:'Dividend ETF (>6%)',  pct:20, color:'#2E5FA3', detail:'Renda passiva. Dividend creixent i sostingut.'},
+     {nom:'Liquiditat remunerat',pct:10, color:'#C8C5BE', detail:'Compte remunerat. Immediata disponibilitat.'},
+     {nom:'REITs Defensiu',      pct:10, color:'#0F6E56', detail:'Immobiliari de qualitat. Dividend estable.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,13%'},{lbl:'Retorn esp.',val:'3–5%'},{lbl:'Vol.',val:'6–9%'},{lbl:'Sharpe',val:'0,42'}],
+  },
+
+  {id:'scriptorium', nom:'VI · El Scriptorium',
+   desc:'Cartera pedagògica. Coneixement teòric, poca experiència. Base sòlida i simple, sense alternatius especulatius. Construeix confiança i disciplina.',
+   perfil:'Conservadora-Moderada · D9 0-5% · Aprendre fent',
+   d8:'Edat: qualsevol · Horitzó mig o incert', d9:'Obert a aprendre · 0-5% alternatius molt conservadors',
+   actius:[
+     {nom:'RV Global Indexada',   pct:40, color:'#1B3A6B', detail:'Nucli creixement. Un sol ETF global diversificat.'},
+     {nom:'RF Gov. Diversificada',pct:25, color:'#9A9690', detail:'Estabilitat. Bons govern. d\'alta qualitat.'},
+     {nom:'Or físic (ETC)',       pct:15, color:'#C0392B', detail:'Cobertura inflació i volatilitat.'},
+     {nom:'Dividend ETF',         pct:10, color:'#2E5FA3', detail:'Renda passiva moderada.'},
+     {nom:'REITs',                pct:10, color:'#0F6E56', detail:'Diversificació míscula immobiliària.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,13%'},{lbl:'Retorn esp.',val:'4–6%'},{lbl:'Vol.',val:'8–11%'},{lbl:'Sharpe',val:'0,44'}],
+  },
+
+  {id:'alambi', nom:"VII · L'Alamí",
+   desc:'Inversors joves amb alt interès en alternatius. Crypto i start-ups protagonistes, base indexada per no descarrilar. 70% àncora + 30% experimentació.',
+   perfil:'Balancejada-Alta · D9 màxim · Horitzó >10 anys',
+   d8:'Edat: 20-40 · Fase inici', d9:'Crypto + startups + crowdlending · 30% alternatius',
+   actius:[
+     {nom:'RV Global Core',       pct:40, color:'#1B3A6B', detail:'Àncora indexada. Evita descarrilar en volatilitat.'},
+     {nom:'Crypto (BTC+ETH)',     pct:20, color:'#534AB7', detail:'Creixement asimètric. BTC 60% + ETH 40%.'},
+     {nom:'Crowdlending',         pct:15, color:'#D4943A', detail:'Renda alternativa descorrelada. P2P + P2B.'},
+     {nom:'Temàtica (IA/Tech)',   pct:10, color:'#4CAF82', detail:'Sectors growth d\'alt potencial.'},
+     {nom:'Start-ups (PE)',        pct:5,  color:'#7A4A00', detail:'Seed capital. Llarg termini >10 anys.'},
+     {nom:'Or físic',            pct:5,  color:'#C0392B', detail:'Cobertura mínima en cas de crisi.'},
+     {nom:'RF Curta',             pct:5,  color:'#9A9690', detail:'Liquiditat. Coixí emocional en volatilitat.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,20%'},{lbl:'Retorn esp.',val:'9–13%'},{lbl:'Vol.',val:'20–28%'},{lbl:'Sharpe',val:'0,43'}],
+  },
+
+  {id:'sarro', nom:"VIII · El Sarró",
+   desc:'La cartera més simple possible que funcioni. Un ETF global + compte remunerat. Sense decisions actives. Simplicitat absoluta.',
+   perfil:'Conservadora · D9 cap · Simplicitat màxima',
+   d8:'Edat: qualsevol (esp. +50) · Horitzó curt o incert', d9:'Sense alternatius · màxima liquiditat',
+   actius:[
+     {nom:'ETF Global (VWCE/IWDA)',    pct:60, color:'#1B3A6B', detail:'Tot el mercat global en un sol producte.'},
+     {nom:'Compte remunerat / Monetari',pct:40,color:'#C8C5BE', detail:'Liquiditat total. Tipus propers al BCE.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,09%'},{lbl:'Retorn esp.',val:'3–5%'},{lbl:'Vol.',val:'4–7%'},{lbl:'Sharpe',val:'0,40'}],
+  },
+
+  {id:'pionier', nom:'IX · El Pionier',
+   desc:'Per a inversors joves (≤35 anys) amb màxim interès en crypto i alternatius. Alta volatilitat a canvi de potencial de creixement asimètric. FIRE agressiu.',
+   perfil:'Màxim Creixement Alternatiu · D9 extrem · Edat <35',
+   d8:'Edat: 18-35 · Horitzó: >10 anys · FIRE agressiu', d9:'Alternatius 45% · crypto + PE + crowd intensiu',
+   actius:[
+     {nom:'RV Global (àncora)',   pct:35, color:'#1B3A6B', detail:'Base indispensable. Evita la ruina total en crisi crypto.'},
+     {nom:'Crypto diversificat',  pct:25, color:'#534AB7', detail:'BTC 55% + ETH 25% + SOL 15% + altres 5%.'},
+     {nom:'Crowdlending P2P',     pct:10, color:'#D4943A', detail:'Renda descorrelada. Flux mensual de retorn.'},
+     {nom:'Temàtica IA/Tech',     pct:10, color:'#4CAF82', detail:'ETFs growth d\'alt potencial a llarg termini.'},
+     {nom:'Private Equity',       pct:10, color:'#7A4A00', detail:'Seed i early stage. Horitzó mínim 7-10 anys.'},
+     {nom:'Or físic',            pct:5,  color:'#C0392B', detail:'Cobertura mínima anti-inflació.'},
+     {nom:'RF Monetari',          pct:5,  color:'#C8C5BE', detail:'Liquiditat d\'emergència. Tipus BCE.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,25%'},{lbl:'Retorn esp.',val:'12–18%'},{lbl:'Vol.',val:'>30%'},{lbl:'Sharpe',val:'0,40'}],
+  },
+
+  {id:'renda', nom:'X · La Renda',
+   desc:'Cartera de renda per a inversors en pre-retir o retir. Maximitza dividends i cupons per viure dels rendiments sense tocar el capital. Dividend >6% sostingut.',
+   perfil:'Renda Passiva · D9 cap · Retir proper',
+   d8:'Edat: 50-70 · Retir proper o ja jubilat', d9:'Sense alternatius · dividend + RF + or',
+   actius:[
+     {nom:'Dividend ETF Global',    pct:35, color:'#2E5FA3', detail:'Dividend >5% creixent. Vanguard High Dividend + Aristocrats.'},
+     {nom:'Dividend IBEX (>7%)',    pct:15, color:'#1B3A6B', detail:'Enagàs, Endesa, Bankinter. Alt dividend en euros.'},
+     {nom:'RF Corporativa IG',      pct:20, color:'#9A9690', detail:'Bonds alta qualitat. Cupó semestral estàndard.'},
+     {nom:'Or físic (ETC)',         pct:15, color:'#C0392B', detail:'Protecció anti-inflació i crisi. Complement essencial.'},
+     {nom:'REITs Dividend (>6%)',   pct:10, color:'#0F6E56', detail:'Merlin Properties, SOCIMIs. Dividend immobiliari.'},
+     {nom:'Liquiditat remunerat',   pct:5,  color:'#C8C5BE', detail:'Compte remunerat. Disponibilitat immediata.'},
+   ],
+   stats:[{lbl:'TER est.',val:'0,14%'},{lbl:'Retorn esp.',val:'5–7%'},{lbl:'Div. yield',val:'>6%'},{lbl:'Sharpe',val:'0,45'}],
+  },
+
 ];
+
 
 const PERFILS_INVERSOR = [
   {
     nom:"L'Estoic", icona:'🗿', lema:'La disciplina és llibertat',
     color:'#1B3A6B', colorL:'#EBF0FA',
-    cartera:'I · La Catapulta', perfil:'Creixement Màxim',
+    cartera:'TBI · The Boring Investor', perfil:'Creixement Màxim',
     desc:'L\'inversor més madur. Alta disciplina, horitzó llarg, obert a alternatius. No li importa la volatilitat: té el pla i el segueix.',
     tags:['Indexació Global','DCA','Crypto','Crowdlending','Llarg termini'],
     d8:'Edat: 20-40 · Horitzó: >15 anys · Retir lluny',
@@ -1300,8 +1384,29 @@ const PERFILS_INVERSOR = [
     d8:'Edat: qualsevol (esp. +50) · Horitzó curt o incert',
     d9:'No alternatius · màxima simplicitat i liquiditat',
     criteris:'Puntuació baixa en tots els eixos. D8 alta (pre-retir) o persona que vol el mínim de fricció. No vol alternatius ni complexitat.',
+  },,
+  {
+    nom:'El Pionier', icona:'🚀', lema:'Risc màxim per a qui té el temps al seu costat',
+    color:'#534AB7', colorL:'#EDEAF9',
+    cartera:'IX · El Pionier', perfil:'Màxim Creixement Alternatiu',
+    desc:'Inversor jove (≤35 anys) amb màxim interès en crypto i alternatius. Alta volatilitat però horitzó llarg. FIRE agressiu amb estructura indexada de seguretat.',
+    tags:['Crypto intens','Private Equity','Crowdlending','FIRE','<35 anys'],
+    d8:'Edat: 18-35 · Horitzó: >10 anys · FIRE agressiu',
+    d9:'Alternatius 45% · Crypto + PE + Crowdlending',
+    criteris:'D9 extrem (màxim interès en alternatius) + D8 molt jove. Inversor que vol FIRE via alternatius. Necessita base indexada per no arruinar-se en correccions.',
+  },
+  {
+    nom:'La Rentista', icona:'🏖️', lema:'El millor actiu és el que genera renda sense demanar atenció',
+    color:'#0F6E56', colorL:'#E5F5F1',
+    cartera:'X · La Renda', perfil:'Renda Passiva',
+    desc:'Inversor en pre-retir o retir actiu. Maximitza dividends i cupons per viure dels rendiments sense tocar el capital. Dividend >6% sostingut en euros.',
+    tags:['Dividend >6%','Renda passiva','RF qualitat','Or','Pre-retir'],
+    d8:'Edat: 50-70 · Retir proper o ja jubilat',
+    d9:'Sense alternatius · dividend + RF + or',
+    criteris:'D8 molt alt (pre-retir o retir actiu) + D9 baix (no vol alternatius). Inversor que necessita flux d\'ingressos regulars del seu patrimoni. Preservació + renda.',
   },
 ];
+
 
 
 var carteresTab = 'carteres';
@@ -1336,14 +1441,19 @@ function renderCarteresBody() {
   if (carteresTab === 'carteres') {
     var html = '';
     CARTERES_MODEL.forEach(function(c) {
-      var allocHtml = c.actius.map(function(a){
-        return '<div class="alloc-item">'
-          + '<div class="alloc-item-dot" style="background:' + a.color + '"></div>'
-          + '<div class="alloc-item-nom">' + a.nom + (a.detail ? '<div style="font-size:10px;color:var(--gray-400)">' + a.detail + '</div>' : '') + '</div>'
-          + '<div class="alloc-item-bar-wrap"><div class="alloc-item-bar" style="width:' + (a.pct > 40 ? 40 : a.pct) + '%;background:' + a.color + '"></div></div>'
-          + '<div class="alloc-item-pct">' + a.pct + '%</div>'
+      // ── Gràfic d'anell ──
+      var donutSvg = donutChart(c.actius, 160);
+      var legendHtml = c.actius.map(function(a){
+        return '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">'
+          + '<div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:' + a.color + '"></div>'
+          + '<div style="font-size:11px;color:var(--black);flex:1;min-width:0">' + a.nom + '</div>'
+          + '<div style="font-family:var(--font-mono);font-size:11px;font-weight:500;color:var(--gray-600)">' + a.pct + '%</div>'
         + '</div>';
       }).join('');
+      var allocHtml = '<div style="display:flex;gap:20px;align-items:center">'
+        + '<div style="flex-shrink:0">' + donutSvg + '</div>'
+        + '<div style="flex:1;min-width:0">' + legendHtml + '</div>'
+      + '</div>';
       // Taula de categories per TBI
       var catHtml = '';
       if (c.categories) {
@@ -1384,10 +1494,8 @@ function renderCarteresBody() {
           + '</div>'
         + '</div>'
         + '<div class="cartera-model-body">'
-          + '<div style="display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start">'
-            + '<div class="cartera-model-alloc">' + allocHtml + '</div>'
-            + '<div class="cartera-model-stats">' + statsHtml + '</div>'
-          + '</div>'
+          + '<div>' + allocHtml + '</div>'
+          + '<div class="cartera-model-stats" style="margin-top:14px">' + statsHtml + '</div>'
           + catHtml
         + '</div>'
       + '</div>';
@@ -1962,6 +2070,71 @@ function renderArquetipBanner(c) {
   + '</div>';
 }
 
+
+// ── GRÀFIC D'ANELL (DONUT) PER A CARTERES ──
+function donutChart(actius, size) {
+  size = size || 180;
+  var r = size * 0.38;
+  var cx = size / 2, cy = size / 2;
+  var strokeW = size * 0.16;
+  var rInner = r - strokeW / 2;
+  var gap = 1.5; // graus de separació entre segments
+
+  // Calcular total i angles
+  var total = actius.reduce(function(s, a) { return s + (a.pct || 0); }, 0) || 100;
+  var segments = [];
+  var startAngle = -90; // comença a dalt
+
+  actius.forEach(function(a) {
+    var pct = (a.pct || 0) / total;
+    var sweep = pct * 360 - gap;
+    if (sweep < 0) sweep = 0;
+    segments.push({
+      color: a.color,
+      nom: a.nom,
+      pct: a.pct,
+      startAngle: startAngle,
+      sweep: sweep,
+    });
+    startAngle += pct * 360;
+  });
+
+  function polar(cx, cy, r, deg) {
+    var rad = (deg - 90) * Math.PI / 180;
+    return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
+  }
+
+  function arcPath(cx, cy, r, startDeg, sweepDeg) {
+    if (sweepDeg >= 359.9) sweepDeg = 359.9;
+    var start = polar(cx, cy, r, startDeg);
+    var end   = polar(cx, cy, r, startDeg + sweepDeg);
+    var large = sweepDeg > 180 ? 1 : 0;
+    return 'M ' + start[0].toFixed(2) + ' ' + start[1].toFixed(2)
+      + ' A ' + r.toFixed(2) + ' ' + r.toFixed(2) + ' 0 ' + large + ' 1 '
+      + end[0].toFixed(2) + ' ' + end[1].toFixed(2);
+  }
+
+  var paths = segments.map(function(s) {
+    if (s.sweep <= 0) return '';
+    return '<path d="' + arcPath(cx, cy, rInner, s.startAngle, s.sweep) + '"'
+      + ' fill="none" stroke="' + s.color + '" stroke-width="' + strokeW.toFixed(1) + '"'
+      + ' stroke-linecap="round">'
+      + '<title>' + s.nom + ' ' + s.pct + '%</title>'
+      + '</path>';
+  }).join('');
+
+  // Text central: pct del major actiu
+  var major = actius.reduce(function(a, b) { return (a.pct||0) > (b.pct||0) ? a : b; }, actius[0] || {});
+
+  return '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '" xmlns="http://www.w3.org/2000/svg">'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + (rInner - strokeW/2 - 4).toFixed(1) + '" fill="var(--white)"/>'
+    + paths
+    + (major ? '<text x="' + cx + '" y="' + (cy - 6) + '" text-anchor="middle" font-size="' + (size*0.12).toFixed(0) + '" font-weight="600" fill="var(--black)" font-family="var(--font-mono)">' + major.pct + '%</text>'
+      + '<text x="' + cx + '" y="' + (cy + 10) + '" text-anchor="middle" font-size="' + (size*0.072).toFixed(0) + '" fill="var(--gray-400)" font-family="var(--font-body)">' + (major.nom.split(' ')[0]) + '</text>'
+      : '')
+  + '</svg>';
+}
+
 // ══════════════════════════════════════════════════════
 // SUPABASE — Sincronització clients + accés portal
 // ══════════════════════════════════════════════════════
@@ -2333,6 +2506,8 @@ async function sincronitzarTotSupabase() {
         <option>III · El Galeó</option><option>IV · La Catedral</option>
         <option>V · La Muralla</option><option>VI · El Scriptorium</option>
         <option>VII · L'Alambí</option><option>VIII · El Sarró</option>
+        <option>IX · El Pionier</option>
+        <option>X · La Renda</option>
       </select>
         </div>
         <div class="form-field">
