@@ -512,7 +512,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 .cartera-stat-val{font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--black);margin-bottom:2px}
 .cartera-stat-lbl{font-size:9px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em}
 /* Perfils inversor */
-.perfils-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.perfils-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .perfil-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:16px;transition:border-color .15s}
 .perfil-card:hover{border-color:var(--gray-300)}
 .perfil-icon{font-size:28px;margin-bottom:10px;text-align:center}
@@ -1221,31 +1221,88 @@ const CARTERES_MODEL = [
 ];
 
 const PERFILS_INVERSOR = [
-  {nom:"L'Estoic",    icona:'🗿',lema:'Disciplina sobre tot',       color:'#1B3A6B',colorL:'#EBF0FA',
-   desc:'Inversor racional i pacient. No reacciona a la volatilitat. Segueix el pla amb disciplina matemàtica.',
-   tags:['Passiu','Indexació','DCA','Llarg termini']},
-  {nom:"L'Explorador",icona:'🧭',lema:'Cerca d\'oportunitats',      color:'#1A5C3A',colorL:'#EAF3DE',
-   desc:'Curiós i autodidacta. Li agrada entendre els mercats i experimenta amb noves estratègies. Diversificació àmplia.',
-   tags:['Actiu','Diversificat','Learning']},
-  {nom:"El Navegant", icona:'⛵',lema:'Rumb clar, adaptació constant',color:'#7A4A00',colorL:'#FEF5E7',
-   desc:'Equilibrat i pragmàtic. Té un pla clar però sap adaptar-se als cicles del mercat sense perdre el nord.',
-   tags:['Equilibrat','Flexible','Cicles']},
-  {nom:"L'Arquitecte", icona:'📐',lema:'Estructura i precisió',     color:'#534AB7',colorL:'#EDEAF9',
-   desc:'Analític i metòdic. Construeix la cartera com un edifici: cada peça té una funció, res és aleatori.',
-   tags:['Sistemàtic','Anàlisi','Control']},
-  {nom:"El Tresorer",  icona:'💰',lema:'Preservar i créixer',        color:'#0F6E56',colorL:'#E5F5F1',
-   desc:'Prudent i conscient del risc. Prioritza la preservació del capital per davant del rendiment màxim.',
-   tags:['Conservador','Dividend','Seguretat']},
-  {nom:"El Cronista",  icona:'📜',lema:'La història ensenya',        color:'#8B1A1A',colorL:'#FDF0F0',
-   desc:'Aprèn dels cicles econòmics passats. Confia en patrons historials i en la reversió a la mitjana.',
-   tags:['Value','Paciència','Cicles']},
-  {nom:"L'Alquimista", icona:'⚗️',lema:'Valor on els altres no veuen',color:'#BA7517',colorL:'#FEF5E7',
-   desc:'Caçador de valor. Busca empreses infravalorades, sectors en descompte i oportunitats contraries.',
-   tags:['Value investing','Contrari','Selecció']},
-  {nom:"L'Ermità",     icona:'🏔️',lema:'Independència financera',    color:'#1B3A6B',colorL:'#EBF0FA',
-   desc:'Inversió com a eina de llibertat. Objectiu d\'independència financera a llarg termini via actius productius.',
-   tags:['IF','Dividends','Llarg termini']},
+  {
+    nom:"L'Estoic", icona:'🗿', lema:'La disciplina és llibertat',
+    color:'#1B3A6B', colorL:'#EBF0FA',
+    cartera:'I · La Catapulta', perfil:'Creixement Màxim',
+    desc:'L\'inversor més madur. Alta disciplina, horitzó llarg, obert a alternatius. No li importa la volatilitat: té el pla i el segueix.',
+    tags:['Indexació Global','DCA','Crypto','Crowdlending','Llarg termini'],
+    d8:'Edat: 20-40 · Horitzó: >15 anys · Retir lluny',
+    d9:'Obert a alternatius · Crypto + crowdlending a la cartera (15-20%)',
+    criteris:'Puntuació alta en totes les dimensions. Inversor jove, gran capacitat d\'estalvi, coneixement financer sòlid, horitzó molt llarg i obertura real als alternatius.',
+  },
+  {
+    nom:"L'Explorador", icona:'🧭', lema:'Qualsevol terreny és navegable',
+    color:'#1A5C3A', colorL:'#EAF3DE',
+    cartera:'II · La Caravella', perfil:'Dinàmica',
+    desc:'En fase d\'acumulació. Busca créixer ràpidament amb diversificació real. Entén els alternatius i n\'incorpora moderadament.',
+    tags:['Diversificat','Temàtica','REITs','Crowdlending','Crypto moderat'],
+    d8:'Edat: 30-50 · Horitzó: 10-20 anys · Acumulació activa',
+    d9:'Obert a alternatius · 10-15% en crypto/crowdlending',
+    criteris:'Alta en D1 (objectius), D3 (horitzó), D4 (coneixement) i D9 (alternatius). Inversor en fase d\'acumulació que busca diversificació real més enllà dels ETFs.',
+  },
+  {
+    nom:'El Navegant', icona:'⛵', lema:'Rumb clar, adaptació constant',
+    color:'#7A4A00', colorL:'#FEF5E7',
+    cartera:'III · El Galeó', perfil:'Balancejada',
+    desc:'Equilibrat i planificador. Pensa en el retir a mig termini. Base sòlida amb or i REITs. Pot tenir un 5% en crowdlending conservador.',
+    tags:['Equilibrat','Dividend','REITs','Or','Crowdlending conservador'],
+    d8:'Edat: 35-55 · Horitzó: 8-15 anys · Pre-retir',
+    d9:'Obertura moderada · 0-5% alternatius baixa volatilitat',
+    criteris:'Puntuació equilibrada en totes les dimensions. Horitzó mig. Prefereix actius comprensibles, vol retir digne. Pot tenir crowdlending o or com a complement.',
+  },
+  {
+    nom:"L'Arquitecte", icona:'📐', lema:'Tota gran obra comença amb fonaments sòlids',
+    color:'#534AB7', colorL:'#EDEAF9',
+    cartera:'IV · La Catedral', perfil:'Balancejada Complexa',
+    desc:'Construeix la cartera amb precisió. Cada bloc té funció clara. Inclou Private Equity i crowdlending il·líquid a llarg termini.',
+    tags:['Sistemàtic','Private Equity','Crowdlending B2B','REITs','Control'],
+    d8:'Edat: 35-55 · Horitzó: 8-15 anys · Retir planificat',
+    d9:'Alternatius il·líquids a llarg termini · PE + crowdlending (10-15%)',
+    criteris:'Alta en D4 (coneixement) i D9 (alternatius). Inversor meticulós en fase de consolidació. Entén els actius il·líquids i els integra amb propòsit estructural.',
+  },
+  {
+    nom:'El Tresorer', icona:'💰', lema:'La prudència és l\'inici de la saviesa',
+    color:'#0F6E56', colorL:'#E5F5F1',
+    cartera:'V · La Muralla', perfil:'Conservadora',
+    desc:'Proper al retir o en consolidació. Prioritza preservació del capital real. Or com a actiu refugi. No vol alternatius especulatius.',
+    tags:['Conservador','Dividend >6%','Or','RF Curta','Seguretat'],
+    d8:'Edat: 45-65 · Horitzó: <8 anys · Retir proper o actiu',
+    d9:'No alternatius especulatius · Or com a refugi d\'inflació',
+    criteris:'Alta en D8 (pre-retir) i baixa en D9. Inversor madur amb horitzó curt que necessita capital protegit i dividend recurrent. Or i RF curta com a pilars.',
+  },
+  {
+    nom:'El Cronista', icona:'📜', lema:'El qui coneix la història rara vegada la repeteix',
+    color:'#8B1A1A', colorL:'#FDF0F0',
+    cartera:'VI · El Scriptorium', perfil:'Conservadora-Moderada',
+    desc:'Inversor amb bon coneixement teòric però menys pràctica. Interessat en alternatius però construeix pas a pas amb base documentada.',
+    tags:['Value','Paciència','ETFs bàsics','Construint bases','Aprenent'],
+    d8:'Edat: qualsevol · Horitzó mig o incert · Construint bases',
+    d9:'Obert a aprendre alternatius · comença amb 0-5%',
+    criteris:'Alta en D4 (coneixement teòric) però baixa en experiència pràctica. D9 d\'obertura moderada. Vol un punt de partida clar i documentat.',
+  },
+  {
+    nom:"L'Alquimista", icona:'⚗️', lema:'L\'or no es transforma amb pressa sinó amb procés',
+    color:'#BA7517', colorL:'#FEF5E7',
+    cartera:'VII · L\'Alambí', perfil:'Balancejada-Alta',
+    desc:'Alt entusiasme i interès en alternatius (crypto, startups) però necessita disciplina. Jove o en fase inicial. Base indexada + capa d\'alternatius controlada.',
+    tags:['Crypto','Start-ups','Crowdlending','Energia alta','Procés necessari'],
+    d8:'Edat: 20-40 · Horitzó: >10 anys · Fase inici',
+    d9:'Alt interès alternatius · Crypto + seed + crowdlending',
+    criteris:'D9 molt alta (alternatius) i D1 alta (objectius màxims) però D5-D6 baixes (risc emocional alt). Inversor jove amb molt interès en crypto que necessita una base indexada sòlida.',
+  },
+  {
+    nom:"L'Ermità", icona:'🏔️', lema:'El millor patrimoni és no necessitar massa',
+    color:'#6B6762', colorL:'#F4F3F0',
+    cartera:'VIII · El Sarró', perfil:'Conservadora',
+    desc:'Minimalista o en etapa inicial. Vol quelcom que funcioni sense decisions constants. Màxima simplicitat: 1 ETF + compte remunerat.',
+    tags:['Simplicitat màxima','1 ETF global','Monetari','Sense decisions'],
+    d8:'Edat: qualsevol (esp. +50) · Horitzó curt o incert',
+    d9:'No alternatius · màxima simplicitat i liquiditat',
+    criteris:'Puntuació baixa en tots els eixos. D8 alta (pre-retir) o persona que vol el mínim de fricció. No vol alternatius ni complexitat.',
+  },
 ];
+
 
 var carteresTab = 'carteres';
 
@@ -1337,14 +1394,55 @@ function renderCarteresBody() {
     });
     el.innerHTML = html;
   } else {
-    var html = '<div class="perfils-grid">';
+    // Secció intro: com triar el teu arquetip
+    var html = '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:18px 22px;margin-bottom:20px">'
+      + '<div style="font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px">Com triar el teu arquetip</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'
+        + '<div style="padding:12px;background:var(--gray-100);border-radius:9px">'
+          + '<div style="font-size:11px;font-weight:600;color:var(--black);margin-bottom:4px">⏰ Factor Edat i Retir</div>'
+          + '<div style="font-size:11px;color:var(--gray-500);line-height:1.5">L\'horitzó temporal i la proximitat al retir defineixen quant risc pots assumir. Inversors joves → més RV i alternatius. Pre-retir → preservació i dividend.</div>'
+        + '</div>'
+        + '<div style="padding:12px;background:var(--gray-100);border-radius:9px">'
+          + '<div style="font-size:11px;font-weight:600;color:var(--black);margin-bottom:4px">🔀 Factor Alternatius</div>'
+          + '<div style="font-size:11px;color:var(--gray-500);line-height:1.5">Crypto, crowdlending i PE descorrelacionen la cartera i poden millorar el rendiment ajustat al risc. Però exigeixen coneixement i tolerància a la il·liquiditat.</div>'
+        + '</div>'
+        + '<div style="padding:12px;background:var(--gray-100);border-radius:9px">'
+          + '<div style="font-size:11px;font-weight:600;color:var(--black);margin-bottom:4px">📊 Puntuació del test</div>'
+          + '<div style="font-size:11px;color:var(--gray-500);line-height:1.5">L\'arquetip s\'assigna automàticament en completar el qüestionari de 27 preguntes en 9 dimensions: objectius, situació, horitzó, coneixement, risc, comportament, preferències, edat/retir i alternatius.</div>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+
+    // Cards d'arquetips
+    html += '<div class="perfils-grid">';
     PERFILS_INVERSOR.forEach(function(p) {
-      html += '<div class="perfil-card" style="border-color:' + p.colorL + '">'
-        + '<div class="perfil-icon">' + p.icona + '</div>'
-        + '<div class="perfil-nom">' + p.nom + '</div>'
-        + '<div class="perfil-lema" style="color:' + p.color + '">"' + p.lema + '"</div>'
+      html += '<div class="perfil-card" style="border-color:' + p.colorL + ';border-top:3px solid ' + p.color + '">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
+          + '<div class="perfil-icon" style="font-size:22px;margin:0">' + p.icona + '</div>'
+          + '<div>'
+            + '<div class="perfil-nom" style="text-align:left;margin:0">' + p.nom + '</div>'
+            + '<div style="font-size:9px;color:var(--gray-400)">' + (p.perfil||'') + '</div>'
+          + '</div>'
+        + '</div>'
+        + '<div class="perfil-lema" style="color:' + p.color + ';text-align:left;font-size:11px;margin-bottom:8px">"' + p.lema + '"</div>'
+        + '<div class="perfil-desc" style="margin-bottom:10px">' + p.desc + '</div>'
+        // D8 i D9
+        + (p.d8 ? '<div style="padding:5px 8px;background:rgba(27,58,107,.06);border-radius:5px;margin-bottom:4px">'
+            + '<div style="font-size:9px;font-weight:600;color:var(--accent);margin-bottom:1px">⏰ Edat & Retir</div>'
+            + '<div style="font-size:10px;color:var(--gray-600)">' + p.d8 + '</div>'
+          + '</div>' : '')
+        + (p.d9 ? '<div style="padding:5px 8px;background:rgba(76,175,130,.08);border-radius:5px;margin-bottom:8px">'
+            + '<div style="font-size:9px;font-weight:600;color:var(--green);margin-bottom:1px">🔀 Alternatius</div>'
+            + '<div style="font-size:10px;color:var(--gray-600)">' + p.d9 + '</div>'
+          + '</div>' : '')
+        // Tags
         + '<div class="perfil-tags">' + p.tags.map(function(t){ return '<span class="perfil-tag" style="background:' + p.colorL + ';color:' + p.color + '">' + t + '</span>'; }).join('') + '</div>'
-        + '<div class="perfil-desc">' + p.desc + '</div>'
+        // Cartera assignada
+        + (p.cartera ? '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-100);font-size:10px;color:var(--gray-400)">Cartera: <strong style="color:var(--black)">' + p.cartera + '</strong></div>' : '')
+        // Criteris expandibles
+        + (p.criteris ? '<details style="margin-top:8px"><summary style="font-size:10px;font-weight:500;color:var(--gray-400);cursor:pointer;list-style:none">▸ Per què aquest arquetip?</summary>'
+            + '<div style="font-size:11px;color:var(--gray-500);line-height:1.5;margin-top:6px;padding:8px;background:var(--gray-100);border-radius:6px">' + p.criteris + '</div>'
+          + '</details>' : '')
       + '</div>';
     });
     html += '</div>';
@@ -1828,6 +1926,40 @@ function calcFire() {
     + '<div style="font-size:12px;color:var(--black);padding:8px 12px;background:var(--white);border-radius:7px;border-left:3px solid var(--gray-300)">📊 Augmentar el retorn 1% (de ' + (retorn*100).toFixed(1) + '% a ' + ((retorn+0.01)*100).toFixed(1) + '%) redueix el temps en ~1-3 anys. Optimitzar els costos (TER) és clau.</div>'
   + '</div>'
 + '</div>';
+}
+
+
+// ── BANNER ARQUETIP A LA FITXA ──
+function getPerfilArquetip(nomArquetip) {
+  if (!nomArquetip || nomArquetip === '-') return null;
+  return PERFILS_INVERSOR.find(function(p) {
+    return p.nom === nomArquetip ||
+      p.nom.toLowerCase().includes(nomArquetip.toLowerCase()) ||
+      nomArquetip.toLowerCase().includes(p.nom.replace(/^(el |l'|la )/i,'').toLowerCase());
+  }) || null;
+}
+
+function renderArquetipBanner(c) {
+  var p = getPerfilArquetip(c.arquetip);
+  if (!p) return '';
+  return '<div style="background:var(--white);border:1px solid ' + p.color + ';border-radius:12px;padding:14px 18px;margin-bottom:14px">'
+    + '<div style="display:flex;align-items:start;gap:12px">'
+      + '<div style="font-size:26px;flex-shrink:0">' + p.icona + '</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">'
+          + '<div style="font-size:13px;font-weight:600;color:var(--black)">' + p.nom + '</div>'
+          + '<div style="font-size:10px;font-weight:500;padding:2px 8px;border-radius:99px;background:' + p.colorL + ';color:' + p.color + '">' + (p.perfil||'') + '</div>'
+          + (p.cartera ? '<div style="font-size:10px;color:var(--gray-400)">' + p.cartera + '</div>' : '')
+        + '</div>'
+        + '<div style="font-size:11px;color:' + p.color + ';font-style:italic;margin-bottom:6px">"' + p.lema + '"</div>'
+        + '<div style="font-size:11px;color:var(--gray-600);line-height:1.5;margin-bottom:8px">' + p.desc + '</div>'
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+          + (p.d8 ? '<div style="padding:4px 8px;background:rgba(27,58,107,.06);border-radius:5px;font-size:10px;color:var(--accent)">⏰ ' + p.d8 + '</div>' : '')
+          + (p.d9 ? '<div style="padding:4px 8px;background:rgba(76,175,130,.08);border-radius:5px;font-size:10px;color:var(--green)">🔀 ' + p.d9 + '</div>' : '')
+        + '</div>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
 }
 
 // ══════════════════════════════════════════════════════
@@ -2532,7 +2664,8 @@ function renderTab() {
 }
 
 function renderTabPerfil(c) {
-  document.getElementById('tab-perfil').innerHTML = `
+  var arqBannerHtml = renderArquetipBanner(c);
+  document.getElementById('tab-perfil').innerHTML = arqBannerHtml + `
     <div class="fields-grid">
       <div class="field-group">
         <div class="field-group-title">${t('perfil.dades_financeres')}</div>
