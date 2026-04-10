@@ -112,7 +112,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .res-alloc-bar-wrap{flex:1;height:3px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden}
 .res-alloc-bar{height:100%;background:rgba(255,255,255,.55);border-radius:99px}
 .res-alloc-pct{font-size:10px;font-family:var(--fm);color:rgba(255,255,255,.55);min-width:28px;text-align:right}
-.score-section{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:2px}
+.score-section{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-top:2px}
 .dim-item{text-align:center;padding:9px 4px;background:var(--g100);border-radius:8px}
 .dim-val{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--accent);margin-bottom:2px}
 .dim-lbl{font-size:9px;color:var(--g400);line-height:1.3}
@@ -436,86 +436,111 @@ function uiT(key) {
 // ════════════════════════════════════════════
 const ARQUETIPS = [
   {
-    min:70, id:'estoic',
-    nom:"L'Estoic", ep:'Marc Aureli · 121-180 d.C.',
-    lema:'La disciplina és llibertat. El mercat fluctua; el pla no.',
-    desc:"Com l'emperador filòsof, actues sobre el que controles i ignores el que no. La volatilitat no t'altera perquè tens el pla clar i la convicció sòlida. La teva disciplina és el teu avantatge competitiu real.",
-    cartera:"I · La Catapulta", perfil:'Creixement',
-    cartDesc:"Màxima RV, mínim fricció, horitzó il·limitat",
-    alloc:[{n:"RV Global (MSCI World)",p:70},{n:"RV Emergents",p:15},{n:"RV Small Cap",p:10},{n:"Crypto BTC/ETH",p:5}],
-    ter:"~0.12%", retorn:"7–9%"
+    min:90, id:'estoic',
+    nom:"L'Estoic", ep:'Marc Aureli \xb7 121-180 d.C.',
+    lema:'La disciplina \xe9s llibertat. El mercat fluctua; el pla no.',
+    desc:"L'inversor m\xe9s madur del espectre. Alta capacitat d'estalvi, horitz\xf3 llarg, obertura a diversificaci\xf3 real incloent alternatius. No li importa la volatilitat: t\xe9 el pla, el segueix. La seva edat i situaci\xf3 li permeten maximitzar l'exposici\xf3 a RV global i alternatius amb convicci\xf3.",
+    cartera:"I \xb7 La Catapulta", perfil:'Creixement M\xe0xim',
+    cartDesc:"M\xe0xima RV + alternatius seleccionats \xb7 horitz\xf3 il\xb7limitat",
+    alloc:[{n:"RV Global (MSCI World)",p:55},{n:"S&P 500 ETF",p:15},{n:"Emergents (EMIM)",p:10},{n:"Crypto BTC/ETH (ETC)",p:10},{n:"Crowdlending P2P",p:5},{n:"Or f\xedsic ETP",p:5}],
+    ter:"\u20260.14%", retorn:"8\u201310%",
+    factorsD8:"Edat ideal: 20-40 \xb7 Horitz\xf3: >15 anys \xb7 Retir lluny",
+    factorsD9:"Obert a alternatius \xb7 Crypto + crowdlending a la cartera",
+    criteris:"Puntuaci\xf3 alta en totes 9 dimensions. Inversors joves amb alta tolerancia al risc, coneixement financer, i obertura a actius alternatius. Horitz\xf3 de retir >15 anys."
   },
   {
-    min:60, id:'explorador',
-    nom:"L'Explorador", ep:'Shackleton · 1874-1922',
-    lema:'Qualsevol terreny és navegable amb el pla adequat.',
-    desc:"Com Shackleton, t'adaptes a l'entorn sense perdre el rumb. Prens riscos calculats i saps gestionar la incertesa. El teu actiu és la capacitat d'adaptar l'estratègia mantenint l'objectiu final clar.",
-    cartera:"II · La Caravella", perfil:'Dinàmica',
-    cartDesc:"RV diversificada amb cobertura sistèmica activa",
-    alloc:[{n:"RV Global (MSCI World)",p:55},{n:"RV Temàtica (sectors)",p:15},{n:"Or físic ETP",p:10},{n:"REITs Global",p:10},{n:"RF Curta (Gov)",p:10}],
-    ter:"~0.18%", retorn:"6–8%"
+    min:77, id:'explorador',
+    nom:"L'Explorador", ep:'Shackleton \xb7 1874-1922',
+    lema:'Qualsevol terreny \xe9s navegable amb el pla adequat.',
+    desc:"Combina indexaci\xf3 global amb una capa d'alternatius moderada. En etapa d'acumulaci\xf3 (30-45 anys), busca cr\xe8ixer r\xe0pidament per\xf2 amb diversificaci\xf3 real. \xc9s curi\xf3s sobre crypto i crowdlending per\xf2 no hi posa m\xe9s del 15% de la cartera.",
+    cartera:"II \xb7 La Caravella", perfil:'Din\xe0mica',
+    cartDesc:"RV diversificada + alternatius moderats \xb7 capa d'ada\xadptaci\xf3",
+    alloc:[{n:"RV Global (MSCI World)",p:45},{n:"Tem\xe0tica (Tech/Clean)",p:10},{n:"Dividend ETF",p:10},{n:"REITs Global",p:10},{n:"Or f\xedsic ETP",p:10},{n:"Crowdlending",p:8},{n:"Crypto (BTC)",p:7}],
+    ter:"\u20260.18%", retorn:"7\u20139%",
+    factorsD8:"Edat ideal: 30-50 \xb7 Horitz\xf3: 10-20 anys \xb7 Acumulaci\xf3",
+    factorsD9:"Obert a alternatius \xb7 10-15% en crypto/crowd",
+    criteris:"Puntuaci\xf3 alta en D1 (objectius), D3 (horitz\xf3), D4 (coneixement) i D9 (alternatius). Inversors en fase d'acumulaci\xf3 que entenen els alternatius i volen diversificaci\xf3 real m\xe9s enll\xe0 dels ETFs."
   },
   {
-    min:50, id:'navegant',
-    nom:'El Navegant', ep:'Zheng He · 1371-1433',
-    lema:'Amb bon mapa i paciència, tot port és assolible.',
-    desc:"Tens el rumb clar i saps on vols arribar. El teu repte és no mirar massa el baròmetre quan el cel s'ennuvola. La brúixola és el pla a llarg termini, no les notícies del dia.",
-    cartera:"III · El Galeó", perfil:'Balancejada',
-    cartDesc:"Equilibri entre creixement i estabilitat emocional",
-    alloc:[{n:"RV Global Indexada",p:45},{n:"Dividend ETF Global",p:20},{n:"RF Diversificada",p:20},{n:"Or físic ETP",p:10},{n:"REITs Global",p:5}],
-    ter:"~0.15%", retorn:"5–7%"
+    min:64, id:'navegant',
+    nom:'El Navegant', ep:'Zheng He \xb7 1371-1433',
+    lema:'Amb bon mapa i paci\xe8ncia, tot port \xe9s assolible.',
+    desc:"Equilibrat i planificador. Est\xe0 pensant en el retir a mig termini (10-15 anys) i construeix amb base s\xf2lida. Inclou una mica d'or i REITs com a protecci\xf3. No li interessen molt els alternatius especulatius, per\xf2 pot tenir un 5% en crowdlending conservador.",
+    cartera:"III \xb7 El Gale\xf3", perfil:'Balancejada',
+    cartDesc:"Equilibri creixement-estabilitat \xb7 protecci\xf3 inflaci\xf3",
+    alloc:[{n:"RV Global Indexada",p:40},{n:"Dividend ETF Global",p:20},{n:"RF Diversificada Gov.",p:15},{n:"Or f\xedsic ETP",p:10},{n:"REITs Global",p:10},{n:"Crowdlending conservador",p:5}],
+    ter:"\u20260.15%", retorn:"5\u20137%",
+    factorsD8:"Edat ideal: 35-55 \xb7 Horitz\xf3: 8-15 anys \xb7 Pre-retir",
+    factorsD9:"Obert moderadament \xb7 0-5% alternatius baixa volatilitat",
+    criteris:"Puntuaci\xf3 equilibrada en totes les dimensions. Horitz\xf3 mig. Prefereix actius comprensibles, vol retir digne sense especular. Pot tenir un petit toc d'alternatius conservadors (crowdlending, or)."
   },
   {
-    min:42, id:'arquitecte',
-    nom:"L'Arquitecte", ep:'Brunelleschi · 1377-1446',
-    lema:'Tota gran obra comença amb uns fonaments sòlids.',
-    desc:"Construeixes amb precisió i visió de llarg termini. El teu risc és la complexitat — de vegades el millor disseny és el més simple. Regla d'or: 7 blocs màxim, cada un amb funció estructural clara.",
-    cartera:"IV · La Catedral", perfil:'Balancejada',
-    cartDesc:"Complex però coherent — cada bloc té funció estructural",
-    alloc:[{n:"RV Global Core",p:40},{n:"RV Factor (Value+Quality)",p:15},{n:"RF Corporativa IG",p:15},{n:"REITs Global",p:10},{n:"Or físic ETP",p:10},{n:"Private Equity/Crowd",p:5},{n:"Liquiditat estratègica",p:5}],
-    ter:"~0.25%", retorn:"5–7%"
+    min:54, id:'arquitecte',
+    nom:"L'Arquitecte", ep:'Brunelleschi \xb7 1377-1446',
+    lema:'Tota gran obra comen\xe7a amb uns fonaments s\xf2lids.',
+    desc:"Construeix la cartera com un edifici: cada bloc t\xe9 una funci\xf3 clara. A mitjan vida (40-55), combina creixement, estabilitat i alternatius il\xb7l\xedquids com a private equity o crowdlending a llarg termini. M\xe9s complex que el Navegant, per\xf2 cada peça t\xe9 sentit estructural.",
+    cartera:"IV \xb7 La Catedral", perfil:'Balancejada Complexa',
+    cartDesc:"Complex per\xf2 coherent \xb7 cada bloc t\xe9 funci\xf3 estructural",
+    alloc:[{n:"RV Global Core",p:35},{n:"RV Factor (Value+Quality)",p:10},{n:"RF Corporativa IG",p:15},{n:"REITs Global",p:10},{n:"Or f\xedsic ETP",p:10},{n:"Crowdlending P2B",p:10},{n:"Private Equity (seed)",p:5},{n:"Liquiditat estrat\xe8gica",p:5}],
+    ter:"\u20260.25%", retorn:"5\u20137%",
+    factorsD8:"Edat ideal: 35-55 \xb7 Horitz\xf3: 8-15 anys \xb7 Retir planificat",
+    factorsD9:"Alternatius il\xb7l\xedquids a llarg termini \xb7 10-15%",
+    criteris:"Puntuaci\xf3 alta en D4 (coneixement) i D9 (alternatius). Inversor meticulat que entri alt en D8 (consolidaci\xf3). Vol diversificaci\xf3 real amb actius il\xb7l\xedquids a llarg termini: PE, crowdlending B2B."
   },
   {
-    min:34, id:'tresorer',
-    nom:'El Tresorer', ep:'Jakob Fugger · 1459-1525',
-    lema:"La prudència és l'inici de tota saviesa financera.",
-    desc:"Values la preservació i la consistència per sobre de l'especulació. El teu repte és que la prudència extrema té el seu propi cost: la inflació silenciosa que erosiona el cofre any rere any.",
-    cartera:"V · La Muralla", perfil:'Conservadora',
-    cartDesc:"Preservació del capital real contra la inflació",
-    alloc:[{n:"RF Curta (Gov AAA)",p:40},{n:"Or físic ETP",p:25},{n:"RV Global Defensiva",p:20},{n:"Liquiditat (remunerat)",p:10},{n:"REITs defensiu",p:5}],
-    ter:"~0.14%", retorn:"3–5%"
+    min:44, id:'tresorer',
+    nom:'El Tresorer', ep:'Jakob Fugger \xb7 1459-1525',
+    lema:"La prud\xe8ncia \xe9s l\u2019inici de tota sabiduria financera.",
+    desc:"Proper al retir o en fase de consolidaci\xf3 (50-65 anys). Prioritza la preservaci\xf3 del capital real per sobre del creixement. Pot tenir or com a asset refugi i dividend d'alt rendiment. No li interessen els alternatius especulatius.",
+    cartera:"V \xb7 La Muralla", perfil:'Conservadora',
+    cartDesc:"Preservaci\xf3 del capital real contra la inflaci\xf3",
+    alloc:[{n:"RF Curta Gov. AAA",p:35},{n:"Or f\xedsic ETP",p:25},{n:"Dividend ETF (>6%)",p:20},{n:"Liquiditat remunerat",p:10},{n:"REITs defensiu",p:10}],
+    ter:"\u20260.14%", retorn:"3\u20135%",
+    factorsD8:"Edat ideal: 45-65 \xb7 Horitz\xf3: <8 anys \xb7 Retir proper o actiu",
+    factorsD9:"No alternatius especulatius \xb7 or com a refugi",
+    criteris:"Puntuaci\xf3 alta en D8 (pre-retir) i baixa en D9 (no alternatius). Inversors madurs amb horitz\xf3 curt que necessiten capital protegit i dividend recurrent. L'or i la renda fixa curta s\xf3n els seus pilars."
   },
   {
-    min:26, id:'cronista',
-    nom:'El Cronista', ep:'Heròdot · 484-425 a.C.',
-    lema:'El qui coneix la història rara vegada la repeteix.',
-    desc:"Observes i documentes abans d'actuar. Values el coneixement per damunt de la rapidesa. El teu repte és que l'anàlisi excel·lent sense execució sistemàtica no genera retorn.",
-    cartera:"VI · El Scriptorium", perfil:'Conservadora',
-    cartDesc:"Cartera pedagògica que genera aprenentatge i execució",
-    alloc:[{n:"RV Global Indexada",p:35},{n:"RF Diversificada",p:30},{n:"Or físic ETP",p:15},{n:"Dividend ETF",p:10},{n:"REITs",p:10}],
-    ter:"~0.14%", retorn:"4–6%"
+    min:33, id:'cronista',
+    nom:'El Cronista', ep:'Her\xf2dot \xb7 484-425 a.C.',
+    lema:'El qui coneix la hist\xf2ria rara vegada la repeteix.',
+    desc:"Inversor en fase inicial o intermitja, amb bon coneixement te\xf2ric per\xf2 menys experi\xe8ncia pr\xe0ctica. Interessat en aprendre sobre alternatius per\xf2 no hi ha invertit encara. Construeix la cartera amb capes simples i documentades.",
+    cartera:"VI \xb7 El Scriptorium", perfil:'Conservadora-Moderada',
+    cartDesc:"Cartera pedag\xf2gica que genera aprenentatge i execuci\xf3",
+    alloc:[{n:"RV Global Indexada",p:40},{n:"RF Diversificada",p:25},{n:"Or f\xedsic ETP",p:15},{n:"Dividend ETF",p:10},{n:"REITs",p:10}],
+    ter:"\u20260.14%", retorn:"4\u20136%",
+    factorsD8:"Edat: qualsevol \xb7 Horitz\xf3 mig o incert \xb7 Construint bases",
+    factorsD9:"Obert a aprendre alternatius \xb7 comen\xe7a amb 0-5%",
+    criteris:"Puntuaci\xf3 alta en D4 (coneixement te\xf2ric) per\xf2 baixa en experi\xe8ncia. Bona D8 per\xf2 D9 d'obertura moderada. S\xf3n inversors que saben molt de teoria per\xf2 volen comenar pas a pas amb una cartera clara."
   },
   {
-    min:18, id:'alquimista',
-    nom:"L'Alquimista", ep:'Paracels · 1493-1541',
-    lema:"L'or no es transforma amb pressa, sinó amb procés.",
-    desc:"Creus en la transformació i el potencial ocult. La teva energia és un actiu. Necessites un laboratori ordenat: un procés clar que canalitzi l'entusiasme en resultats consistents.",
-    cartera:"VII · L'Alambí", perfil:'Balancejada',
-    cartDesc:"Energia canalitzada amb procés estricte i vàlvula de vapor",
-    alloc:[{n:"RV Global Core",p:50},{n:"RF Curta",p:20},{n:"Or físic ETP",p:10},{n:"REITs",p:10},{n:"Satèl·lit lliure",p:10}],
-    ter:"~0.20%", retorn:"4–6%"
+    min:23, id:'alquimista',
+    nom:"L'Alquimista", ep:'Paracels \xb7 1493-1541',
+    lema:"L'or no es transforma amb pressa, sin\xf3 amb proc\xe9s.",
+    desc:"Alt entusiasme, alt risc acceptat, per\xf2 amb proc\xe9s desordenat. Molt interessat en alternatius (crypto, startups) per\xf2 li falta disciplina de cartera. Jove o en etapa inicial. Necessita estructura: 70% cartera \xe0ncora, 30% experimentaci\xf3 controlada.",
+    cartera:"VII \xb7 L'Alam\xedb", perfil:'Balancejada-Alta',
+    cartDesc:"Energia canalitzada amb proc\xe9s estricte i v\xe0lvula de vapor",
+    alloc:[{n:"RV Global Core",p:45},{n:"RF Curta",p:15},{n:"Or f\xedsic ETP",p:10},{n:"Crypto (BTC+ETH)",p:15},{n:"Crowdlending",p:10},{n:"Start-ups (seed)",p:5}],
+    ter:"\u20260.22%", retorn:"7\u20139%",
+    factorsD8:"Edat ideal: 20-40 \xb7 Horitz\xf3: >10 anys \xb7 Fase inici",
+    factorsD9:"Alt inter\xe8s alternatius \xb7 crypto + seed + crowd",
+    criteris:"D9 molt alta (alternatius) i D1 alta (objectius m\xe0xims) per\xf2 D5-D6 baixes (risc emocional alt). S\xf3n inversors joves amb molt inter\xe8s en crypto i startups que necessiten una base indexada s\xf2lida per no descarrilar."
   },
   {
     min:0, id:'eremita',
-    nom:"L'Ermità", ep:'Diògenes · 412-323 a.C.',
-    lema:'El millor patrimoni és no necessitar massa.',
-    desc:"Values la simplicitat i la seguretat per davant de tot. La inversió et genera desconfiança natural. El punt de partida és construir confiança en el procés pas a pas, amb la cartera més simple que funcioni.",
-    cartera:"VIII · El Sarró", perfil:'Conservadora',
-    cartDesc:"La cartera més simple possible que realment funcioni",
+    nom:"L'Ermit\xe0", ep:'Di\xf2genes \xb7 412-323 a.C.',
+    lema:'El millor patrimoni \xe9s no necessitar massa.',
+    desc:"Inversor m\xednimista o en etapa molt inicial. Vol quelcom que funcioni sense necessitar pendre decisions. No li interessen els alternatius. Pot estar proper al retir i preferir liquiditat i seguretat absoluta. La cartera m\xe9s simple que funcioni.",
+    cartera:"VIII \xb7 El Sarr\xf3", perfil:'Conservadora',
+    cartDesc:"La cartera m\xe9s simple possible que realment funcioni",
     alloc:[{n:"Fons indexat global (1 sol)",p:60},{n:"Compte remunerat/Monetari",p:40}],
-    ter:"~0.10%", retorn:"3–5%"
+    ter:"\u20260.10%", retorn:"3\u20135%",
+    factorsD8:"Edat: qualsevol (esp. +50) \xb7 Horitz\xf3 curt o incert",
+    factorsD9:"No alternatius \xb7 m\xe0xima simplicitat",
+    criteris:"Puntuaci\xf3 baixa en tots els eixos. D8 alta (pre-retir o retir actiu). D9 m\xednima (no vol alternatius). Poden ser inversors molt conservadors, persones grans, o qui vol comenar amb la m\xednima fricci\xf3 possible."
   },
-];
+]
+
 
 const CARTERES_DESC = {
   'I · Fonament':'Sòlida, defensiva, orientada a preservar el capital.',
@@ -710,7 +735,59 @@ const QS = [
   {type:'cartera',id:'cartera',dim:'Cartera actual',dn:8,
     text:'Tens alguna inversió o estalvi en marxa? Afegeix el que tens (opcional).'},
 
-  {type:'result',id:'result',dn:9},
+  // ── D8 · EDAT I RETIR ──
+  {type:'choice',id:'D8P1',dim:'D8 · Edat i Retir',dn:8,
+    text:'Quina és la teva etapa vital actual?',
+    opts:[
+      {sym:'🌱',lbl:'Inici (18-30)',txt:'Estic construint les bases financeres. Horitzó molt llarg.',s:4},
+      {sym:'🚀',lbl:'Acumulació (30-45)',txt:'Guanyo bé i vull fer créixer el patrimoni.',s:3},
+      {sym:'⚙',lbl:'Consolidació (45-55)',txt:'Consolido el que he acumulat. Menys riscos.',s:2},
+      {sym:'🏁',lbl:'Pre-retir (55+)',txt:'Penso en viure dels meus estalvis aviat.',s:1},
+    ]},
+  {type:'choice',id:'D8P2',dim:'D8 · Edat i Retir',dn:8,
+    text:'En quant de temps voldries poder viure dels teus inversions?',
+    opts:[
+      {sym:'⚡',lbl:'< 5 anys',txt:'Vull independència financera aviat. Sóc FIRE.',s:1},
+      {sym:'〜',lbl:'5-10 anys',txt:'En una dècada m’agradaria tenir llibertat financera.',s:2},
+      {sym:'◯',lbl:'10-20 anys',txt:'Penso en la jubilació anticipada o tardana.',s:3},
+      {sym:'∞',lbl:'> 20 anys',txt:'Estic construint per al llarg termini. Sense pressa.',s:4},
+    ]},
+  {type:'choice',id:'D8P3',dim:'D8 · Edat i Retir',dn:8,
+    text:'Tens un pla de pensions o previsió per al retir?',
+    opts:[
+      {sym:'✗',lbl:'No',txt:'No tinc res per al retir específicament.',s:1},
+      {sym:'½',lbl:'Poc',txt:'Alguna cosa, però no és suficient.',s:2},
+      {sym:'✓',lbl:'Sí, públic',txt:'Cotitzo a la Seg. Social però no tinc pla privat.',s:3},
+      {sym:'★',lbl:'Complet',txt:'Tinc pla privat, inversions i/o actius per al retir.',s:4},
+    ]},
+
+  // ── D9 · ALTERNATIUS ──
+  {type:'choice',id:'D9P1',dim:'D9 · Alternatius',dn:9,
+    text:'Què penses sobre incloure actius alternatius (crypto, crowdlending, start-ups) a la cartera?',
+    opts:[
+      {sym:'✗',lbl:'No m’interessa',txt:'Prefereixo actius tradicionals regulats i coneguts.',s:1},
+      {sym:'?',lbl:'Obert a aprendre',txt:'No ho descarto si entenc bé els riscos.',s:2},
+      {sym:'◕',lbl:'Sí, parcialment',txt:'M’agrada diversificar amb un petit percentatge.',s:3},
+      {sym:'★',lbl:'Molt interessat',txt:'Els alternatius formen part de la meva estratègia.',s:4},
+    ]},
+  {type:'choice',id:'D9P2',dim:'D9 · Alternatius',dn:9,
+    text:'Tens experiència o coneixes bé alguna d’aquestes categories?',
+    opts:[
+      {sym:'○',lbl:'Cap',txt:'No he invertit mai en alternatius.',s:1},
+      {sym:'₿',lbl:'Crypto',txt:'Conec o he invertit en criptomonedes (BTC, ETH...).',s:2},
+      {sym:'🏦',lbl:'Crowdlending',txt:'Conec el P2P (Mintos, October...) o crowdfunding.',s:3},
+      {sym:'🚀',lbl:'Diverses',txt:'Tinc experiència en diverses categories alternatives.',s:4},
+    ]},
+  {type:'choice',id:'D9P3',dim:'D9 · Alternatius',dn:9,
+    text:'Quin percentatge màxim de la cartera posaries en actius d’alt risc i baixa liquiditat?',
+    opts:[
+      {sym:'0%',lbl:'Cap',txt:'Preferiria que tota la cartera fos líquida i regulada.',s:1},
+      {sym:'5%',lbl:'Fins al 5%',txt:'Una mica, com a experiment. No m’afecta si va malament.',s:2},
+      {sym:'15%',lbl:'5-15%',txt:'Un bloc significatiu si les condicions ho justifiquen.',s:3},
+      {sym:'25%+',lbl:'Més del 15%',txt:'Busco diversificació real, inclosos actius il·líquids.',s:4},
+    ]},
+
+  {type:'result',id:'result',dn:10},
 ];
 
 const TOTAL = QS.length;
@@ -995,6 +1072,43 @@ function arAlloc(ar) {
 
 
 
+
+// ── BLOC ALTERNATIUS AL RESULTAT ──
+function calcAlternatiusBloc() {
+  var d9scores = ['D9P1','D9P2','D9P3'].map(function(id){ return ans[id]||1; });
+  var d9sum = d9scores.reduce(function(a,b){ return a+b; },0);
+  var d9pct = Math.round(d9sum / 12 * 100);
+  var d8p2 = ans['D8P2'] || 3; // horitzó retir
+
+  if (d9pct < 30) return ''; // No interessats: no mostrar bloc
+
+  var pctSug = d9pct >= 75 ? '15-25%' : d9pct >= 50 ? '5-15%' : '0-5%';
+  var cats = [];
+  if (ans['D9P2'] >= 2) cats.push('Crypto (BTC, ETH via ETC)');
+  if (ans['D9P2'] >= 3) cats.push('Crowdlending (Mintos, October)');
+  if (ans['D9P2'] >= 4) cats.push('Private Equity (Seedrs, Crowdcube)');
+  if (cats.length === 0) cats.push('ETCs d\u2019or i metalls preciosos');
+
+  var isEs = ONB_LANG === 'es';
+  return '<div style="background:#0A0A0A;border-radius:12px;padding:16px 18px;margin-top:12px">'
+    + '<div style="font-size:10px;font-weight:500;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">'
+      + (isEs ? 'Inversi\xf3n alternativa' : 'Inversi\xf3 alternativa')
+    + '</div>'
+    + '<div style="font-size:14px;font-weight:500;color:white;margin-bottom:6px">'
+      + (isEs ? 'Perfil compatible amb alternatius' : 'Perfil compatible amb alternatius')
+    + '</div>'
+    + '<div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:10px">'
+      + (isEs
+        ? 'Tu apertura a activos alternativos es del <strong style="color:white">' + d9pct + '%</strong>. Podr\xedas considerar hasta un <strong style="color:white">' + pctSug + '</strong> de tu cartera en alternativas para mejorar la descorrelaci\xf3n.'
+        : 'La teva obertura a actius alternatius \xe9s del <strong style="color:white">' + d9pct + '%</strong>. Podries considerar fins a un <strong style="color:white">' + pctSug + '</strong> de la teva cartera en alternatius per millorar la descorrelaci\xf3.'
+      )
+    + '</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+      + cats.map(function(c){ return '<span style="font-size:10px;padding:3px 10px;background:rgba(255,255,255,.1);border-radius:99px;color:rgba(255,255,255,.7)">' + c + '</span>'; }).join('')
+    + '</div>'
+    + (d8p2 <= 2 ? '<div style="margin-top:8px;font-size:10px;color:rgba(255,180,0,.8)">\u26a0 Horitz\xf3 curt: els alternatius il\xb7l\xedquids no s\xf3n adequats. Limita la exposici\xf3 a crypto i metalls.</div>' : '')
+  + '</div>';
+}
 function sessioCTA() {
   var isEs = ONB_LANG === 'es';
   var waMsg = isEs
@@ -1024,11 +1138,35 @@ function sessioCTA() {
   + '</div>';
 }
 
+
+function buildArqFactors(ar) {
+  var html = '';
+  if (ar.factorsD8 || ar.factorsD9) {
+    html += '<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">';
+    if (ar.factorsD8) {
+      html += '<div style="padding:8px 12px;background:rgba(27,58,107,.2);border-radius:8px;border-left:3px solid #4A8FD4">'
+        + '<div style="font-size:9px;font-weight:600;color:#4A8FD4;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">\u23f0 Edat & Retir</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.75)">' + ar.factorsD8 + '</div></div>';
+    }
+    if (ar.factorsD9) {
+      html += '<div style="padding:8px 12px;background:rgba(76,175,130,.15);border-radius:8px;border-left:3px solid #4CAF82">'
+        + '<div style="font-size:9px;font-weight:600;color:#4CAF82;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">\U0001f500 Alternatius</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.75)">' + ar.factorsD9 + '</div></div>';
+    }
+    html += '</div>';
+  }
+  if (ar.criteris) {
+    html += '<div style="margin-top:10px;padding:10px 14px;background:rgba(255,255,255,.06);border-radius:8px">'
+      + '<div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Per qu\xe8 aquest arquetip?</div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,.6);line-height:1.5">' + ar.criteris + '</div></div>';
+  }
+  return html;
+}
 function buildResult(){
   const sc    = calcScore();
   const ar    = getArquetip(sc);
   const pSrc  = PORTRAITS[ar.id] || null;
-  const maxSc = 84;
+  const maxSc = 108;
   const pct   = Math.round(sc/maxSc*100);
 
   // Colors del score
@@ -1036,8 +1174,8 @@ function buildResult(){
 
   // Labels dimensions
   const dlbls = ONB_LANG==='es'
-    ? ['Objetivos','Situación','Horizonte','Conocimiento','Riesgo fin.','Riesgo em.','Preferencias']
-    : ['Objectius','Situació','Horitzó','Coneixement','Risc fin.','Risc em.','Preferències'];
+    ? ['Objetivos','Situación','Horizonte','Conocimiento','Riesgo fin.','Riesgo em.','Preferencias','Edad/Retiro','Alternativos']
+    : ['Objectius','Situació','Horitzó','Coneixement','Risc fin.','Risc em.','Preferències','Edat/Retir','Alternatius'];
 
   // Calcular dims
   var dimsData = [1,2,3,4,5,6,7].map(function(dn,i){
@@ -1096,6 +1234,7 @@ function buildResult(){
     +'<div style="background:white;border:1px solid #E8E6E1;border-radius:12px;padding:18px 22px">'
       +'<div style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #E8E6E1">'+(ONB_LANG==='es'?'Tu perfil':'El teu perfil')+'</div>'
       +'<div style="font-size:13px;color:#3A3835;line-height:1.8;margin-bottom:16px">'+(arT(ar,'desc')||ar.desc)+'</div>'
+      +buildArqFactors(ar)
       +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
         +'<div style="padding:9px 10px;background:#F4F3F0;border-radius:8px"><div style="font-size:8px;color:#9A9690;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">'+(ONB_LANG==='es'?'Tipo':'Perfil')+'</div><div style="font-size:12px;font-weight:500;color:#0A0A0A">'+ar.perfil+'</div></div>'
         +'<div style="padding:9px 10px;background:#F4F3F0;border-radius:8px"><div style="font-size:8px;color:#9A9690;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Retorn</div><div style="font-size:12px;font-weight:500;color:#1A5C3A">'+ar.retorn+'</div></div>'
@@ -1129,6 +1268,7 @@ function buildResult(){
       +'<button onclick="generarPDF()" style="width:100%;padding:12px;background:white;color:#0A0A0A;border:1.5px solid #C8C5BE;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('download_btn')+'</button>'
       
       // ── CTA Sessió gratuïta ──
+      +calcAlternatiusBloc()
       +sessioCTA()
 
       +'<button onclick="reiniciar()" style="background:none;border:none;font-size:12px;color:#9A9690;cursor:pointer;font-family:var(--fb);text-align:center;padding:6px;text-decoration:underline">'+uiT('restart_btn')+'</button>'
