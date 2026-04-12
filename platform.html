@@ -311,6 +311,55 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 .fade-in{animation:fadeIn .3s ease-out}
 @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
 .slide-in{animation:slideIn .25s ease-out}
+
+/* ══════════ CARTERA RATIONALE ══════════ */
+.rationale-box{
+  background:var(--g100);border-radius:10px;padding:16px 18px;
+  font-size:13px;color:var(--g600);line-height:1.7;
+  border-left:3px solid var(--accent);margin-bottom:16px;
+}
+.rationale-box .rationale-label{
+  font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;
+  letter-spacing:.08em;margin-bottom:6px;
+}
+.diff-box-portal{
+  border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.6;margin-top:12px;
+}
+.diff-green{background:#EAF3DE;color:#1A5C3A}
+.diff-amber{background:#FEF5E7;color:#7A4A00}
+.diff-red{background:#FDF0F0;color:#8B1A1A}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.kpi-item{background:var(--g100);border-radius:8px;padding:10px;text-align:center}
+.kpi-label{font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.kpi-value{font-family:var(--fm);font-size:14px;font-weight:500;color:var(--black)}
+
+/* ══════════ CARTERES GRID (all 8) ══════════ */
+.cg-card{
+  background:var(--white);border:1.5px solid var(--g200);border-radius:12px;
+  overflow:hidden;margin-bottom:14px;transition:all .15s;
+}
+.cg-card:hover{border-color:var(--g300)}
+.cg-card.is-mine{border-color:var(--accent);box-shadow:0 2px 12px rgba(27,58,107,.1)}
+.cg-mine-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:600;color:var(--accent);
+  background:var(--accent-l);padding:3px 10px;border-radius:99px;
+  margin-bottom:6px;
+}
+.cg-header{padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:14px}
+.cg-num{
+  width:36px;height:36px;border-radius:10px;background:var(--g100);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fm);font-size:12px;font-weight:500;color:var(--g500);flex-shrink:0;
+}
+.cg-card.is-mine .cg-num{background:var(--accent-l);color:var(--accent)}
+.cg-header-text{flex:1;min-width:0}
+.cg-cart-nom{font-family:var(--fd);font-size:16px;font-weight:400;color:var(--black);margin-bottom:2px}
+.cg-arq-nom{font-size:11px;color:var(--g400)}
+.cg-chevron{color:var(--g300);font-size:14px;transition:transform .2s}
+.cg-card.open .cg-chevron{transform:rotate(90deg)}
+.cg-body{display:none;padding:0 20px 18px;border-top:1px solid var(--g100)}
+.cg-card.open .cg-body{display:block}
 </style>
 </head>
 <body>
@@ -456,8 +505,9 @@ var ADMIN_EMAILS = ['guillem@theboringinvestor.com', 'guillem.puig@gmail.com', '
 var DEMO_CLIENT = {
   nom: 'Maria García López',
   email: 'maria.garcia@example.com',
+  arquetipId: 'arquitecte',
   arquetip: "L'Arquitecte — Brunelleschi",
-  cartera: 'III · El Galeó',
+  cartera: 'IV · Estructura Mestra',
   scoring: 67,
   perfil: {
     capitalInicial: '45.000 €',
@@ -467,31 +517,23 @@ var DEMO_CLIENT = {
     riscFinancer: 'Moderat',
     riscEmocional: 'Moderat-alt'
   },
-  scoring_mods: [9, 7, 8, 6, 7, 8, 5],
-  cartera_composicio: [
-    {nom:'RV Global MSCI World', pct:40, color:'#1B3A6B'},
-    {nom:'RV USA S&P 500', pct:15, color:'#2E5FA3'},
-    {nom:'Emergents', pct:10, color:'#D4943A'},
-    {nom:'RF Bons', pct:25, color:'#9A9690'},
-    {nom:'Or', pct:10, color:'#C0392B'}
-  ],
+  scoring_mods: [8, 7, 8, 8, 7, 7, 8],
   projeccions: {p10:'52.300 €', p50:'78.400 €', p90:'112.600 €'},
-  nota: "Maria té un perfil equilibrat amb bona tolerància al risc. Recomanem mantenir la cartera actual i augmentar l'aportació mensual si és possible. Pendent de revisar la diversificació geogràfica al pròxim trimestre.",
+  nota: "Maria té un perfil d'Arquitecte: meticulosa, amb alt coneixement i tendència a sobrecomplicar. La seva cartera Estructura Mestra està limitada a 7 blocs màxim — cada un amb funció estructural clara. Recomanem mantenir la disciplina de no afegir blocs sense eliminar-ne un altre primer.",
   historial: [
     {titol:'Revisió trimestral', data:'15 mar 2026', tipus:'info', desc:'Rebalanceig automàtic executat. +2,3% vs benchmark.'},
     {titol:'Augment aportació', data:'1 feb 2026', tipus:'info', desc:"Aportació mensual augmentada de 300€ a 400€."},
-    {titol:'Alerta concentració', data:'10 gen 2026', tipus:'alerta', desc:'Pes de RV USA >20%. Considerar reduir exposició.'}
+    {titol:'Alerta concentració', data:'10 gen 2026', tipus:'alerta', desc:'Maria va proposar afegir un 8è bloc (crypto). Recordat que la regla de 7 blocs és innegociable.'}
   ],
-  ter: '0,12%',
   pla: 'bruxola'
 };
 
 var DEMO_CLIENTS_LIST = [
-  {nom:'Maria García López', email:'maria.garcia@example.com', arquetip:"L'Arquitecte", scoring:67, pla:'bruxola'},
-  {nom:'Joan Martí Valls', email:'joan.marti@example.com', arquetip:"L'Estoic", scoring:78, pla:'rumb'},
-  {nom:'Laia Pujol Serra', email:'laia.pujol@example.com', arquetip:"L'Exploradora", scoring:52, pla:'senyal'},
-  {nom:'Pere Font Solé', email:'pere.font@example.com', arquetip:"El Tresorer", scoring:41, pla:'bruxola'},
-  {nom:'Anna Rovira Costa', email:'anna.rovira@example.com', arquetip:"La Navegant", scoring:85, pla:'mapa'},
+  {nom:'Maria García López', email:'maria.garcia@example.com', arquetipId:'arquitecte', arquetip:"L'Arquitecte", cartera:'IV · Estructura Mestra', scoring:67, pla:'bruxola'},
+  {nom:'Joan Martí Valls', email:'joan.marti@example.com', arquetipId:'estoic', arquetip:"L'Estoic", cartera:'I · Convicció Absoluta', scoring:78, pla:'rumb'},
+  {nom:'Laia Pujol Serra', email:'laia.pujol@example.com', arquetipId:'explorador', arquetip:"L'Exploradora", cartera:'II · Terreny Explorat', scoring:52, pla:'senyal'},
+  {nom:'Pere Font Solé', email:'pere.font@example.com', arquetipId:'tresorer', arquetip:"El Tresorer", cartera:'V · Cofre Fort', scoring:41, pla:'bruxola'},
+  {nom:'Anna Rovira Costa', email:'anna.rovira@example.com', arquetipId:'navegant', arquetip:"La Navegant", cartera:'III · Rumb Constant', scoring:85, pla:'mapa'},
 ];
 
 var DEMO_ANALISIS = [
@@ -500,20 +542,91 @@ var DEMO_ANALISIS = [
   {id:'3', titol:'Oportunitat Value: Sector energia renovable', subtitol:'Valuacions atractives després de correcció del 25%', categoria:'value', data_pub:'2026-04-02', resum:'El sector renovable cotitza a múltiples de 2019. Selecció de 3 ETFs amb exposició.', tags:['value','energia','oportunitat']},
 ];
 
-var CARTERES_MODEL = [
-  {nom:'Cartera TBI · The Boring Investor', desc:'Cartera pròpia TBI. Indexació global (70%) + Value selectiu (30%).', tbi:true,
-   actius:[{nom:'MSCI World ETF',pct:40,color:'#1B3A6B'},{nom:"S&P 500 ETF",pct:20,color:'#2E5FA3'},{nom:'Selecció valor IBEX',pct:15,color:'#4CAF82'},{nom:'Emergents',pct:10,color:'#D4943A'},{nom:'Renda Fixa Gov.',pct:10,color:'#9A9690'},{nom:'Or físic ETP',pct:5,color:'#C0392B'}],
-   stats:'TER: 0,14% · Retorn esp: 7–9% · Sharpe: 0,55'},
-  {nom:'I · La Catapulta', desc:'100% RV global. Horitzó >15 anys i màxima tolerància al risc.',
-   actius:[{nom:'RV Global MSCI World',pct:60,color:'#1B3A6B'},{nom:'RV USA S&P 500',pct:25,color:'#2E5FA3'},{nom:'Emergents',pct:15,color:'#D4943A'}],
-   stats:'TER: 0,10% · Retorn esp: 8–10% · Sharpe: 0,45'},
-  {nom:'III · El Galeó', desc:'Cartera equilibrada. RV global + RF i or. Perfils moderats.',
-   actius:[{nom:'RV Global',pct:40,color:'#1B3A6B'},{nom:'RV USA',pct:15,color:'#2E5FA3'},{nom:'Emergents',pct:10,color:'#D4943A'},{nom:'RF Bons',pct:25,color:'#9A9690'},{nom:'Or',pct:10,color:'#C0392B'}],
-   stats:'TER: 0,12% · Retorn esp: 5–7% · Sharpe: 0,48'},
-  {nom:'V · La Muralla', desc:'Preservació de capital. RF dominant. Conservadors o horitzó curt.',
-   actius:[{nom:'RF Gov. EUR',pct:45,color:'#9A9690'},{nom:'RF Corp. IG',pct:25,color:'#6B6762'},{nom:'Monetari BCE',pct:15,color:'#C8C5BE'},{nom:'RV Global',pct:10,color:'#1B3A6B'},{nom:'Or',pct:5,color:'#C0392B'}],
-   stats:'TER: 0,14% · Retorn esp: 2–3,5% · Sharpe: 0,42'},
+// ══════════════════════════════════════════════════
+// SISTEMA UNIFICAT: 8 ARQUETIPS → 8 CARTERES
+// ══════════════════════════════════════════════════
+var ARQUETIPS_CARTERES = [
+  {
+    id:'estoic', nom:"L'Estoic", ep:'Marc Aureli · 121–180 d.C.',
+    cartNom:'I · Convicció Absoluta', cartSub:'Màxima RV, mínim fricció, horitzó il·limitat',
+    rationale:"Alta tolerància al risc real (no declarada), control emocional excel·lent i horitzó +20 anys. No necessita àncores de RF — cada euro en monetari és un cost d'oportunitat. Cartera de màxima convicció: indexació global pura amb petit toc de RV emergent i small cap per capturar la prima de risc completa.",
+    diff:"Cap component defensiu. Justificat per horitzó i control emocional excel·lent. Drawdown màxim esperat: -45% en crisi severa. El risc és assumit conscientment.",
+    actius:[{nom:'RV Global (MSCI World)',pct:70,color:'#185FA5'},{nom:'RV Emergents',pct:15,color:'#378ADD'},{nom:'RV Small Cap Global',pct:10,color:'#85B7EB'},{nom:'Crypto (BTC/ETH)',pct:5,color:'#B5D4F4'}],
+    ter:'~0,12%', retorn:'7–9%', risc:'Alt', riscClass:'amber',
+    dims:[11,9,11,10,11,10,9]
+  },
+  {
+    id:'explorador', nom:"L'Explorador", ep:'Shackleton · 1874–1922',
+    cartNom:'II · Terreny Explorat', cartSub:'RV diversificada amb cobertura sistèmica activa',
+    rationale:"Adaptabilitat alta i tolerància real al risc, però amb tendència a decisions tàctiques impulsives. Necessita diversificació activa per canalitzar l'energia en decisions racionals. L'or i les alternatives donen opcionalitat en escenaris inesperats i eviten el 'turisme d'actius'.",
+    diff:"La RF curta i l'or no són por — són disciplina. Eviten que l'Explorador busqui 'el proper Shackleton' en actius especulatius quan el mercat s'avorreix.",
+    actius:[{nom:'RV Global (MSCI World)',pct:55,color:'#185FA5'},{nom:'RV Temàtica (sectors)',pct:15,color:'#378ADD'},{nom:'Or físic ETP',pct:10,color:'#BA7517'},{nom:'REITs Global',pct:10,color:'#3B6D11'},{nom:'RF Curta (Gov)',pct:10,color:'#888780'}],
+    ter:'~0,18%', retorn:'6–8%', risc:'Mig-Alt', riscClass:'amber',
+    dims:[10,8,10,9,10,8,8]
+  },
+  {
+    id:'navegant', nom:"El Navegant", ep:'Zheng He · 1371–1433',
+    cartNom:'III · Rumb Constant', cartSub:'Equilibri entre creixement i estabilitat emocional',
+    rationale:"Bon coneixement i horitzó llarg però risc emocional moderat-baix. La cartera ha de tenir suficient component estable perquè no abandoni el pla en la primera crisi de -20%. El dividend ETF serveix d'ancoratge psicològic: genera flux visible que demostra que el pla funciona cada mes.",
+    diff:"El dividend mensual visible és la clau. El Navegant necessita veure que el pla funciona. Els cupons i dividends fan de brúixola psicològica quan la RV cau.",
+    actius:[{nom:'RV Global Indexada',pct:45,color:'#185FA5'},{nom:'Dividend ETF Global',pct:20,color:'#3B6D11'},{nom:'RF Diversificada',pct:20,color:'#888780'},{nom:'Or físic ETP',pct:10,color:'#BA7517'},{nom:'REITs Global',pct:5,color:'#639922'}],
+    ter:'~0,15%', retorn:'5–7%', risc:'Mig', riscClass:'green',
+    dims:[9,7,9,9,9,6,8]
+  },
+  {
+    id:'arquitecte', nom:"L'Arquitecte", ep:'Brunelleschi · 1377–1446',
+    cartNom:'IV · Estructura Mestra', cartSub:'Complex però coherent — cada bloc té funció estructural',
+    rationale:"Alt coneixement i meticulositat. Pot gestionar complexitat real però el risc és sobrecomplicar. Cal imposar una regla de 7 blocs màxim, cadascun amb funció estructural clara. La cartera ha de ser com la cúpula de Santa Maria del Fiore: cada peça té un rol definit i inamovible.",
+    diff:"El PE/Crowd és opcional i mai >5%. Si l'Arquitecte vol afegir un 8è bloc, ha d'eliminar un altre primer. La regla de 7 blocs màxims és innegociable.",
+    actius:[{nom:'RV Global Core',pct:40,color:'#185FA5'},{nom:'RV Factor (Value+Quality)',pct:15,color:'#378ADD'},{nom:'RF Corporativa IG',pct:15,color:'#888780'},{nom:'REITs Global',pct:10,color:'#3B6D11'},{nom:'Or físic ETP',pct:10,color:'#BA7517'},{nom:'Private Equity/Crowd',pct:5,color:'#534AB7'},{nom:'Liquiditat estratègica',pct:5,color:'#B4B2A9'}],
+    ter:'~0,25%', retorn:'5–7%', risc:'Mig', riscClass:'amber',
+    dims:[8,7,8,8,7,7,8]
+  },
+  {
+    id:'tresorer', nom:"El Tresorer", ep:'Jakob Fugger · 1459–1525',
+    cartNom:'V · Cofre Fort', cartSub:'Preservació del capital real contra la inflació',
+    rationale:"Prioritat absoluta: no perdre. Però el Tresorer ha d'entendre que el cofre tancat perd valor cada any. La RF de curta durada i l'or protegeixen el poder adquisitiu real. La RV és mínima però imprescindible — sense ella, el Tresorer s'empobreix silenciosament amb la inflació.",
+    diff:"La RV mínima (20%) no és un risc — és l'antídot contra la inflació silenciosa. Sense ella, el Tresorer perd un 2–3% real cada any.",
+    actius:[{nom:'RF Curta (Gov AAA)',pct:40,color:'#888780'},{nom:'Or físic ETP',pct:25,color:'#BA7517'},{nom:'RV Global Defensiva',pct:20,color:'#185FA5'},{nom:'Liquiditat (remunerat)',pct:10,color:'#B4B2A9'},{nom:'REITs defensiu',pct:5,color:'#3B6D11'}],
+    ter:'~0,14%', retorn:'3–5%', risc:'Baix', riscClass:'green',
+    dims:[3,5,4,5,3,7,4]
+  },
+  {
+    id:'cronista', nom:"El Cronista", ep:'Heròdot · 484–425 a.C.',
+    cartNom:'VI · Arxiu Viu', cartSub:'Cartera pedagògica que genera aprenentatge i execució',
+    rationale:"Alt coneixement teòric però baixa execució sistemàtica. El Cronista ha de veure la seva cartera com un experiment documentat. La diversificació per tipus d'actiu li permet entendre com funciona cada bloc — i executar millor en cada revisió. El procés de revisió és el seu avantatge competitiu.",
+    diff:"Cada revisió trimestral és una 'entrada al diari' amb aprenentatge documentat. El Cronista no canvia la cartera — documenta per què no la canvia. Aquesta disciplina és el seu retorn real.",
+    actius:[{nom:'RV Global Indexada',pct:35,color:'#185FA5'},{nom:'RF Diversificada',pct:30,color:'#888780'},{nom:'Or físic ETP',pct:15,color:'#BA7517'},{nom:'Dividend ETF',pct:10,color:'#3B6D11'},{nom:'REITs',pct:10,color:'#639922'}],
+    ter:'~0,14%', retorn:'4–6%', risc:'Mig-Baix', riscClass:'green',
+    dims:[5,5,5,8,4,6,5]
+  },
+  {
+    id:'alquimista', nom:"L'Alquimista", ep:'Paracels · 1493–1541',
+    cartNom:'VII · Pedra Filosofal', cartSub:'Energia canalitzada amb procés estricte i vàlvula de vapor',
+    rationale:"Alta energia i entusiasme però risc emocional molt baix i decisions impulsives. Necessita una vàlvula de vapor controlada: un 10% de satèl·lit per experimentar. Però el 90% ha d'estar en el procés sistemàtic. Sense vàlvula, l'Alquimista vendrà tot en la primera crisi cercant 'la propera oportunitat'.",
+    diff:"El 10% satèl·lit és deliberat i inamovible. Si l'Alquimista vol més exposició a 'oportunitats', ha de vendre del satèl·lit per comprar al nucli. Mai a l'inrevés.",
+    actius:[{nom:'RV Global Core',pct:50,color:'#185FA5'},{nom:'RF Curta',pct:20,color:'#888780'},{nom:'Or físic ETP',pct:10,color:'#BA7517'},{nom:'REITs',pct:10,color:'#3B6D11'},{nom:'Satèl·lit lliure (crypto/temàtic)',pct:10,color:'#534AB7'}],
+    ter:'~0,20%', retorn:'4–6%', risc:'Mig', riscClass:'amber',
+    dims:[8,4,7,6,8,3,4]
+  },
+  {
+    id:'eremita', nom:"L'Ermità", ep:'Diògenes · 412–323 a.C.',
+    cartNom:'VIII · Mínim Viable', cartSub:'La cartera més simple possible que realment funcioni',
+    rationale:"Desconfiança profunda cap a la inversió i la complexitat. El pas 1 no és la cartera — és el procés d'automatitzar. Un sol fons indexat global amb aportació automàtica mensual és millor que qualsevol cartera de 10 blocs que l'Ermità abandonarà en 3 mesos. La simplicitat és la seva fortalesa real.",
+    diff:"2 productes màxim. La complexitat és l'enemic de l'Ermità. Quan porti 12 mesos sense tocar-ho, es pot parlar d'afegir un 3r bloc. Però mai abans.",
+    actius:[{nom:'Fons indexat global (1 sol)',pct:60,color:'#185FA5'},{nom:'Compte remunerat/Monetari',pct:40,color:'#888780'}],
+    ter:'~0,10%', retorn:'3–5%', risc:'Baix', riscClass:'green',
+    dims:[3,4,4,5,3,5,4]
+  }
 ];
+
+// Helper: find archetype by id
+function getArquetip(id) {
+  for (var i = 0; i < ARQUETIPS_CARTERES.length; i++) {
+    if (ARQUETIPS_CARTERES[i].id === id) return ARQUETIPS_CARTERES[i];
+  }
+  return ARQUETIPS_CARTERES[3]; // default: Arquitecte
+}
 
 // ══════════════════════════════════════════════════
 // AUTH
@@ -617,7 +730,7 @@ var ADMIN_NAV = [
   {section:'Portal Client'},
   {id:'portal-perfil', icon:'📊', label:'Vista Perfil Client'},
   {id:'portal-assessoria', icon:'📈', label:'Vista Assessoria'},
-  {id:'portal-carteres', icon:'🗂', label:'Vista Carteres Model'},
+  {id:'portal-carteres', icon:'🗂', label:'Vista Les 8 Carteres'},
   {section:'Eines'},
   {id:'link-dashboard', icon:'⚙️', label:'Dashboard Complet', external:'index.html'},
   {id:'link-onboarding', icon:'📝', label:'Onboarding', external:'client_onboarding_v3.html'},
@@ -632,7 +745,7 @@ var CLIENT_NAV = [
   {section:'El meu espai'},
   {id:'portal-perfil', icon:'📊', label:'El meu perfil'},
   {id:'portal-assessoria', icon:'📈', label:'Assessoria'},
-  {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
+  {id:'portal-carteres', icon:'🗂', label:'Les 8 Carteres'},
   {section:'Eines'},
   {id:'link-onboarding', icon:'📝', label:'Qüestionari', external:'client_onboarding_v3.html'},
   {id:'link-glossari', icon:'📖', label:'Glossari'},
@@ -684,7 +797,7 @@ function navigateTo(viewId) {
     'admin-clients': ['Clients', 'Llistat i gestió de clients'],
     'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['El meu perfil', 'El teu perfil inversor'],
     'portal-assessoria': APP.role === 'admin' ? ['Portal Client · Assessoria', '👁 Previsualització'] : ['Assessoria', 'Anàlisi i informació financera'],
-    'portal-carteres': APP.role === 'admin' ? ['Portal Client · Carteres', '👁 Previsualització'] : ['Carteres Model', 'Les carteres de The Boring Investor'],
+    'portal-carteres': APP.role === 'admin' ? ['Portal Client · Les 8 Carteres', '👁 Previsualització'] : ['Les 8 Carteres', '8 arquetips, 8 carteres personalitzades'],
     'settings': ['Configuració', 'Gestió del sistema'],
   };
   var t = titles[viewId] || [viewId, ''];
@@ -744,7 +857,7 @@ function renderHub(el) {
       + '<div class="hub-stat"><div class="hub-stat-val">5</div><div class="hub-stat-lbl">Clients actius</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val">67</div><div class="hub-stat-lbl">Scoring mig</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val">3</div><div class="hub-stat-lbl">Anàlisis publicades</div></div>'
-      + '<div class="hub-stat"><div class="hub-stat-val">4</div><div class="hub-stat-lbl">Carteres model</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val">8</div><div class="hub-stat-lbl">Carteres model</div></div>'
     + '</div>'
 
     // Quick actions grid
@@ -782,8 +895,8 @@ function renderHub(el) {
       + '</div>'
       + '<div class="hub-card" onclick="navigateTo(\'portal-carteres\')">'
         + '<div class="hub-card-icon">🗂</div>'
-        + '<div class="hub-card-title">Carteres Model</div>'
-        + '<div class="hub-card-desc">Les 4 carteres model de The Boring Investor.</div>'
+        + '<div class="hub-card-title">Les 8 Carteres</div>'
+        + '<div class="hub-card-desc">8 carteres personalitzades, una per cada arquetip d\'inversor.</div>'
         + '<div class="hub-card-arrow">→</div>'
       + '</div>'
     + '</div>'
@@ -830,7 +943,7 @@ function renderClientsList(el) {
         + '<div style="width:40px;height:40px;border-radius:10px;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--g500)">' + initials + '</div>'
         + '<div style="flex:1;min-width:0">'
           + '<div style="font-size:14px;font-weight:500">' + c.nom + '</div>'
-          + '<div style="font-size:11px;color:var(--g400)">' + c.email + ' · ' + c.arquetip + '</div>'
+          + '<div style="font-size:11px;color:var(--g400)">' + c.arquetip + ' · ' + c.cartera + '</div>'
         + '</div>'
         + '<div style="text-align:right">'
           + '<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:' + scoreColor + '">' + c.scoring + '<span style="font-size:10px;opacity:.5">/100</span></div>'
@@ -850,26 +963,26 @@ function renderClientsList(el) {
 // ══════════════════════════════════════════════════
 function renderPortalPerfil(el) {
   var c = DEMO_CLIENT;
+  var arq = getArquetip(c.arquetipId);
   var sc = c.scoring;
   var scoreColor = sc>=70?'#4CAF82':sc>=50?'#5B8FD4':sc>=30?'#D4943A':'#C0392B';
   var scoreBg    = sc>=70?'#EAF3DE':sc>=50?'#EBF0FA':sc>=30?'#FEF5E7':'#FDF0F0';
   var scoreLabel = sc>=70?'Excel·lent':sc>=50?'Bona base':sc>=30?'Millorable':'En revisió';
   var perfil = c.perfil;
-  var cartera = c.cartera_composicio;
   var mods = c.scoring_mods;
   var proj = c.projeccions;
   var hist = c.historial;
   var dlbls = ['Objectius','Situació','Horitzó','Coneixement','Risc fin.','Risc em.','Preferències'];
   var dataAvui = new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+  var diffClass = arq.riscClass === 'green' ? 'diff-green' : arq.riscClass === 'red' ? 'diff-red' : 'diff-amber';
 
-  // Build HTML
   var html = '<div class="content-inner fade-in">';
 
   // Tabs
   html += '<div class="portal-tabs">'
     + '<button class="portal-tab active" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
     + '<button class="portal-tab" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
-    + '<button class="portal-tab" onclick="navigateTo(\'portal-carteres\')">🗂 Carteres Model</button>'
+    + '<button class="portal-tab" onclick="navigateTo(\'portal-carteres\')">🗂 Les 8 Carteres</button>'
   + '</div>';
 
   // Hello
@@ -879,18 +992,51 @@ function renderPortalPerfil(el) {
     + '<div class="portal-hello-sub">El teu perfil inversor actualitzat a ' + dataAvui + '</div>'
   + '</div>';
 
-  // Score hero
+  // Score hero — unified archetype + cartera
   html += '<div class="score-hero">'
     + '<div class="score-left">'
       + '<div class="score-arquetip-eye">El teu arquetip inversor</div>'
-      + '<div class="score-arquetip">' + c.arquetip + '</div>'
-      + '<div class="score-cartera">Cartera: ' + c.cartera + '</div>'
+      + '<div class="score-arquetip">' + arq.nom + '</div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:8px">' + arq.ep + '</div>'
+      + '<div class="score-cartera">Cartera assignada: <strong style="color:rgba(255,255,255,.85)">' + arq.cartNom + '</strong></div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">' + arq.cartSub + '</div>'
     + '</div>'
     + '<div class="score-right">'
       + '<div class="score-num" style="color:' + scoreColor + '">' + sc + '<span class="score-denom">/100</span></div>'
       + '<div style="padding:6px 12px;background:' + scoreBg + ';border-radius:6px;font-size:11px;font-weight:500;color:' + scoreColor + ';margin-top:6px;display:inline-block">' + scoreLabel + '</div>'
     + '</div>'
   + '</div>';
+
+  // Rationale — WHY this portfolio for this archetype
+  html += '<div class="card">'
+    + '<div class="card-title">Per què la cartera ' + arq.cartNom + '?</div>'
+    + '<div class="rationale-box">'
+      + '<div class="rationale-label">Rationale comportamental</div>'
+      + arq.rationale
+    + '</div>'
+    + '<div class="diff-box-portal ' + diffClass + '">'
+      + '<strong style="font-size:10px;text-transform:uppercase;letter-spacing:.05em">⚠ A tenir en compte:</strong><br>'
+      + arq.diff
+    + '</div>'
+  + '</div>';
+
+  // La meva cartera — asset allocation
+  html += '<div class="card"><div class="card-title">Composició de cartera — ' + arq.cartNom + '</div>';
+  arq.actius.forEach(function(a){
+    html += '<div class="alloc-row">'
+      + '<div class="alloc-dot" style="background:' + a.color + '"></div>'
+      + '<div class="alloc-nom">' + a.nom + '</div>'
+      + '<div class="alloc-bar-wrap"><div class="alloc-bar" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
+      + '<div class="alloc-pct">' + a.pct + '%</div>'
+    + '</div>';
+  });
+  // KPIs
+  html += '<div class="kpi-grid" style="margin-top:14px">'
+    + '<div class="kpi-item"><div class="kpi-label">TER estimat</div><div class="kpi-value">' + arq.ter + '</div></div>'
+    + '<div class="kpi-item"><div class="kpi-label">Retorn esperat</div><div class="kpi-value">' + arq.retorn + '</div></div>'
+    + '<div class="kpi-item"><div class="kpi-label">Nivell de risc</div><div class="kpi-value">' + arq.risc + '</div></div>'
+  + '</div>';
+  html += '</div>';
 
   // Dades financeres
   html += '<div class="card"><div class="card-title">Dades financeres</div><div class="perfil-grid">';
@@ -901,18 +1047,6 @@ function renderPortalPerfil(el) {
     html += '<div class="perfil-item"><div class="perfil-lbl">' + r[0] + '</div><div class="perfil-val">' + r[1] + '</div></div>';
   });
   html += '</div></div>';
-
-  // Cartera
-  html += '<div class="card"><div class="card-title">Composició de cartera — ' + c.cartera + '</div>';
-  cartera.forEach(function(a){
-    html += '<div class="alloc-row">'
-      + '<div class="alloc-dot" style="background:' + a.color + '"></div>'
-      + '<div class="alloc-nom">' + a.nom + '</div>'
-      + '<div class="alloc-bar-wrap"><div class="alloc-bar" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
-      + '<div class="alloc-pct">' + a.pct + '%</div>'
-    + '</div>';
-  });
-  html += '<div style="margin-top:8px;font-size:10px;color:var(--g400)">TER: <strong>' + c.ter + '</strong></div></div>';
 
   // Dimensions
   html += '<div class="card"><div class="card-title">Perfil de les 7 dimensions</div><div class="dims-grid">';
@@ -1007,7 +1141,7 @@ function renderPortalAssessoria(el) {
   html += '<div class="portal-tabs">'
     + '<button class="portal-tab" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
     + '<button class="portal-tab active" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
-    + '<button class="portal-tab" onclick="navigateTo(\'portal-carteres\')">🗂 Carteres Model</button>'
+    + '<button class="portal-tab" onclick="navigateTo(\'portal-carteres\')">🗂 Les 8 Carteres</button>'
   + '</div>';
 
   html += '<div style="margin-bottom:20px"><div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px">Assessoria i Anàlisi</div>'
@@ -1037,41 +1171,93 @@ function renderPortalAssessoria(el) {
 // VIEW: PORTAL CARTERES
 // ══════════════════════════════════════════════════
 function renderPortalCarteres(el) {
+  var myId = DEMO_CLIENT.arquetipId;
   var html = '<div class="content-inner fade-in">';
 
   // Tabs
   html += '<div class="portal-tabs">'
     + '<button class="portal-tab" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
     + '<button class="portal-tab" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
-    + '<button class="portal-tab active" onclick="navigateTo(\'portal-carteres\')">🗂 Carteres Model</button>'
+    + '<button class="portal-tab active" onclick="navigateTo(\'portal-carteres\')">🗂 Les 8 Carteres</button>'
   + '</div>';
 
-  html += '<div style="margin-bottom:20px"><div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px">Carteres Model</div>'
-    + '<div style="font-size:12px;color:var(--g500)">Les carteres model de The Boring Investor. La teva cartera es basa en una d\'aquestes.</div></div>';
+  html += '<div style="margin-bottom:24px">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;color:var(--black);margin-bottom:6px">8 Arquetips, 8 Carteres</div>'
+    + '<div style="font-size:12px;color:var(--g500);line-height:1.7;max-width:600px">'
+      + 'Cada inversor té un comportament real diferent. No n\'hi ha prou amb el risc declarat — cada cartera està dissenyada per al comportament real, no per al teòric. '
+      + 'La teva cartera és la <strong style="color:var(--accent)">' + getArquetip(myId).cartNom + '</strong>.'
+    + '</div>'
+  + '</div>';
 
-  CARTERES_MODEL.forEach(function(c){
-    html += '<div class="pc-card"' + (c.tbi?' style="border-color:var(--accent)"':'') + '>'
-      + '<div class="pc-header">'
-        + (c.tbi ? '<div style="font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">⭐ Cartera Pròpia TBI</div>' : '')
-        + '<div class="pc-nom">' + c.nom + '</div>'
-        + '<div class="pc-desc">' + c.desc + '</div>'
-        + '<div style="font-size:10px;color:var(--g400);margin-top:6px">' + c.stats + '</div>'
+  // Render all 8 carteres as collapsible cards
+  ARQUETIPS_CARTERES.forEach(function(arq, idx) {
+    var isMine = arq.id === myId;
+    var isOpen = isMine; // Auto-open the client's own cartera
+    var diffClass = arq.riscClass === 'green' ? 'diff-green' : arq.riscClass === 'red' ? 'diff-red' : 'diff-amber';
+    var romanNums = ['I','II','III','IV','V','VI','VII','VIII'];
+
+    html += '<div class="cg-card' + (isMine?' is-mine':'') + (isOpen?' open':'') + '" id="cg-' + arq.id + '">';
+
+    // Header (clickable)
+    html += '<div class="cg-header" onclick="toggleCartera(\'' + arq.id + '\')">'
+      + '<div class="cg-num">' + romanNums[idx] + '</div>'
+      + '<div class="cg-header-text">'
+        + (isMine ? '<div class="cg-mine-badge">✦ La teva cartera</div>' : '')
+        + '<div class="cg-cart-nom">' + arq.cartNom + '</div>'
+        + '<div class="cg-arq-nom">' + arq.nom + ' — ' + arq.ep.split('·')[0].trim() + ' · ' + arq.cartSub + '</div>'
       + '</div>'
-      + '<div class="pc-body">'
-        + c.actius.map(function(a){
-          return '<div class="pc-alloc-row">'
-            + '<div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:' + a.color + '"></div>'
-            + '<div style="font-size:12px;color:var(--black);flex:1">' + a.nom + '</div>'
-            + '<div style="width:80px;height:4px;background:var(--g200);border-radius:99px;overflow:hidden"><div style="height:100%;width:' + a.pct + '%;background:' + a.color + ';border-radius:99px"></div></div>'
-            + '<div style="font-family:var(--fm);font-size:11px;color:var(--g500);min-width:30px;text-align:right">' + a.pct + '%</div>'
-          + '</div>';
-        }).join('')
-      + '</div>'
+      + '<div class="cg-chevron">›</div>'
     + '</div>';
+
+    // Body (expandable)
+    html += '<div class="cg-body">';
+
+    // Rationale
+    html += '<div class="rationale-box" style="margin-top:14px">'
+      + '<div class="rationale-label">Per què aquesta cartera per a ' + arq.nom + '?</div>'
+      + arq.rationale
+    + '</div>';
+
+    // Asset allocation
+    arq.actius.forEach(function(a){
+      html += '<div class="alloc-row">'
+        + '<div class="alloc-dot" style="background:' + a.color + '"></div>'
+        + '<div class="alloc-nom">' + a.nom + '</div>'
+        + '<div class="alloc-bar-wrap"><div class="alloc-bar" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
+        + '<div class="alloc-pct">' + a.pct + '%</div>'
+      + '</div>';
+    });
+
+    // KPIs
+    html += '<div class="kpi-grid" style="margin-top:14px">'
+      + '<div class="kpi-item"><div class="kpi-label">TER estimat</div><div class="kpi-value">' + arq.ter + '</div></div>'
+      + '<div class="kpi-item"><div class="kpi-label">Retorn esperat</div><div class="kpi-value">' + arq.retorn + '</div></div>'
+      + '<div class="kpi-item"><div class="kpi-label">Nivell de risc</div><div class="kpi-value">' + arq.risc + '</div></div>'
+    + '</div>';
+
+    // Warning/diff box
+    html += '<div class="diff-box-portal ' + diffClass + '">'
+      + '<strong style="font-size:10px;text-transform:uppercase;letter-spacing:.05em">⚠ Clau:</strong> '
+      + arq.diff
+    + '</div>';
+
+    html += '</div>'; // close body
+    html += '</div>'; // close card
   });
 
   html += '</div>';
   el.innerHTML = html;
+
+  // Scroll to own cartera if needed
+  if (myId) {
+    var myCard = document.getElementById('cg-' + myId);
+    if (myCard) setTimeout(function(){ myCard.scrollIntoView({behavior:'smooth', block:'nearest'}); }, 100);
+  }
+}
+
+function toggleCartera(id) {
+  var card = document.getElementById('cg-' + id);
+  if (card) card.classList.toggle('open');
 }
 
 // ══════════════════════════════════════════════════
