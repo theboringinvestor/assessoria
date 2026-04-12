@@ -629,6 +629,99 @@ function getArquetip(id) {
 }
 
 // ══════════════════════════════════════════════════
+// DEMO DATA — CLIENT INTEGRAL
+// ══════════════════════════════════════════════════
+var DEMO_MOVIMENTS = [
+  {data:'2026-04-01', tipus:'aportacio', actiu:'RV Global Core', import:160, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'RV Factor (Value+Quality)', import:60, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'RF Corporativa IG', import:60, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'REITs Global', import:40, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'Or físic ETP', import:40, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'Private Equity/Crowd', import:20, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'Liquiditat estratègica', import:20, notes:'Aportació mensual abril'},
+  {data:'2026-03-15', tipus:'rebalanceig', actiu:'RV Factor → RF Corp.', import:850, notes:'Rebalanceig trimestral Q1. RV Factor sobreponderat +3,2%.'},
+  {data:'2026-03-01', tipus:'aportacio', actiu:'Diversos', import:400, notes:'Aportació mensual març'},
+  {data:'2026-02-01', tipus:'aportacio', actiu:'Diversos', import:400, notes:'Aportació mensual febrer'},
+  {data:'2026-01-15', tipus:'aportacio_extra', actiu:'RV Global Core', import:2000, notes:'Aportació extra de gener (paga extra)'},
+  {data:'2026-01-01', tipus:'aportacio', actiu:'Diversos', import:300, notes:'Aportació mensual gener (antiga)'},
+];
+
+var DEMO_CARTERA_ACTUAL = [
+  {nom:'RV Global Core', target:40, actual:41.2, valor:18540, color:'#185FA5'},
+  {nom:'RV Factor (Value+Quality)', target:15, actual:16.8, valor:7560, color:'#378ADD'},
+  {nom:'RF Corporativa IG', target:15, actual:13.5, valor:6075, color:'#888780'},
+  {nom:'REITs Global', target:10, actual:9.8, valor:4410, color:'#3B6D11'},
+  {nom:'Or físic ETP', target:10, actual:10.4, valor:4680, color:'#BA7517'},
+  {nom:'Private Equity/Crowd', target:5, actual:4.2, valor:1890, color:'#534AB7'},
+  {nom:'Liquiditat estratègica', target:5, actual:4.1, valor:1845, color:'#B4B2A9'},
+];
+
+var DEMO_PLA_APORTACIONS = {
+  mensual: 400,
+  frequencia: 'Mensual (dia 1)',
+  propera: '1 maig 2026',
+  distribucio: [
+    {actiu:'RV Global Core', pct:40, import:160},
+    {actiu:'RV Factor (Value+Quality)', pct:15, import:60},
+    {actiu:'RF Corporativa IG', pct:15, import:60},
+    {actiu:'REITs Global', pct:10, import:40},
+    {actiu:'Or físic ETP', pct:10, import:40},
+    {actiu:'Private Equity/Crowd', pct:5, import:20},
+    {actiu:'Liquiditat estratègica', pct:5, import:20},
+  ],
+  ajustos: [
+    {actiu:'RF Corporativa IG', accio:'Sobreponderar +1,5%', motiu:'Actual 13,5% vs target 15%. Aportació extra recomanada per reequilibrar.'},
+    {actiu:'RV Factor (Value+Quality)', accio:'Reduir -1,8%', motiu:'Actual 16,8% vs target 15%. No aportar fins que es reequilibri.'},
+  ]
+};
+
+var DEMO_MISSATGES = [
+  {id:'m1', de:'assessor', nom:'Guillem Puig', data:'2026-04-10 14:30', text:"Hola Maria, he revisat la teva cartera aquest trimestre. El rebalanceig automàtic del 15 de març ha funcionat bé. La desviació màxima és de +1,8% a RV Factor — res que requereixi acció immediata. A la propera aportació de maig, recomanaria sobreponderar lleugerament RF Corporativa per tornar al target. Quan vulguis en parlem."},
+  {id:'m2', de:'client', nom:'Maria García', data:'2026-04-10 16:45', text:"Gràcies Guillem! Tinc una pregunta: he rebut una paga extra de l'empresa (3.000€). Voldria fer una aportació extraordinària. On recomanaries posar-los?"},
+  {id:'m3', de:'assessor', nom:'Guillem Puig', data:'2026-04-11 09:15', text:"Bona notícia! Amb 3.000€ extra, la recomanació és:\n\n• 1.200€ a RF Corporativa IG (per cobrir el dèficit de -1,5%)\n• 1.200€ a RV Global Core (mantenir el nucli fort)\n• 600€ a Liquiditat estratègica (augmentar el coixí)\n\nAixò reequilibraria la cartera pràcticament al target. Vols que et prepari l'ordre concreta amb els ISINs?"},
+  {id:'m4', de:'client', nom:'Maria García', data:'2026-04-11 10:00', text:"Perfecte, sí, prepara'm l'ordre amb els ISINs si us plau. La faré aquesta setmana."},
+];
+
+var DEMO_INFORMES = [
+  {id:'r1', titol:'Informe trimestral Q1 2026', data:'2026-04-01', tipus:'trimestral', desc:'Revisió completa de cartera, rendiment vs benchmark, i recomanacions pel Q2.', estat:'disponible'},
+  {id:'r2', titol:'Informe perfil inversor', data:'2026-01-15', tipus:'perfil', desc:'Resultat del qüestionari de perfil. Arquetip: L\'Arquitecte. Cartera: Estructura Mestra.', estat:'disponible'},
+  {id:'r3', titol:'Pla financer personalitzat', data:'2026-01-20', tipus:'pla', desc:'Pla a 15 anys amb projeccions Montecarlo, objectius i estratègia d\'aportacions.', estat:'disponible'},
+  {id:'r4', titol:'Informe trimestral Q2 2026', data:'2026-07-01', tipus:'trimestral', desc:'Pendent de generació.', estat:'pendent'},
+];
+
+var DEMO_FIRE = {
+  objectiuAnual: 30000,
+  taxaRetir: 4,
+  objectiuFIRE: 750000,
+  capitalActual: 45000,
+  aportacioMensual: 400,
+  retornEsperat: 6,
+  anysEstimats: 22,
+  anyObjectiu: 2048,
+  progresPct: 6,
+};
+
+var DEMO_EMERGENCIA = {
+  despesesMensuals: 2200,
+  mesesObjectiu: 6,
+  objectiu: 13200,
+  actual: 8500,
+  progresPct: 64,
+  onEsta: 'Compte estalvi ING al 2,5% TAE',
+};
+
+var DEMO_EDUCACIO = [
+  {id:'e1', titol:'Què és la indexació i per què funciona', categoria:'fonaments', temps:'5 min', completat:true},
+  {id:'e2', titol:'DCA: la força de l\'aportació periòdica', categoria:'fonaments', temps:'4 min', completat:true},
+  {id:'e3', titol:'Com interpretar el teu scoring de cartera', categoria:'cartera', temps:'6 min', completat:false},
+  {id:'e4', titol:'Rebalanceig: quan i per què', categoria:'cartera', temps:'5 min', completat:false},
+  {id:'e5', titol:'L\'efecte compost i la paciència', categoria:'psicologia', temps:'4 min', completat:true},
+  {id:'e6', titol:'Per què no has de mirar la cartera cada dia', categoria:'psicologia', temps:'3 min', completat:false},
+  {id:'e7', titol:'Entendre la inflació i el teu poder adquisitiu', categoria:'macro', temps:'5 min', completat:false},
+  {id:'e8', titol:'ETFs vs fons indexats: diferències clau', categoria:'productes', temps:'6 min', completat:false},
+];
+
+// ══════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════
 async function doLogin() {
@@ -743,12 +836,19 @@ var ADMIN_NAV = [
 
 var CLIENT_NAV = [
   {section:'El meu espai'},
-  {id:'portal-perfil', icon:'📊', label:'El meu perfil'},
-  {id:'portal-assessoria', icon:'📈', label:'Assessoria'},
+  {id:'portal-perfil', icon:'📊', label:'Resum'},
+  {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
+  {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
+  {section:'Comunicació'},
+  {id:'portal-missatges', icon:'💬', label:'Missatges', badge:'2'},
+  {section:'Contingut'},
+  {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
+  {id:'portal-informes', icon:'📋', label:'Informes'},
   {id:'portal-carteres', icon:'🗂', label:'Les 8 Carteres'},
   {section:'Eines'},
-  {id:'link-onboarding', icon:'📝', label:'Qüestionari', external:'client_onboarding_v3.html'},
-  {id:'link-glossari', icon:'📖', label:'Glossari'},
+  {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
+  {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
+  {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
 ];
 
 function setupSidebar() {
@@ -795,9 +895,16 @@ function navigateTo(viewId) {
   var titles = {
     'hub': ['Hub de l\'assessor', 'Vista general de la plataforma'],
     'admin-clients': ['Clients', 'Llistat i gestió de clients'],
-    'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['El meu perfil', 'El teu perfil inversor'],
-    'portal-assessoria': APP.role === 'admin' ? ['Portal Client · Assessoria', '👁 Previsualització'] : ['Assessoria', 'Anàlisi i informació financera'],
+    'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['Resum', 'Vista general del teu perfil inversor'],
+    'portal-cartera': APP.role === 'admin' ? ['Portal Client · Cartera', '👁 Previsualització'] : ['La meva cartera', 'Seguiment i moviments'],
+    'portal-aportacions': APP.role === 'admin' ? ['Portal Client · Aportacions', '👁 Previsualització'] : ["Pla d'aportacions", 'Properes aportacions i distribució'],
+    'portal-missatges': APP.role === 'admin' ? ['Portal Client · Missatges', '👁 Previsualització'] : ['Missatges', 'Comunicació amb el teu assessor'],
+    'portal-assessoria': APP.role === 'admin' ? ['Portal Client · Assessoria', '👁 Previsualització'] : ['Anàlisi de mercat', 'Informació financera de The Boring Investor'],
+    'portal-informes': APP.role === 'admin' ? ['Portal Client · Informes', '👁 Previsualització'] : ['Informes', 'Documents i informes generats'],
     'portal-carteres': APP.role === 'admin' ? ['Portal Client · Les 8 Carteres', '👁 Previsualització'] : ['Les 8 Carteres', '8 arquetips, 8 carteres personalitzades'],
+    'portal-fire': APP.role === 'admin' ? ['Portal Client · FIRE', '👁 Previsualització'] : ['Calculadora FIRE', 'Financial Independence, Retire Early'],
+    'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', '👁 Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
+    'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', '👁 Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
     'settings': ['Configuració', 'Gestió del sistema'],
   };
   var t = titles[viewId] || [viewId, ''];
@@ -822,8 +929,15 @@ function renderView(viewId) {
     case 'hub': renderHub(content); break;
     case 'admin-clients': renderClientsList(content); break;
     case 'portal-perfil': renderPortalPerfil(content); break;
+    case 'portal-cartera': renderPortalCartera(content); break;
+    case 'portal-aportacions': renderPortalAportacions(content); break;
+    case 'portal-missatges': renderPortalMissatges(content); break;
     case 'portal-assessoria': renderPortalAssessoria(content); break;
+    case 'portal-informes': renderPortalInformes(content); break;
     case 'portal-carteres': renderPortalCarteres(content); break;
+    case 'portal-fire': renderPortalFIRE(content); break;
+    case 'portal-emergencia': renderPortalEmergencia(content); break;
+    case 'portal-educacio': renderPortalEducacio(content); break;
     case 'settings': renderSettings(content); break;
     default: content.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:60px;color:var(--g400)">Vista no disponible</div></div>';
   }
@@ -1258,6 +1372,376 @@ function renderPortalCarteres(el) {
 function toggleCartera(id) {
   var card = document.getElementById('cg-' + id);
   if (card) card.classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: LA MEVA CARTERA (tracking + moviments)
+// ══════════════════════════════════════════════════
+function renderPortalCartera(el) {
+  var arq = getArquetip(DEMO_CLIENT.arquetipId);
+  var cartera = DEMO_CARTERA_ACTUAL;
+  var totalValor = cartera.reduce(function(s,a){return s+a.valor;},0);
+  var html = '<div class="content-inner fade-in">';
+
+  // Summary cards
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">'
+    + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Valor total</div>'
+      + '<div style="font-family:var(--fm);font-size:24px;font-weight:500;color:var(--black)">' + totalValor.toLocaleString('ca-ES') + ' €</div>'
+    + '</div>'
+    + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Cartera model</div>'
+      + '<div style="font-family:var(--fd);font-size:16px;color:var(--accent)">' + arq.cartNom + '</div>'
+    + '</div>'
+    + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Desviació màx.</div>'
+      + '<div style="font-family:var(--fm);font-size:24px;font-weight:500;color:#7A4A00">1,8%</div>'
+    + '</div>'
+  + '</div>';
+
+  // Target vs Actual allocation
+  html += '<div class="card"><div class="card-title">Assignació actual vs objectiu</div>';
+  cartera.forEach(function(a){
+    var diff = a.actual - a.target;
+    var diffStr = (diff>=0?'+':'') + diff.toFixed(1) + '%';
+    var diffCol = Math.abs(diff)>2?'#8B1A1A':Math.abs(diff)>1?'#7A4A00':'#1A5C3A';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--g100)">'
+      + '<div class="alloc-dot" style="background:' + a.color + '"></div>'
+      + '<div style="font-size:12px;flex:1;min-width:0">' + a.nom + '</div>'
+      + '<div style="width:90px;position:relative;height:6px;background:var(--g200);border-radius:99px;overflow:hidden">'
+        + '<div style="height:100%;width:' + a.actual + '%;background:' + a.color + ';border-radius:99px;opacity:.7"></div>'
+        + '<div style="position:absolute;left:' + a.target + '%;top:-1px;width:2px;height:8px;background:var(--black);border-radius:1px"></div>'
+      + '</div>'
+      + '<div style="font-family:var(--fm);font-size:11px;width:40px;text-align:right;color:var(--g500)">' + a.actual.toFixed(1) + '%</div>'
+      + '<div style="font-family:var(--fm);font-size:10px;width:42px;text-align:right;color:' + diffCol + ';font-weight:500">' + diffStr + '</div>'
+      + '<div style="font-family:var(--fm);font-size:10px;width:60px;text-align:right;color:var(--g400)">' + a.valor.toLocaleString('ca-ES') + '€</div>'
+    + '</div>';
+  });
+  html += '<div style="display:flex;justify-content:flex-end;margin-top:8px;font-size:11px;color:var(--g400)">'
+    + '<span style="margin-right:12px">— Línia negra = objectiu</span>'
+    + '<span>Barra = actual</span>'
+  + '</div></div>';
+
+  // Registrar moviment
+  html += '<div class="card"><div class="card-title" style="display:flex;justify-content:space-between;align-items:center">'
+    + '<span>Registrar moviment</span></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">'
+      + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Tipus</div>'
+        + '<select class="form-input" style="margin-bottom:0;padding:8px 10px;font-size:12px"><option>Aportació</option><option>Compra</option><option>Venda</option><option>Dividend</option></select></div>'
+      + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Actiu</div>'
+        + '<select class="form-input" style="margin-bottom:0;padding:8px 10px;font-size:12px">' + cartera.map(function(a){return '<option>' + a.nom + '</option>';}).join('') + '</select></div>'
+      + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Import (€)</div>'
+        + '<input type="number" class="form-input" style="margin-bottom:0;padding:8px 10px;font-size:12px" placeholder="0,00"></div>'
+      + '<button style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);height:38px" onclick="alert(\'Moviment registrat! (demo)\')">+ Afegir</button>'
+    + '</div>'
+  + '</div>';
+
+  // Historial de moviments
+  html += '<div class="card"><div class="card-title">Historial de moviments</div>';
+  DEMO_MOVIMENTS.forEach(function(m){
+    var tipusColors = {aportacio:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Aportació'},rebalanceig:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Rebalanceig'},aportacio_extra:{bg:'#FEF5E7',tc:'#7A4A00',lbl:'Aportació extra'}};
+    var t = tipusColors[m.tipus] || tipusColors.aportacio;
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--g100)">'
+      + '<div style="font-family:var(--fm);font-size:10px;color:var(--g400);min-width:70px">' + m.data + '</div>'
+      + '<div style="font-size:9px;font-weight:600;padding:2px 8px;border-radius:99px;background:' + t.bg + ';color:' + t.tc + '">' + t.lbl + '</div>'
+      + '<div style="font-size:12px;color:var(--black);flex:1">' + m.actiu + '</div>'
+      + '<div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--accent)">+' + m.import.toLocaleString('ca-ES') + '€</div>'
+    + '</div>';
+  });
+  html += '</div></div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: PLA D'APORTACIONS
+// ══════════════════════════════════════════════════
+function renderPortalAportacions(el) {
+  var pla = DEMO_PLA_APORTACIONS;
+  var arq = getArquetip(DEMO_CLIENT.arquetipId);
+  var html = '<div class="content-inner fade-in">';
+
+  // Summary
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">'
+    + '<div style="padding:18px;background:var(--accent);border-radius:12px;text-align:center">'
+      + '<div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Aportació mensual</div>'
+      + '<div style="font-family:var(--fm);font-size:28px;font-weight:500;color:var(--white)">' + pla.mensual + ' €</div>'
+    + '</div>'
+    + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Freqüència</div>'
+      + '<div style="font-size:14px;font-weight:500;color:var(--black)">' + pla.frequencia + '</div>'
+    + '</div>'
+    + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Propera aportació</div>'
+      + '<div style="font-size:14px;font-weight:500;color:var(--accent)">' + pla.propera + '</div>'
+    + '</div>'
+  + '</div>';
+
+  // Distribució de la propera aportació
+  html += '<div class="card"><div class="card-title">Distribució de la propera aportació — ' + pla.mensual + ' €</div>';
+  pla.distribucio.forEach(function(d){
+    var c = DEMO_CARTERA_ACTUAL.find(function(x){return x.nom===d.actiu;}) || {};
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--g100)">'
+      + '<div class="alloc-dot" style="background:' + (c.color||'#888') + '"></div>'
+      + '<div style="font-size:12px;flex:1">' + d.actiu + '</div>'
+      + '<div style="font-family:var(--fm);font-size:11px;color:var(--g500);width:32px;text-align:right">' + d.pct + '%</div>'
+      + '<div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--accent);width:50px;text-align:right">' + d.import + '€</div>'
+    + '</div>';
+  });
+  html += '</div>';
+
+  // Ajustos recomanats
+  if (pla.ajustos.length > 0) {
+    html += '<div class="card"><div class="card-title">⚡ Ajustos recomanats per reequilibrar</div>';
+    pla.ajustos.forEach(function(a){
+      var isOver = a.accio.indexOf('Reduir') >= 0;
+      html += '<div style="padding:12px;background:' + (isOver?'#FEF5E7':'#EAF3DE') + ';border-radius:8px;margin-bottom:8px;border-left:3px solid ' + (isOver?'#7A4A00':'#1A5C3A') + '">'
+        + '<div style="font-size:13px;font-weight:500;color:' + (isOver?'#7A4A00':'#1A5C3A') + ';margin-bottom:3px">' + a.actiu + ' — ' + a.accio + '</div>'
+        + '<div style="font-size:12px;color:var(--g600);line-height:1.6">' + a.motiu + '</div>'
+      + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Nota
+  html += '<div class="card"><div class="card-title">Com funciona</div>'
+    + '<div style="font-size:12px;color:var(--g600);line-height:1.8">'
+      + 'La distribució segueix els pesos de la teva cartera <strong>' + arq.cartNom + '</strong>. '
+      + 'Quan un actiu es desvia del seu target, les aportacions es redirigeixen automàticament per reequilibrar. '
+      + 'Això evita haver de vendre (i pagar impostos) per rebalancejar — les aportacions noves fan la feina.'
+    + '</div>'
+  + '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: MISSATGES
+// ══════════════════════════════════════════════════
+function renderPortalMissatges(el) {
+  var html = '<div class="content-inner fade-in">';
+
+  html += '<div class="card" style="padding:0;overflow:hidden">'
+    + '<div style="padding:14px 20px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px">'
+      + '<div style="width:32px;height:32px;border-radius:8px;background:var(--accent-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--accent)">GP</div>'
+      + '<div><div style="font-size:13px;font-weight:500">Guillem Puig</div><div style="font-size:10px;color:var(--g400)">Assessor financer · Últim missatge: 11 abr 2026</div></div>'
+    + '</div>';
+
+  // Messages thread
+  html += '<div style="padding:16px 20px;max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:12px" id="msg-thread">';
+  DEMO_MISSATGES.forEach(function(m){
+    var isClient = m.de === 'client';
+    html += '<div style="display:flex;flex-direction:column;align-items:' + (isClient?'flex-end':'flex-start') + '">'
+      + '<div style="max-width:80%;padding:12px 16px;border-radius:' + (isClient?'14px 14px 4px 14px':'14px 14px 14px 4px') + ';background:' + (isClient?'var(--accent)':'var(--g100)') + ';color:' + (isClient?'var(--white)':'var(--black)') + ';font-size:13px;line-height:1.6;white-space:pre-line">'
+        + m.text
+      + '</div>'
+      + '<div style="font-size:9px;color:var(--g400);margin-top:4px;padding:0 4px">' + m.nom + ' · ' + m.data + '</div>'
+    + '</div>';
+  });
+  html += '</div>';
+
+  // Input
+  html += '<div style="padding:12px 16px;border-top:1px solid var(--g200);display:flex;gap:10px">'
+    + '<input type="text" class="form-input" style="margin:0;flex:1;padding:10px 14px" placeholder="Escriu un missatge..." id="msg-input" onkeydown="if(event.key===\'Enter\')sendDemoMsg()">'
+    + '<button style="padding:10px 20px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb);font-weight:500;white-space:nowrap" onclick="sendDemoMsg()">Enviar →</button>'
+  + '</div>';
+
+  html += '</div></div>';
+  el.innerHTML = html;
+
+  // Scroll to bottom
+  var thread = document.getElementById('msg-thread');
+  if (thread) thread.scrollTop = thread.scrollHeight;
+}
+
+function sendDemoMsg() {
+  var input = document.getElementById('msg-input');
+  if (!input || !input.value.trim()) return;
+  DEMO_MISSATGES.push({
+    id:'m' + (DEMO_MISSATGES.length+1),
+    de:'client', nom: DEMO_CLIENT.nom.split(' ').slice(0,2).join(' '),
+    data: new Date().toLocaleString('ca-ES',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',''),
+    text: input.value.trim()
+  });
+  renderPortalMissatges(document.getElementById('content'));
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: INFORMES
+// ══════════════════════════════════════════════════
+function renderPortalInformes(el) {
+  var html = '<div class="content-inner fade-in">';
+  html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:20px">Els teus informes</div>';
+
+  DEMO_INFORMES.forEach(function(r){
+    var tipusMap = {trimestral:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Trimestral'},perfil:{bg:'#EDEAF9',tc:'#534AB7',lbl:'Perfil'},pla:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Pla financer'}};
+    var t = tipusMap[r.tipus] || tipusMap.trimestral;
+    var isPendent = r.estat === 'pendent';
+    html += '<div class="card" style="' + (isPendent?'opacity:.5':'cursor:pointer') + '">'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+        + '<div style="width:40px;height:40px;border-radius:10px;background:' + t.bg + ';display:flex;align-items:center;justify-content:center;font-size:18px">' + (isPendent?'🕐':'📄') + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="display:flex;gap:6px;align-items:center;margin-bottom:3px">'
+            + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:' + t.bg + ';color:' + t.tc + '">' + t.lbl + '</span>'
+            + '<span style="font-size:10px;color:var(--g400)">' + r.data + '</span>'
+          + '</div>'
+          + '<div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:2px">' + r.titol + '</div>'
+          + '<div style="font-size:12px;color:var(--g500)">' + r.desc + '</div>'
+        + '</div>'
+        + (isPendent ? '<div style="font-size:10px;color:var(--g400);padding:4px 10px;border:1px solid var(--g200);border-radius:6px">Pendent</div>'
+          : '<div style="font-size:10px;color:var(--accent);padding:4px 10px;border:1px solid var(--accent);border-radius:6px;cursor:pointer">📥 Descarregar</div>')
+      + '</div>'
+    + '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: FIRE
+// ══════════════════════════════════════════════════
+function renderPortalFIRE(el) {
+  var f = DEMO_FIRE;
+  var html = '<div class="content-inner fade-in">';
+
+  html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Calculadora FIRE</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:24px;line-height:1.7">Financial Independence, Retire Early — quan podries viure dels rendiments de la teva cartera.</div>';
+
+  // Big number
+  html += '<div style="background:var(--black);border-radius:14px;padding:28px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">'
+    + '<div>'
+      + '<div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Objectiu FIRE (regla del 4%)</div>'
+      + '<div style="font-family:var(--fm);font-size:36px;font-weight:500;color:var(--white)">' + f.objectiuFIRE.toLocaleString('ca-ES') + ' €</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Per cobrir ' + f.objectiuAnual.toLocaleString('ca-ES') + ' €/any de despeses</div>'
+    + '</div>'
+    + '<div style="text-align:right">'
+      + '<div style="font-family:var(--fm);font-size:36px;font-weight:500;color:#4CAF82">' + f.anysEstimats + ' anys</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.4)">Estimació: any ' + f.anyObjectiu + '</div>'
+    + '</div>'
+  + '</div>';
+
+  // Progress bar
+  html += '<div class="card"><div class="card-title">Progrés cap a FIRE</div>'
+    + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">'
+      + '<div style="flex:1;height:12px;background:var(--g200);border-radius:99px;overflow:hidden">'
+        + '<div style="height:100%;width:' + f.progresPct + '%;background:linear-gradient(90deg,var(--accent),#4CAF82);border-radius:99px;transition:width .5s"></div>'
+      + '</div>'
+      + '<div style="font-family:var(--fm);font-size:14px;font-weight:500;color:var(--accent)">' + f.progresPct + '%</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'
+      + '<div class="kpi-item"><div class="kpi-label">Capital actual</div><div class="kpi-value">' + f.capitalActual.toLocaleString('ca-ES') + '€</div></div>'
+      + '<div class="kpi-item"><div class="kpi-label">Aportació mensual</div><div class="kpi-value">' + f.aportacioMensual + '€</div></div>'
+      + '<div class="kpi-item"><div class="kpi-label">Retorn esperat</div><div class="kpi-value">' + f.retornEsperat + '%</div></div>'
+    + '</div>'
+  + '</div>';
+
+  // Assumptions
+  html += '<div class="card"><div class="card-title">Paràmetres del càlcul</div>'
+    + '<div style="font-size:12px;color:var(--g600);line-height:1.8">'
+      + 'La regla del 4% diu que pots retirar un 4% del teu capital cada any sense esgotar-lo (històricament, amb una cartera diversificada). '
+      + 'Per tant, si necessites ' + f.objectiuAnual.toLocaleString('ca-ES') + '€/any, et calen ' + f.objectiuFIRE.toLocaleString('ca-ES') + '€ invertits. '
+      + 'Amb ' + f.aportacioMensual + '€/mes al ' + f.retornEsperat + '% anual, arriben en uns ' + f.anysEstimats + ' anys.'
+      + '<br><br><em style="color:var(--g400)">Nota: Aquesta és una estimació simplificada. No té en compte inflació, impostos ni variabilitat del mercat. Consulta amb el teu assessor per a un càlcul personalitzat.</em>'
+    + '</div>'
+  + '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: FONS D'EMERGÈNCIA
+// ══════════════════════════════════════════════════
+function renderPortalEmergencia(el) {
+  var e = DEMO_EMERGENCIA;
+  var html = '<div class="content-inner fade-in">';
+
+  html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Fons d\'emergència</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:24px">El teu coixí de seguretat per a imprevistos — entre 3 i 6 mesos de despeses.</div>';
+
+  // Progress visual
+  var statusColor = e.progresPct >= 100 ? '#1A5C3A' : e.progresPct >= 60 ? '#7A4A00' : '#8B1A1A';
+  var statusBg = e.progresPct >= 100 ? '#EAF3DE' : e.progresPct >= 60 ? '#FEF5E7' : '#FDF0F0';
+  var statusLabel = e.progresPct >= 100 ? '✓ Objectiu assolit' : e.progresPct >= 60 ? 'En progrés' : 'Per completar';
+
+  html += '<div style="background:var(--white);border:1px solid var(--g200);border-radius:14px;padding:28px;margin-bottom:20px;text-align:center">'
+    + '<div style="position:relative;width:160px;height:160px;margin:0 auto 16px">'
+      + '<svg viewBox="0 0 36 36" style="transform:rotate(-90deg);width:100%;height:100%">'
+        + '<circle cx="18" cy="18" r="15.9" fill="none" stroke="' + statusBg + '" stroke-width="2.5"/>'
+        + '<circle cx="18" cy="18" r="15.9" fill="none" stroke="' + statusColor + '" stroke-width="2.5" stroke-dasharray="' + e.progresPct + ' ' + (100-e.progresPct) + '" stroke-linecap="round"/>'
+      + '</svg>'
+      + '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">'
+        + '<div style="font-family:var(--fm);font-size:28px;font-weight:500;color:' + statusColor + '">' + e.progresPct + '%</div>'
+        + '<div style="font-size:10px;color:var(--g400)">completat</div>'
+      + '</div>'
+    + '</div>'
+    + '<div style="display:inline-block;padding:5px 14px;border-radius:99px;font-size:11px;font-weight:500;background:' + statusBg + ';color:' + statusColor + '">' + statusLabel + '</div>'
+  + '</div>';
+
+  // Details
+  html += '<div class="card"><div class="card-title">Detall</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+      + '<div class="perfil-item"><div class="perfil-lbl">Despeses mensuals</div><div class="perfil-val">' + e.despesesMensuals.toLocaleString('ca-ES') + ' €</div></div>'
+      + '<div class="perfil-item"><div class="perfil-lbl">Mesos objectiu</div><div class="perfil-val">' + e.mesesObjectiu + ' mesos</div></div>'
+      + '<div class="perfil-item"><div class="perfil-lbl">Import objectiu</div><div class="perfil-val">' + e.objectiu.toLocaleString('ca-ES') + ' €</div></div>'
+      + '<div class="perfil-item"><div class="perfil-lbl">Import actual</div><div class="perfil-val" style="color:' + statusColor + '">' + e.actual.toLocaleString('ca-ES') + ' €</div></div>'
+    + '</div>'
+    + '<div style="margin-top:12px;padding:12px;background:var(--g100);border-radius:8px;font-size:12px;color:var(--g600);line-height:1.7">'
+      + '<strong>On és?</strong> ' + e.onEsta + '<br>'
+      + '<strong>Falten:</strong> ' + (e.objectiu - e.actual).toLocaleString('ca-ES') + ' € per assolir l\'objectiu.'
+    + '</div>'
+  + '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: EDUCACIÓ FINANCERA
+// ══════════════════════════════════════════════════
+function renderPortalEducacio(el) {
+  var html = '<div class="content-inner fade-in">';
+  var completats = DEMO_EDUCACIO.filter(function(e){return e.completat;}).length;
+
+  html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Educació financera</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:20px">Aprèn els fonaments al teu ritme. ' + completats + '/' + DEMO_EDUCACIO.length + ' completats.</div>';
+
+  // Progress bar
+  var pct = Math.round(completats/DEMO_EDUCACIO.length*100);
+  html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">'
+    + '<div style="flex:1;height:8px;background:var(--g200);border-radius:99px;overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;background:var(--accent);border-radius:99px"></div>'
+    + '</div>'
+    + '<div style="font-family:var(--fm);font-size:12px;color:var(--accent);font-weight:500">' + pct + '%</div>'
+  + '</div>';
+
+  // Group by category
+  var cats = {};
+  DEMO_EDUCACIO.forEach(function(e){
+    if (!cats[e.categoria]) cats[e.categoria] = [];
+    cats[e.categoria].push(e);
+  });
+  var catLabels = {fonaments:'📚 Fonaments',cartera:'💼 Cartera',psicologia:'🧠 Psicologia inversora',macro:'🌍 Macroeconomia',productes:'🏷 Productes financers'};
+
+  Object.keys(cats).forEach(function(cat){
+    html += '<div style="margin-bottom:20px">'
+      + '<div style="font-size:11px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">' + (catLabels[cat]||cat) + '</div>';
+
+    cats[cat].forEach(function(e){
+      html += '<div class="card" style="padding:14px 18px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="alert(\'Contingut en desenvolupament (demo)\')">'
+        + '<div style="width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:' + (e.completat?'#EAF3DE':'var(--g100)') + '">' + (e.completat?'✓':'○') + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:500;color:' + (e.completat?'var(--g400)':'var(--black)') + ';' + (e.completat?'text-decoration:line-through':'') + '">' + e.titol + '</div>'
+        + '</div>'
+        + '<div style="font-size:10px;color:var(--g400);white-space:nowrap">⏱ ' + e.temps + '</div>'
+      + '</div>';
+    });
+    html += '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
 }
 
 // ══════════════════════════════════════════════════
