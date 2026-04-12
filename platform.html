@@ -820,11 +820,18 @@ var ADMIN_NAV = [
   {section:'Principal'},
   {id:'hub', icon:'🏠', label:'Hub', desc:'Vista general'},
   {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
-  {section:'Portal Client'},
-  {id:'portal-perfil', icon:'📊', label:'Vista Perfil Client'},
-  {id:'portal-assessoria', icon:'📈', label:'Vista Assessoria'},
-  {id:'portal-carteres', icon:'🗂', label:'Vista Les 8 Carteres'},
-  {section:'Eines'},
+  {id:'portal-missatges', icon:'💬', label:'Missatges clients', badge:'2'},
+  {section:'Portal Client · Preview'},
+  {id:'portal-perfil', icon:'📊', label:'Resum'},
+  {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
+  {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
+  {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
+  {id:'portal-informes', icon:'📋', label:'Informes'},
+  {id:'portal-carteres', icon:'🗂', label:'Les 8 Carteres'},
+  {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
+  {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
+  {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
+  {section:'Eines externes'},
   {id:'link-dashboard', icon:'⚙️', label:'Dashboard Complet', external:'index.html'},
   {id:'link-onboarding', icon:'📝', label:'Onboarding', external:'client_onboarding_v3.html'},
   {id:'link-landing', icon:'🌐', label:'Landing Page', external:'landing.html'},
@@ -960,6 +967,7 @@ function toggleSidebar() {
 // VIEW: HUB (Admin home)
 // ══════════════════════════════════════════════════
 function renderHub(el) {
+  var totalValor = DEMO_CARTERA_ACTUAL.reduce(function(s,a){return s+a.valor;},0);
   el.innerHTML = '<div class="content-inner fade-in">'
     + '<div style="margin-bottom:28px">'
       + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Bon dia, Guillem 👋</div>'
@@ -970,17 +978,17 @@ function renderHub(el) {
     + '<div class="hub-stats">'
       + '<div class="hub-stat"><div class="hub-stat-val">5</div><div class="hub-stat-lbl">Clients actius</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val">67</div><div class="hub-stat-lbl">Scoring mig</div></div>'
-      + '<div class="hub-stat"><div class="hub-stat-val">3</div><div class="hub-stat-lbl">Anàlisis publicades</div></div>'
-      + '<div class="hub-stat"><div class="hub-stat-val">8</div><div class="hub-stat-lbl">Carteres model</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:var(--accent)">' + totalValor.toLocaleString('ca-ES') + '€</div><div class="hub-stat-lbl">AUM total (demo)</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:#7A4A00">2</div><div class="hub-stat-lbl">Missatges pendents</div></div>'
     + '</div>'
 
-    // Quick actions grid
-    + '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px">Accés ràpid</div>'
+    // Quick actions
+    + '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px">Accions ràpides</div>'
     + '<div class="hub-grid">'
       + '<div class="hub-card highlight" onclick="navigateTo(\'portal-perfil\')">'
         + '<div class="hub-card-icon">👁</div>'
         + '<div class="hub-card-title">Portal del Client</div>'
-        + '<div class="hub-card-desc">Previsualitza el portal tal com el veuen els teus clients.</div>'
+        + '<div class="hub-card-desc">Previsualitza el portal complet tal com el veuen els clients.</div>'
         + '<div class="hub-card-arrow">→</div>'
       + '</div>'
       + '<div class="hub-card" onclick="navigateTo(\'admin-clients\')">'
@@ -989,41 +997,43 @@ function renderHub(el) {
         + '<div class="hub-card-desc">Consulta i gestiona els expedients dels clients.</div>'
         + '<div class="hub-card-arrow">→</div>'
       + '</div>'
-      + '<div class="hub-card" onclick="openExternal(\'index.html\')">'
-        + '<div class="hub-card-icon">⚙️</div>'
-        + '<div class="hub-card-title">Dashboard Complet</div>'
-        + '<div class="hub-card-desc">Accedeix al dashboard amb totes les eines d\'assessoria.</div>'
-        + '<div class="hub-card-arrow">↗</div>'
-      + '</div>'
-      + '<div class="hub-card" onclick="openExternal(\'client_onboarding_v3.html\')">'
-        + '<div class="hub-card-icon">📝</div>'
-        + '<div class="hub-card-title">Onboarding Client</div>'
-        + '<div class="hub-card-desc">Qüestionari de perfil inversor per a nous clients.</div>'
-        + '<div class="hub-card-arrow">↗</div>'
-      + '</div>'
-      + '<div class="hub-card" onclick="navigateTo(\'portal-assessoria\')">'
-        + '<div class="hub-card-icon">📈</div>'
-        + '<div class="hub-card-title">Assessoria</div>'
-        + '<div class="hub-card-desc">Vista de les anàlisis publicades al portal.</div>'
+      + '<div class="hub-card" onclick="navigateTo(\'portal-missatges\')" style="border-color:var(--amber)">'
+        + '<div class="hub-card-icon">💬</div>'
+        + '<div class="hub-card-title">Missatges <span style="font-size:11px;color:var(--amber);font-weight:600">(2)</span></div>'
+        + '<div class="hub-card-desc">Revisa i respon els missatges dels clients.</div>'
         + '<div class="hub-card-arrow">→</div>'
       + '</div>'
-      + '<div class="hub-card" onclick="navigateTo(\'portal-carteres\')">'
-        + '<div class="hub-card-icon">🗂</div>'
-        + '<div class="hub-card-title">Les 8 Carteres</div>'
-        + '<div class="hub-card-desc">8 carteres personalitzades, una per cada arquetip d\'inversor.</div>'
-        + '<div class="hub-card-arrow">→</div>'
-      + '</div>'
+    + '</div>'
+
+    // Portal preview grid
+    + '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px;margin-top:12px">Seccions del portal client</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px">'
+      + hubSmallCard('💼','La meva cartera','portal-cartera')
+      + hubSmallCard('📅',"Pla d'aportacions",'portal-aportacions')
+      + hubSmallCard('📋','Informes','portal-informes')
+      + hubSmallCard('📈','Anàlisi mercat','portal-assessoria')
+      + hubSmallCard('🗂','Les 8 Carteres','portal-carteres')
+      + hubSmallCard('🔥','FIRE','portal-fire')
+      + hubSmallCard('🛡️',"Fons emergència",'portal-emergencia')
+      + hubSmallCard('🎓','Educació','portal-educacio')
     + '</div>'
 
     // External links
-    + '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px;margin-top:8px">Pàgines externes</div>'
-    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">'
-      + linkCard('🌐','Landing Page','landing.html')
+    + '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px">Eines externes</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">'
+      + linkCard('⚙️','Dashboard','index.html')
+      + linkCard('📝','Onboarding','client_onboarding_v3.html')
+      + linkCard('🌐','Landing','landing.html')
       + linkCard('🎭','Arquetips','carteres_arquetips.html')
       + linkCard('📄','Pack Legal','pack_legal_pre_efa.html')
-      + linkCard('🧪','Kit Testers','kit_testers.html')
     + '</div>'
+  + '</div>';
+}
 
+function hubSmallCard(icon, label, viewId) {
+  return '<div onclick="navigateTo(\'' + viewId + '\')" style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer;text-align:center;transition:all .12s" onmouseover="this.style.borderColor=\'var(--accent)\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.borderColor=\'var(--g200)\';this.style.transform=\'none\'">'
+    + '<div style="font-size:20px;margin-bottom:5px">' + icon + '</div>'
+    + '<div style="font-size:11px;font-weight:500;color:var(--black)">' + label + '</div>'
   + '</div>';
 }
 
@@ -1047,23 +1057,40 @@ function renderClientsList(el) {
       + '</div>'
     + '</div>';
 
+  // Table header
+  html += '<div style="display:flex;align-items:center;gap:14px;padding:8px 24px;font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.06em">'
+    + '<div style="width:40px"></div>'
+    + '<div style="flex:1">Client</div>'
+    + '<div style="width:140px">Arquetip · Cartera</div>'
+    + '<div style="width:60px;text-align:center">Scoring</div>'
+    + '<div style="width:70px;text-align:center">Pla</div>'
+    + '<div style="width:20px"></div>'
+  + '</div>';
+
   DEMO_CLIENTS_LIST.forEach(function(c) {
     var scoreColor = c.scoring>=70?'#1A5C3A':c.scoring>=50?'#1B3A6B':c.scoring>=30?'#7A4A00':'#8B1A1A';
     var scoreBg    = c.scoring>=70?'#EAF3DE':c.scoring>=50?'#EBF0FA':c.scoring>=30?'#FEF5E7':'#FDF0F0';
     var initials = c.nom.split(' ').map(function(w){return w[0]}).slice(0,2).join('');
+    var plaColors = {senyal:'var(--g400)',bruxola:'var(--accent)',mapa:'#1A5C3A',rumb:'#534AB7',family:'#7A4A00'};
 
-    html += '<div class="card" style="cursor:pointer;transition:border-color .12s" onmouseover="this.style.borderColor=\'var(--g300)\'" onmouseout="this.style.borderColor=\'var(--g200)\'" onclick="navigateTo(\'portal-perfil\')">'
+    html += '<div class="card" style="cursor:pointer;transition:all .12s;padding:14px 24px" onmouseover="this.style.borderColor=\'var(--g300)\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.borderColor=\'var(--g200)\';this.style.transform=\'none\'" onclick="navigateTo(\'portal-perfil\')">'
       + '<div style="display:flex;align-items:center;gap:14px">'
         + '<div style="width:40px;height:40px;border-radius:10px;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--g500)">' + initials + '</div>'
         + '<div style="flex:1;min-width:0">'
           + '<div style="font-size:14px;font-weight:500">' + c.nom + '</div>'
-          + '<div style="font-size:11px;color:var(--g400)">' + c.arquetip + ' · ' + c.cartera + '</div>'
+          + '<div style="font-size:11px;color:var(--g400)">' + c.email + '</div>'
         + '</div>'
-        + '<div style="text-align:right">'
-          + '<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:' + scoreColor + '">' + c.scoring + '<span style="font-size:10px;opacity:.5">/100</span></div>'
-          + '<div style="display:inline-block;font-size:9px;padding:2px 8px;border-radius:99px;background:' + scoreBg + ';color:' + scoreColor + ';font-weight:500;margin-top:3px">' + c.pla + '</div>'
+        + '<div style="width:140px">'
+          + '<div style="font-size:12px;font-weight:500;color:var(--black)">' + c.arquetip + '</div>'
+          + '<div style="font-size:10px;color:var(--g400)">' + c.cartera + '</div>'
         + '</div>'
-        + '<div style="color:var(--g300);font-size:14px;margin-left:8px">→</div>'
+        + '<div style="width:60px;text-align:center">'
+          + '<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:' + scoreColor + '">' + c.scoring + '</div>'
+        + '</div>'
+        + '<div style="width:70px;text-align:center">'
+          + '<div style="display:inline-block;font-size:10px;padding:3px 10px;border-radius:99px;background:' + scoreBg + ';color:' + (plaColors[c.pla]||'var(--g400)') + ';font-weight:500;text-transform:capitalize">' + c.pla + '</div>'
+        + '</div>'
+        + '<div style="color:var(--g300);font-size:14px;width:20px;text-align:center">→</div>'
       + '</div>'
     + '</div>';
   });
@@ -1092,13 +1119,6 @@ function renderPortalPerfil(el) {
 
   var html = '<div class="content-inner fade-in">';
 
-  // Tabs
-  html += '<div class="portal-tabs">'
-    + '<button class="portal-tab active" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
-    + '<button class="portal-tab" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
-    + '<button class="portal-tab" onclick="navigateTo(\'portal-carteres\')">🗂 Les 8 Carteres</button>'
-  + '</div>';
-
   // Hello
   html += '<div class="portal-hello">'
     + '<div class="portal-hello-eye">Portal personal</div>'
@@ -1119,6 +1139,39 @@ function renderPortalPerfil(el) {
       + '<div class="score-num" style="color:' + scoreColor + '">' + sc + '<span class="score-denom">/100</span></div>'
       + '<div style="padding:6px 12px;background:' + scoreBg + ';border-radius:6px;font-size:11px;font-weight:500;color:' + scoreColor + ';margin-top:6px;display:inline-block">' + scoreLabel + '</div>'
     + '</div>'
+  + '</div>';
+
+  // Quick snapshot cards
+  var totalValor = DEMO_CARTERA_ACTUAL.reduce(function(s,a){return s+a.valor;},0);
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">'
+    + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-cartera\')">'
+      + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">💼 Cartera</div>'
+      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black)">' + totalValor.toLocaleString('ca-ES') + '€</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">Desv. màx: 1,8%</div>'
+    + '</div>'
+    + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-aportacions\')">'
+      + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">📅 Propera aportació</div>'
+      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--accent)">1 maig</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + DEMO_PLA_APORTACIONS.mensual + '€/mes</div>'
+    + '</div>'
+    + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-emergencia\')">'
+      + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🛡️ Fons emergència</div>'
+      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#7A4A00">' + DEMO_EMERGENCIA.progresPct + '%</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + DEMO_EMERGENCIA.actual.toLocaleString('ca-ES') + '€ / ' + DEMO_EMERGENCIA.objectiu.toLocaleString('ca-ES') + '€</div>'
+    + '</div>'
+    + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-fire\')">'
+      + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🔥 FIRE</div>'
+      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#1A5C3A">' + DEMO_FIRE.anysEstimats + ' anys</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">Objectiu: ' + DEMO_FIRE.objectiuFIRE.toLocaleString('ca-ES') + '€</div>'
+    + '</div>'
+  + '</div>';
+
+  // Unread messages alert
+  html += '<div style="padding:12px 16px;background:var(--accent-l);border:1px solid var(--accent);border-radius:10px;margin-bottom:20px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="navigateTo(\'portal-missatges\')">'
+    + '<div style="font-size:20px">💬</div>'
+    + '<div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--accent)">2 missatges nous del teu assessor</div>'
+      + '<div style="font-size:11px;color:var(--g500)">Guillem Puig · Últim: 11 abr 2026</div></div>'
+    + '<div style="font-size:14px;color:var(--accent)">→</div>'
   + '</div>';
 
   // Rationale — WHY this portfolio for this archetype
@@ -1251,13 +1304,6 @@ function renderPortalAssessoria(el) {
 
   var html = '<div class="content-inner fade-in">';
 
-  // Tabs
-  html += '<div class="portal-tabs">'
-    + '<button class="portal-tab" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
-    + '<button class="portal-tab active" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
-    + '<button class="portal-tab" onclick="navigateTo(\'portal-carteres\')">🗂 Les 8 Carteres</button>'
-  + '</div>';
-
   html += '<div style="margin-bottom:20px"><div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px">Assessoria i Anàlisi</div>'
     + '<div style="font-size:12px;color:var(--g500)">Anàlisi i informació financera de The Boring Investor</div></div>';
 
@@ -1287,13 +1333,6 @@ function renderPortalAssessoria(el) {
 function renderPortalCarteres(el) {
   var myId = DEMO_CLIENT.arquetipId;
   var html = '<div class="content-inner fade-in">';
-
-  // Tabs
-  html += '<div class="portal-tabs">'
-    + '<button class="portal-tab" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
-    + '<button class="portal-tab" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
-    + '<button class="portal-tab active" onclick="navigateTo(\'portal-carteres\')">🗂 Les 8 Carteres</button>'
-  + '</div>';
 
   html += '<div style="margin-bottom:24px">'
     + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;color:var(--black);margin-bottom:6px">8 Arquetips, 8 Carteres</div>'
