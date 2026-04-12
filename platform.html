@@ -510,7 +510,7 @@ var DEMO_CLIENT = {
   cartera: 'IV · Estructura Mestra',
   scoring: 67,
   perfil: {
-    capitalInicial: '45.000 €',
+    capitalInicial: '5.000 €',
     aportacioMensual: '400 €/mes',
     horitzo: '12–15 anys',
     objectiu: 'Creixement patrimonial',
@@ -518,7 +518,7 @@ var DEMO_CLIENT = {
     riscEmocional: 'Moderat-alt'
   },
   scoring_mods: [8, 7, 8, 8, 7, 7, 8],
-  projeccions: {p10:'52.300 €', p50:'78.400 €', p90:'112.600 €'},
+  projeccions: {p10:'68.300 €', p50:'112.400 €', p90:'178.600 €'},
   nota: "Maria té un perfil d'Arquitecte: meticulosa, amb alt coneixement i tendència a sobrecomplicar. La seva cartera Estructura Mestra està limitada a 7 blocs màxim — cada un amb funció estructural clara. Recomanem mantenir la disciplina de no afegir blocs sense eliminar-ne un altre primer.",
   historial: [
     {titol:'Revisió trimestral', data:'15 mar 2026', tipus:'info', desc:'Rebalanceig automàtic executat. +2,3% vs benchmark.'},
@@ -647,13 +647,33 @@ var DEMO_MOVIMENTS = [
 ];
 
 var DEMO_CARTERA_ACTUAL = [
-  {nom:'RV Global Core', target:40, actual:41.2, valor:18540, color:'#185FA5'},
-  {nom:'RV Factor (Value+Quality)', target:15, actual:16.8, valor:7560, color:'#378ADD'},
-  {nom:'RF Corporativa IG', target:15, actual:13.5, valor:6075, color:'#888780'},
-  {nom:'REITs Global', target:10, actual:9.8, valor:4410, color:'#3B6D11'},
-  {nom:'Or físic ETP', target:10, actual:10.4, valor:4680, color:'#BA7517'},
-  {nom:'Private Equity/Crowd', target:5, actual:4.2, valor:1890, color:'#534AB7'},
-  {nom:'Liquiditat estratègica', target:5, actual:4.1, valor:1845, color:'#B4B2A9'},
+  {nom:'RV Global Core', target:40, actual:41.2, valor:9563, color:'#185FA5'},
+  {nom:'RV Factor (Value+Quality)', target:15, actual:16.8, valor:3898, color:'#378ADD'},
+  {nom:'RF Corporativa IG', target:15, actual:13.5, valor:3132, color:'#888780'},
+  {nom:'REITs Global', target:10, actual:9.8, valor:2274, color:'#3B6D11'},
+  {nom:'Or físic ETP', target:10, actual:10.4, valor:2413, color:'#BA7517'},
+  {nom:'Private Equity/Crowd', target:5, actual:4.2, valor:974, color:'#534AB7'},
+  {nom:'Liquiditat estratègica', target:5, actual:4.1, valor:951, color:'#B4B2A9'},
+];
+
+// Historical evolution — monthly snapshots (aportat cumulat, valor real)
+var DEMO_EVOLUCIO = [
+  {mes:'gen 25', aportat:5000,  valor:5000},
+  {mes:'feb 25', aportat:5300,  valor:5280},
+  {mes:'mar 25', aportat:5600,  valor:5420},
+  {mes:'abr 25', aportat:5900,  valor:5850},
+  {mes:'mai 25', aportat:6200,  valor:6350},
+  {mes:'jun 25', aportat:6500,  valor:6580},
+  {mes:'jul 25', aportat:6800,  valor:7120},
+  {mes:'ago 25', aportat:7100,  valor:6980},
+  {mes:'set 25', aportat:7400,  valor:7550},
+  {mes:'oct 25', aportat:17700, valor:18200},  // +10K aportació extra oct
+  {mes:'nov 25', aportat:18000, valor:18950},
+  {mes:'des 25', aportat:18300, valor:19400},
+  {mes:'gen 26', aportat:20600, valor:21800},  // +2K extra paga
+  {mes:'feb 26', aportat:21000, valor:22400},
+  {mes:'mar 26', aportat:21400, valor:22100},  // petita correcció
+  {mes:'abr 26', aportat:21800, valor:23200},
 ];
 
 var DEMO_PLA_APORTACIONS = {
@@ -693,12 +713,12 @@ var DEMO_FIRE = {
   objectiuAnual: 30000,
   taxaRetir: 4,
   objectiuFIRE: 750000,
-  capitalActual: 45000,
+  capitalActual: 23200,
   aportacioMensual: 400,
   retornEsperat: 6,
-  anysEstimats: 22,
-  anyObjectiu: 2048,
-  progresPct: 6,
+  anysEstimats: 26,
+  anyObjectiu: 2052,
+  progresPct: 3,
 };
 
 var DEMO_EMERGENCIA = {
@@ -1143,11 +1163,14 @@ function renderPortalPerfil(el) {
 
   // Quick snapshot cards
   var totalValor = DEMO_CARTERA_ACTUAL.reduce(function(s,a){return s+a.valor;},0);
+  var totalAportat = DEMO_EVOLUCIO[DEMO_EVOLUCIO.length-1].aportat;
+  var rendEur = totalValor - totalAportat;
+  var rendPct = totalAportat>0?((totalValor/totalAportat-1)*100):0;
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-cartera\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">💼 Cartera</div>'
       + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black)">' + totalValor.toLocaleString('ca-ES') + '€</div>'
-      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">Desv. màx: 1,8%</div>'
+      + '<div style="font-size:10px;color:#1A5C3A;margin-top:2px;font-weight:500">+' + rendEur.toLocaleString('ca-ES') + '€ (+' + rendPct.toFixed(1) + '%)</div>'
     + '</div>'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-aportacions\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">📅 Propera aportació</div>'
@@ -1420,75 +1443,248 @@ function renderPortalCartera(el) {
   var arq = getArquetip(DEMO_CLIENT.arquetipId);
   var cartera = DEMO_CARTERA_ACTUAL;
   var totalValor = cartera.reduce(function(s,a){return s+a.valor;},0);
+  var evo = DEMO_EVOLUCIO;
+  var totalAportat = evo[evo.length-1].aportat;
+  var rendimentEur = totalValor - totalAportat;
+  var rendimentPct = totalAportat > 0 ? ((totalValor / totalAportat - 1) * 100) : 0;
+  var mesos = evo.length;
+  var twrAnual = mesos > 0 ? (Math.pow(totalValor/totalAportat, 12/mesos) - 1) * 100 : 0;
+  var rendCol = rendimentEur >= 0 ? '#1A5C3A' : '#8B1A1A';
+  var rendBg  = rendimentEur >= 0 ? '#EAF3DE' : '#FDF0F0';
   var html = '<div class="content-inner fade-in">';
 
-  // Summary cards
-  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">'
-    + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
-      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Valor total</div>'
-      + '<div style="font-family:var(--fm);font-size:24px;font-weight:500;color:var(--black)">' + totalValor.toLocaleString('ca-ES') + ' €</div>'
+  // ── KPI HERO ──
+  html += '<div style="background:var(--black);border-radius:14px;padding:24px 28px;margin-bottom:20px">'
+    // Row 1: Big numbers
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:18px">'
+      + '<div>'
+        + '<div style="font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Valor de cartera</div>'
+        + '<div style="font-family:var(--fm);font-size:32px;font-weight:500;color:var(--white)">' + totalValor.toLocaleString('ca-ES') + ' <span style="font-size:16px;opacity:.4">€</span></div>'
+      + '</div>'
+      + '<div>'
+        + '<div style="font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Total aportat</div>'
+        + '<div style="font-family:var(--fm);font-size:32px;font-weight:500;color:rgba(255,255,255,.5)">' + totalAportat.toLocaleString('ca-ES') + ' <span style="font-size:16px;opacity:.4">€</span></div>'
+      + '</div>'
+      + '<div>'
+        + '<div style="font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Rendiment total</div>'
+        + '<div style="font-family:var(--fm);font-size:32px;font-weight:500;color:' + (rendimentEur>=0?'#4CAF82':'#E57373') + '">' + (rendimentEur>=0?'+':'') + rendimentEur.toLocaleString('ca-ES') + ' <span style="font-size:16px;opacity:.6">€</span></div>'
+      + '</div>'
     + '</div>'
-    + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
-      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Cartera model</div>'
-      + '<div style="font-family:var(--fd);font-size:16px;color:var(--accent)">' + arq.cartNom + '</div>'
+    // Row 2: Secondary KPIs
+    + '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">'
+      + kpiPill('Rendiment %', (rendimentPct>=0?'+':'') + rendimentPct.toFixed(1) + '%', rendimentEur>=0)
+      + kpiPill('TWR anualitzat', (twrAnual>=0?'+':'') + twrAnual.toFixed(1) + '%', twrAnual>=0)
+      + kpiPill('Mesos invertint', mesos + ' mesos', true)
+      + kpiPill('Desv. màxima', '1,8%', null)
+      + kpiPill('TER cartera', arq.ter, null)
     + '</div>'
-    + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
-      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Desviació màx.</div>'
-      + '<div style="font-family:var(--fm);font-size:24px;font-weight:500;color:#7A4A00">1,8%</div>'
+    // Cartera model label
+    + '<div style="margin-top:14px;display:flex;align-items:center;gap:8px">'
+      + '<div style="font-size:10px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.06em">Cartera model:</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.7);font-weight:500">' + arq.cartNom + ' — ' + arq.nom + '</div>'
     + '</div>'
   + '</div>';
 
-  // Target vs Actual allocation
-  html += '<div class="card"><div class="card-title">Assignació actual vs objectiu</div>';
+  // ── EVOLUTION CHART ──
+  html += '<div class="card" style="padding:20px 24px 16px">'
+    + '<div class="card-title" style="display:flex;justify-content:space-between;align-items:center">'
+      + '<span>Evolució de la cartera</span>'
+      + '<div style="display:flex;gap:14px;font-size:10px">'
+        + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:#185FA5;border-radius:2px;display:inline-block"></span> Valor</span>'
+        + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:rgba(27,58,107,.12);border-radius:2px;display:inline-block"></span> Aportat</span>'
+        + '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:rgba(76,175,130,.15);border-radius:2px;display:inline-block"></span> Guany</span>'
+      + '</div>'
+    + '</div>'
+    + '<div style="height:280px;position:relative"><canvas id="evoChart"></canvas></div>'
+  + '</div>';
+
+  // ── ALLOCATION: Donut + Table side by side ──
+  html += '<div style="display:grid;grid-template-columns:240px 1fr;gap:16px;margin-bottom:16px">'
+    // Donut
+    + '<div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">'
+      + '<div style="font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Distribució actual</div>'
+      + '<div style="width:180px;height:180px;position:relative"><canvas id="donutChart"></canvas></div>'
+    + '</div>'
+    // Table
+    + '<div class="card"><div class="card-title">Assignació actual vs objectiu</div>';
+
   cartera.forEach(function(a){
     var diff = a.actual - a.target;
     var diffStr = (diff>=0?'+':'') + diff.toFixed(1) + '%';
     var diffCol = Math.abs(diff)>2?'#8B1A1A':Math.abs(diff)>1?'#7A4A00':'#1A5C3A';
-    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--g100)">'
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--g100)">'
       + '<div class="alloc-dot" style="background:' + a.color + '"></div>'
       + '<div style="font-size:12px;flex:1;min-width:0">' + a.nom + '</div>'
-      + '<div style="width:90px;position:relative;height:6px;background:var(--g200);border-radius:99px;overflow:hidden">'
+      + '<div style="width:80px;position:relative;height:6px;background:var(--g200);border-radius:99px;overflow:hidden">'
         + '<div style="height:100%;width:' + a.actual + '%;background:' + a.color + ';border-radius:99px;opacity:.7"></div>'
         + '<div style="position:absolute;left:' + a.target + '%;top:-1px;width:2px;height:8px;background:var(--black);border-radius:1px"></div>'
       + '</div>'
-      + '<div style="font-family:var(--fm);font-size:11px;width:40px;text-align:right;color:var(--g500)">' + a.actual.toFixed(1) + '%</div>'
-      + '<div style="font-family:var(--fm);font-size:10px;width:42px;text-align:right;color:' + diffCol + ';font-weight:500">' + diffStr + '</div>'
-      + '<div style="font-family:var(--fm);font-size:10px;width:60px;text-align:right;color:var(--g400)">' + a.valor.toLocaleString('ca-ES') + '€</div>'
+      + '<div style="font-family:var(--fm);font-size:11px;width:38px;text-align:right;color:var(--g500)">' + a.actual.toFixed(1) + '%</div>'
+      + '<div style="font-family:var(--fm);font-size:10px;width:40px;text-align:right;color:' + diffCol + ';font-weight:500">' + diffStr + '</div>'
+      + '<div style="font-family:var(--fm);font-size:10px;width:55px;text-align:right;color:var(--g400)">' + a.valor.toLocaleString('ca-ES') + '€</div>'
     + '</div>';
   });
-  html += '<div style="display:flex;justify-content:flex-end;margin-top:8px;font-size:11px;color:var(--g400)">'
-    + '<span style="margin-right:12px">— Línia negra = objectiu</span>'
-    + '<span>Barra = actual</span>'
-  + '</div></div>';
+  html += '<div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--g400)">'
+    + '<span>— marca negra = objectiu</span>'
+    + '<span style="font-weight:500">Total: ' + totalValor.toLocaleString('ca-ES') + '€</span>'
+  + '</div></div></div>';
 
-  // Registrar moviment
-  html += '<div class="card"><div class="card-title" style="display:flex;justify-content:space-between;align-items:center">'
-    + '<span>Registrar moviment</span></div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">'
+  // ── REGISTRAR MOVIMENT ──
+  html += '<div class="card"><div class="card-title">Registrar moviment</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1.5fr 1fr auto;gap:10px;align-items:end">'
       + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Tipus</div>'
-        + '<select class="form-input" style="margin-bottom:0;padding:8px 10px;font-size:12px"><option>Aportació</option><option>Compra</option><option>Venda</option><option>Dividend</option></select></div>'
+        + '<select class="form-input" style="margin-bottom:0;padding:8px 10px;font-size:12px"><option>Aportació</option><option>Compra</option><option>Venda</option><option>Dividend</option><option>Rebalanceig</option></select></div>'
       + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Actiu</div>'
         + '<select class="form-input" style="margin-bottom:0;padding:8px 10px;font-size:12px">' + cartera.map(function(a){return '<option>' + a.nom + '</option>';}).join('') + '</select></div>'
       + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Import (€)</div>'
         + '<input type="number" class="form-input" style="margin-bottom:0;padding:8px 10px;font-size:12px" placeholder="0,00"></div>'
-      + '<button style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);height:38px" onclick="alert(\'Moviment registrat! (demo)\')">+ Afegir</button>'
+      + '<button style="padding:8px 18px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500;height:38px" onclick="alert(\'✓ Moviment registrat (demo)\')">+ Afegir</button>'
     + '</div>'
   + '</div>';
 
-  // Historial de moviments
-  html += '<div class="card"><div class="card-title">Historial de moviments</div>';
+  // ── HISTORIAL ──
+  html += '<div class="card"><div class="card-title" style="display:flex;justify-content:space-between;align-items:center">'
+    + '<span>Historial de moviments</span>'
+    + '<span style="font-size:10px;color:var(--g400)">' + DEMO_MOVIMENTS.length + ' moviments</span>'
+  + '</div>';
   DEMO_MOVIMENTS.forEach(function(m){
-    var tipusColors = {aportacio:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Aportació'},rebalanceig:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Rebalanceig'},aportacio_extra:{bg:'#FEF5E7',tc:'#7A4A00',lbl:'Aportació extra'}};
+    var tipusColors = {aportacio:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Aportació'},rebalanceig:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Rebalanceig'},aportacio_extra:{bg:'#FEF5E7',tc:'#7A4A00',lbl:'Extra'}};
     var t = tipusColors[m.tipus] || tipusColors.aportacio;
-    html += '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--g100)">'
-      + '<div style="font-family:var(--fm);font-size:10px;color:var(--g400);min-width:70px">' + m.data + '</div>'
-      + '<div style="font-size:9px;font-weight:600;padding:2px 8px;border-radius:99px;background:' + t.bg + ';color:' + t.tc + '">' + t.lbl + '</div>'
-      + '<div style="font-size:12px;color:var(--black);flex:1">' + m.actiu + '</div>'
-      + '<div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--accent)">+' + m.import.toLocaleString('ca-ES') + '€</div>'
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--g100)">'
+      + '<div style="font-family:var(--fm);font-size:10px;color:var(--g400);min-width:68px">' + m.data + '</div>'
+      + '<div style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:' + t.bg + ';color:' + t.tc + ';min-width:56px;text-align:center">' + t.lbl + '</div>'
+      + '<div style="font-size:11px;color:var(--black);flex:1">' + m.actiu + '</div>'
+      + '<div style="font-family:var(--fm);font-size:11px;font-weight:500;color:' + (m.tipus==='rebalanceig'?'var(--accent)':'#1A5C3A') + '">' + (m.tipus==='rebalanceig'?'↻ ':'+ ') + m.import.toLocaleString('ca-ES') + '€</div>'
     + '</div>';
   });
-  html += '</div></div>';
+  html += '</div>';
+
+  html += '</div>';
   el.innerHTML = html;
+
+  // ── RENDER CHARTS ──
+  setTimeout(function(){
+    // Evolution chart
+    var evoCanvas = document.getElementById('evoChart');
+    if (evoCanvas) {
+      new Chart(evoCanvas, {
+        type: 'line',
+        data: {
+          labels: evo.map(function(e){return e.mes;}),
+          datasets: [
+            {
+              label: 'Valor de cartera',
+              data: evo.map(function(e){return e.valor;}),
+              borderColor: '#185FA5',
+              backgroundColor: 'rgba(27,58,107,0.04)',
+              borderWidth: 2.5,
+              fill: '+1',
+              tension: 0.3,
+              pointBackgroundColor: '#185FA5',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 1.5,
+              pointRadius: 3,
+              pointHoverRadius: 5,
+            },
+            {
+              label: 'Total aportat',
+              data: evo.map(function(e){return e.aportat;}),
+              borderColor: 'rgba(27,58,107,0.25)',
+              backgroundColor: 'rgba(27,58,107,0.08)',
+              borderWidth: 1.5,
+              borderDash: [4,3],
+              fill: 'origin',
+              tension: 0.1,
+              pointRadius: 0,
+              pointHoverRadius: 3,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0A0A0A',
+              titleFont: { family: "'DM Sans',sans-serif", size: 11 },
+              bodyFont: { family: "'DM Mono',monospace", size: 12 },
+              cornerRadius: 8,
+              padding: 12,
+              callbacks: {
+                label: function(ctx) {
+                  var val = ctx.parsed.y;
+                  var lbl = ctx.dataset.label;
+                  return lbl + ': ' + val.toLocaleString('ca-ES') + ' €';
+                },
+                afterBody: function(items) {
+                  if (items.length >= 2) {
+                    var diff = items[0].parsed.y - items[1].parsed.y;
+                    return 'Guany: ' + (diff>=0?'+':'') + diff.toLocaleString('ca-ES') + ' €';
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(0,0,0,0.03)' },
+              ticks: { font: { family: "'DM Mono',monospace", size: 9 }, color: '#9A9690', maxRotation: 0 }
+            },
+            y: {
+              grid: { color: 'rgba(0,0,0,0.04)' },
+              ticks: {
+                font: { family: "'DM Mono',monospace", size: 10 }, color: '#9A9690',
+                callback: function(v){ return (v/1000).toFixed(0) + 'K'; }
+              },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Donut chart
+    var donutCanvas = document.getElementById('donutChart');
+    if (donutCanvas) {
+      new Chart(donutCanvas, {
+        type: 'doughnut',
+        data: {
+          labels: cartera.map(function(a){return a.nom;}),
+          datasets: [{
+            data: cartera.map(function(a){return a.actual;}),
+            backgroundColor: cartera.map(function(a){return a.color;}),
+            borderWidth: 2, borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0A0A0A', cornerRadius: 8, padding: 10,
+              bodyFont: { family: "'DM Mono',monospace", size: 11 },
+              callbacks: {
+                label: function(ctx) {
+                  return ctx.label.split(' ')[0] + ': ' + ctx.parsed.toFixed(1) + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  }, 250);
+}
+
+function kpiPill(label, value, isPositive) {
+  var col = isPositive === null ? 'rgba(255,255,255,.6)' : isPositive ? '#4CAF82' : '#E57373';
+  return '<div style="padding:10px;background:rgba(255,255,255,.06);border-radius:8px;text-align:center">'
+    + '<div style="font-size:8px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">' + label + '</div>'
+    + '<div style="font-family:var(--fm);font-size:13px;font-weight:500;color:' + col + '">' + value + '</div>'
+  + '</div>';
 }
 
 // ══════════════════════════════════════════════════
