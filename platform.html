@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Boring Investor — Plataforma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<style>
+:root{
+  --black:#0A0A0A;--white:#FFFFFF;--bg:#F7F6F4;
+  --g50:#FAFAF8;--g100:#F4F3F0;--g200:#E8E6E1;--g300:#C8C5BE;--g400:#9A9690;--g500:#6B6762;--g600:#4A4845;--g700:#3A3835;
+  --accent:#1B3A6B;--accent-l:#EBF0FA;--accent-m:#4A7CC7;
+  --green:#1A5C3A;--green-l:#EAF3DE;
+  --amber:#7A4A00;--amber-l:#FEF5E7;
+  --red:#8B1A1A;--red-l:#FDF0F0;
+  --purple:#534AB7;--purple-l:#EDEAF9;
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',system-ui,sans-serif;
+  --fm:'DM Mono',monospace;
+  --r:12px;--sidebar-w:240px;--topbar-h:56px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* ══════════ UTILITIES ══════════ */
+.hidden{display:none!important}
+
+/* ══════════ LOGIN ══════════ */
+#login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  background:var(--black);
+  position:relative;overflow:hidden;
+}
+#login-screen::before{
+  content:'';position:absolute;top:-30%;right:-10%;
+  width:700px;height:700px;
+  background:radial-gradient(circle,rgba(27,58,107,.15) 0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+#login-screen::after{
+  content:'';position:absolute;bottom:-20%;left:-10%;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(26,92,58,.1) 0%,transparent 70%);
+  border-radius:50%;pointer-events:none;
+}
+.login-card{
+  background:var(--white);border-radius:20px;padding:48px 44px;
+  width:100%;max-width:420px;position:relative;z-index:1;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.login-logo-text{display:flex;flex-direction:column}
+.login-logo-name{font-size:14px;font-weight:500;color:var(--black)}
+.login-logo-sub{font-size:10px;color:var(--g400);margin-top:1px}
+.login-title{font-family:var(--fd);font-size:28px;font-weight:400;letter-spacing:-.4px;margin-bottom:8px;color:var(--black)}
+.login-sub{font-size:13px;color:var(--g500);margin-bottom:32px;line-height:1.7}
+.form-label{font-size:11px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:block}
+.form-input{
+  width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:9px;
+  font-size:14px;font-family:var(--fb);background:var(--white);color:var(--black);
+  outline:none;transition:all .2s;margin-bottom:16px;
+}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(27,58,107,.08)}
+.form-input::placeholder{color:var(--g300)}
+.btn-login{
+  width:100%;padding:14px;background:var(--black);color:var(--white);
+  border:none;border-radius:10px;font-size:14px;font-weight:500;
+  cursor:pointer;font-family:var(--fb);transition:all .15s;margin-top:4px;
+}
+.btn-login:hover{opacity:.88;transform:translateY(-1px)}
+.btn-login:disabled{opacity:.4;cursor:default;transform:none}
+.login-msg{font-size:12px;text-align:center;margin-top:16px;line-height:1.6;min-height:20px}
+.login-msg.ok{color:var(--green)}
+.login-msg.err{color:var(--red)}
+.login-divider{display:flex;align-items:center;gap:12px;margin:24px 0}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--g200)}
+.login-divider span{font-size:11px;color:var(--g400)}
+.btn-demo{
+  width:100%;padding:12px;background:transparent;color:var(--g500);
+  border:1.5px solid var(--g200);border-radius:10px;font-size:13px;
+  cursor:pointer;font-family:var(--fb);transition:all .15s;
+}
+.btn-demo:hover{border-color:var(--g300);color:var(--black);background:var(--g100)}
+.login-roles{display:flex;gap:8px;margin-top:10px}
+.btn-demo-role{
+  flex:1;padding:10px;background:transparent;color:var(--g500);
+  border:1.5px solid var(--g200);border-radius:9px;font-size:12px;
+  cursor:pointer;font-family:var(--fb);transition:all .15s;text-align:center;
+}
+.btn-demo-role:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
+.btn-demo-role .role-icon{font-size:18px;display:block;margin-bottom:4px}
+.btn-demo-role .role-name{font-weight:500;display:block}
+.btn-demo-role .role-desc{font-size:10px;color:var(--g400);display:block;margin-top:2px}
+
+/* ══════════ APP SHELL ══════════ */
+#app-shell{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--black);color:var(--white);
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+  transition:transform .3s;
+}
+.sidebar-header{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.sidebar-brand{font-size:13px;font-weight:500;color:rgba(255,255,255,.85)}
+.sidebar-role{font-size:10px;color:rgba(255,255,255,.3);margin-top:2px;padding-left:38px}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.sidebar-section{font-size:9px;font-weight:500;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;padding:12px 10px 6px}
+.sidebar-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border-radius:8px;cursor:pointer;color:rgba(255,255,255,.5);
+  font-size:12px;font-weight:400;transition:all .12s;border:none;
+  background:transparent;font-family:var(--fb);width:100%;text-align:left;
+}
+.sidebar-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.sidebar-item.active{background:rgba(255,255,255,.1);color:var(--white);font-weight:500}
+.sidebar-item-icon{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sidebar-item-badge{
+  margin-left:auto;font-size:9px;padding:2px 6px;border-radius:99px;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-family:var(--fm);
+}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.06)}
+.sidebar-user{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sidebar-avatar{
+  width:32px;height:32px;border-radius:8px;
+  background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:rgba(255,255,255,.6);
+}
+.sidebar-user-info{flex:1;min-width:0}
+.sidebar-user-name{font-size:12px;font-weight:500;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-email{font-size:10px;color:rgba(255,255,255,.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn-logout{
+  width:100%;padding:8px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);
+  border:none;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);transition:all .12s;
+}
+.btn-logout:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+
+/* MAIN CONTENT AREA */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{
+  height:var(--topbar-h);background:var(--white);border-bottom:1px solid var(--g200);
+  display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+  flex-shrink:0;
+}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.topbar-title{font-size:14px;font-weight:500}
+.topbar-sub{font-size:11px;color:var(--g400)}
+.topbar-breadcrumb{font-size:11px;color:var(--g400)}
+.topbar-breadcrumb span{color:var(--black);font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-btn{
+  padding:7px 14px;border:1px solid var(--g200);border-radius:7px;
+  font-size:12px;cursor:pointer;background:var(--white);font-family:var(--fb);
+  color:var(--g500);transition:all .12s;
+}
+.topbar-btn:hover{border-color:var(--g300);color:var(--black)}
+.topbar-btn.primary{background:var(--black);color:var(--white);border-color:var(--black)}
+.topbar-btn.primary:hover{opacity:.85}
+
+.content{flex:1;overflow-y:auto;padding:0}
+.content-inner{max-width:900px;margin:0 auto;padding:28px 32px 60px}
+
+/* ══════════ CARDS ══════════ */
+.card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r);padding:20px 24px;margin-bottom:16px}
+.card-title{font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--g200)}
+
+/* ══════════ HUB VIEW (ADMIN) ══════════ */
+.hub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+.hub-card{
+  background:var(--white);border:1px solid var(--g200);border-radius:14px;
+  padding:24px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;
+}
+.hub-card:hover{border-color:var(--g300);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.hub-card-icon{font-size:28px;margin-bottom:14px}
+.hub-card-title{font-size:15px;font-weight:500;color:var(--black);margin-bottom:4px}
+.hub-card-desc{font-size:12px;color:var(--g500);line-height:1.6}
+.hub-card-arrow{position:absolute;top:24px;right:24px;font-size:14px;color:var(--g300);transition:all .15s}
+.hub-card:hover .hub-card-arrow{color:var(--accent);transform:translateX(3px)}
+.hub-card.highlight{border-color:var(--accent);background:linear-gradient(135deg,var(--white) 0%,var(--accent-l) 100%)}
+.hub-card.highlight .hub-card-title{color:var(--accent)}
+.hub-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.hub-stat{padding:16px;background:var(--white);border:1px solid var(--g200);border-radius:10px;text-align:center}
+.hub-stat-val{font-family:var(--fm);font-size:24px;font-weight:500;color:var(--black);margin-bottom:2px}
+.hub-stat-lbl{font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em}
+
+/* ══════════ CLIENT PORTAL VIEW ══════════ */
+.portal-hello{margin-bottom:28px}
+.portal-hello-eye{font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px}
+.portal-hello-name{font-family:var(--fd);font-size:30px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px}
+.portal-hello-sub{font-size:13px;color:var(--g500)}
+.score-hero{
+  background:var(--black);border-radius:var(--r);padding:24px 28px;margin-bottom:16px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+}
+.score-left{}
+.score-arquetip-eye{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px}
+.score-arquetip{font-family:var(--fd);font-size:24px;font-weight:400;color:var(--white);margin-bottom:3px}
+.score-cartera{font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px}
+.score-right{text-align:right}
+.score-num{font-family:var(--fm);font-size:44px;font-weight:500;line-height:1}
+.score-denom{font-size:14px;opacity:.35;margin-left:2px}
+.perfil-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.perfil-item{padding:10px 12px;background:var(--g100);border-radius:8px}
+.perfil-lbl{font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.perfil-val{font-size:13px;font-weight:500;color:var(--black)}
+.alloc-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--g100)}
+.alloc-row:last-child{border-bottom:none}
+.alloc-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.alloc-nom{font-size:12px;color:var(--black);flex:1}
+.alloc-bar-wrap{width:100px;height:4px;background:var(--g200);border-radius:99px;overflow:hidden}
+.alloc-bar{height:100%;border-radius:99px}
+.alloc-pct{font-family:var(--fm);font-size:11px;color:var(--accent);min-width:32px;text-align:right}
+.dims-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px}
+.dim-item{text-align:center;padding:8px 3px;background:var(--g100);border-radius:7px}
+.dim-val{font-family:var(--fm);font-size:13px;font-weight:500}
+.dim-lbl{font-size:8px;color:var(--g400);margin-top:2px;line-height:1.2}
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.proj-card{padding:12px;border-radius:8px;text-align:center}
+.proj-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.proj-val{font-family:var(--fm);font-size:16px;font-weight:500}
+.nota-box{background:var(--g100);border-radius:8px;padding:14px 16px;font-size:13px;color:var(--g600);line-height:1.7;border-left:3px solid var(--g300);font-style:italic}
+.hist-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--g100)}
+.hist-item:last-child{border-bottom:none}
+.hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.hist-titol{font-size:12px;font-weight:500;color:var(--black);margin-bottom:2px}
+.hist-data{font-size:10px;color:var(--g400)}
+.hist-desc{font-size:11px;color:var(--g500);margin-top:2px;line-height:1.5}
+.radar-wrap{max-width:260px;height:220px;margin:0 auto}
+.disc{font-size:10px;color:var(--g400);line-height:1.6;margin-top:24px;padding-top:14px;border-top:1px solid var(--g200)}
+
+/* Portal tabs */
+.portal-tabs{display:flex;gap:2px;background:var(--g100);padding:4px;border-radius:10px;margin-bottom:28px;overflow-x:auto}
+.portal-tab{
+  padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;
+  cursor:pointer;color:var(--g500);border:none;background:transparent;
+  font-family:var(--fb);white-space:nowrap;transition:all .15s;
+}
+.portal-tab.active{background:var(--white);color:var(--black);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+
+/* Carteres model */
+.pc-card{background:var(--white);border:1px solid var(--g200);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.pc-header{padding:16px 20px;border-bottom:1px solid var(--g100)}
+.pc-nom{font-family:var(--fd);font-size:18px;font-weight:400;color:var(--black);margin-bottom:3px}
+.pc-desc{font-size:12px;color:var(--g500);line-height:1.5}
+.pc-body{padding:14px 20px}
+.pc-alloc-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--g100)}
+.pc-alloc-row:last-child{border-bottom:none}
+
+/* Anàlisi portal */
+.pa-card{
+  background:var(--white);border:1px solid var(--g200);border-radius:12px;
+  padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:border-color .15s;
+}
+.pa-card:hover{border-color:var(--g300)}
+
+/* ══════════ PREVIEW BANNER ══════════ */
+.preview-banner{
+  background:var(--accent);color:var(--white);text-align:center;padding:8px 16px;
+  font-size:12px;display:flex;align-items:center;justify-content:center;gap:12px;
+  flex-shrink:0;
+}
+.preview-banner button{
+  background:rgba(255,255,255,.2);border:none;color:var(--white);padding:3px 10px;
+  border-radius:5px;cursor:pointer;font-size:11px;font-family:var(--fb);
+}
+.preview-banner button:hover{background:rgba(255,255,255,.3)}
+
+/* ══════════ IFRAME VIEWS ══════════ */
+.iframe-wrap{flex:1;width:100%;border:none;display:flex;flex-direction:column}
+.iframe-wrap iframe{flex:1;border:none;width:100%}
+
+/* ══════════ SETTINGS ══════════ */
+.settings-section{margin-bottom:28px}
+.settings-title{font-size:14px;font-weight:500;margin-bottom:4px}
+.settings-desc{font-size:12px;color:var(--g500);margin-bottom:16px;line-height:1.6}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--g200)}
+.settings-row:last-child{border-bottom:none}
+.settings-row-left{}
+.settings-row-label{font-size:13px;font-weight:500;color:var(--black)}
+.settings-row-desc{font-size:11px;color:var(--g400);margin-top:2px}
+
+/* ══════════ RESPONSIVE ══════════ */
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;display:none}
+  .sidebar-overlay.show{display:block}
+  .hub-grid{grid-template-columns:1fr}
+  .hub-stats{grid-template-columns:repeat(2,1fr)}
+  .perfil-grid{grid-template-columns:1fr}
+  .dims-grid{grid-template-columns:repeat(4,1fr)}
+  .proj-grid{grid-template-columns:1fr}
+  .score-hero{flex-direction:column}
+  .score-right{text-align:left}
+  .topbar-mobile-menu{display:block!important}
+}
+@media(min-width:769px){
+  .topbar-mobile-menu{display:none!important}
+}
+
+/* ══════════ ANIMATIONS ══════════ */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.slide-in{animation:slideIn .25s ease-out}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- LOGIN SCREEN                                   -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card fade-in">
+    <div class="login-logo">
+      <svg width="36" height="36" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="30" height="30" rx="3" fill="none" stroke="#0A0A0A" stroke-width="2"/>
+        <circle cx="10" cy="11" r="2.2" fill="#0A0A0A"/>
+        <circle cx="10" cy="19" r="2.2" fill="#0A0A0A"/>
+        <rect x="14" y="14.2" width="7" height="2" rx="1" fill="#0A0A0A"/>
+        <rect x="23" y="9" width="2" height="14" rx="1" fill="#0A0A0A"/>
+      </svg>
+      <div class="login-logo-text">
+        <div class="login-logo-name">The Boring Investor</div>
+        <div class="login-logo-sub">Plataforma d'Assessoria Financera</div>
+      </div>
+    </div>
+    <div class="login-title">Accedeix a la plataforma</div>
+    <div class="login-sub">Introdueix les teves credencials per accedir al teu espai.</div>
+    
+    <label class="form-label">Email</label>
+    <input type="email" id="login-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
+    
+    <label class="form-label">Contrasenya</label>
+    <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password">
+    
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Accedir →</button>
+    <div class="login-msg" id="login-msg"></div>
+    
+    <div class="login-divider"><span>o entra en mode demo</span></div>
+    
+    <div class="login-roles">
+      <button class="btn-demo-role" onclick="demoLogin('admin')">
+        <span class="role-icon">🛡️</span>
+        <span class="role-name">Assessor</span>
+        <span class="role-desc">Dashboard complet</span>
+      </button>
+      <button class="btn-demo-role" onclick="demoLogin('client')">
+        <span class="role-icon">👤</span>
+        <span class="role-name">Client</span>
+        <span class="role-desc">Portal personal</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- APP SHELL                                      -->
+<!-- ══════════════════════════════════════════════ -->
+<div id="app-shell" class="hidden">
+  
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
+          <circle cx="8.5" cy="10" r="2" fill="white"/>
+          <circle cx="8.5" cy="17" r="2" fill="white"/>
+          <rect x="12" y="12.5" width="6" height="1.5" rx=".75" fill="white"/>
+          <rect x="20.5" y="8" width="1.5" height="12" rx=".75" fill="white"/>
+        </svg>
+        <span class="sidebar-brand">The Boring Investor</span>
+      </div>
+      <div class="sidebar-role" id="sidebar-role">Assessor</div>
+    </div>
+    
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <!-- Populated by JS based on role -->
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">GP</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Guillem Puig</div>
+          <div class="sidebar-user-email" id="sidebar-user-email">guillem@theboringinvestor.com</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Tancar sessió →</button>
+    </div>
+  </div>
+  
+  <!-- Main area -->
+  <div class="main">
+    <!-- Preview banner (when admin previews client portal) -->
+    <div class="preview-banner hidden" id="preview-banner">
+      👁 Mode previsualització del portal client
+      <button onclick="exitPreview()">✕ Sortir</button>
+    </div>
+    
+    <!-- Topbar -->
+    <div class="topbar" id="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn topbar-mobile-menu" onclick="toggleSidebar()" style="padding:6px 10px">☰</button>
+        <div>
+          <div class="topbar-title" id="topbar-title">Hub</div>
+          <div class="topbar-sub" id="topbar-sub"></div>
+        </div>
+      </div>
+      <div class="topbar-right" id="topbar-right"></div>
+    </div>
+    
+    <!-- Content area -->
+    <div class="content" id="content">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// CONFIG & STATE
+// ══════════════════════════════════════════════════
+var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
+
+var sb = null;
+try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.log('Supabase no disponible, mode demo only'); }
+
+var APP = {
+  role: null,        // 'admin' or 'client'
+  user: null,        // {name, email, initials}
+  view: null,        // current view id
+  isDemo: false,
+  isPreview: false,  // admin previewing client portal
+};
+
+// Admin email list (for role detection)
+var ADMIN_EMAILS = ['guillem@theboringinvestor.com', 'guillem.puig@gmail.com', 'admin@theboringinvestor.com'];
+
+// ══════════════════════════════════════════════════
+// DEMO DATA
+// ══════════════════════════════════════════════════
+var DEMO_CLIENT = {
+  nom: 'Maria García López',
+  email: 'maria.garcia@example.com',
+  arquetip: "L'Arquitecte — Brunelleschi",
+  cartera: 'III · El Galeó',
+  scoring: 67,
+  perfil: {
+    capitalInicial: '45.000 €',
+    aportacioMensual: '400 €/mes',
+    horitzo: '12–15 anys',
+    objectiu: 'Creixement patrimonial',
+    riscFinancer: 'Moderat',
+    riscEmocional: 'Moderat-alt'
+  },
+  scoring_mods: [9, 7, 8, 6, 7, 8, 5],
+  cartera_composicio: [
+    {nom:'RV Global MSCI World', pct:40, color:'#1B3A6B'},
+    {nom:'RV USA S&P 500', pct:15, color:'#2E5FA3'},
+    {nom:'Emergents', pct:10, color:'#D4943A'},
+    {nom:'RF Bons', pct:25, color:'#9A9690'},
+    {nom:'Or', pct:10, color:'#C0392B'}
+  ],
+  projeccions: {p10:'52.300 €', p50:'78.400 €', p90:'112.600 €'},
+  nota: "Maria té un perfil equilibrat amb bona tolerància al risc. Recomanem mantenir la cartera actual i augmentar l'aportació mensual si és possible. Pendent de revisar la diversificació geogràfica al pròxim trimestre.",
+  historial: [
+    {titol:'Revisió trimestral', data:'15 mar 2026', tipus:'info', desc:'Rebalanceig automàtic executat. +2,3% vs benchmark.'},
+    {titol:'Augment aportació', data:'1 feb 2026', tipus:'info', desc:"Aportació mensual augmentada de 300€ a 400€."},
+    {titol:'Alerta concentració', data:'10 gen 2026', tipus:'alerta', desc:'Pes de RV USA >20%. Considerar reduir exposició.'}
+  ],
+  ter: '0,12%',
+  pla: 'bruxola'
+};
+
+var DEMO_CLIENTS_LIST = [
+  {nom:'Maria García López', email:'maria.garcia@example.com', arquetip:"L'Arquitecte", scoring:67, pla:'bruxola'},
+  {nom:'Joan Martí Valls', email:'joan.marti@example.com', arquetip:"L'Estoic", scoring:78, pla:'rumb'},
+  {nom:'Laia Pujol Serra', email:'laia.pujol@example.com', arquetip:"L'Exploradora", scoring:52, pla:'senyal'},
+  {nom:'Pere Font Solé', email:'pere.font@example.com', arquetip:"El Tresorer", scoring:41, pla:'bruxola'},
+  {nom:'Anna Rovira Costa', email:'anna.rovira@example.com', arquetip:"La Navegant", scoring:85, pla:'mapa'},
+];
+
+var DEMO_ANALISIS = [
+  {id:'1', titol:'Setmana 15 — Mercat en mode wait-and-see', subtitol:'S&P flat, Europa lidera +1,2%', categoria:'setmanal', data_pub:'2026-04-11', resum:'Setmana sense grans moviments. Rotació cap a value europeu. BCE manté tipus.', tags:['mercat','setmanal','Europa'], destacat:true},
+  {id:'2', titol:'Anàlisi: Impacte dels aranzels Trump 2.0 en carteres europees', subtitol:'Com protegir-se sense sobrereaccionar', categoria:'macro', data_pub:'2026-04-08', resum:'Els nous aranzels afecten el 12% del comerç UE-US. Impacte moderat en carteres diversificades.', tags:['macro','aranzels','protecció']},
+  {id:'3', titol:'Oportunitat Value: Sector energia renovable', subtitol:'Valuacions atractives després de correcció del 25%', categoria:'value', data_pub:'2026-04-02', resum:'El sector renovable cotitza a múltiples de 2019. Selecció de 3 ETFs amb exposició.', tags:['value','energia','oportunitat']},
+];
+
+var CARTERES_MODEL = [
+  {nom:'Cartera TBI · The Boring Investor', desc:'Cartera pròpia TBI. Indexació global (70%) + Value selectiu (30%).', tbi:true,
+   actius:[{nom:'MSCI World ETF',pct:40,color:'#1B3A6B'},{nom:"S&P 500 ETF",pct:20,color:'#2E5FA3'},{nom:'Selecció valor IBEX',pct:15,color:'#4CAF82'},{nom:'Emergents',pct:10,color:'#D4943A'},{nom:'Renda Fixa Gov.',pct:10,color:'#9A9690'},{nom:'Or físic ETP',pct:5,color:'#C0392B'}],
+   stats:'TER: 0,14% · Retorn esp: 7–9% · Sharpe: 0,55'},
+  {nom:'I · La Catapulta', desc:'100% RV global. Horitzó >15 anys i màxima tolerància al risc.',
+   actius:[{nom:'RV Global MSCI World',pct:60,color:'#1B3A6B'},{nom:'RV USA S&P 500',pct:25,color:'#2E5FA3'},{nom:'Emergents',pct:15,color:'#D4943A'}],
+   stats:'TER: 0,10% · Retorn esp: 8–10% · Sharpe: 0,45'},
+  {nom:'III · El Galeó', desc:'Cartera equilibrada. RV global + RF i or. Perfils moderats.',
+   actius:[{nom:'RV Global',pct:40,color:'#1B3A6B'},{nom:'RV USA',pct:15,color:'#2E5FA3'},{nom:'Emergents',pct:10,color:'#D4943A'},{nom:'RF Bons',pct:25,color:'#9A9690'},{nom:'Or',pct:10,color:'#C0392B'}],
+   stats:'TER: 0,12% · Retorn esp: 5–7% · Sharpe: 0,48'},
+  {nom:'V · La Muralla', desc:'Preservació de capital. RF dominant. Conservadors o horitzó curt.',
+   actius:[{nom:'RF Gov. EUR',pct:45,color:'#9A9690'},{nom:'RF Corp. IG',pct:25,color:'#6B6762'},{nom:'Monetari BCE',pct:15,color:'#C8C5BE'},{nom:'RV Global',pct:10,color:'#1B3A6B'},{nom:'Or',pct:5,color:'#C0392B'}],
+   stats:'TER: 0,14% · Retorn esp: 2–3,5% · Sharpe: 0,42'},
+];
+
+// ══════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════
+async function doLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var password = document.getElementById('login-password').value;
+  var msg = document.getElementById('login-msg');
+  var btn = document.getElementById('btn-login');
+
+  if (!email || !email.includes('@')) {
+    msg.className = 'login-msg err'; msg.textContent = 'Introdueix un email vàlid.'; return;
+  }
+  if (!password || password.length < 4) {
+    msg.className = 'login-msg err'; msg.textContent = 'Introdueix la contrasenya.'; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Accedint...'; msg.textContent = '';
+
+  if (sb) {
+    try {
+      var res = await sb.auth.signInWithPassword({ email: email, password: password });
+      if (res.error) throw res.error;
+      var role = ADMIN_EMAILS.indexOf(email.toLowerCase()) >= 0 ? 'admin' : 'client';
+      enterApp(role, email, false);
+      return;
+    } catch(e) {
+      msg.className = 'login-msg err';
+      msg.textContent = 'Error: ' + (e.message || 'No s\'ha pogut connectar');
+      btn.disabled = false; btn.textContent = 'Accedir →';
+      return;
+    }
+  }
+
+  // Fallback: demo mode if Supabase not available
+  msg.className = 'login-msg err';
+  msg.textContent = 'Connexió no disponible. Usa el mode demo.';
+  btn.disabled = false; btn.textContent = 'Accedir →';
+}
+
+function demoLogin(role) {
+  enterApp(role, role === 'admin' ? 'guillem@theboringinvestor.com' : 'maria.garcia@example.com', true);
+}
+
+function enterApp(role, email, isDemo) {
+  APP.role = role;
+  APP.isDemo = isDemo;
+  APP.user = {
+    email: email,
+    name: role === 'admin' ? 'Guillem Puig' : DEMO_CLIENT.nom,
+    initials: role === 'admin' ? 'GP' : 'MG',
+  };
+
+  // Store session
+  localStorage.setItem('tbi_session', JSON.stringify({ role: role, email: email, isDemo: isDemo }));
+
+  // Hide login, show app
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+
+  // Setup app
+  setupSidebar();
+  navigateTo(role === 'admin' ? 'hub' : 'portal-perfil');
+}
+
+async function doLogout() {
+  if (sb) { try { await sb.auth.signOut(); } catch(e) {} }
+  localStorage.removeItem('tbi_session');
+  APP = { role: null, user: null, view: null, isDemo: false, isPreview: false };
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app-shell').classList.add('hidden');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-msg').textContent = '';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Accedir →';
+}
+
+// Check for existing session on load
+function checkSession() {
+  var s = localStorage.getItem('tbi_session');
+  if (s) {
+    try {
+      s = JSON.parse(s);
+      if (s.role && s.email) {
+        enterApp(s.role, s.email, s.isDemo || false);
+        return true;
+      }
+    } catch(e) {}
+  }
+  return false;
+}
+
+// ══════════════════════════════════════════════════
+// SIDEBAR & NAVIGATION
+// ══════════════════════════════════════════════════
+var ADMIN_NAV = [
+  {section:'Principal'},
+  {id:'hub', icon:'🏠', label:'Hub', desc:'Vista general'},
+  {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
+  {section:'Portal Client'},
+  {id:'portal-perfil', icon:'📊', label:'Vista Perfil Client'},
+  {id:'portal-assessoria', icon:'📈', label:'Vista Assessoria'},
+  {id:'portal-carteres', icon:'🗂', label:'Vista Carteres Model'},
+  {section:'Eines'},
+  {id:'link-dashboard', icon:'⚙️', label:'Dashboard Complet', external:'index.html'},
+  {id:'link-onboarding', icon:'📝', label:'Onboarding', external:'client_onboarding_v3.html'},
+  {id:'link-landing', icon:'🌐', label:'Landing Page', external:'landing.html'},
+  {id:'link-arquetips', icon:'🎭', label:'Carteres Arquetips', external:'carteres_arquetips.html'},
+  {id:'link-legal', icon:'📄', label:'Pack Legal', external:'pack_legal_pre_efa.html'},
+  {section:'Sistema'},
+  {id:'settings', icon:'⚙️', label:'Configuració'},
+];
+
+var CLIENT_NAV = [
+  {section:'El meu espai'},
+  {id:'portal-perfil', icon:'📊', label:'El meu perfil'},
+  {id:'portal-assessoria', icon:'📈', label:'Assessoria'},
+  {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
+  {section:'Eines'},
+  {id:'link-onboarding', icon:'📝', label:'Qüestionari', external:'client_onboarding_v3.html'},
+  {id:'link-glossari', icon:'📖', label:'Glossari'},
+];
+
+function setupSidebar() {
+  var nav = document.getElementById('sidebar-nav');
+  var items = APP.role === 'admin' ? ADMIN_NAV : CLIENT_NAV;
+  var roleLabel = APP.role === 'admin' ? 'Assessor · Administrador' : 'Client';
+  if (APP.isDemo) roleLabel += ' · Demo';
+
+  document.getElementById('sidebar-role').textContent = roleLabel;
+  document.getElementById('sidebar-avatar').textContent = APP.user.initials;
+  document.getElementById('sidebar-user-name').textContent = APP.user.name;
+  document.getElementById('sidebar-user-email').textContent = APP.user.email;
+
+  var html = '';
+  items.forEach(function(item) {
+    if (item.section) {
+      html += '<div class="sidebar-section">' + item.section + '</div>';
+    } else if (item.external) {
+      html += '<button class="sidebar-item" onclick="openExternal(\'' + item.external + '\')">'
+        + '<span class="sidebar-item-icon">' + item.icon + '</span>'
+        + item.label
+        + '<span class="sidebar-item-badge">↗</span>'
+        + '</button>';
+    } else {
+      html += '<button class="sidebar-item" data-view="' + item.id + '" onclick="navigateTo(\'' + item.id + '\')">'
+        + '<span class="sidebar-item-icon">' + item.icon + '</span>'
+        + item.label
+        + (item.badge ? '<span class="sidebar-item-badge">' + item.badge + '</span>' : '')
+        + '</button>';
+    }
+  });
+  nav.innerHTML = html;
+}
+
+function navigateTo(viewId) {
+  APP.view = viewId;
+
+  // Update sidebar active state
+  document.querySelectorAll('.sidebar-item').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.view === viewId);
+  });
+
+  // Update topbar
+  var titles = {
+    'hub': ['Hub de l\'assessor', 'Vista general de la plataforma'],
+    'admin-clients': ['Clients', 'Llistat i gestió de clients'],
+    'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['El meu perfil', 'El teu perfil inversor'],
+    'portal-assessoria': APP.role === 'admin' ? ['Portal Client · Assessoria', '👁 Previsualització'] : ['Assessoria', 'Anàlisi i informació financera'],
+    'portal-carteres': APP.role === 'admin' ? ['Portal Client · Carteres', '👁 Previsualització'] : ['Carteres Model', 'Les carteres de The Boring Investor'],
+    'settings': ['Configuració', 'Gestió del sistema'],
+  };
+  var t = titles[viewId] || [viewId, ''];
+  document.getElementById('topbar-title').textContent = t[0];
+  document.getElementById('topbar-sub').textContent = t[1];
+
+  // Show preview banner for admin viewing client portal
+  var isPortalView = viewId.startsWith('portal-');
+  document.getElementById('preview-banner').classList.toggle('hidden', !(isPortalView && APP.role === 'admin'));
+
+  // Render content
+  renderView(viewId);
+
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+function renderView(viewId) {
+  var content = document.getElementById('content');
+  switch(viewId) {
+    case 'hub': renderHub(content); break;
+    case 'admin-clients': renderClientsList(content); break;
+    case 'portal-perfil': renderPortalPerfil(content); break;
+    case 'portal-assessoria': renderPortalAssessoria(content); break;
+    case 'portal-carteres': renderPortalCarteres(content); break;
+    case 'settings': renderSettings(content); break;
+    default: content.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:60px;color:var(--g400)">Vista no disponible</div></div>';
+  }
+}
+
+function openExternal(file) {
+  window.open(file, '_blank');
+}
+
+function exitPreview() {
+  navigateTo('hub');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: HUB (Admin home)
+// ══════════════════════════════════════════════════
+function renderHub(el) {
+  el.innerHTML = '<div class="content-inner fade-in">'
+    + '<div style="margin-bottom:28px">'
+      + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Bon dia, Guillem 👋</div>'
+      + '<div style="font-size:13px;color:var(--g500)">Plataforma The Boring Investor · ' + new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'}) + '</div>'
+    + '</div>'
+
+    // Stats
+    + '<div class="hub-stats">'
+      + '<div class="hub-stat"><div class="hub-stat-val">5</div><div class="hub-stat-lbl">Clients actius</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val">67</div><div class="hub-stat-lbl">Scoring mig</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val">3</div><div class="hub-stat-lbl">Anàlisis publicades</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val">4</div><div class="hub-stat-lbl">Carteres model</div></div>'
+    + '</div>'
+
+    // Quick actions grid
+    + '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px">Accés ràpid</div>'
+    + '<div class="hub-grid">'
+      + '<div class="hub-card highlight" onclick="navigateTo(\'portal-perfil\')">'
+        + '<div class="hub-card-icon">👁</div>'
+        + '<div class="hub-card-title">Portal del Client</div>'
+        + '<div class="hub-card-desc">Previsualitza el portal tal com el veuen els teus clients.</div>'
+        + '<div class="hub-card-arrow">→</div>'
+      + '</div>'
+      + '<div class="hub-card" onclick="navigateTo(\'admin-clients\')">'
+        + '<div class="hub-card-icon">👥</div>'
+        + '<div class="hub-card-title">Gestió de Clients</div>'
+        + '<div class="hub-card-desc">Consulta i gestiona els expedients dels clients.</div>'
+        + '<div class="hub-card-arrow">→</div>'
+      + '</div>'
+      + '<div class="hub-card" onclick="openExternal(\'index.html\')">'
+        + '<div class="hub-card-icon">⚙️</div>'
+        + '<div class="hub-card-title">Dashboard Complet</div>'
+        + '<div class="hub-card-desc">Accedeix al dashboard amb totes les eines d\'assessoria.</div>'
+        + '<div class="hub-card-arrow">↗</div>'
+      + '</div>'
+      + '<div class="hub-card" onclick="openExternal(\'client_onboarding_v3.html\')">'
+        + '<div class="hub-card-icon">📝</div>'
+        + '<div class="hub-card-title">Onboarding Client</div>'
+        + '<div class="hub-card-desc">Qüestionari de perfil inversor per a nous clients.</div>'
+        + '<div class="hub-card-arrow">↗</div>'
+      + '</div>'
+      + '<div class="hub-card" onclick="navigateTo(\'portal-assessoria\')">'
+        + '<div class="hub-card-icon">📈</div>'
+        + '<div class="hub-card-title">Assessoria</div>'
+        + '<div class="hub-card-desc">Vista de les anàlisis publicades al portal.</div>'
+        + '<div class="hub-card-arrow">→</div>'
+      + '</div>'
+      + '<div class="hub-card" onclick="navigateTo(\'portal-carteres\')">'
+        + '<div class="hub-card-icon">🗂</div>'
+        + '<div class="hub-card-title">Carteres Model</div>'
+        + '<div class="hub-card-desc">Les 4 carteres model de The Boring Investor.</div>'
+        + '<div class="hub-card-arrow">→</div>'
+      + '</div>'
+    + '</div>'
+
+    // External links
+    + '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px;margin-top:8px">Pàgines externes</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">'
+      + linkCard('🌐','Landing Page','landing.html')
+      + linkCard('🎭','Arquetips','carteres_arquetips.html')
+      + linkCard('📄','Pack Legal','pack_legal_pre_efa.html')
+      + linkCard('🧪','Kit Testers','kit_testers.html')
+    + '</div>'
+
+  + '</div>';
+}
+
+function linkCard(icon, label, url) {
+  return '<div onclick="openExternal(\'' + url + '\')" style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer;text-align:center;transition:all .12s" onmouseover="this.style.borderColor=\'var(--g300)\'" onmouseout="this.style.borderColor=\'var(--g200)\'">'
+    + '<div style="font-size:22px;margin-bottom:6px">' + icon + '</div>'
+    + '<div style="font-size:11px;font-weight:500;color:var(--black)">' + label + '</div>'
+    + '<div style="font-size:9px;color:var(--g400);margin-top:3px">↗ Obrir</div>'
+  + '</div>';
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: CLIENTS LIST
+// ══════════════════════════════════════════════════
+function renderClientsList(el) {
+  var html = '<div class="content-inner fade-in">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px">Clients</div>'
+        + '<div style="font-size:12px;color:var(--g500);margin-top:3px">' + DEMO_CLIENTS_LIST.length + ' clients registrats</div>'
+      + '</div>'
+    + '</div>';
+
+  DEMO_CLIENTS_LIST.forEach(function(c) {
+    var scoreColor = c.scoring>=70?'#1A5C3A':c.scoring>=50?'#1B3A6B':c.scoring>=30?'#7A4A00':'#8B1A1A';
+    var scoreBg    = c.scoring>=70?'#EAF3DE':c.scoring>=50?'#EBF0FA':c.scoring>=30?'#FEF5E7':'#FDF0F0';
+    var initials = c.nom.split(' ').map(function(w){return w[0]}).slice(0,2).join('');
+
+    html += '<div class="card" style="cursor:pointer;transition:border-color .12s" onmouseover="this.style.borderColor=\'var(--g300)\'" onmouseout="this.style.borderColor=\'var(--g200)\'" onclick="navigateTo(\'portal-perfil\')">'
+      + '<div style="display:flex;align-items:center;gap:14px">'
+        + '<div style="width:40px;height:40px;border-radius:10px;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--g500)">' + initials + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:14px;font-weight:500">' + c.nom + '</div>'
+          + '<div style="font-size:11px;color:var(--g400)">' + c.email + ' · ' + c.arquetip + '</div>'
+        + '</div>'
+        + '<div style="text-align:right">'
+          + '<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:' + scoreColor + '">' + c.scoring + '<span style="font-size:10px;opacity:.5">/100</span></div>'
+          + '<div style="display:inline-block;font-size:9px;padding:2px 8px;border-radius:99px;background:' + scoreBg + ';color:' + scoreColor + ';font-weight:500;margin-top:3px">' + c.pla + '</div>'
+        + '</div>'
+        + '<div style="color:var(--g300);font-size:14px;margin-left:8px">→</div>'
+      + '</div>'
+    + '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: PORTAL PERFIL
+// ══════════════════════════════════════════════════
+function renderPortalPerfil(el) {
+  var c = DEMO_CLIENT;
+  var sc = c.scoring;
+  var scoreColor = sc>=70?'#4CAF82':sc>=50?'#5B8FD4':sc>=30?'#D4943A':'#C0392B';
+  var scoreBg    = sc>=70?'#EAF3DE':sc>=50?'#EBF0FA':sc>=30?'#FEF5E7':'#FDF0F0';
+  var scoreLabel = sc>=70?'Excel·lent':sc>=50?'Bona base':sc>=30?'Millorable':'En revisió';
+  var perfil = c.perfil;
+  var cartera = c.cartera_composicio;
+  var mods = c.scoring_mods;
+  var proj = c.projeccions;
+  var hist = c.historial;
+  var dlbls = ['Objectius','Situació','Horitzó','Coneixement','Risc fin.','Risc em.','Preferències'];
+  var dataAvui = new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+
+  // Build HTML
+  var html = '<div class="content-inner fade-in">';
+
+  // Tabs
+  html += '<div class="portal-tabs">'
+    + '<button class="portal-tab active" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
+    + '<button class="portal-tab" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
+    + '<button class="portal-tab" onclick="navigateTo(\'portal-carteres\')">🗂 Carteres Model</button>'
+  + '</div>';
+
+  // Hello
+  html += '<div class="portal-hello">'
+    + '<div class="portal-hello-eye">Portal personal</div>'
+    + '<div class="portal-hello-name">Hola, ' + c.nom.split(' ')[0] + ' 👋</div>'
+    + '<div class="portal-hello-sub">El teu perfil inversor actualitzat a ' + dataAvui + '</div>'
+  + '</div>';
+
+  // Score hero
+  html += '<div class="score-hero">'
+    + '<div class="score-left">'
+      + '<div class="score-arquetip-eye">El teu arquetip inversor</div>'
+      + '<div class="score-arquetip">' + c.arquetip + '</div>'
+      + '<div class="score-cartera">Cartera: ' + c.cartera + '</div>'
+    + '</div>'
+    + '<div class="score-right">'
+      + '<div class="score-num" style="color:' + scoreColor + '">' + sc + '<span class="score-denom">/100</span></div>'
+      + '<div style="padding:6px 12px;background:' + scoreBg + ';border-radius:6px;font-size:11px;font-weight:500;color:' + scoreColor + ';margin-top:6px;display:inline-block">' + scoreLabel + '</div>'
+    + '</div>'
+  + '</div>';
+
+  // Dades financeres
+  html += '<div class="card"><div class="card-title">Dades financeres</div><div class="perfil-grid">';
+  [['Capital inicial', perfil.capitalInicial],['Aportació mensual', perfil.aportacioMensual],
+   ['Horitzó', perfil.horitzo],['Objectiu', perfil.objectiu],
+   ['Risc financer', perfil.riscFinancer],['Risc emocional', perfil.riscEmocional]
+  ].forEach(function(r){
+    html += '<div class="perfil-item"><div class="perfil-lbl">' + r[0] + '</div><div class="perfil-val">' + r[1] + '</div></div>';
+  });
+  html += '</div></div>';
+
+  // Cartera
+  html += '<div class="card"><div class="card-title">Composició de cartera — ' + c.cartera + '</div>';
+  cartera.forEach(function(a){
+    html += '<div class="alloc-row">'
+      + '<div class="alloc-dot" style="background:' + a.color + '"></div>'
+      + '<div class="alloc-nom">' + a.nom + '</div>'
+      + '<div class="alloc-bar-wrap"><div class="alloc-bar" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
+      + '<div class="alloc-pct">' + a.pct + '%</div>'
+    + '</div>';
+  });
+  html += '<div style="margin-top:8px;font-size:10px;color:var(--g400)">TER: <strong>' + c.ter + '</strong></div></div>';
+
+  // Dimensions
+  html += '<div class="card"><div class="card-title">Perfil de les 7 dimensions</div><div class="dims-grid">';
+  dlbls.forEach(function(lbl, i){
+    var val = mods[i];
+    var pct = Math.round(val/12*100);
+    var col = pct>=70?'#1A5C3A':pct>=50?'#1B3A6B':pct>=30?'#7A4A00':'#8B1A1A';
+    html += '<div class="dim-item"><div class="dim-val" style="color:' + col + '">' + val + '</div><div class="dim-lbl">' + lbl + '</div></div>';
+  });
+  html += '</div><div class="radar-wrap"><canvas id="radarChart"></canvas></div></div>';
+
+  // Projeccions
+  html += '<div class="card"><div class="card-title">Projecció Montecarlo</div><div class="proj-grid">'
+    + '<div class="proj-card" style="background:#FDF0F0"><div class="proj-lbl" style="color:#8B1A1A">P10 Pessimista</div><div class="proj-val" style="color:#8B1A1A">' + proj.p10 + '</div></div>'
+    + '<div class="proj-card" style="background:#EBF0FA"><div class="proj-lbl" style="color:#1B3A6B">P50 Equilibrat</div><div class="proj-val" style="color:#1B3A6B">' + proj.p50 + '</div></div>'
+    + '<div class="proj-card" style="background:#EAF3DE"><div class="proj-lbl" style="color:#1A5C3A">P90 Optimista</div><div class="proj-val" style="color:#1A5C3A">' + proj.p90 + '</div></div>'
+  + '</div>'
+  + '<div style="font-size:10px;color:var(--g400);margin-top:10px">Simulació basada en model GBM. Els rendiments passats no garanteixen resultats futurs.</div></div>';
+
+  // Nota assessor
+  html += '<div class="card"><div class="card-title">Nota de l\'assessor</div><div class="nota-box">' + c.nota + '</div></div>';
+
+  // Historial
+  html += '<div class="card"><div class="card-title">Activitat recent</div>';
+  hist.forEach(function(h){
+    var dotCol = h.tipus==='alerta'?'#C0392B':'#1B3A6B';
+    html += '<div class="hist-item"><div class="hist-dot" style="background:' + dotCol + '"></div><div>'
+      + '<div class="hist-titol">' + h.titol + '</div>'
+      + '<div class="hist-data">' + h.data + '</div>'
+      + '<div class="hist-desc">' + h.desc + '</div>'
+    + '</div></div>';
+  });
+  html += '</div>';
+
+  // Disclaimer
+  html += '<div class="disc">Guillem Puig · The Boring Investor · Assessoria Financera Independent · Fee-only. '
+    + "Eina d'educació financera independent. No constitueix assessorament d'inversió regulat MiFID II. "
+    + 'Candidat a la certificació EFA (juny 2026). Document confidencial generat el ' + dataAvui + '.</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+
+  // Render radar chart
+  setTimeout(function(){
+    var canvas = document.getElementById('radarChart');
+    if (!canvas) return;
+    new Chart(canvas, {
+      type:'radar',
+      data:{
+        labels: dlbls,
+        datasets:[{
+          label:'El teu perfil', data: mods,
+          borderColor:'rgba(27,58,107,0.9)', backgroundColor:'rgba(27,58,107,0.12)',
+          borderWidth:2, pointBackgroundColor:'#1B3A6B', pointBorderColor:'white', pointRadius:4,
+        },{
+          label:'Màxim', data: dlbls.map(function(){return 12;}),
+          borderColor:'rgba(0,0,0,0.06)', backgroundColor:'rgba(0,0,0,0.02)',
+          borderWidth:1, borderDash:[4,4], pointRadius:0,
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{r:{
+          min:0, max:12,
+          ticks:{stepSize:4, color:'rgba(0,0,0,.25)', backdropColor:'transparent', font:{size:9}},
+          grid:{color:'rgba(0,0,0,0.06)'},
+          pointLabels:{color:'#6B6762', font:{size:9}},
+          angleLines:{color:'rgba(0,0,0,0.06)'}
+        }}
+      }
+    });
+  }, 200);
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: PORTAL ASSESSORIA
+// ══════════════════════════════════════════════════
+function renderPortalAssessoria(el) {
+  var cats = {
+    mercat:{lbl:'Mercat',bg:'#EBF0FA',tc:'#1B3A6B'},
+    sectorial:{lbl:'Sectorial',bg:'#EAF3DE',tc:'#1A5C3A'},
+    value:{lbl:'Value',bg:'#FEF5E7',tc:'#7A4A00'},
+    macro:{lbl:'Macro',bg:'#FDF0F0',tc:'#8B1A1A'},
+    cartera:{lbl:'Cartera',bg:'#EDEAF9',tc:'#534AB7'},
+    setmanal:{lbl:'Setmanal',bg:'#F4F3F0',tc:'#6B6762'}
+  };
+
+  var html = '<div class="content-inner fade-in">';
+
+  // Tabs
+  html += '<div class="portal-tabs">'
+    + '<button class="portal-tab" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
+    + '<button class="portal-tab active" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
+    + '<button class="portal-tab" onclick="navigateTo(\'portal-carteres\')">🗂 Carteres Model</button>'
+  + '</div>';
+
+  html += '<div style="margin-bottom:20px"><div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px">Assessoria i Anàlisi</div>'
+    + '<div style="font-size:12px;color:var(--g500)">Anàlisi i informació financera de The Boring Investor</div></div>';
+
+  DEMO_ANALISIS.forEach(function(a){
+    var cat = cats[a.categoria] || cats.mercat;
+    var data = new Date(a.data_pub).toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+    html += '<div class="pa-card">'
+      + '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
+        + '<span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:' + cat.bg + ';color:' + cat.tc + '">' + cat.lbl + '</span>'
+        + '<span style="font-size:11px;color:var(--g400)">' + data + '</span>'
+        + (a.destacat ? '<span style="font-size:10px;color:var(--accent)">⭐</span>' : '')
+      + '</div>'
+      + '<div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:4px">' + a.titol + '</div>'
+      + (a.subtitol ? '<div style="font-size:12px;color:var(--g400);font-style:italic;margin-bottom:8px">' + a.subtitol + '</div>' : '')
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.6">' + a.resum + '</div>'
+      + (a.tags ? '<div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">' + a.tags.map(function(t){return '<span style="font-size:10px;padding:2px 7px;background:var(--g100);border-radius:99px;color:var(--g500)">' + t + '</span>';}).join('') + '</div>' : '')
+    + '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: PORTAL CARTERES
+// ══════════════════════════════════════════════════
+function renderPortalCarteres(el) {
+  var html = '<div class="content-inner fade-in">';
+
+  // Tabs
+  html += '<div class="portal-tabs">'
+    + '<button class="portal-tab" onclick="navigateTo(\'portal-perfil\')">📊 El meu perfil</button>'
+    + '<button class="portal-tab" onclick="navigateTo(\'portal-assessoria\')">📈 Assessoria</button>'
+    + '<button class="portal-tab active" onclick="navigateTo(\'portal-carteres\')">🗂 Carteres Model</button>'
+  + '</div>';
+
+  html += '<div style="margin-bottom:20px"><div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px">Carteres Model</div>'
+    + '<div style="font-size:12px;color:var(--g500)">Les carteres model de The Boring Investor. La teva cartera es basa en una d\'aquestes.</div></div>';
+
+  CARTERES_MODEL.forEach(function(c){
+    html += '<div class="pc-card"' + (c.tbi?' style="border-color:var(--accent)"':'') + '>'
+      + '<div class="pc-header">'
+        + (c.tbi ? '<div style="font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">⭐ Cartera Pròpia TBI</div>' : '')
+        + '<div class="pc-nom">' + c.nom + '</div>'
+        + '<div class="pc-desc">' + c.desc + '</div>'
+        + '<div style="font-size:10px;color:var(--g400);margin-top:6px">' + c.stats + '</div>'
+      + '</div>'
+      + '<div class="pc-body">'
+        + c.actius.map(function(a){
+          return '<div class="pc-alloc-row">'
+            + '<div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:' + a.color + '"></div>'
+            + '<div style="font-size:12px;color:var(--black);flex:1">' + a.nom + '</div>'
+            + '<div style="width:80px;height:4px;background:var(--g200);border-radius:99px;overflow:hidden"><div style="height:100%;width:' + a.pct + '%;background:' + a.color + ';border-radius:99px"></div></div>'
+            + '<div style="font-family:var(--fm);font-size:11px;color:var(--g500);min-width:30px;text-align:right">' + a.pct + '%</div>'
+          + '</div>';
+        }).join('')
+      + '</div>'
+    + '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// VIEW: SETTINGS
+// ══════════════════════════════════════════════════
+function renderSettings(el) {
+  el.innerHTML = '<div class="content-inner fade-in">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:24px">Configuració</div>'
+
+    + '<div class="card">'
+      + '<div class="card-title">Compte</div>'
+      + '<div class="settings-row">'
+        + '<div class="settings-row-left"><div class="settings-row-label">Email</div><div class="settings-row-desc">' + APP.user.email + '</div></div>'
+      + '</div>'
+      + '<div class="settings-row">'
+        + '<div class="settings-row-left"><div class="settings-row-label">Rol</div><div class="settings-row-desc">' + (APP.role === 'admin' ? 'Administrador / Assessor' : 'Client') + '</div></div>'
+      + '</div>'
+      + '<div class="settings-row">'
+        + '<div class="settings-row-left"><div class="settings-row-label">Mode</div><div class="settings-row-desc">' + (APP.isDemo ? 'Demostració (sense Supabase)' : 'Producció') + '</div></div>'
+      + '</div>'
+    + '</div>'
+
+    + '<div class="card">'
+      + '<div class="card-title">Backend</div>'
+      + '<div class="settings-row">'
+        + '<div class="settings-row-left"><div class="settings-row-label">Supabase</div><div class="settings-row-desc">' + SUPABASE_URL + '</div></div>'
+        + '<div style="font-size:11px;padding:4px 10px;border-radius:99px;background:' + (sb ? '#EAF3DE;color:#1A5C3A' : '#FDF0F0;color:#8B1A1A') + '">' + (sb ? '✓ Connectat' : '✕ No disponible') + '</div>'
+      + '</div>'
+    + '</div>'
+
+    + '<div class="card">'
+      + '<div class="card-title">Accions</div>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap">'
+        + '<button onclick="doLogout()" style="padding:10px 20px;background:var(--red-l);color:var(--red);border:1px solid var(--red);border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--fb);font-weight:500">Tancar sessió</button>'
+        + '<button onclick="localStorage.clear();location.reload()" style="padding:10px 20px;background:var(--g100);color:var(--g500);border:1px solid var(--g200);border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--fb)">Esborrar dades locals</button>'
+      + '</div>'
+    + '</div>'
+
+    + '<div class="card">'
+      + '<div class="card-title">Gestió d\'usuaris</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.7;margin-bottom:14px">'
+        + 'Per crear nous usuaris amb contrasenya, utilitza el panel de Supabase:'
+      + '</div>'
+      + '<div style="font-size:12px;padding:12px 16px;background:var(--g100);border-radius:8px;font-family:var(--fm);color:var(--g500);line-height:1.6">'
+        + '1. Ves a <strong>Supabase Dashboard → Authentication → Users</strong><br>'
+        + '2. Clica <strong>"Add user" → "Create new user"</strong><br>'
+        + '3. Introdueix email i contrasenya<br>'
+        + '4. L\'usuari ja pot accedir a la plataforma<br><br>'
+        + 'Els emails a ADMIN_EMAILS tindran rol d\'assessor.<br>'
+        + 'Tots els altres seran clients.'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+if (!checkSession()) {
+  // Show login screen (already visible by default)
+}
+</script>
+</body>
+</html>
