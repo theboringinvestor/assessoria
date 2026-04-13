@@ -45,6 +45,8 @@ html{height:100%;overflow:hidden}body{height:100%;overflow:hidden;font-family:va
 @keyframes outL{to{opacity:0;transform:translateX(-18px)}}
 @keyframes inR{from{opacity:0;transform:translateX(18px)}}
 @keyframes outR{to{opacity:0;transform:translateX(18px)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease-out}
 
 /* CARD */
 .q-card{background:var(--white);border:1px solid var(--g200);border-radius:14px;padding:32px 36px;box-shadow:0 2px 20px rgba(0,0,0,.05)}
@@ -248,6 +250,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
 // ══════════════════════════════════════════════
@@ -256,6 +259,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 const DIM_ES = {"Benvingut": "Bienvenido", "Contacte": "Contacto", "D1 · Objectius": "D1 · Objetivos", "D2 · Situació": "D2 · Situación", "D3 · Horitzó": "D3 · Horizonte", "D4 · Coneixement": "D4 · Conocimiento", "D5 · Risc financer": "D5 · Riesgo financiero", "D6 · Comportament": "D6 · Comportamiento", "D7 · Preferències": "D7 · Preferencias", "Cartera actual": "Cartera actual"};
 
 let ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
+
+// ══════════════════════════════════════════════
+// SUPABASE CONNECTION
+// ══════════════════════════════════════════════
+var SB_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
+var sbClient = null;
+try { sbClient = supabase.createClient(SB_URL, SB_KEY); } catch(e) { console.log('Supabase no disponible'); }
 
 const QS_ES = {
   // Textos i placeholders
@@ -1295,7 +1306,12 @@ function buildResult(){
 
     // ── BOTONS ──
     +'<div style="display:flex;flex-direction:column;gap:9px">'
-      +'<button id="btn-enviar" onclick="enviarITancar()" style="width:100%;padding:13px;background:#0A0A0A;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:opacity .15s">'+uiT('send_btn')+'</button>'
+      +'<button id="btn-enviar" onclick="enviarITancar()" style="width:100%;padding:13px;background:#0A0A0A;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('send_btn')+'</button>'
+      
+      +'<a id="btn-portal" href="platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s;animation:fadeIn .4s ease-out">'
+        +(ONB_LANG==='es'?'Acceder a mi portal →':'Accedeix al teu portal →')
+      +'</a>'
+      
       +'<button onclick="generarPDF()" style="width:100%;padding:12px;background:white;color:#0A0A0A;border:1.5px solid #C8C5BE;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('download_btn')+'</button>'
       
       // ── CTA Sessió gratuïta ──
@@ -1413,13 +1429,109 @@ function prev(){
 // DESCÀRREGA
 // ════════════════════════════════════════════
 function enviarITancar(){
-  // Envia al Google Sheets i redirigeix
   const btn = document.getElementById('btn-enviar');
   if(btn) { btn.textContent = uiT('sending'); btn.disabled = true; btn.classList.add('sent'); }
-  descarregar(); // crida l'enviament a Sheets + descàrrega JSON
-  setTimeout(() => {
-    window.location.href = 'https://theboringinvestor.github.io/assessoria/';
-  }, 2500);
+  
+  // 1. Enviar a Google Sheets (legacy)
+  descarregar();
+  
+  // 2. Guardar a Supabase (nou)
+  guardarASupabase();
+  
+  // 3. Mostrar botó d'accés al portal
+  setTimeout(function(){
+    var portalBtn = document.getElementById('btn-portal');
+    if (portalBtn) {
+      portalBtn.style.display = 'block';
+      portalBtn.classList.add('fade-in');
+    }
+    if (btn) {
+      btn.textContent = ONB_LANG === 'es' ? '✓ Perfil guardado' : '✓ Perfil guardat';
+      btn.style.background = '#1A5C3A';
+    }
+  }, 2000);
+}
+
+async function guardarASupabase() {
+  if (!sbClient) { console.log('Supabase no disponible, skipping'); return; }
+  
+  var sc = calcScore();
+  var ar = getArquetip(sc);
+  var maxSc = 108;
+  var pct = Math.round(sc / maxSc * 100);
+  
+  // Build scoring_mods (7 dimensions)
+  var scoringMods = [1,2,3,4,5,6,7].map(function(dn) {
+    var qs = QS.filter(function(q){ return q.dn === dn; });
+    return qs.reduce(function(s,q){ return s + (ans[q.id]||0); }, 0);
+  });
+  
+  // Build perfil object
+  var perfil = {
+    capitalInicial: txt.capitalInicial || '—',
+    aportacioMensual: txt.aportacioMensual || '—',
+    horitzo: txt.horitzo || '—',
+    objectiu: txt.objectiu || '—',
+    riscFinancer: pct >= 60 ? 'Alt' : pct >= 40 ? 'Moderat' : 'Baix',
+    riscEmocional: scoringMods[5] >= 8 ? 'Alt' : scoringMods[5] >= 5 ? 'Moderat' : 'Baix',
+    pla: 'senyal',
+  };
+  
+  // Build cartera_composicio from archetype allocation
+  var carteraComp = ar.alloc.map(function(a) {
+    return { nom: a.n, pct: a.p, target: a.p, actual: a.p, valor: 0, color: '' };
+  });
+  
+  // Build the client record
+  var clientData = {
+    nom: txt.nom || '—',
+    email: (txt.email || '').toLowerCase().trim(),
+    arquetip: ar.nom + ' — ' + ar.ep.split('·')[0].trim(),
+    arquetipId: ar.id,
+    cartera: ar.cartera,
+    scoring: pct,
+    scoring_mods: scoringMods,
+    perfil: perfil,
+    cartera_composicio: carteraComp,
+    nota: '',
+    historial: [
+      {
+        titol: ONB_LANG === 'es' ? 'Perfil completado' : 'Perfil completat',
+        data: new Date().toLocaleDateString('ca-ES', {day:'numeric', month:'short', year:'numeric'}),
+        tipus: 'info',
+        desc: (ONB_LANG === 'es' ? 'Cuestionario completado. Arquetipo: ' : 'Qüestionari completat. Arquetip: ') + ar.nom + '. Score: ' + pct + '/100.'
+      }
+    ],
+    ter: ar.ter,
+  };
+  
+  try {
+    // Check if client already exists (by email)
+    var email = clientData.email;
+    if (!email || !email.includes('@')) {
+      console.log('No email, skipping Supabase save');
+      return;
+    }
+    
+    var existing = await sbClient.from('clients').select('id').eq('email', email).limit(1);
+    
+    if (existing.data && existing.data.length > 0) {
+      // Update existing client
+      var res = await sbClient.from('clients').update(clientData).eq('email', email);
+      if (res.error) throw res.error;
+      console.log('Client actualitzat a Supabase:', email);
+    } else {
+      // Insert new client
+      var res = await sbClient.from('clients').insert(clientData);
+      if (res.error) throw res.error;
+      console.log('Client creat a Supabase:', email);
+    }
+    
+    toast(ONB_LANG === 'es' ? '✓ Perfil guardado en la plataforma' : '✓ Perfil guardat a la plataforma');
+  } catch(e) {
+    console.error('Error guardant a Supabase:', e);
+    // Silent fail — the Google Sheets backup already worked
+  }
 }
 
 function nomesDL(){

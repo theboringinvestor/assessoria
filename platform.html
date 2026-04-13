@@ -494,6 +494,10 @@ var APP = {
   view: null,        // current view id
   isDemo: false,
   isPreview: false,  // admin previewing client portal
+  clientData: null,  // active client data (from Supabase or demo)
+  clientsList: null, // all clients (admin only)
+  analisis: null,    // published analyses
+  loading: false,
 };
 
 // Admin email list (for role detection)
@@ -784,14 +788,12 @@ function demoLogin(role) {
   enterApp(role, role === 'admin' ? 'guillem@theboringinvestor.com' : 'maria.garcia@example.com', true);
 }
 
-function enterApp(role, email, isDemo) {
+async function enterApp(role, email, isDemo) {
   APP.role = role;
   APP.isDemo = isDemo;
-  APP.user = {
-    email: email,
-    name: role === 'admin' ? 'Guillem Puig' : DEMO_CLIENT.nom,
-    initials: role === 'admin' ? 'GP' : 'MG',
-  };
+  APP.clientData = null;
+  APP.clientsList = null;
+  APP.analisis = null;
 
   // Store session
   localStorage.setItem('tbi_session', JSON.stringify({ role: role, email: email, isDemo: isDemo }));
@@ -800,15 +802,221 @@ function enterApp(role, email, isDemo) {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
 
-  // Setup app
+  if (isDemo) {
+    // Demo mode: use hardcoded data
+    APP.user = {
+      email: email,
+      name: role === 'admin' ? 'Guillem Puig' : DEMO_CLIENT.nom,
+      initials: role === 'admin' ? 'GP' : getInitials(DEMO_CLIENT.nom),
+    };
+    APP.clientData = DEMO_CLIENT;
+    APP.clientsList = DEMO_CLIENTS_LIST;
+    APP.analisis = DEMO_ANALISIS;
+  } else {
+    // Real mode: set temp user, then load from Supabase
+    APP.user = { email: email, name: email.split('@')[0], initials: email[0].toUpperCase() };
+
+    if (role === 'client') {
+      var cd = await loadClientFromSupabase(email);
+      if (cd) {
+        APP.clientData = cd;
+        APP.user.name = cd.nom || email;
+        APP.user.initials = getInitials(cd.nom || email);
+      }
+    } else {
+      // Admin: load own profile + all clients
+      var allClients = await loadAllClientsFromSupabase();
+      APP.clientsList = allClients;
+      // Load first client as preview, or self
+      if (allClients && allClients.length > 0) {
+        APP.clientData = await loadClientFromSupabase(allClients[0].email);
+      }
+      APP.user.name = 'Guillem Puig';
+      APP.user.initials = 'GP';
+    }
+
+    // Load analyses
+    APP.analisis = await loadAnalisisFromSupabase();
+  }
+
   setupSidebar();
   navigateTo(role === 'admin' ? 'hub' : 'portal-perfil');
+}
+
+// ── SUPABASE DATA LOADING ──
+
+async function loadClientFromSupabase(email) {
+  if (!sb) return null;
+  try {
+    var res = await sb.from('clients').select('*').eq('email', email).limit(1);
+    if (res.error || !res.data || res.data.length === 0) return null;
+    return normalizeClient(res.data[0]);
+  } catch(e) {
+    console.error('Error loading client:', e);
+    return null;
+  }
+}
+
+async function loadAllClientsFromSupabase() {
+  if (!sb) return null;
+  try {
+    var res = await sb.from('clients').select('nom,email,arquetip,cartera,scoring,pla,perfil').order('nom');
+    if (res.error || !res.data) return null;
+    return res.data.map(function(c) {
+      return {
+        nom: c.nom || 'Sense nom',
+        email: c.email,
+        arquetipId: deriveArquetipId(c.arquetip),
+        arquetip: c.arquetip ? c.arquetip.split('—')[0].trim() : '—',
+        cartera: c.cartera || '—',
+        scoring: c.scoring || 0,
+        pla: (c.perfil && c.perfil.pla) ? c.perfil.pla : (c.pla || 'senyal'),
+      };
+    });
+  } catch(e) {
+    console.error('Error loading clients list:', e);
+    return null;
+  }
+}
+
+async function loadAnalisisFromSupabase() {
+  if (!sb) return null;
+  try {
+    var res = await sb.from('analisis').select('*').eq('visible_portal', true).order('data_pub', {ascending: false});
+    if (res.error || !res.data) return null;
+    return res.data;
+  } catch(e) {
+    console.error('Error loading analisis:', e);
+    return null;
+  }
+}
+
+// Admin: switch which client is being previewed
+async function previewClient(email) {
+  var content = document.getElementById('content');
+  content.innerHTML = '<div class="content-inner" style="display:flex;align-items:center;justify-content:center;min-height:300px;color:var(--g400)">Carregant dades del client...</div>';
+  var cd = await loadClientFromSupabase(email);
+  if (cd) {
+    APP.clientData = cd;
+  } else {
+    APP.clientData = DEMO_CLIENT; // fallback
+  }
+  navigateTo(APP.view || 'portal-perfil');
+}
+
+// ── DATA NORMALIZATION ──
+
+function normalizeClient(raw) {
+  // Normalize Supabase row to the format our render functions expect
+  var perfil = raw.perfil || {};
+  var arquetipId = raw.arquetipId || deriveArquetipId(raw.arquetip);
+  var arq = getArquetip(arquetipId);
+
+  return {
+    nom: raw.nom || 'Client',
+    email: raw.email || '',
+    arquetipId: arquetipId,
+    arquetip: raw.arquetip || arq.nom + ' — ' + arq.ep.split('·')[0].trim(),
+    cartera: raw.cartera || arq.cartNom,
+    scoring: raw.scoring || 0,
+    perfil: {
+      capitalInicial: perfil.capitalInicial || '—',
+      aportacioMensual: perfil.aportacioMensual || '—',
+      horitzo: perfil.horitzo || '—',
+      objectiu: perfil.objectiu || '—',
+      riscFinancer: perfil.riscFinancer || '—',
+      riscEmocional: perfil.riscEmocional || '—',
+    },
+    scoring_mods: raw.scoring_mods || arq.dims,
+    cartera_composicio: raw.cartera_composicio || arq.actius.map(function(a){
+      return {nom: a.nom, pct: a.pct, color: a.color, target: a.pct, actual: a.pct, valor: 0};
+    }),
+    projeccions: raw.projeccions || {},
+    nota: raw.nota || '',
+    historial: raw.historial || [],
+    ter: raw.ter || arq.ter,
+    pla: perfil.pla || raw.pla || 'senyal',
+    // New fields (fallback to null if not in Supabase yet)
+    moviments: raw.moviments || null,
+    evolucio: raw.evolucio || null,
+    pla_aportacions: raw.pla_aportacions || null,
+    fons_emergencia: raw.fons_emergencia || null,
+    fire: raw.fire || null,
+  };
+}
+
+function deriveArquetipId(arquetipStr) {
+  if (!arquetipStr) return 'arquitecte';
+  var s = arquetipStr.toLowerCase();
+  if (s.indexOf('estoic') >= 0) return 'estoic';
+  if (s.indexOf('explora') >= 0) return 'explorador';
+  if (s.indexOf('navegan') >= 0) return 'navegant';
+  if (s.indexOf('arquitect') >= 0) return 'arquitecte';
+  if (s.indexOf('tresorer') >= 0) return 'tresorer';
+  if (s.indexOf('cronist') >= 0) return 'cronista';
+  if (s.indexOf('alquimist') >= 0) return 'alquimista';
+  if (s.indexOf('ermit') >= 0 || s.indexOf('eremit') >= 0) return 'eremita';
+  return 'arquitecte';
+}
+
+function getInitials(name) {
+  if (!name) return '??';
+  return name.split(' ').map(function(w){return w[0]}).slice(0,2).join('').toUpperCase();
+}
+
+// ── DATA ACCESSORS (real or demo fallback) ──
+
+function getClient() {
+  return APP.clientData || DEMO_CLIENT;
+}
+
+function getClientsList() {
+  return APP.clientsList || DEMO_CLIENTS_LIST;
+}
+
+function getAnalisis() {
+  return APP.analisis || DEMO_ANALISIS;
+}
+
+function getMoviments() {
+  var c = getClient();
+  return (c.moviments && c.moviments.length > 0) ? c.moviments : DEMO_MOVIMENTS;
+}
+
+function getCarteraActual() {
+  var c = getClient();
+  // If client has cartera_composicio with valor fields, use it
+  if (c.cartera_composicio && c.cartera_composicio.length > 0 && c.cartera_composicio[0].valor) {
+    return c.cartera_composicio;
+  }
+  // Otherwise derive from archetype + demo values
+  return DEMO_CARTERA_ACTUAL;
+}
+
+function getEvolucio() {
+  var c = getClient();
+  return (c.evolucio && c.evolucio.length > 0) ? c.evolucio : DEMO_EVOLUCIO;
+}
+
+function getPlaAportacions() {
+  var c = getClient();
+  return c.pla_aportacions || DEMO_PLA_APORTACIONS;
+}
+
+function getEmergencia() {
+  var c = getClient();
+  return c.fons_emergencia || DEMO_EMERGENCIA;
+}
+
+function getFire() {
+  var c = getClient();
+  return c.fire || DEMO_FIRE;
 }
 
 async function doLogout() {
   if (sb) { try { await sb.auth.signOut(); } catch(e) {} }
   localStorage.removeItem('tbi_session');
-  APP = { role: null, user: null, view: null, isDemo: false, isPreview: false };
+  APP = { role: null, user: null, view: null, isDemo: false, isPreview: false, clientData: null, clientsList: null, analisis: null, loading: false };
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app-shell').classList.add('hidden');
   document.getElementById('login-email').value = '';
@@ -987,7 +1195,7 @@ function toggleSidebar() {
 // VIEW: HUB (Admin home)
 // ══════════════════════════════════════════════════
 function renderHub(el) {
-  var totalValor = DEMO_CARTERA_ACTUAL.reduce(function(s,a){return s+a.valor;},0);
+  var totalValor = getCarteraActual().reduce(function(s,a){return s+a.valor;},0);
   el.innerHTML = '<div class="content-inner fade-in">'
     + '<div style="margin-bottom:28px">'
       + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Bon dia, Guillem 👋</div>'
@@ -1073,7 +1281,7 @@ function renderClientsList(el) {
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
       + '<div>'
         + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px">Clients</div>'
-        + '<div style="font-size:12px;color:var(--g500);margin-top:3px">' + DEMO_CLIENTS_LIST.length + ' clients registrats</div>'
+        + '<div style="font-size:12px;color:var(--g500);margin-top:3px">' + getClientsList().length + ' clients registrats</div>'
       + '</div>'
     + '</div>';
 
@@ -1087,13 +1295,13 @@ function renderClientsList(el) {
     + '<div style="width:20px"></div>'
   + '</div>';
 
-  DEMO_CLIENTS_LIST.forEach(function(c) {
+  getClientsList().forEach(function(c) {
     var scoreColor = c.scoring>=70?'#1A5C3A':c.scoring>=50?'#1B3A6B':c.scoring>=30?'#7A4A00':'#8B1A1A';
     var scoreBg    = c.scoring>=70?'#EAF3DE':c.scoring>=50?'#EBF0FA':c.scoring>=30?'#FEF5E7':'#FDF0F0';
     var initials = c.nom.split(' ').map(function(w){return w[0]}).slice(0,2).join('');
     var plaColors = {senyal:'var(--g400)',bruxola:'var(--accent)',mapa:'#1A5C3A',rumb:'#534AB7',family:'#7A4A00'};
 
-    html += '<div class="card" style="cursor:pointer;transition:all .12s;padding:14px 24px" onmouseover="this.style.borderColor=\'var(--g300)\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.borderColor=\'var(--g200)\';this.style.transform=\'none\'" onclick="navigateTo(\'portal-perfil\')">'
+    html += '<div class="card" style="cursor:pointer;transition:all .12s;padding:14px 24px" onmouseover="this.style.borderColor=\'var(--g300)\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.borderColor=\'var(--g200)\';this.style.transform=\'none\'" onclick="previewClient(\'' + c.email + '\')">'
       + '<div style="display:flex;align-items:center;gap:14px">'
         + '<div style="width:40px;height:40px;border-radius:10px;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--g500)">' + initials + '</div>'
         + '<div style="flex:1;min-width:0">'
@@ -1123,7 +1331,7 @@ function renderClientsList(el) {
 // VIEW: PORTAL PERFIL
 // ══════════════════════════════════════════════════
 function renderPortalPerfil(el) {
-  var c = DEMO_CLIENT;
+  var c = getClient();
   var arq = getArquetip(c.arquetipId);
   var sc = c.scoring;
   var scoreColor = sc>=70?'#4CAF82':sc>=50?'#5B8FD4':sc>=30?'#D4943A':'#C0392B';
@@ -1162,8 +1370,8 @@ function renderPortalPerfil(el) {
   + '</div>';
 
   // Quick snapshot cards
-  var totalValor = DEMO_CARTERA_ACTUAL.reduce(function(s,a){return s+a.valor;},0);
-  var totalAportat = DEMO_EVOLUCIO[DEMO_EVOLUCIO.length-1].aportat;
+  var totalValor = getCarteraActual().reduce(function(s,a){return s+a.valor;},0);
+  var totalAportat = getEvolucio()[getEvolucio().length-1].aportat;
   var rendEur = totalValor - totalAportat;
   var rendPct = totalAportat>0?((totalValor/totalAportat-1)*100):0;
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">'
@@ -1175,17 +1383,17 @@ function renderPortalPerfil(el) {
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-aportacions\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">📅 Propera aportació</div>'
       + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--accent)">1 maig</div>'
-      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + DEMO_PLA_APORTACIONS.mensual + '€/mes</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + getPlaAportacions().mensual + '€/mes</div>'
     + '</div>'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-emergencia\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🛡️ Fons emergència</div>'
-      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#7A4A00">' + DEMO_EMERGENCIA.progresPct + '%</div>'
-      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + DEMO_EMERGENCIA.actual.toLocaleString('ca-ES') + '€ / ' + DEMO_EMERGENCIA.objectiu.toLocaleString('ca-ES') + '€</div>'
+      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#7A4A00">' + getEmergencia().progresPct + '%</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + getEmergencia().actual.toLocaleString('ca-ES') + '€ / ' + getEmergencia().objectiu.toLocaleString('ca-ES') + '€</div>'
     + '</div>'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-fire\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🔥 FIRE</div>'
-      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#1A5C3A">' + DEMO_FIRE.anysEstimats + ' anys</div>'
-      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">Objectiu: ' + DEMO_FIRE.objectiuFIRE.toLocaleString('ca-ES') + '€</div>'
+      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#1A5C3A">' + getFire().anysEstimats + ' anys</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">Objectiu: ' + getFire().objectiuFIRE.toLocaleString('ca-ES') + '€</div>'
     + '</div>'
   + '</div>';
 
@@ -1330,7 +1538,7 @@ function renderPortalAssessoria(el) {
   html += '<div style="margin-bottom:20px"><div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:4px">Assessoria i Anàlisi</div>'
     + '<div style="font-size:12px;color:var(--g500)">Anàlisi i informació financera de The Boring Investor</div></div>';
 
-  DEMO_ANALISIS.forEach(function(a){
+  getAnalisis().forEach(function(a){
     var cat = cats[a.categoria] || cats.mercat;
     var data = new Date(a.data_pub).toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
     html += '<div class="pa-card">'
@@ -1354,7 +1562,7 @@ function renderPortalAssessoria(el) {
 // VIEW: PORTAL CARTERES
 // ══════════════════════════════════════════════════
 function renderPortalCarteres(el) {
-  var myId = DEMO_CLIENT.arquetipId;
+  var myId = getClient().arquetipId;
   var html = '<div class="content-inner fade-in">';
 
   html += '<div style="margin-bottom:24px">'
@@ -1440,10 +1648,10 @@ function toggleCartera(id) {
 // VIEW: LA MEVA CARTERA (tracking + moviments)
 // ══════════════════════════════════════════════════
 function renderPortalCartera(el) {
-  var arq = getArquetip(DEMO_CLIENT.arquetipId);
-  var cartera = DEMO_CARTERA_ACTUAL;
+  var arq = getArquetip(getClient().arquetipId);
+  var cartera = getCarteraActual();
   var totalValor = cartera.reduce(function(s,a){return s+a.valor;},0);
-  var evo = DEMO_EVOLUCIO;
+  var evo = getEvolucio();
   var totalAportat = evo[evo.length-1].aportat;
   var rendimentEur = totalValor - totalAportat;
   var rendimentPct = totalAportat > 0 ? ((totalValor / totalAportat - 1) * 100) : 0;
@@ -1545,9 +1753,9 @@ function renderPortalCartera(el) {
   // ── HISTORIAL ──
   html += '<div class="card"><div class="card-title" style="display:flex;justify-content:space-between;align-items:center">'
     + '<span>Historial de moviments</span>'
-    + '<span style="font-size:10px;color:var(--g400)">' + DEMO_MOVIMENTS.length + ' moviments</span>'
+    + '<span style="font-size:10px;color:var(--g400)">' + getMoviments().length + ' moviments</span>'
   + '</div>';
-  DEMO_MOVIMENTS.forEach(function(m){
+  getMoviments().forEach(function(m){
     var tipusColors = {aportacio:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Aportació'},rebalanceig:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Rebalanceig'},aportacio_extra:{bg:'#FEF5E7',tc:'#7A4A00',lbl:'Extra'}};
     var t = tipusColors[m.tipus] || tipusColors.aportacio;
     html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--g100)">'
@@ -1691,8 +1899,8 @@ function kpiPill(label, value, isPositive) {
 // VIEW: PLA D'APORTACIONS
 // ══════════════════════════════════════════════════
 function renderPortalAportacions(el) {
-  var pla = DEMO_PLA_APORTACIONS;
-  var arq = getArquetip(DEMO_CLIENT.arquetipId);
+  var pla = getPlaAportacions();
+  var arq = getArquetip(getClient().arquetipId);
   var html = '<div class="content-inner fade-in">';
 
   // Summary
@@ -1714,7 +1922,7 @@ function renderPortalAportacions(el) {
   // Distribució de la propera aportació
   html += '<div class="card"><div class="card-title">Distribució de la propera aportació — ' + pla.mensual + ' €</div>';
   pla.distribucio.forEach(function(d){
-    var c = DEMO_CARTERA_ACTUAL.find(function(x){return x.nom===d.actiu;}) || {};
+    var c = getCarteraActual().find(function(x){return x.nom===d.actiu;}) || {};
     html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--g100)">'
       + '<div class="alloc-dot" style="background:' + (c.color||'#888') + '"></div>'
       + '<div style="font-size:12px;flex:1">' + d.actiu + '</div>'
@@ -1794,7 +2002,7 @@ function sendDemoMsg() {
   if (!input || !input.value.trim()) return;
   DEMO_MISSATGES.push({
     id:'m' + (DEMO_MISSATGES.length+1),
-    de:'client', nom: DEMO_CLIENT.nom.split(' ').slice(0,2).join(' '),
+    de:'client', nom: getClient().nom.split(' ').slice(0,2).join(' '),
     data: new Date().toLocaleString('ca-ES',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',''),
     text: input.value.trim()
   });
@@ -1837,7 +2045,7 @@ function renderPortalInformes(el) {
 // VIEW: FIRE
 // ══════════════════════════════════════════════════
 function renderPortalFIRE(el) {
-  var f = DEMO_FIRE;
+  var f = getFire();
   var html = '<div class="content-inner fade-in">';
 
   html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Calculadora FIRE</div>'
@@ -1889,7 +2097,7 @@ function renderPortalFIRE(el) {
 // VIEW: FONS D'EMERGÈNCIA
 // ══════════════════════════════════════════════════
 function renderPortalEmergencia(el) {
-  var e = DEMO_EMERGENCIA;
+  var e = getEmergencia();
   var html = '<div class="content-inner fade-in">';
 
   html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Fons d\'emergència</div>'
