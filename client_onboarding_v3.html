@@ -451,7 +451,7 @@ const ARQUETIPS = [
     nom:"L'Estoic", ep:'Marc Aureli \xb7 121-180 d.C.',
     lema:'La disciplina \xe9s llibertat. El mercat fluctua; el pla no.',
     desc:"L'inversor m\xe9s madur del espectre. Alta capacitat d'estalvi, horitz\xf3 llarg, obertura a diversificaci\xf3 real incloent alternatius. No li importa la volatilitat: t\xe9 el pla, el segueix. La seva edat i situaci\xf3 li permeten maximitzar l'exposici\xf3 a RV global i alternatius amb convicci\xf3.",
-    cartera:"TBI · The Boring Investor", perfil:'Creixement M\xe0xim',
+    cartera:"I · La Catapulta", perfil:'Creixement M\xe0xim',
     cartDesc:"M\xe0xima RV + alternatius seleccionats \xb7 horitz\xf3 il\xb7limitat",
     alloc:[{n:"RV Global (MSCI World)",p:55},{n:"S&P 500 ETF",p:15},{n:"Emergents (EMIM)",p:10},{n:"Crypto BTC/ETH (ETC)",p:10},{n:"Crowdlending P2P",p:5},{n:"Or f\xedsic ETP",p:5}],
     ter:"\u20260.14%", retorn:"8\u201310%",
@@ -529,7 +529,7 @@ const ARQUETIPS = [
     nom:"L'Alquimista", ep:'Paracels \xb7 1493-1541',
     lema:"L'or no es transforma amb pressa, sin\xf3 amb proc\xe9s.",
     desc:"Alt entusiasme, alt risc acceptat, per\xf2 amb proc\xe9s desordenat. Molt interessat en alternatius (crypto, startups) per\xf2 li falta disciplina de cartera. Jove o en etapa inicial. Necessita estructura: 70% cartera \xe0ncora, 30% experimentaci\xf3 controlada.",
-    cartera:"VII · L'Alamí", perfil:'Balancejada-Alta',
+    cartera:"VII · L'Alambí", perfil:'Balancejada-Alta',
     cartDesc:"Energia canalitzada amb proc\xe9s estricte i v\xe0lvula de vapor",
     alloc:[{n:"RV Global Core",p:45},{n:"RF Curta",p:15},{n:"Or f\xedsic ETP",p:10},{n:"Crypto (BTC+ETH)",p:15},{n:"Crowdlending",p:10},{n:"Start-ups (seed)",p:5}],
     ter:"\u20260.22%", retorn:"7\u20139%",
@@ -1474,7 +1474,7 @@ async function guardarASupabase() {
     objectiu: txt.objectiu || '—',
     riscFinancer: pct >= 60 ? 'Alt' : pct >= 40 ? 'Moderat' : 'Baix',
     riscEmocional: scoringMods[5] >= 8 ? 'Alt' : scoringMods[5] >= 5 ? 'Moderat' : 'Baix',
-    pla: 'senyal',
+    pla: 'diagnostic',
   };
   
   // Build cartera_composicio from archetype allocation
@@ -1487,7 +1487,7 @@ async function guardarASupabase() {
     nom: txt.nom || '—',
     email: (txt.email || '').toLowerCase().trim(),
     arquetip: ar.nom + ' — ' + ar.ep.split('·')[0].trim(),
-    arquetipId: ar.id,
+    arquetip_id: ar.id,
     cartera: ar.cartera,
     scoring: pct,
     scoring_mods: scoringMods,
