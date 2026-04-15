@@ -1308,8 +1308,8 @@ function buildResult(){
     +'<div style="display:flex;flex-direction:column;gap:9px">'
       +'<button id="btn-enviar" onclick="enviarITancar()" style="width:100%;padding:13px;background:#0A0A0A;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('send_btn')+'</button>'
       
-      +'<a id="btn-portal" href="platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s;animation:fadeIn .4s ease-out">'
-        +(ONB_LANG==='es'?'Acceder a mi portal →':'Accedeix al teu portal →')
+      +'<a id="btn-portal" href="https://theboringinvestor.github.io/assessoria/platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
+        +(ONB_LANG==='es'?'🔗 Acceder a mi portal →':'🔗 Accedeix al teu portal →')
       +'</a>'
       
       +'<button onclick="generarPDF()" style="width:100%;padding:12px;background:white;color:#0A0A0A;border:1.5px solid #C8C5BE;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('download_btn')+'</button>'
@@ -1438,18 +1438,23 @@ function enviarITancar(){
   // 2. Guardar a Supabase (nou)
   guardarASupabase();
   
-  // 3. Mostrar botó d'accés al portal
+  // 3. Mostrar botó d'accés al portal (després de 1.5s)
   setTimeout(function(){
-    var portalBtn = document.getElementById('btn-portal');
-    if (portalBtn) {
-      portalBtn.style.display = 'block';
-      portalBtn.classList.add('fade-in');
-    }
+    // Canviar botó enviar a "Guardat"
     if (btn) {
       btn.textContent = ONB_LANG === 'es' ? '✓ Perfil guardado' : '✓ Perfil guardat';
       btn.style.background = '#1A5C3A';
     }
-  }, 2000);
+    // Mostrar botó portal
+    var portalBtn = document.getElementById('btn-portal');
+    if (portalBtn) {
+      portalBtn.style.display = 'block';
+    }
+    // Scroll per veure el botó
+    if (portalBtn) {
+      portalBtn.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  }, 1500);
 }
 
 async function guardarASupabase() {
