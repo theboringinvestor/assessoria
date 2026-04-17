@@ -1963,6 +1963,10 @@ function renderPortalPerfil(el) {
   + '</div>';
   html += '</div>';
 
+  // Widget Mercat — inserit aquí entre snapshots i dades financeres
+  html += '<div id="platform-macro-widget" style="background:#fff;border:1px solid #E8E6E1;border-radius:12px;padding:12px 16px;margin-bottom:16px;">'    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'      + '<span style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.1em">Mercats · Temps real</span>'      + '<span id="platform-macro-update" style="font-size:9px;color:#C8C5BE">Carregant...</span>'    + '</div>'    + '<div id="platform-macro-tickers" style="display:flex;gap:10px;flex-wrap:wrap;min-height:32px;align-items:center">'      + '<span style="font-size:11px;color:#9A9690">Connectant...</span>'    + '</div>'  + '</div>';
+  setTimeout(fetchPlatformMacro, 100);
+
   // Dades financeres
   html += '<div class="card"><div class="card-title">Dades financeres</div><div class="perfil-grid">';
   [['Capital inicial', perfil.capitalInicial],['Aportació mensual', perfil.aportacioMensual],
@@ -3498,6 +3502,164 @@ function renderSettings(el) {
       + '</div>'
     + '</div>'
   + '</div>';
+}
+
+
+// ══════════════════════════════════════════════════════
+// WIDGET MERCAT — platform.html (Portal Client)
+// Fonts: Apps Script → CoinGecko → ECB → INE → Frankfurter
+// ══════════════════════════════════════════════════════
+
+const PLATFORM_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxvkgxmH-vgSr5iJeOphiZPgySnjs5r0MDeZozc8MaPH8mbT6Out50GJUcUMtkB7VRW/exec';
+var _platformMacroFetched = false;
+
+async function fetchPlatformMacro() {
+  var el    = document.getElementById('platform-macro-tickers');
+  var updEl = document.getElementById('platform-macro-update');
+  if (!el) return;
+  if (_platformMacroFetched) return; // Evitar múltiples crides
+
+  var data = { quotes:[], bce:null, ipc:null, eurusd:null, ipcEZ:null, bitcoin:null, gold:null, euribor:null };
+
+  // 1. Apps Script proxy (Yahoo Finance + BCE + INE + Eurostat + Euribor)
+  try {
+    var res = await fetch(PLATFORM_SHEETS_URL + '?action=market', { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      var d = JSON.parse(await res.text());
+      if (d.quotes && d.quotes.length > 0) data.quotes = d.quotes;
+      if (d.bce    != null) data.bce    = d.bce;
+      if (d.ipc    != null) data.ipc    = d.ipc;
+      if (d.ipcEZ  != null) data.ipcEZ  = d.ipcEZ;
+      if (d.euribor!= null) data.euribor= d.euribor;
+      if (d.eurusd)         data.eurusd  = d.eurusd;
+    }
+  } catch(e) {}
+
+  // 2. Fallbacks directes si el proxy falla
+  if (!data.eurusd) {
+    try {
+      var r = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD', { signal: AbortSignal.timeout(5000) });
+      if (r.ok) { var d = await r.json(); data.eurusd = d.rates && d.rates.USD; }
+    } catch(e) {}
+  }
+  if (data.bce === null) {
+    try {
+      var r = await fetch('https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.MRR_FR.LEV?lastNObservations=1&format=jsondata', { signal: AbortSignal.timeout(5000) });
+      if (r.ok) {
+        var d = await r.json();
+        var obs = d.dataSets&&d.dataSets[0]&&d.dataSets[0].series&&d.dataSets[0].series['0:0:0:0:0:0:0']&&d.dataSets[0].series['0:0:0:0:0:0:0'].observations;
+        if (obs) { var k = Object.keys(obs).sort(function(a,b){return +b-+a;})[0]; data.bce = parseFloat(obs[k][0]); }
+      }
+    } catch(e) {}
+  }
+  if (data.ipc === null) {
+    try {
+      var r = await fetch('https://servicios.ine.es/wstempus/js/ES/DATOS_SERIE/IPC251858?nultimos=2', { signal: AbortSignal.timeout(5000) });
+      if (r.ok) { var d = await r.json(); if (Array.isArray(d) && d.length) data.ipc = d[d.length-1].Valor; }
+    } catch(e) {}
+  }
+  if (data.euribor === null) {
+    try {
+      var r = await fetch('https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.RT0.BB.EURIBOR1YD.HSTA?lastNObservations=1&format=jsondata', { signal: AbortSignal.timeout(5000) });
+      if (r.ok) {
+        var d = await r.json();
+        var obs = d.dataSets&&d.dataSets[0]&&d.dataSets[0].series&&d.dataSets[0].series['0:0:0:0:0:0:0']&&d.dataSets[0].series['0:0:0:0:0:0:0'].observations;
+        if (obs) { var k = Object.keys(obs).sort(function(a,b){return +b-+a;})[0]; data.euribor = parseFloat(obs[k][0]); }
+      }
+    } catch(e) {}
+  }
+
+  // 3. CoinGecko — Bitcoin + Or (sempre CORS ok, sense clau)
+  try {
+    var r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,gold&vs_currencies=eur,usd&include_24hr_change=true', { signal: AbortSignal.timeout(6000) });
+    if (r.ok) {
+      var d = await r.json();
+      if (d.bitcoin) data.bitcoin = { priceEUR: d.bitcoin.eur, chg24h: d.bitcoin.eur_24h_change };
+      if (d.gold)    data.gold    = { priceEUR: d.gold.eur,    chg24h: d.gold.eur_24h_change };
+    }
+  } catch(e) {}
+
+  _platformMacroFetched = true;
+  renderPlatformTickers(data, el, updEl);
+}
+
+function renderPlatformTickers(data, el, updEl) {
+  var html = '';
+
+  function tick(nom, price, chgRaw, label) {
+    var c = chgRaw != null ? ((chgRaw > 0.05) ? '#1A5C3A' : (chgRaw < -0.05) ? '#8B1A1A' : '#6B6762') : '#9A9690';
+    var chgHtml = chgRaw != null
+      ? '<span style="font-size:9px;color:' + c + '">' + (chgRaw > 0 ? '+' : '') + chgRaw.toFixed(2) + '%</span>'
+      : '<span style="font-size:9px;color:#C8C5BE">' + label + '</span>';
+    return '<div style="display:flex;flex-direction:column;padding:6px 10px;background:#F7F6F4;border-radius:8px;min-width:76px;">'
+      + '<span style="font-size:9px;font-weight:500;color:#9A9690;white-space:nowrap">' + nom + '</span>'
+      + '<span style="font-size:13px;font-weight:500;color:#0A0A0A;line-height:1.3">' + price + '</span>'
+      + chgHtml
+      + '</div>';
+  }
+  function sep() {
+    return '<div style="width:1px;height:36px;background:#E8E6E1;align-self:center;flex-shrink:0"></div>';
+  }
+
+  // ── Yahoo Finance: S&P500, EuroStoxx, IBEX, Or(ETF), BTC, Bond 10Y ──
+  var META = {
+    '^GSPC':    {nom:'S&P 500',      dec:0},
+    '^STOXX50E':{nom:'EuroStoxx 50', dec:0},
+    '^IBEX':    {nom:'IBEX 35',      dec:0},
+    'GLD':      {nom:'Or (ETF)',      dec:2},
+    'BTC-USD':  {nom:'BTC/USD',      dec:0},
+    '^TNX':     {nom:'Bond US 10Y',  dec:2, sfx:'%'}
+  };
+  var hasYF = false;
+  if (data.quotes && data.quotes.length > 0) {
+    data.quotes.forEach(function(q) {
+      var m = META[q.symbol]; if (!m) return;
+      var p = q.price || 0;
+      var pStr = p.toLocaleString('ca-ES', {minimumFractionDigits:m.dec, maximumFractionDigits:m.dec}) + (m.sfx||'');
+      html += tick(m.nom, pStr, q.chg, '');
+      hasYF = true;
+    });
+    if (hasYF) html += sep();
+  }
+
+  // ── Bitcoin (CoinGecko si Yahoo no el retorna) ──
+  var hasBTC = data.quotes && data.quotes.some(function(q){return q.symbol==='BTC-USD';});
+  if (!hasBTC && data.bitcoin) {
+    html += tick('Bitcoin', Math.round(data.bitcoin.priceEUR).toLocaleString('ca-ES') + '€', data.bitcoin.chg24h, '');
+  }
+  // ── Or (CoinGecko si Yahoo no el retorna) ──
+  var hasGLD = data.quotes && data.quotes.some(function(q){return q.symbol==='GLD';});
+  if (!hasGLD && data.gold) {
+    html += tick('Or', Math.round(data.gold.priceEUR).toLocaleString('ca-ES') + '€/oz', data.gold.chg24h, '');
+  }
+  if ((!hasBTC && data.bitcoin) || (!hasGLD && data.gold)) html += sep();
+
+  // ── Macro ──
+  if (data.bce !== null && data.bce !== undefined) {
+    html += tick('BCE tipus', parseFloat(data.bce).toFixed(2) + '%', null, 'ref');
+  }
+  if (data.euribor !== null && data.euribor !== undefined) {
+    html += tick('Euribor 12M', parseFloat(data.euribor).toFixed(2) + '%', null, 'ECB');
+  }
+  if (data.eurusd) {
+    html += tick('EUR/USD', parseFloat(data.eurusd).toFixed(4), null, 'fx');
+  }
+  html += sep();
+
+  // ── Inflació ──
+  if (data.ipc !== null && data.ipc !== undefined) {
+    html += tick('IPC Espanya', parseFloat(data.ipc).toFixed(1) + '%', null, 'INE');
+  }
+  if (data.ipcEZ !== null && data.ipcEZ !== undefined) {
+    html += tick('IPC Eurozona', parseFloat(data.ipcEZ).toFixed(1) + '%', null, 'Eurostat');
+  }
+
+  if (!html) {
+    html = '<span style="font-size:11px;color:#9A9690">No s\'han pogut carregar les dades de mercat</span>';
+  }
+
+  el.innerHTML = html;
+  if (updEl) updEl.textContent = new Date().toLocaleTimeString('ca-ES', {hour:'2-digit', minute:'2-digit'});
 }
 
 // ══════════════════════════════════════════════════
