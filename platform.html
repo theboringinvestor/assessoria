@@ -1952,16 +1952,9 @@ function renderPortalPerfil(el) {
     + '</div>'
   + '</div>';
 
-  // La meva cartera — asset allocation
+  // La meva cartera — asset allocation (donut + legend)
   html += '<div class="card"><div class="card-title">Composició de cartera — ' + arq.cartNom + '</div>';
-  arq.actius.forEach(function(a){
-    html += '<div class="alloc-row">'
-      + '<div class="alloc-dot" style="background:' + a.color + '"></div>'
-      + '<div class="alloc-nom">' + a.nom + '</div>'
-      + '<div class="alloc-bar-wrap"><div class="alloc-bar" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
-      + '<div class="alloc-pct">' + a.pct + '%</div>'
-    + '</div>';
-  });
+  html += renderCarteraDonut(arq.actius, {donutSize: 180, centerLabel: arq.cartNom.split('·')[0].trim(), centerSublabel: 'Cartera'});
   // KPIs
   html += '<div class="kpi-grid" style="margin-top:14px">'
     + '<div class="kpi-item"><div class="kpi-label">TER estimat</div><div class="kpi-value">' + arq.ter + '</div></div>'
@@ -2136,15 +2129,8 @@ function renderPortalCarteres(el) {
       + arq.rationale
     + '</div>';
 
-    // Asset allocation
-    arq.actius.forEach(function(a){
-      html += '<div class="alloc-row">'
-        + '<div class="alloc-dot" style="background:' + a.color + '"></div>'
-        + '<div class="alloc-nom">' + a.nom + '</div>'
-        + '<div class="alloc-bar-wrap"><div class="alloc-bar" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
-        + '<div class="alloc-pct">' + a.pct + '%</div>'
-      + '</div>';
-    });
+    // Asset allocation (donut + legend)
+    html += renderCarteraDonut(arq.actius, {donutSize: 160, centerLabel: arq.cartNom.split('·')[0].trim(), centerSublabel: 'Cartera'});
 
     // KPIs
     html += '<div class="kpi-grid" style="margin-top:14px">'
@@ -2426,6 +2412,63 @@ function kpiPill(label, value, isPositive) {
   return '<div style="padding:10px;background:rgba(255,255,255,.06);border-radius:8px;text-align:center">'
     + '<div style="font-size:8px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">' + label + '</div>'
     + '<div style="font-family:var(--fm);font-size:13px;font-weight:500;color:' + col + '">' + value + '</div>'
+  + '</div>';
+}
+
+// Donut chart renderer — takes array of {nom, pct, color} and optional size
+function renderDonut(actius, options) {
+  options = options || {};
+  var size = options.size || 180;
+  var strokeW = options.strokeWidth || 18;
+  var centerLabel = options.centerLabel || '';
+  var centerSublabel = options.centerSublabel || '';
+  var radius = (100 - strokeW) / 2;
+  var circumference = 2 * Math.PI * radius;
+  var cumulative = 0;
+
+  var segments = actius.map(function(a) {
+    var dasharray = (a.pct / 100 * circumference).toFixed(2) + ' ' + circumference;
+    var dashoffset = (-cumulative / 100 * circumference).toFixed(2);
+    cumulative += a.pct;
+    return '<circle cx="50" cy="50" r="' + radius + '" fill="none" stroke="' + a.color + '" stroke-width="' + strokeW + '" stroke-dasharray="' + dasharray + '" stroke-dashoffset="' + dashoffset + '" transform="rotate(-90 50 50)"/>';
+  }).join('');
+
+  var center = '';
+  if (centerLabel) {
+    center = '<text x="50" y="50" text-anchor="middle" dominant-baseline="central" style="font-family:var(--fm);font-size:12px;font-weight:500;fill:var(--black)">' + centerLabel + '</text>';
+    if (centerSublabel) {
+      center = '<text x="50" y="44" text-anchor="middle" style="font-family:var(--fm);font-size:11px;font-weight:500;fill:var(--black)">' + centerLabel + '</text>'
+        + '<text x="50" y="58" text-anchor="middle" style="font-family:var(--fb);font-size:7px;fill:var(--g400);text-transform:uppercase;letter-spacing:.08em">' + centerSublabel + '</text>';
+    }
+  }
+
+  return '<svg viewBox="0 0 100 100" style="width:' + size + 'px;height:' + size + 'px;flex-shrink:0">'
+    + '<circle cx="50" cy="50" r="' + radius + '" fill="none" stroke="var(--g100)" stroke-width="' + strokeW + '"/>'
+    + segments
+    + center
+  + '</svg>';
+}
+
+// Donut + legend side-by-side layout
+function renderCarteraDonut(actius, opts) {
+  opts = opts || {};
+  var donutSize = opts.donutSize || 180;
+  var centerLabel = opts.centerLabel || '';
+  var centerSublabel = opts.centerSublabel || '';
+
+  var legend = actius.map(function(a) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--g100)">'
+      + '<div style="width:10px;height:10px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></div>'
+      + '<div style="font-size:12px;color:var(--black);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + a.nom + '</div>'
+      + '<div style="font-family:var(--fm);font-size:11px;font-weight:500;color:var(--g500);flex-shrink:0">' + a.pct + '%</div>'
+    + '</div>';
+  }).join('');
+
+  return '<div class="cartera-split" style="display:grid;grid-template-columns:' + donutSize + 'px 1fr;gap:24px;align-items:center;margin:8px 0">'
+    + '<div style="display:flex;align-items:center;justify-content:center">'
+      + renderDonut(actius, {size: donutSize, strokeWidth: 18, centerLabel: centerLabel, centerSublabel: centerSublabel})
+    + '</div>'
+    + '<div>' + legend + '</div>'
   + '</div>';
 }
 
