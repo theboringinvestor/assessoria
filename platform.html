@@ -1307,14 +1307,61 @@ function refillQuestions(state, key) {
   return state;
 }
 
-function useQuestion(questionText) {
-  var key = 'tbi_questions_' + (APP.user && APP.user.email || 'anon');
+async function useQuestion(questionText) {
   var state = getQuestionsState();
   if (state.available <= 0) return false;
+  
+  // 1. Actualitzar estat local immediatament (UX ràpida)
+  var key = 'tbi_questions_' + (APP.user && APP.user.email || 'anon');
   state.available -= 1;
   state.used.push({ q: questionText, at: new Date().toISOString(), answered: false });
   localStorage.setItem(key, JSON.stringify(state));
+  
+  // 2. Persistir a Supabase (asíncron, no bloqueja UI)
+  if (sb && APP.user && APP.user.email) {
+    try {
+      await sb.from('weekly_questions').insert({
+        email: APP.user.email.toLowerCase(),
+        question: questionText,
+        status: 'pending'
+      });
+    } catch(e) {
+      console.warn('No s\'ha pogut guardar la pregunta a Supabase:', e);
+      // Segueix funcionant localment
+    }
+  }
   return true;
+}
+
+// Carregar preguntes existents des de Supabase (al login)
+async function loadQuestionsFromSupabase() {
+  if (!sb || !APP.user || !APP.user.email) return;
+  try {
+    var res = await sb.from('weekly_questions')
+      .select('*')
+      .eq('email', APP.user.email.toLowerCase())
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (res.error || !res.data) return;
+    
+    var key = 'tbi_questions_' + APP.user.email;
+    var state = getQuestionsState();
+    
+    // Fusionar amb estat local (Supabase és la font de veritat per a histories)
+    state.used = res.data.map(function(q) {
+      return {
+        q: q.question,
+        at: q.created_at,
+        answered: q.status === 'answered',
+        answer: q.answer
+      };
+    });
+    
+    localStorage.setItem(key, JSON.stringify(state));
+  } catch(e) {
+    console.warn('Error carregant preguntes:', e);
+  }
 }
 
 // ══════════════════════════════════════════════════
@@ -1409,6 +1456,11 @@ async function enterApp(role, email, isDemo) {
 
     // Load analyses
     APP.analisis = await loadAnalisisFromSupabase();
+    
+    // Load weekly questions history (per al widget)
+    if (role === 'client') {
+      loadQuestionsFromSupabase().catch(function(e){ console.warn(e); });
+    }
   }
 
   setupSidebar();
@@ -1650,6 +1702,7 @@ var ADMIN_NAV = [
   {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
   {id:'portal-missatges', icon:'💬', label:'Missatges clients', badge:'2'},
   {id:'admin-plans', icon:'💎', label:'Plans i subscripcions'},
+  {id:'admin-preguntes', icon:'❓', label:'Preguntes dels clients', badge:'•'},
   {section:'Portal Client · Preview'},
   {id:'portal-perfil', icon:'📊', label:'Resum'},
   {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
@@ -1751,6 +1804,7 @@ function navigateTo(viewId) {
     'settings': ['Configuració', 'Gestió del sistema'],
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
+    'admin-preguntes': ['Preguntes dels clients', 'Respon les preguntes pendents dels clients Essencial'],
   };
   var t = titles[viewId] || [viewId, ''];
   document.getElementById('topbar-title').textContent = t[0];
@@ -1785,6 +1839,7 @@ function renderView(viewId) {
     case 'admin-clients': renderClientsList(content); break;
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
+    case 'admin-preguntes': renderAdminPreguntes(content); break;
     case 'portal-perfil': renderPortalPerfil(content); break;
     case 'portal-roadmap': renderPortalRoadmap(content); break;
     case 'portal-cartera': renderPortalCartera(content); break;
@@ -2675,52 +2730,239 @@ function renderPortalAportacions(el) {
 // ══════════════════════════════════════════════════
 // VIEW: MISSATGES
 // ══════════════════════════════════════════════════
-function renderPortalMissatges(el) {
-  var html = '<div class="content-inner fade-in">';
+var _currentThreadEmail = null;
+var _msgRealtimeChannel = null;
 
+async function renderPortalMissatges(el) {
+  // Si és admin, mostrar selector de client
+  if (APP.role === 'admin') {
+    return renderAdminMissatges(el);
+  }
+  
+  // Client: conversa directa amb Guillem
+  _currentThreadEmail = (APP.user && APP.user.email) || null;
+  
+  var html = '<div class="content-inner fade-in">';
   html += '<div class="card" style="padding:0;overflow:hidden">'
     + '<div style="padding:14px 20px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px">'
       + '<div style="width:32px;height:32px;border-radius:8px;background:var(--accent-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--accent)">GP</div>'
-      + '<div><div style="font-size:13px;font-weight:500">Guillem Puig</div><div style="font-size:10px;color:var(--g400)">Assessor financer · Últim missatge: 11 abr 2026</div></div>'
-    + '</div>';
-
-  // Messages thread
-  html += '<div style="padding:16px 20px;max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:12px" id="msg-thread">';
-  DEMO_MISSATGES.forEach(function(m){
-    var isClient = m.de === 'client';
-    html += '<div style="display:flex;flex-direction:column;align-items:' + (isClient?'flex-end':'flex-start') + '">'
-      + '<div style="max-width:80%;padding:12px 16px;border-radius:' + (isClient?'14px 14px 4px 14px':'14px 14px 14px 4px') + ';background:' + (isClient?'var(--accent)':'var(--g100)') + ';color:' + (isClient?'var(--white)':'var(--black)') + ';font-size:13px;line-height:1.6;white-space:pre-line">'
-        + m.text
-      + '</div>'
-      + '<div style="font-size:9px;color:var(--g400);margin-top:4px;padding:0 4px">' + m.nom + ' · ' + m.data + '</div>'
-    + '</div>';
-  });
-  html += '</div>';
-
-  // Input
-  html += '<div style="padding:12px 16px;border-top:1px solid var(--g200);display:flex;gap:10px">'
-    + '<input type="text" class="form-input" style="margin:0;flex:1;padding:10px 14px" placeholder="Escriu un missatge..." id="msg-input" onkeydown="if(event.key===\'Enter\')sendDemoMsg()">'
-    + '<button style="padding:10px 20px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb);font-weight:500;white-space:nowrap" onclick="sendDemoMsg()">Enviar →</button>'
-  + '</div>';
-
-  html += '</div></div>';
+      + '<div><div style="font-size:13px;font-weight:500">Guillem Puig</div><div style="font-size:10px;color:var(--g400)">Assessor financer · Resposta en 48h</div></div>'
+    + '</div>'
+    + '<div style="padding:16px 20px;min-height:300px;max-height:500px;overflow-y:auto;display:flex;flex-direction:column;gap:12px" id="msg-thread">'
+      + '<div style="text-align:center;color:var(--g400);font-size:12px;padding:40px 20px">Carregant missatges...</div>'
+    + '</div>'
+    + '<div style="padding:12px 16px;border-top:1px solid var(--g200);display:flex;gap:10px">'
+      + '<input type="text" class="form-input" style="margin:0;flex:1;padding:10px 14px" placeholder="Escriu un missatge..." id="msg-input" onkeydown="if(event.key===\'Enter\')enviarMissatge()">'
+      + '<button style="padding:10px 20px;background:var(--accent);color:white;border:none;border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb);font-weight:500;white-space:nowrap" onclick="enviarMissatge()">Enviar →</button>'
+    + '</div>'
+  + '</div></div>';
   el.innerHTML = html;
-
-  // Scroll to bottom
-  var thread = document.getElementById('msg-thread');
-  if (thread) thread.scrollTop = thread.scrollHeight;
+  
+  await loadThread(_currentThreadEmail);
+  subscribeToMessages(_currentThreadEmail);
 }
 
-function sendDemoMsg() {
+async function renderAdminMissatges(el) {
+  el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:60px;color:var(--g400)">Carregant converses...</div></div>';
+  
+  if (!sb) {
+    el.innerHTML = '<div class="content-inner" style="text-align:center;padding:60px;color:var(--g400)">Supabase no disponible</div>';
+    return;
+  }
+  
+  try {
+    // Agregar missatges per email (últim missatge per conversa)
+    var res = await sb.from('messages').select('*').order('created_at', {ascending: false}).limit(500);
+    if (res.error) throw res.error;
+    var msgs = res.data || [];
+    
+    // Agrupar per client_email
+    var threadsMap = {};
+    msgs.forEach(function(m) {
+      var key = m.client_email;
+      if (!threadsMap[key]) {
+        threadsMap[key] = { 
+          email: key, 
+          lastMsg: m, 
+          unread: 0,
+          count: 0
+        };
+      }
+      threadsMap[key].count++;
+      if (m.from_role === 'client' && !m.read_by_admin) threadsMap[key].unread++;
+    });
+    var threads = Object.values(threadsMap).sort(function(a,b) {
+      return new Date(b.lastMsg.created_at) - new Date(a.lastMsg.created_at);
+    });
+    
+    var html = '<div class="content-inner fade-in" style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:300px 1fr;gap:16px;height:calc(100vh - 120px)">';
+    
+    // Sidebar de converses
+    html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden;display:flex;flex-direction:column">'
+      + '<div style="padding:14px 18px;border-bottom:1px solid var(--g200);font-size:11px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em">Converses (' + threads.length + ')</div>'
+      + '<div style="flex:1;overflow-y:auto">';
+    
+    threads.forEach(function(t, idx) {
+      var c = (APP.clientsList||[]).find(function(x){return x.email === t.email;});
+      var nom = c ? c.nom : t.email;
+      var isActive = _currentThreadEmail === t.email;
+      var preview = (t.lastMsg.content || '').substring(0, 50) + (t.lastMsg.content && t.lastMsg.content.length > 50 ? '...' : '');
+      var d = new Date(t.lastMsg.created_at);
+      var dateStr = d.toLocaleDateString('ca-ES', {day:'numeric',month:'short'});
+      
+      html += '<div onclick="openThread(\'' + t.email + '\')" style="padding:12px 16px;border-bottom:1px solid var(--g100);cursor:pointer;' + (isActive ? 'background:#F7F6F4;' : '') + 'transition:background .1s" onmouseover="this.style.background=\'#F7F6F4\'" onmouseout="this.style.background=\'' + (isActive ? '#F7F6F4' : 'transparent') + '\'">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px"><div style="font-size:12px;font-weight:500;color:var(--black)">' + escapeHtml(nom) + '</div>' + (t.unread > 0 ? '<span style="background:#D4943A;color:#fff;font-size:9px;padding:1px 6px;border-radius:99px;min-width:16px;text-align:center">' + t.unread + '</span>' : '') + '</div>'
+        + '<div style="font-size:11px;color:var(--g400);margin-bottom:2px">' + escapeHtml(t.email) + '</div>'
+        + '<div style="font-size:11px;color:var(--g500);display:flex;justify-content:space-between;gap:8px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + escapeHtml(preview) + '</span><span style="flex-shrink:0">' + dateStr + '</span></div>'
+        + '</div>';
+    });
+    
+    if (threads.length === 0) {
+      html += '<div style="padding:40px 20px;text-align:center;color:var(--g400);font-size:12px">Encara no hi ha converses</div>';
+    }
+    
+    html += '</div></div>';
+    
+    // Panel de conversa
+    if (_currentThreadEmail) {
+      html += '<div id="admin-thread-panel" style="background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden;display:flex;flex-direction:column">'
+        + '<div style="text-align:center;padding:60px;color:var(--g400);font-size:12px">Carregant conversa...</div>'
+        + '</div>';
+    } else {
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--g400);font-size:13px">Selecciona una conversa</div>';
+    }
+    
+    html += '</div>';
+    el.innerHTML = html;
+    
+    if (_currentThreadEmail) {
+      await openThread(_currentThreadEmail);
+    }
+  } catch(err) {
+    el.innerHTML = '<div class="content-inner" style="text-align:center;padding:60px;color:var(--g400)">Error: ' + err.message + '</div>';
+  }
+}
+
+async function openThread(email) {
+  _currentThreadEmail = email;
+  var panel = document.getElementById('admin-thread-panel');
+  if (!panel) {
+    renderAdminMissatges(document.getElementById('content'));
+    return;
+  }
+  
+  var c = (APP.clientsList||[]).find(function(x){return x.email === email;});
+  var nom = c ? c.nom : email;
+  
+  panel.innerHTML = '<div style="padding:14px 20px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px">'
+    + '<div style="width:32px;height:32px;border-radius:8px;background:#EBF0FA;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#1B3A6B">' + nom.substring(0,2).toUpperCase() + '</div>'
+    + '<div><div style="font-size:13px;font-weight:500">' + escapeHtml(nom) + '</div><div style="font-size:10px;color:var(--g400)">' + escapeHtml(email) + '</div></div>'
+    + '</div>'
+    + '<div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px" id="msg-thread"><div style="text-align:center;color:var(--g400);font-size:12px;padding:20px">Carregant...</div></div>'
+    + '<div style="padding:12px 16px;border-top:1px solid var(--g200);display:flex;gap:10px">'
+      + '<input type="text" class="form-input" style="margin:0;flex:1;padding:10px 14px" placeholder="Resposta al client..." id="msg-input" onkeydown="if(event.key===\'Enter\')enviarMissatge()">'
+      + '<button style="padding:10px 20px;background:var(--black);color:white;border:none;border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb);font-weight:500;white-space:nowrap" onclick="enviarMissatge()">Enviar →</button>'
+    + '</div>';
+  
+  await loadThread(email);
+  await markThreadRead(email);
+  subscribeToMessages(email);
+}
+
+async function loadThread(email) {
+  var thread = document.getElementById('msg-thread');
+  if (!thread) return;
+  
+  if (!sb || !email) {
+    thread.innerHTML = '<div style="text-align:center;color:var(--g400);font-size:12px;padding:40px 20px">Encara no hi ha missatges.<br>Escriu el primer per començar!</div>';
+    return;
+  }
+  
+  try {
+    var res = await sb.from('messages').select('*').eq('client_email', email).order('created_at', {ascending: true});
+    if (res.error) throw res.error;
+    var msgs = res.data || [];
+    
+    if (msgs.length === 0) {
+      thread.innerHTML = '<div style="text-align:center;color:var(--g400);font-size:12px;padding:40px 20px">' + (APP.role === 'admin' ? 'El client encara no ha escrit cap missatge.' : 'Envia el primer missatge al teu assessor.') + '</div>';
+      return;
+    }
+    
+    var html = '';
+    msgs.forEach(function(m) {
+      var isMine = (APP.role === 'admin' ? m.from_role === 'admin' : m.from_role === 'client');
+      var d = new Date(m.created_at);
+      var dateStr = d.toLocaleString('ca-ES', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      html += '<div style="display:flex;flex-direction:column;align-items:' + (isMine?'flex-end':'flex-start') + '">'
+        + '<div style="max-width:80%;padding:12px 16px;border-radius:' + (isMine?'14px 14px 4px 14px':'14px 14px 14px 4px') + ';background:' + (isMine?'#1B3A6B':'#F4F3F0') + ';color:' + (isMine?'#fff':'#0A0A0A') + ';font-size:13px;line-height:1.6;white-space:pre-line">'
+          + escapeHtml(m.content)
+        + '</div>'
+        + '<div style="font-size:9px;color:var(--g400);margin-top:4px;padding:0 4px">' + (m.from_role === 'admin' ? 'Guillem' : 'Tu') + ' · ' + dateStr + '</div>'
+      + '</div>';
+    });
+    thread.innerHTML = html;
+    thread.scrollTop = thread.scrollHeight;
+  } catch(err) {
+    thread.innerHTML = '<div style="text-align:center;color:var(--g400);font-size:12px;padding:40px 20px">Error carregant missatges: ' + err.message + '</div>';
+  }
+}
+
+async function enviarMissatge() {
   var input = document.getElementById('msg-input');
   if (!input || !input.value.trim()) return;
-  DEMO_MISSATGES.push({
-    id:'m' + (DEMO_MISSATGES.length+1),
-    de:'client', nom: getClient().nom.split(' ').slice(0,2).join(' '),
-    data: new Date().toLocaleString('ca-ES',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',''),
-    text: input.value.trim()
-  });
-  renderPortalMissatges(document.getElementById('content'));
+  if (!sb) { alert('Supabase no disponible'); return; }
+  
+  var txt = input.value.trim();
+  input.value = '';
+  input.disabled = true;
+  
+  try {
+    var payload = {
+      client_email: (APP.role === 'admin' ? _currentThreadEmail : APP.user.email.toLowerCase()),
+      from_email: APP.user.email.toLowerCase(),
+      from_role: APP.role === 'admin' ? 'admin' : 'client',
+      content: txt,
+      read_by_admin: APP.role === 'admin',
+      read_by_client: APP.role !== 'admin'
+    };
+    var res = await sb.from('messages').insert(payload);
+    if (res.error) throw res.error;
+    
+    input.disabled = false;
+    input.focus();
+    await loadThread(payload.client_email);
+  } catch(err) {
+    input.disabled = false;
+    input.value = txt;
+    alert('Error enviant: ' + err.message);
+  }
+}
+
+async function markThreadRead(email) {
+  if (!sb) return;
+  try {
+    var field = APP.role === 'admin' ? 'read_by_admin' : 'read_by_client';
+    await sb.from('messages').update({[field]: true}).eq('client_email', email).eq(field, false);
+  } catch(e) {}
+}
+
+function subscribeToMessages(email) {
+  if (!sb || !email) return;
+  // Cleanup canal anterior
+  if (_msgRealtimeChannel) {
+    sb.removeChannel(_msgRealtimeChannel);
+    _msgRealtimeChannel = null;
+  }
+  _msgRealtimeChannel = sb.channel('msg-' + email)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: 'client_email=eq.' + email
+    }, function(payload) {
+      if (_currentThreadEmail === email) loadThread(email);
+    })
+    .subscribe();
 }
 
 // ══════════════════════════════════════════════════
@@ -3665,6 +3907,128 @@ function renderUpgradePrompt(viewId, pla) {
 // ══════════════════════════════════════════════════
 // PANTALLA DE PLANS
 // ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// ADMIN — Safata de preguntes dels clients
+// ══════════════════════════════════════════════════
+async function renderAdminPreguntes(el) {
+  el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:60px;color:var(--g400);font-size:13px">Carregant preguntes...</div></div>';
+  
+  if (!sb) {
+    el.innerHTML = '<div class="content-inner" style="text-align:center;padding:60px;color:var(--g400)">Supabase no disponible</div>';
+    return;
+  }
+  
+  try {
+    var res = await sb.from('weekly_questions')
+      .select('*')
+      .order('status', { ascending: true })
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    if (res.error) throw res.error;
+    var preguntes = res.data || [];
+    
+    var pendents = preguntes.filter(function(q){ return q.status === 'pending'; });
+    var respostes = preguntes.filter(function(q){ return q.status === 'answered'; });
+    
+    var html = '<div class="content-inner fade-in" style="max-width:900px;margin:0 auto">';
+    
+    // Stats hero
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">';
+    html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 22px;border-top:3px solid #D4943A">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Pendents</div>'
+      + '<div style="font-family:var(--fm);font-size:26px;font-weight:500;color:#7A4A00">' + pendents.length + '</div>'
+      + '<div style="font-size:11px;color:var(--g400);margin-top:2px">Cal respondre</div>'
+      + '</div>';
+    html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 22px;border-top:3px solid #1A5C3A">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Respostes</div>'
+      + '<div style="font-family:var(--fm);font-size:26px;font-weight:500;color:#1A5C3A">' + respostes.length + '</div>'
+      + '<div style="font-size:11px;color:var(--g400);margin-top:2px">Total històric</div>'
+      + '</div>';
+    html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 22px;border-top:3px solid #1B3A6B">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total</div>'
+      + '<div style="font-family:var(--fm);font-size:26px;font-weight:500;color:#1B3A6B">' + preguntes.length + '</div>'
+      + '<div style="font-size:11px;color:var(--g400);margin-top:2px">Totes les preguntes</div>'
+      + '</div>';
+    html += '</div>';
+    
+    // Pendents
+    if (pendents.length > 0) {
+      html += '<div style="margin-bottom:24px"><div style="font-size:11px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">⏳ Pendents (' + pendents.length + ')</div>';
+      pendents.forEach(function(q) {
+        var d = new Date(q.created_at);
+        html += '<div style="background:#fff;border:1px solid #FEF5E7;border-left:4px solid #D4943A;border-radius:10px;padding:18px 22px;margin-bottom:10px">'
+          + '<div style="display:flex;justify-content:space-between;margin-bottom:10px;gap:14px;flex-wrap:wrap">'
+          + '<div><div style="font-size:12px;font-weight:500;color:var(--black)">' + escapeHtml(q.email) + '</div>'
+          + '<div style="font-size:10px;color:var(--g400)">' + d.toLocaleString('ca-ES') + '</div></div>'
+          + '<span style="padding:3px 10px;background:#FEF5E7;color:#7A4A00;border-radius:6px;font-size:10px;font-weight:500;align-self:flex-start">Pendent</span>'
+          + '</div>'
+          + '<div style="font-size:13px;color:var(--black);line-height:1.6;padding:10px 14px;background:#F7F6F4;border-radius:8px;margin-bottom:12px"><strong>P:</strong> ' + escapeHtml(q.question) + '</div>'
+          + '<textarea id="resp-' + q.id + '" placeholder="Escriu la resposta..." style="width:100%;min-height:80px;padding:10px 12px;border:1.5px solid var(--g200);border-radius:8px;font-family:var(--fb);font-size:13px;resize:vertical;margin-bottom:10px"></textarea>'
+          + '<button onclick="respondrePregunta(\'' + q.id + '\')" style="padding:9px 18px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Enviar resposta →</button>'
+          + '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div style="padding:40px;background:#EAF3DE;border-radius:12px;text-align:center;margin-bottom:24px">'
+        + '<div style="font-size:30px;margin-bottom:6px">✓</div>'
+        + '<div style="font-size:14px;font-weight:500;color:#1A5C3A">Cap pregunta pendent</div>'
+        + '<div style="font-size:12px;color:#1A5C3A;opacity:.7;margin-top:4px">Tots els clients estan al dia</div>'
+        + '</div>';
+    }
+    
+    // Respostes recents
+    if (respostes.length > 0) {
+      html += '<div><div style="font-size:11px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">✓ Respostes recents</div>';
+      respostes.slice(0, 5).forEach(function(q) {
+        var d = new Date(q.answered_at || q.created_at);
+        html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:10px;padding:14px 18px;margin-bottom:8px">'
+          + '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><div style="font-size:12px;font-weight:500">' + escapeHtml(q.email) + '</div><div style="font-size:10px;color:var(--g400)">' + d.toLocaleDateString('ca-ES') + '</div></div>'
+          + '<div style="font-size:12px;color:var(--g500);line-height:1.6;margin-bottom:6px"><strong>P:</strong> ' + escapeHtml(q.question) + '</div>'
+          + '<div style="font-size:12px;color:var(--black);line-height:1.6;padding:8px 12px;background:#EAF3DE;border-radius:6px"><strong>R:</strong> ' + escapeHtml(q.answer || '') + '</div>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
+    
+    html += '</div>';
+    el.innerHTML = html;
+    
+  } catch(err) {
+    console.error('Error:', err);
+    el.innerHTML = '<div class="content-inner" style="text-align:center;padding:60px;color:var(--g400)">Error carregant preguntes: ' + err.message + '</div>';
+  }
+}
+
+async function respondrePregunta(id) {
+  var resp = document.getElementById('resp-' + id).value.trim();
+  if (!resp || resp.length < 5) {
+    alert('La resposta ha de tenir almenys 5 caràcters.');
+    return;
+  }
+  var btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Enviant...';
+  
+  try {
+    var res = await sb.from('weekly_questions').update({
+      answer: resp,
+      answered_at: new Date().toISOString(),
+      answered_by: APP.user && APP.user.email,
+      status: 'answered'
+    }).eq('id', id);
+    
+    if (res.error) throw res.error;
+    alert('✓ Resposta enviada al client');
+    renderView('admin-preguntes');
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Enviar resposta →';
+    alert('Error: ' + err.message);
+  }
+}
+
 // ══════════════════════════════════════════════════
 // PANTALLA ADMIN — Gestió de plans i subscripcions
 // ══════════════════════════════════════════════════
@@ -3729,30 +4093,112 @@ function renderAdminPlans(el) {
   });
   html += '</tbody></table></div>';
   
-  // Info sobre Stripe
-  html += '<div style="margin-top:24px;padding:20px;background:#FEF5E7;border-left:3px solid #D4943A;border-radius:8px">'
-    + '<div style="font-size:12px;font-weight:500;color:#7A4A00;margin-bottom:6px">💳 Integració Stripe pendent</div>'
-    + '<div style="font-size:11px;color:#7A4A00;line-height:1.6">La facturació actual es gestiona manualment. Per activar cobraments automàtics cal crear compte Stripe + webhooks + taula <code>subscriptions</code> a Supabase. Quan estigui llest, els canvis de pla es sincronitzaran automàticament.</div>'
+  // Info sobre mode beta
+  html += '<div style="margin-top:24px;padding:20px 22px;background:#EBF0FA;border-left:3px solid #1B3A6B;border-radius:8px">'
+    + '<div style="font-size:12px;font-weight:500;color:#1B3A6B;margin-bottom:6px">🚀 Mode beta — Assignació manual de plans</div>'
+    + '<div style="font-size:11px;color:#1B3A6B;line-height:1.6;margin-bottom:8px">Actualment la plataforma està en mode beta. Pots assignar qualsevol pla als teus clients de forma gratuïta per poder-los testar. Quan estiguis donat d\'alta com a autònom, activarem Stripe per a pagaments automàtics.</div>'
+    + '<div style="font-size:11px;color:#1B3A6B;line-height:1.6"><strong>Recomanació:</strong> Ofereix 3 mesos gratuïts als primers 5-10 clients beta. Després passaran a ser els teus primers clients de pagament amb descompte.</div>'
     + '</div>';
   
   html += '</div>';
   el.innerHTML = html;
 }
 
-function canviarPlaClient(email) {
-  var opts = 'Plans disponibles:\n\n1. Essencial (7€/mes)\n2. Brúixola (29€/mes)\n3. Rumb (59€/mes)\n4. Mapa (99€/mes)\n\nEscriu el número:';
-  var n = prompt(opts);
-  if (!n) return;
-  var map = {'1':'essencial','2':'bruxola','3':'rumb','4':'mapa'};
-  var newPla = map[n.trim()];
-  if (!newPla) { alert('Opció no vàlida'); return; }
+async function canviarPlaClient(email) {
+  // Modal personalitzat en lloc d'un prompt feo
+  var c = (APP.clientsList||[]).find(function(x){ return x.email === email; });
+  if (!c) return;
+  var current = c.pla || 'essencial';
+  
+  // Construir modal
+  var modal = document.createElement('div');
+  modal.id = 'tbi-modal-plans';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease-out';
+  
+  var html = '<div style="background:#fff;border-radius:14px;max-width:480px;width:100%;padding:28px 32px;position:relative">'
+    + '<button onclick="tancarModalPla()" style="position:absolute;top:14px;right:14px;width:28px;height:28px;border:none;background:#F4F3F0;border-radius:50%;cursor:pointer;font-size:14px;color:#9A9690">×</button>'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Canviar pla</div>'
+    + '<div style="font-size:13px;color:#6B6762;margin-bottom:22px">Client: <strong>' + c.nom + '</strong> · ' + email + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px">';
+  
+  ['essencial','bruxola','rumb','mapa'].forEach(function(pid) {
+    var p = PLANS[pid];
+    var isCurrent = pid === current;
+    html += '<label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:' + (isCurrent ? p.bg : '#fff') + ';border:' + (isCurrent ? '2px solid '+p.color : '1.5px solid #E8E6E1') + ';border-radius:10px;cursor:pointer;transition:all .15s">'
+      + '<input type="radio" name="new-pla" value="' + pid + '" ' + (isCurrent ? 'checked' : '') + ' style="margin:0;cursor:pointer">'
+      + '<div style="flex:1">'
+      + '<div style="font-size:13px;font-weight:500;color:' + p.color + '">' + p.nom + ' · ' + p.preu + '€/mes</div>'
+      + '<div style="font-size:11px;color:#6B6762;margin-top:2px">' + p.descripcio + '</div>'
+      + '</div>'
+      + (isCurrent ? '<span style="font-size:10px;color:' + p.color + ';font-weight:500;text-transform:uppercase">Actual</span>' : '')
+      + '</label>';
+  });
+  
+  html += '</div>'
+    + '<div style="display:flex;gap:10px;justify-content:flex-end">'
+    + '<button onclick="tancarModalPla()" style="padding:10px 18px;background:transparent;border:1.5px solid #E8E6E1;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:#6B6762">Cancel·lar</button>'
+    + '<button id="btn-confirm-pla" onclick="confirmarCanviPla(\'' + email + '\')" style="padding:10px 22px;background:#0A0A0A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Assignar pla →</button>'
+    + '</div>'
+    + '</div>';
+  
+  modal.innerHTML = html;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(e){ if (e.target === modal) tancarModalPla(); });
+}
+
+function tancarModalPla() {
+  var m = document.getElementById('tbi-modal-plans');
+  if (m) m.remove();
+}
+
+async function confirmarCanviPla(email) {
+  var checked = document.querySelector('input[name="new-pla"]:checked');
+  if (!checked) return;
+  var newPla = checked.value;
+  var btn = document.getElementById('btn-confirm-pla');
+  btn.disabled = true;
+  btn.textContent = 'Guardant...';
   
   var c = (APP.clientsList||[]).find(function(x){ return x.email === email; });
-  if (c) {
-    c.pla = newPla;
-    alert('✓ Pla actualitzat a ' + PLANS[newPla].nom + ' per a ' + c.nom + '\n\n(Aquest canvi és local. Per persistir cal connectar Supabase.)');
+  if (!c) return;
+  var oldPla = c.pla;
+  
+  // 1. Actualitzar local immediatament (UX ràpida)
+  c.pla = newPla;
+  
+  // 2. Persistir a Supabase
+  if (sb) {
+    try {
+      var res = await sb.from('clients').update({ pla: newPla }).eq('email', email);
+      if (res.error) {
+        // Revertir si falla
+        c.pla = oldPla;
+        throw res.error;
+      }
+      tancarModalPla();
+      toast('✓ Pla actualitzat a ' + PLANS[newPla].nom + ' per a ' + c.nom);
+      renderView('admin-plans');
+    } catch(err) {
+      btn.disabled = false;
+      btn.textContent = 'Assignar pla →';
+      alert('Error guardant a Supabase:\n' + err.message + '\n\nEl canvi local s\'ha revertit.');
+    }
+  } else {
+    tancarModalPla();
+    toast('✓ Pla actualitzat localment (Supabase no disponible)');
     renderView('admin-plans');
   }
+}
+
+// Utility toast si no existeix
+if (typeof toast !== 'function') {
+  window.toast = function(msg) {
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0A0A0A;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:10000;box-shadow:0 4px 14px rgba(0,0,0,.25);animation:fadeIn .2s ease-out';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 3000);
+  };
 }
 
 function renderPlansScreen(el) {
@@ -3787,7 +4233,7 @@ function renderPlansScreen(el) {
     if (isCurrent) {
       html += '<button disabled style="width:100%;padding:11px;background:var(--g100);color:var(--g400);border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--fb);cursor:default">Pla actiu</button>';
     } else {
-      html += '<button onclick="iniciarCheckout(\'' + pid + '\')" style="width:100%;padding:11px;background:' + p.color + ';color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--fb);cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">' + (pid === 'essencial' ? 'Començar' : 'Contractar →') + '</button>';
+      html += '<button onclick="sollicitarPla(\'' + pid + '\')" style="width:100%;padding:11px;background:' + p.color + ';color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--fb);cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">Sol·licitar →</button>';
     }
     html += '</div>';
   });
@@ -3800,14 +4246,112 @@ function renderPlansScreen(el) {
   el.innerHTML = html;
 }
 
-function iniciarCheckout(plaId) {
-  // TODO: Integrar Stripe Checkout
-  // De moment: missatge simulat
+async function sollicitarPla(plaId) {
   var p = PLANS[plaId];
-  if (plaId === 'essencial') {
-    alert('Pla Essencial — 7€/mes\n\nEn breu redirigirem a Stripe Checkout per completar la subscripció.');
+  if (!p) return;
+  var email = APP.user && APP.user.email;
+  if (!email) { alert('Cal iniciar sessió'); return; }
+  
+  var confirmMsg = 'Vols sol·licitar el pla ' + p.nom + ' (' + p.preu + '€/mes)?\n\n'
+    + 'Durant la fase beta, l\'assessor Guillem revisarà la teva sol·licitud i et contactarà en 24-48h per activar el pla.\n\n'
+    + 'Prem OK per enviar la sol·licitud.';
+  if (!confirm(confirmMsg)) return;
+  
+  var btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Enviant...';
+  
+  // Enviar com a missatge automàtic
+  if (sb) {
+    try {
+      await sb.from('messages').insert({
+        client_email: email.toLowerCase(),
+        from_email: email.toLowerCase(),
+        from_role: 'client',
+        content: '📋 Sol·licitud de canvi de pla\n\nM\'agradaria contractar el pla ' + p.nom + ' (' + p.preu + '€/mes).\n\nQuedo a l\'espera de la vostra resposta.',
+        read_by_admin: false,
+        read_by_client: true
+      });
+      alert('✓ Sol·licitud enviada a Guillem.\n\nEt contactarà en les properes 24-48h per activar el pla ' + p.nom + '.');
+      navigateTo('portal-missatges');
+    } catch(err) {
+      btn.disabled = false;
+      btn.textContent = 'Sol·licitar →';
+      alert('Error enviant la sol·licitud: ' + err.message + '\n\nProva d\'escriure directament a guillem@theboringinvestor.com');
+    }
   } else {
-    alert('Pla ' + p.nom + ' — ' + p.preu + '€/mes\n\nAquest pla inclou assessorament personal. Contacta amb Guillem per activar-lo.');
+    btn.disabled = false;
+    btn.textContent = 'Sol·licitar →';
+    alert('Supabase no disponible. Envia un email a guillem@theboringinvestor.com sol·licitant el pla ' + p.nom);
+  }
+}
+
+// Mantenir iniciarCheckout per al futur (quan Stripe estigui actiu)
+async function iniciarCheckout(plaId) {
+  var p = PLANS[plaId];
+  if (!p) return;
+  
+  // Verificar que l'usuari tingui sessió activa
+  var email = APP.user && APP.user.email;
+  if (!email) {
+    alert('Cal iniciar sessió per contractar un pla.');
+    return;
+  }
+  
+  // Feedback visual
+  var btn = event.target;
+  var originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Connectant amb Stripe...';
+  
+  try {
+    if (!sb) throw new Error('Supabase no disponible');
+    
+    // Invocar Edge Function
+    var res = await sb.functions.invoke('create-checkout', {
+      body: {
+        plaId: plaId,
+        email: email,
+        successUrl: window.location.origin + window.location.pathname + '?checkout=success&plan=' + plaId,
+        cancelUrl:  window.location.origin + window.location.pathname + '?checkout=cancel'
+      }
+    });
+    
+    if (res.error) throw res.error;
+    if (!res.data || !res.data.url) throw new Error('No s\'ha rebut URL de Checkout');
+    
+    // Redirigir a Stripe
+    window.location.href = res.data.url;
+    
+  } catch(err) {
+    console.error('Checkout error:', err);
+    btn.disabled = false;
+    btn.textContent = originalText;
+    alert('Error connectant amb el sistema de pagaments.\n\n' + (err.message || 'Intenta-ho més tard.') + '\n\nSi el problema persisteix, contacta amb guillem@theboringinvestor.com');
+  }
+}
+
+// Detectar retorn de Stripe Checkout
+function handleCheckoutReturn() {
+  var params = new URLSearchParams(window.location.search);
+  var status = params.get('checkout');
+  var plan = params.get('plan');
+  
+  if (status === 'success') {
+    setTimeout(function() {
+      alert('✓ Pagament completat!\n\nLa teva subscripció al pla ' + (plan ? PLANS[plan].nom : '') + ' està activa. En uns segons veuràs tots els continguts del teu nou pla.');
+      // Netejar URL
+      history.replaceState({}, '', window.location.pathname);
+      // Refrescar dades del client (inclourà el nou pla)
+      if (APP.clientData) {
+        setTimeout(function(){ window.location.reload(); }, 1500);
+      }
+    }, 500);
+  } else if (status === 'cancel') {
+    setTimeout(function() {
+      alert('Pagament cancel·lat. Pots tornar-ho a provar quan vulguis.');
+      history.replaceState({}, '', window.location.pathname);
+    }, 300);
   }
 }
 
@@ -3907,16 +4451,23 @@ function escapeHtml(s) {
   });
 }
 
-function enviarPreguntaSetmanal() {
+async function enviarPreguntaSetmanal() {
   var txt = document.getElementById('pregunta-text').value.trim();
   if (!txt || txt.length < 10) {
     alert('La pregunta ha de tenir almenys 10 caràcters.');
     return;
   }
-  if (useQuestion(txt)) {
+  var btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Enviant...';
+  
+  var sent = await useQuestion(txt);
+  if (sent) {
     alert('✓ Pregunta enviada!\n\nEl teu assessor la respondrà en 48h màxim.');
-    renderView('portal-perfil'); // refresca el widget
+    renderView('portal-perfil');
   } else {
+    btn.disabled = false;
+    btn.textContent = 'Enviar pregunta →';
     alert('No tens preguntes disponibles aquesta setmana.');
   }
 }
@@ -4074,6 +4625,7 @@ function renderPlatformTickers(data, el, updEl) {
 // ══════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════
+handleCheckoutReturn();
 if (!checkSession()) {
   // Show login screen (already visible by default)
 }
