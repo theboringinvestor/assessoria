@@ -1210,6 +1210,114 @@ function generarRecomanacions(client, savingsPlan) {
 }
 
 // ══════════════════════════════════════════════════
+// SISTEMA DE PLANS I RESTRICCIONS
+// ══════════════════════════════════════════════════
+
+var PLANS = {
+  essencial: {
+    nom: 'Essencial',
+    preu: 7,
+    periode: 'mes',
+    color: '#6B6762',
+    bg: '#F4F3F0',
+    descripcio: 'Plataforma automàtica amb arquetip, mercat real i 1 pregunta/setmana',
+    inclou: ['Arquetip + cartera recomanada', 'Mercat en temps real', 'Glossari complet', '1 pregunta/setmana (acumulable fins 4)', 'Calculadora FIRE', 'Fons d\'emergència'],
+    restricted: ['portal-assessoria', 'portal-informes', 'portal-missatges', 'portal-turbo']
+  },
+  bruxola: {
+    nom: 'Brúixola',
+    preu: 29,
+    periode: 'mes',
+    color: '#1B3A6B',
+    bg: '#EBF0FA',
+    descripcio: 'Seguiment actiu amb anàlisis i missatgeria il·limitada',
+    inclou: ['Tot l\'Essencial', 'Anàlisis mensuals de mercat', 'Missatgeria amb assessor', 'Informes PDF trimestrals', 'Turbo estalvi personalitzat'],
+    restricted: []
+  },
+  rumb: {
+    nom: 'Rumb',
+    preu: 59,
+    periode: 'mes',
+    color: '#534AB7',
+    bg: '#EDEAF9',
+    descripcio: 'Assessorament trimestral amb revisió de cartera',
+    inclou: ['Tot la Brúixola', 'Sessió 1h cada 3 mesos', 'Revisió completa de cartera', 'Suport per decisions importants'],
+    restricted: []
+  },
+  mapa: {
+    nom: 'Mapa',
+    preu: 99,
+    periode: 'mes',
+    color: '#1A5C3A',
+    bg: '#EAF3DE',
+    descripcio: 'Assessorament integral amb pla FIRE i fiscalitat',
+    inclou: ['Tot el Rumb', 'Sessió mensual 1h', 'Planificació fiscal anual', 'Pla FIRE personalitzat', 'Acompanyament 1-a-1'],
+    restricted: []
+  }
+};
+
+function getPla(clientOrId) {
+  var id = typeof clientOrId === 'string' ? clientOrId : (clientOrId && clientOrId.pla) || 'essencial';
+  if (id === 'senyal') id = 'essencial'; // compat antics
+  if (id === 'family') id = 'mapa';
+  return PLANS[id] || PLANS.essencial;
+}
+
+function hasAccess(screenId, pla) {
+  pla = pla || (APP.clientData && APP.clientData.pla) || 'essencial';
+  var p = getPla(pla);
+  return p.restricted.indexOf(screenId) === -1;
+}
+
+// ══════════════════════════════════════════════════
+// PREGUNTA SETMANAL ACUMULABLE (Essencial)
+// ══════════════════════════════════════════════════
+// Dilluns a les 00:00 s'acumula +1 pregunta, màx 4. 
+// Si l'usuari en té 4, no n'acumula més fins usar-ne.
+
+function getQuestionsState() {
+  var key = 'tbi_questions_' + (APP.user && APP.user.email || 'anon');
+  var raw = localStorage.getItem(key);
+  if (!raw) {
+    var state = { available: 1, used: [], lastRefill: getMondayTimestamp() };
+    localStorage.setItem(key, JSON.stringify(state));
+    return state;
+  }
+  try { return refillQuestions(JSON.parse(raw), key); }
+  catch(e) { return { available: 1, used: [], lastRefill: getMondayTimestamp() }; }
+}
+
+function getMondayTimestamp() {
+  var d = new Date();
+  d.setHours(0,0,0,0);
+  var day = d.getDay();
+  var diff = day === 0 ? -6 : 1 - day; // dilluns actual
+  d.setDate(d.getDate() + diff);
+  return d.getTime();
+}
+
+function refillQuestions(state, key) {
+  var today = getMondayTimestamp();
+  if (today > state.lastRefill) {
+    var weeksPassed = Math.floor((today - state.lastRefill) / (7*24*3600*1000));
+    state.available = Math.min(4, state.available + weeksPassed);
+    state.lastRefill = today;
+    localStorage.setItem(key, JSON.stringify(state));
+  }
+  return state;
+}
+
+function useQuestion(questionText) {
+  var key = 'tbi_questions_' + (APP.user && APP.user.email || 'anon');
+  var state = getQuestionsState();
+  if (state.available <= 0) return false;
+  state.available -= 1;
+  state.used.push({ q: questionText, at: new Date().toISOString(), answered: false });
+  localStorage.setItem(key, JSON.stringify(state));
+  return true;
+}
+
+// ══════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════
 async function doLogin() {
@@ -1541,6 +1649,7 @@ var ADMIN_NAV = [
   {id:'hub', icon:'🏠', label:'Hub', desc:'Vista general'},
   {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
   {id:'portal-missatges', icon:'💬', label:'Missatges clients', badge:'2'},
+  {id:'admin-plans', icon:'💎', label:'Plans i subscripcions'},
   {section:'Portal Client · Preview'},
   {id:'portal-perfil', icon:'📊', label:'Resum'},
   {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
@@ -1566,6 +1675,7 @@ var ADMIN_NAV = [
 var CLIENT_NAV = [
   {section:'El meu espai'},
   {id:'portal-perfil', icon:'📊', label:'Resum'},
+  {id:'plans', icon:'💎', label:'El meu pla'},
   {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
   {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
@@ -1639,6 +1749,8 @@ function navigateTo(viewId) {
     'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', '👁 Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
     'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', '👁 Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
     'settings': ['Configuració', 'Gestió del sistema'],
+    'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
+    'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
   };
   var t = titles[viewId] || [viewId, ''];
   document.getElementById('topbar-title').textContent = t[0];
@@ -1658,9 +1770,21 @@ function navigateTo(viewId) {
 
 function renderView(viewId) {
   var content = document.getElementById('content');
+  
+  // Bloqueig per pla — només per a clients (no admin)
+  if (APP.role !== 'admin' && viewId.startsWith('portal-')) {
+    var clientPla = (APP.clientData && APP.clientData.pla) || 'essencial';
+    if (!hasAccess(viewId, clientPla)) {
+      content.innerHTML = renderUpgradePrompt(viewId, clientPla);
+      return;
+    }
+  }
+  
   switch(viewId) {
     case 'hub': renderHub(content); break;
     case 'admin-clients': renderClientsList(content); break;
+    case 'plans': renderPlansScreen(content); break;
+    case 'admin-plans': renderAdminPlans(content); break;
     case 'portal-perfil': renderPortalPerfil(content); break;
     case 'portal-roadmap': renderPortalRoadmap(content); break;
     case 'portal-cartera': renderPortalCartera(content); break;
@@ -1963,7 +2087,16 @@ function renderPortalPerfil(el) {
   + '</div>';
   html += '</div>';
 
-  // Widget Mercat — inserit aquí entre snapshots i dades financeres
+  // Widget Pregunta setmanal (només per a clients essencials)
+  if (APP.role !== 'admin') {
+    var clientPlaActual = (APP.clientData && APP.clientData.pla) || 'essencial';
+    if (clientPlaActual === 'essencial') {
+      html += renderWeeklyQuestion();
+    }
+    html += renderPlaIndicator(clientPlaActual);
+  }
+
+  // Widget Mercat — Temps real
   html += '<div id="platform-macro-widget" style="background:#fff;border:1px solid #E8E6E1;border-radius:12px;padding:12px 16px;margin-bottom:16px;">'    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'      + '<span style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.1em">Mercats · Temps real</span>'      + '<span id="platform-macro-update" style="font-size:9px;color:#C8C5BE">Carregant...</span>'    + '</div>'    + '<div id="platform-macro-tickers" style="display:flex;gap:10px;flex-wrap:wrap;min-height:32px;align-items:center">'      + '<span style="font-size:11px;color:#9A9690">Connectant...</span>'    + '</div>'  + '</div>';
   setTimeout(fetchPlatformMacro, 100);
 
@@ -3505,6 +3638,290 @@ function renderSettings(el) {
 }
 
 
+
+// ══════════════════════════════════════════════════
+// PANTALLA DE BLOQUEIG PER PLA
+// ══════════════════════════════════════════════════
+function renderUpgradePrompt(viewId, pla) {
+  var p = getPla(pla);
+  var viewNames = {
+    'portal-missatges': 'Missatgeria amb assessor',
+    'portal-assessoria': 'Anàlisis de mercat',
+    'portal-informes': 'Informes PDF',
+    'portal-turbo': 'Turbo Estalvi personalitzat'
+  };
+  var nom = viewNames[viewId] || 'Aquesta funcionalitat';
+  return '<div class="content-inner fade-in" style="max-width:620px;margin:40px auto;">'
+    + '<div style="background:#fff;border:1px solid var(--g200);border-radius:16px;padding:40px;text-align:center">'
+    + '<div style="font-size:48px;margin-bottom:16px">🔒</div>'
+    + '<div style="font-family:var(--fd);font-size:24px;font-weight:400;margin-bottom:8px;letter-spacing:-.3px">' + nom + '</div>'
+    + '<div style="font-size:13px;color:var(--g500);margin-bottom:4px">No inclòs al pla <strong style="color:' + p.color + '">' + p.nom + '</strong></div>'
+    + '<div style="font-size:12px;color:var(--g400);margin-bottom:24px">Millora el teu pla per desbloquejar aquesta funcionalitat</div>'
+    + '<button onclick="navigateTo(\'plans\')" style="padding:12px 28px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Veure plans →</button>'
+    + '</div>'
+    + '</div>';
+}
+
+// ══════════════════════════════════════════════════
+// PANTALLA DE PLANS
+// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// PANTALLA ADMIN — Gestió de plans i subscripcions
+// ══════════════════════════════════════════════════
+function renderAdminPlans(el) {
+  var clients = APP.clientsList || [];
+  var stats = {
+    total: clients.length,
+    essencial: clients.filter(function(c){ var p = c.pla || 'essencial'; return p==='essencial'||p==='senyal'; }).length,
+    bruxola: clients.filter(function(c){ return c.pla === 'bruxola'; }).length,
+    rumb: clients.filter(function(c){ return c.pla === 'rumb'; }).length,
+    mapa: clients.filter(function(c){ var p = c.pla; return p==='mapa'||p==='family'; }).length
+  };
+  var mrr = stats.essencial*7 + stats.bruxola*29 + stats.rumb*59 + stats.mapa*99;
+  var arr = mrr * 12;
+
+  var html = '<div class="content-inner fade-in" style="max-width:1100px;margin:0 auto">';
+  
+  // Hero amb MRR
+  html += '<div style="background:var(--black);color:#fff;border-radius:14px;padding:28px 32px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px">'
+    + '<div>'
+    + '<div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Ingressos recurrents</div>'
+    + '<div style="font-family:var(--fm);font-size:36px;font-weight:500;line-height:1">' + mrr.toLocaleString('ca-ES') + '€<span style="font-size:14px;opacity:.5;margin-left:4px">/mes</span></div>'
+    + '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">ARR estimat: ' + arr.toLocaleString('ca-ES') + '€</div>'
+    + '</div>'
+    + '<div style="text-align:right">'
+    + '<div style="font-family:var(--fm);font-size:22px;color:#fff">' + stats.total + '</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.5)">clients actius</div>'
+    + '</div>'
+    + '</div>';
+  
+  // Distribució per pla
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">';
+  var ordre = ['essencial','bruxola','rumb','mapa'];
+  ordre.forEach(function(pid) {
+    var p = PLANS[pid];
+    var count = stats[pid] || 0;
+    var pct = stats.total > 0 ? Math.round(count/stats.total*100) : 0;
+    var revenue = count * p.preu;
+    html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px;border-top:3px solid ' + p.color + '">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">' + p.nom + '</div>'
+      + '<div style="font-family:var(--fm);font-size:24px;font-weight:500;color:' + p.color + '">' + count + '</div>'
+      + '<div style="font-size:11px;color:var(--g400);margin-top:2px">' + pct + '% · ' + revenue + '€/mes</div>'
+      + '</div>';
+  });
+  html += '</div>';
+  
+  // Taula de clients per pla
+  html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden">';
+  html += '<div style="padding:16px 20px;border-bottom:1px solid var(--g200);font-size:11px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em">Clients i plans actuals</div>';
+  html += '<table style="width:100%;border-collapse:collapse">';
+  html += '<thead><tr style="background:#F7F6F4"><th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:500">Client</th><th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:500">Email</th><th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:500">Pla</th><th style="text-align:right;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:500">MRR</th><th style="padding:10px 16px"></th></tr></thead>';
+  html += '<tbody>';
+  clients.forEach(function(c) {
+    var p = getPla(c.pla);
+    html += '<tr style="border-top:1px solid var(--g100)">'
+      + '<td style="padding:12px 16px;font-size:13px;font-weight:500">' + c.nom + '</td>'
+      + '<td style="padding:12px 16px;font-size:12px;color:var(--g500)">' + c.email + '</td>'
+      + '<td style="padding:12px 16px"><span style="display:inline-block;padding:4px 10px;background:' + p.bg + ';color:' + p.color + ';border-radius:6px;font-size:11px;font-weight:500">' + p.nom + '</span></td>'
+      + '<td style="padding:12px 16px;text-align:right;font-family:var(--fm);font-size:12px;color:var(--black)">' + p.preu + '€</td>'
+      + '<td style="padding:12px 16px;text-align:right"><button onclick="canviarPlaClient(\'' + c.email + '\')" style="padding:6px 12px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g500)">Canviar →</button></td>'
+      + '</tr>';
+  });
+  html += '</tbody></table></div>';
+  
+  // Info sobre Stripe
+  html += '<div style="margin-top:24px;padding:20px;background:#FEF5E7;border-left:3px solid #D4943A;border-radius:8px">'
+    + '<div style="font-size:12px;font-weight:500;color:#7A4A00;margin-bottom:6px">💳 Integració Stripe pendent</div>'
+    + '<div style="font-size:11px;color:#7A4A00;line-height:1.6">La facturació actual es gestiona manualment. Per activar cobraments automàtics cal crear compte Stripe + webhooks + taula <code>subscriptions</code> a Supabase. Quan estigui llest, els canvis de pla es sincronitzaran automàticament.</div>'
+    + '</div>';
+  
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function canviarPlaClient(email) {
+  var opts = 'Plans disponibles:\n\n1. Essencial (7€/mes)\n2. Brúixola (29€/mes)\n3. Rumb (59€/mes)\n4. Mapa (99€/mes)\n\nEscriu el número:';
+  var n = prompt(opts);
+  if (!n) return;
+  var map = {'1':'essencial','2':'bruxola','3':'rumb','4':'mapa'};
+  var newPla = map[n.trim()];
+  if (!newPla) { alert('Opció no vàlida'); return; }
+  
+  var c = (APP.clientsList||[]).find(function(x){ return x.email === email; });
+  if (c) {
+    c.pla = newPla;
+    alert('✓ Pla actualitzat a ' + PLANS[newPla].nom + ' per a ' + c.nom + '\n\n(Aquest canvi és local. Per persistir cal connectar Supabase.)');
+    renderView('admin-plans');
+  }
+}
+
+function renderPlansScreen(el) {
+  var currentPla = (APP.clientData && APP.clientData.pla) || 'essencial';
+  var html = '<div class="content-inner fade-in" style="max-width:1100px;margin:0 auto">';
+  html += '<div style="text-align:center;margin-bottom:32px">'
+    + '<div style="font-family:var(--fd);font-size:30px;font-weight:400;margin-bottom:8px;letter-spacing:-.3px">Tria el teu pla</div>'
+    + '<div style="font-size:14px;color:var(--g500);max-width:520px;margin:0 auto">Des de 7€/mes. Cancel·la quan vulguis. Sense permanència.</div>'
+    + '</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px" class="mob-grid">';
+  
+  var ordre = ['essencial','bruxola','rumb','mapa'];
+  ordre.forEach(function(pid) {
+    var p = PLANS[pid];
+    var isCurrent = pid === currentPla;
+    var isPopular = pid === 'bruxola';
+    html += '<div style="background:#fff;border:' + (isCurrent ? '2px solid '+p.color : '1px solid var(--g200)') + ';border-radius:14px;padding:24px 20px;position:relative;transition:transform .2s" onmouseover="this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.transform=\'translateY(0)\'">';
+    if (isPopular) {
+      html += '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#D4943A;color:#fff;font-size:10px;font-weight:500;padding:4px 12px;border-radius:99px;text-transform:uppercase;letter-spacing:.06em">Popular</div>';
+    }
+    if (isCurrent) {
+      html += '<div style="position:absolute;top:-10px;right:12px;background:' + p.color + ';color:#fff;font-size:10px;font-weight:500;padding:4px 10px;border-radius:99px;text-transform:uppercase;letter-spacing:.06em">Pla actual</div>';
+    }
+    html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;color:' + p.color + ';margin-bottom:4px">' + p.nom + '</div>'
+      + '<div style="font-size:11px;color:var(--g400);margin-bottom:14px;line-height:1.5;min-height:34px">' + p.descripcio + '</div>'
+      + '<div style="margin-bottom:18px"><span style="font-family:var(--fm);font-size:32px;font-weight:500;color:var(--black)">' + p.preu + '€</span><span style="font-size:12px;color:var(--g400)">/mes</span></div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">';
+    p.inclou.forEach(function(item) {
+      html += '<div style="font-size:12px;color:var(--g500);display:flex;gap:8px;line-height:1.5"><span style="color:' + p.color + ';flex-shrink:0">✓</span>' + item + '</div>';
+    });
+    html += '</div>';
+    if (isCurrent) {
+      html += '<button disabled style="width:100%;padding:11px;background:var(--g100);color:var(--g400);border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--fb);cursor:default">Pla actiu</button>';
+    } else {
+      html += '<button onclick="iniciarCheckout(\'' + pid + '\')" style="width:100%;padding:11px;background:' + p.color + ';color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--fb);cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">' + (pid === 'essencial' ? 'Començar' : 'Contractar →') + '</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  
+  html += '<div style="text-align:center;margin-top:32px;padding:20px;background:#F4F3F0;border-radius:12px;font-size:12px;color:var(--g500)">'
+    + '💡 <strong>Tots els plans inclouen:</strong> Accés a la plataforma · Dades en temps real · Glossari complet · Cancel·la quan vulguis'
+    + '</div>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function iniciarCheckout(plaId) {
+  // TODO: Integrar Stripe Checkout
+  // De moment: missatge simulat
+  var p = PLANS[plaId];
+  if (plaId === 'essencial') {
+    alert('Pla Essencial — 7€/mes\n\nEn breu redirigirem a Stripe Checkout per completar la subscripció.');
+  } else {
+    alert('Pla ' + p.nom + ' — ' + p.preu + '€/mes\n\nAquest pla inclou assessorament personal. Contacta amb Guillem per activar-lo.');
+  }
+}
+
+// ══════════════════════════════════════════════════
+// PREGUNTA SETMANAL — Widget per al Resum
+// ══════════════════════════════════════════════════
+
+function renderPlaIndicator(plaId) {
+  var p = getPla(plaId);
+  var upgradeText = {
+    essencial: 'Activa Brúixola i obté anàlisis + missatgeria il·limitada',
+    bruxola: 'Puja a Rumb per sessions trimestrals personalitzades',
+    rumb: 'Activa Mapa per fiscalitat + pla FIRE a mida',
+    mapa: null
+  };
+  var ug = upgradeText[plaId];
+  var html = '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">';
+  html += '<div style="display:flex;align-items:center;gap:14px;flex:1;min-width:200px">'
+    + '<div style="padding:8px 14px;background:' + p.bg + ';border-radius:8px;font-size:12px;font-weight:500;color:' + p.color + '">Pla ' + p.nom + '</div>'
+    + '<div>'
+    + '<div style="font-size:11px;color:var(--g400);margin-bottom:2px">' + p.preu + '€/mes · Cancel·la quan vulguis</div>'
+    + (ug ? '<div style="font-size:11px;color:var(--g500)">' + ug + '</div>' : '<div style="font-size:11px;color:var(--g500)">Tens el pla premium complet</div>')
+    + '</div>'
+    + '</div>';
+  if (ug) {
+    html += '<button onclick="navigateTo(\'plans\')" style="padding:8px 16px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap">Gestionar pla →</button>';
+  } else {
+    html += '<button onclick="navigateTo(\'plans\')" style="padding:8px 16px;background:var(--white);color:var(--black);border:1px solid var(--g200);border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap">Gestionar →</button>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderWeeklyQuestion() {
+  var st = getQuestionsState();
+  var pendents = st.used.filter(function(q){ return !q.answered; });
+  var respostes = st.used.filter(function(q){ return q.answered; });
+  
+  var html = '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:20px 24px;margin-bottom:16px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g200)">'
+    + '<span style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em">💬 Pregunta setmanal</span>'
+    + '<span style="font-size:11px;color:var(--accent);font-weight:500">' + st.available + '/4 disponibles</span>'
+    + '</div>';
+  
+  // Barres visuals de disponibilitat
+  html += '<div style="display:flex;gap:4px;margin-bottom:16px">';
+  for (var i = 0; i < 4; i++) {
+    var actiu = i < st.available;
+    html += '<div style="flex:1;height:6px;border-radius:3px;background:' + (actiu ? '#1B3A6B' : '#E8E6E1') + '"></div>';
+  }
+  html += '</div>';
+  
+  html += '<div style="font-size:12px;color:var(--g500);margin-bottom:12px;line-height:1.6">'
+    + 'Tens <strong style="color:var(--black)">' + st.available + ' pregunta' + (st.available === 1 ? '' : 'es') + '</strong> per fer a l\'assessor aquesta setmana. S\'acumulen fins a màxim 4. Respostes en 48h màx.'
+    + '</div>';
+  
+  if (st.available > 0) {
+    html += '<textarea id="pregunta-text" placeholder="Ex: Em puc permetre comprar un pis aquest any? Quina és la millor opció per invertir els 5000€ de la paga?" style="width:100%;min-height:70px;padding:10px 12px;border:1.5px solid var(--g200);border-radius:8px;font-family:var(--fb);font-size:13px;resize:vertical;margin-bottom:10px"></textarea>'
+      + '<button onclick="enviarPreguntaSetmanal()" style="padding:9px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Enviar pregunta →</button>';
+  } else {
+    html += '<div style="padding:12px;background:#F4F3F0;border-radius:8px;font-size:12px;color:var(--g500);text-align:center">Has fet servir les 4 preguntes. El dilluns t\'afegirem una de nova. 🗓</div>';
+  }
+  
+  if (pendents.length > 0) {
+    html += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--g200)">';
+    html += '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Pendents de resposta</div>';
+    pendents.forEach(function(q) {
+      var d = new Date(q.at);
+      html += '<div style="padding:10px 12px;background:#FEF5E7;border-left:3px solid #D4943A;border-radius:6px;margin-bottom:6px">'
+        + '<div style="font-size:12px;color:var(--black);line-height:1.5;margin-bottom:4px">' + escapeHtml(q.q) + '</div>'
+        + '<div style="font-size:10px;color:#7A4A00">Enviada ' + d.toLocaleDateString('ca-ES') + ' · esperant resposta</div>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+  
+  if (respostes.length > 0) {
+    html += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--g200)">';
+    html += '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Respostes recents</div>';
+    respostes.slice(-2).forEach(function(q) {
+      html += '<div style="padding:10px 12px;background:#EAF3DE;border-left:3px solid #1A5C3A;border-radius:6px;margin-bottom:6px">'
+        + '<div style="font-size:12px;color:var(--black);line-height:1.5;margin-bottom:4px"><strong>P:</strong> ' + escapeHtml(q.q) + '</div>'
+        + '<div style="font-size:12px;color:var(--g500);line-height:1.5"><strong>R:</strong> ' + escapeHtml(q.answer || 'Resposta pendent...') + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+  
+  html += '</div>';
+  return html;
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function enviarPreguntaSetmanal() {
+  var txt = document.getElementById('pregunta-text').value.trim();
+  if (!txt || txt.length < 10) {
+    alert('La pregunta ha de tenir almenys 10 caràcters.');
+    return;
+  }
+  if (useQuestion(txt)) {
+    alert('✓ Pregunta enviada!\n\nEl teu assessor la respondrà en 48h màxim.');
+    renderView('portal-perfil'); // refresca el widget
+  } else {
+    alert('No tens preguntes disponibles aquesta setmana.');
+  }
+}
+
+
 // ══════════════════════════════════════════════════════
 // WIDGET MERCAT — platform.html (Portal Client)
 // Fonts: Apps Script → CoinGecko → ECB → INE → Frankfurter
@@ -3517,11 +3934,10 @@ async function fetchPlatformMacro() {
   var el    = document.getElementById('platform-macro-tickers');
   var updEl = document.getElementById('platform-macro-update');
   if (!el) return;
-  if (_platformMacroFetched) return; // Evitar múltiples crides
+  if (_platformMacroFetched) return;
 
   var data = { quotes:[], bce:null, ipc:null, eurusd:null, ipcEZ:null, bitcoin:null, gold:null, euribor:null };
 
-  // 1. Apps Script proxy (Yahoo Finance + BCE + INE + Eurostat + Euribor)
   try {
     var res = await fetch(PLATFORM_SHEETS_URL + '?action=market', { signal: AbortSignal.timeout(8000) });
     if (res.ok) {
@@ -3535,7 +3951,6 @@ async function fetchPlatformMacro() {
     }
   } catch(e) {}
 
-  // 2. Fallbacks directes si el proxy falla
   if (!data.eurusd) {
     try {
       var r = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD', { signal: AbortSignal.timeout(5000) });
@@ -3569,7 +3984,6 @@ async function fetchPlatformMacro() {
     } catch(e) {}
   }
 
-  // 3. CoinGecko — Bitcoin + Or (sempre CORS ok, sense clau)
   try {
     var r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,gold&vs_currencies=eur,usd&include_24hr_change=true', { signal: AbortSignal.timeout(6000) });
     if (r.ok) {
@@ -3601,7 +4015,6 @@ function renderPlatformTickers(data, el, updEl) {
     return '<div style="width:1px;height:36px;background:#E8E6E1;align-self:center;flex-shrink:0"></div>';
   }
 
-  // ── Yahoo Finance: S&P500, EuroStoxx, IBEX, Or(ETF), BTC, Bond 10Y ──
   var META = {
     '^GSPC':    {nom:'S&P 500',      dec:0},
     '^STOXX50E':{nom:'EuroStoxx 50', dec:0},
@@ -3622,19 +4035,16 @@ function renderPlatformTickers(data, el, updEl) {
     if (hasYF) html += sep();
   }
 
-  // ── Bitcoin (CoinGecko si Yahoo no el retorna) ──
   var hasBTC = data.quotes && data.quotes.some(function(q){return q.symbol==='BTC-USD';});
   if (!hasBTC && data.bitcoin) {
     html += tick('Bitcoin', Math.round(data.bitcoin.priceEUR).toLocaleString('ca-ES') + '€', data.bitcoin.chg24h, '');
   }
-  // ── Or (CoinGecko si Yahoo no el retorna) ──
   var hasGLD = data.quotes && data.quotes.some(function(q){return q.symbol==='GLD';});
   if (!hasGLD && data.gold) {
     html += tick('Or', Math.round(data.gold.priceEUR).toLocaleString('ca-ES') + '€/oz', data.gold.chg24h, '');
   }
   if ((!hasBTC && data.bitcoin) || (!hasGLD && data.gold)) html += sep();
 
-  // ── Macro ──
   if (data.bce !== null && data.bce !== undefined) {
     html += tick('BCE tipus', parseFloat(data.bce).toFixed(2) + '%', null, 'ref');
   }
@@ -3646,7 +4056,6 @@ function renderPlatformTickers(data, el, updEl) {
   }
   html += sep();
 
-  // ── Inflació ──
   if (data.ipc !== null && data.ipc !== undefined) {
     html += tick('IPC Espanya', parseFloat(data.ipc).toFixed(1) + '%', null, 'INE');
   }
