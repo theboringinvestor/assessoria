@@ -462,18 +462,54 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
         <div class="login-logo-sub">Plataforma d'Assessoria Financera</div>
       </div>
     </div>
-    <div class="login-title">Accedeix a la plataforma</div>
-    <div class="login-sub">Introdueix les teves credencials per accedir al teu espai.</div>
-    
-    <label class="form-label">Email</label>
-    <input type="email" id="login-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
-    
-    <label class="form-label">Contrasenya</label>
-    <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-    
-    <button class="btn-login" id="btn-login" onclick="doLogin()">Accedir →</button>
-    <div class="login-msg" id="login-msg"></div>
-    
+
+    <!-- Tab: Login / Registre -->
+    <div id="auth-tabs" style="display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid #E8E6E1">
+      <button id="tab-login" onclick="showAuthTab('login')" style="flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid #0A0A0A;margin-bottom:-2px;font-size:13px;font-weight:500;color:#0A0A0A;cursor:pointer;font-family:var(--fb)">Accedir</button>
+      <button id="tab-register" onclick="showAuthTab('register')" style="flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:13px;font-weight:500;color:#9A9690;cursor:pointer;font-family:var(--fb)">Crear compte</button>
+    </div>
+
+    <!-- Form Login -->
+    <div id="auth-login">
+      <div class="login-sub" style="margin-bottom:16px">Introdueix les teves credencials per accedir al teu espai.</div>
+      <label class="form-label">Email</label>
+      <input type="email" id="login-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
+      <label class="form-label">Contrasenya</label>
+      <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="btn-login" id="btn-login" onclick="doLogin()">Accedir →</button>
+      <div class="login-msg" id="login-msg"></div>
+      <div style="text-align:center;margin-top:12px">
+        <a href="#" onclick="showAuthTab('forgot');return false;" style="font-size:12px;color:#9A9690;text-decoration:none">He oblidat la contrasenya</a>
+      </div>
+    </div>
+
+    <!-- Form Registre -->
+    <div id="auth-register" style="display:none">
+      <div class="login-sub" style="margin-bottom:16px">Crea el teu compte per accedir a la plataforma. Necessites un codi d'invitació o haver completat el qüestionari.</div>
+      <label class="form-label">Nom complet</label>
+      <input type="text" id="reg-nom" class="form-input" placeholder="El teu nom i cognoms" autocomplete="name">
+      <label class="form-label">Email</label>
+      <input type="email" id="reg-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
+      <label class="form-label">Contrasenya</label>
+      <input type="password" id="reg-password" class="form-input" placeholder="Mínim 6 caràcters" autocomplete="new-password">
+      <label class="form-label">Repeteix contrasenya</label>
+      <input type="password" id="reg-password2" class="form-input" placeholder="Repeteix la contrasenya" autocomplete="new-password" onkeydown="if(event.key==='Enter')doRegister()">
+      <button class="btn-login" id="btn-register" onclick="doRegister()">Crear compte →</button>
+      <div class="login-msg" id="reg-msg"></div>
+    </div>
+
+    <!-- Form Forgot Password -->
+    <div id="auth-forgot" style="display:none">
+      <div class="login-sub" style="margin-bottom:16px">Introdueix el teu email i t'enviarem un enllaç per restablir la contrasenya.</div>
+      <label class="form-label">Email</label>
+      <input type="email" id="forgot-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
+      <button class="btn-login" id="btn-forgot" onclick="doForgotPassword()">Enviar enllaç →</button>
+      <div class="login-msg" id="forgot-msg"></div>
+      <div style="text-align:center;margin-top:12px">
+        <a href="#" onclick="showAuthTab('login');return false;" style="font-size:12px;color:#9A9690;text-decoration:none">← Tornar a l'accés</a>
+      </div>
+    </div>
+
     <div class="login-divider"><span>o entra en mode demo</span></div>
     
     <div class="login-roles">
@@ -1401,6 +1437,112 @@ async function doLogin() {
   msg.className = 'login-msg err';
   msg.textContent = 'Connexió no disponible. Usa el mode demo.';
   btn.disabled = false; btn.textContent = 'Accedir →';
+}
+
+// ── AUTH TABS ──
+function showAuthTab(tab) {
+  document.getElementById('auth-login').style.display   = tab === 'login' ? 'block' : 'none';
+  document.getElementById('auth-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('auth-forgot').style.display  = tab === 'forgot' ? 'block' : 'none';
+  
+  var tabLogin = document.getElementById('tab-login');
+  var tabReg   = document.getElementById('tab-register');
+  
+  tabLogin.style.borderBottomColor = tab === 'login' ? '#0A0A0A' : 'transparent';
+  tabLogin.style.color             = tab === 'login' ? '#0A0A0A' : '#9A9690';
+  tabReg.style.borderBottomColor   = tab === 'register' ? '#0A0A0A' : 'transparent';
+  tabReg.style.color               = tab === 'register' ? '#0A0A0A' : '#9A9690';
+  
+  // Netejar missatges
+  ['login-msg','reg-msg','forgot-msg'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.textContent = '';
+  });
+}
+
+// ── REGISTRE ──
+async function doRegister() {
+  var nom    = document.getElementById('reg-nom').value.trim();
+  var email  = document.getElementById('reg-email').value.trim().toLowerCase();
+  var pass   = document.getElementById('reg-password').value;
+  var pass2  = document.getElementById('reg-password2').value;
+  var msg    = document.getElementById('reg-msg');
+  var btn    = document.getElementById('btn-register');
+
+  if (!nom || nom.length < 2) { msg.className = 'login-msg err'; msg.textContent = 'Introdueix el teu nom.'; return; }
+  if (!email || !email.includes('@')) { msg.className = 'login-msg err'; msg.textContent = 'Introdueix un email vàlid.'; return; }
+  if (!pass || pass.length < 6) { msg.className = 'login-msg err'; msg.textContent = 'La contrasenya ha de tenir mínim 6 caràcters.'; return; }
+  if (pass !== pass2) { msg.className = 'login-msg err'; msg.textContent = 'Les contrasenyes no coincideixen.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Creant compte...'; msg.textContent = '';
+
+  if (!sb) {
+    msg.className = 'login-msg err'; msg.textContent = 'Supabase no disponible.';
+    btn.disabled = false; btn.textContent = 'Crear compte →'; return;
+  }
+
+  try {
+    // 1. Crear usuari a Supabase Auth
+    var res = await sb.auth.signUp({ email: email, password: pass });
+    if (res.error) throw res.error;
+
+    // 2. Crear el registre a la taula clients (amb pla essencial per defecte)
+    await sb.from('clients').upsert({
+      email: email,
+      nom: nom,
+      pla: 'essencial',
+      perfil: { capitalInicial: '—', aportacioMensual: '—', horitzo: '—', objectiu: '—', riscFinancer: '—', riscEmocional: '—' }
+    }, { onConflict: 'email' });
+
+    msg.className = 'login-msg ok';
+    msg.textContent = '✓ Compte creat! Revisa el teu email per confirmar-lo, o accedeix directament.';
+    btn.textContent = '✓ Compte creat';
+
+    // Intentar login automàtic (si auto-confirm està activat a Supabase)
+    setTimeout(function() {
+      var role = ADMIN_EMAILS.indexOf(email) >= 0 ? 'admin' : 'client';
+      enterApp(role, email, false);
+    }, 1500);
+
+  } catch(err) {
+    msg.className = 'login-msg err';
+    if (err.message && err.message.includes('already registered')) {
+      msg.textContent = 'Ja existeix un compte amb aquest email. Prova d\'accedir.';
+    } else {
+      msg.textContent = 'Error: ' + (err.message || 'No s\'ha pogut crear el compte');
+    }
+    btn.disabled = false; btn.textContent = 'Crear compte →';
+  }
+}
+
+// ── FORGOT PASSWORD ──
+async function doForgotPassword() {
+  var email = document.getElementById('forgot-email').value.trim().toLowerCase();
+  var msg   = document.getElementById('forgot-msg');
+  var btn   = document.getElementById('btn-forgot');
+
+  if (!email || !email.includes('@')) { msg.className = 'login-msg err'; msg.textContent = 'Introdueix un email vàlid.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Enviant...'; msg.textContent = '';
+
+  if (!sb) {
+    msg.className = 'login-msg err'; msg.textContent = 'Supabase no disponible.';
+    btn.disabled = false; btn.textContent = 'Enviar enllaç →'; return;
+  }
+
+  try {
+    var res = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname + '?reset=true'
+    });
+    if (res.error) throw res.error;
+
+    msg.className = 'login-msg ok';
+    msg.textContent = '✓ Hem enviat un enllaç al teu email. Revisa la safata d\'entrada (i spam).';
+    btn.textContent = '✓ Enviat';
+  } catch(err) {
+    msg.className = 'login-msg err';
+    msg.textContent = 'Error: ' + (err.message || 'No s\'ha pogut enviar l\'enllaç');
+    btn.disabled = false; btn.textContent = 'Enviar enllaç →';
+  }
 }
 
 function demoLogin(role) {
