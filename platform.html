@@ -1606,7 +1606,36 @@ async function enterApp(role, email, isDemo) {
   }
 
   setupSidebar();
-  navigateTo(role === 'admin' ? 'hub' : 'portal-perfil');
+  
+  // Detectar si és client nou (sense arquetip/scoring) → redirigir al Starter
+  if (role === 'client' && esClientNou(APP.clientData)) {
+    navigateTo('starter');
+  } else {
+    navigateTo(role === 'admin' ? 'hub' : 'portal-perfil');
+  }
+}
+
+// ── DETECCIÓ DE CLIENT NOU ──
+function esClientNou(clientData) {
+  // 1. Si l'usuari ja ha completat o saltat el Starter, no tornem a mostrar-lo
+  var email = APP.user && APP.user.email;
+  var starterStatus = email && localStorage.getItem('tbi_starter_' + email);
+  if (starterStatus === 'completed' || starterStatus === 'skipped') return false;
+  
+  // 2. Si no hi ha clientData, és nou
+  if (!clientData) return true;
+  
+  // 3. Si ve del DEMO_CLIENT (fallback), és perquè no hi ha dades reals → nou
+  if (clientData === DEMO_CLIENT) return true;
+  
+  // 4. Si no té scoring real (0 o undefined), és nou
+  if (!clientData.scoring || clientData.scoring === 0) return true;
+  
+  // 5. Si el perfil té valors per defecte ("—"), és nou
+  var p = clientData.perfil || {};
+  if (!p.capitalInicial || p.capitalInicial === '—' || p.capitalInicial === 0) return true;
+  
+  return false;
 }
 
 // ── SUPABASE DATA LOADING ──
@@ -1947,6 +1976,7 @@ function navigateTo(viewId) {
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
     'admin-preguntes': ['Preguntes dels clients', 'Respon les preguntes pendents dels clients Essencial'],
+    'starter': ['Benvingut', 'Completa el teu perfil en 3 passos'],
   };
   var t = titles[viewId] || [viewId, ''];
   document.getElementById('topbar-title').textContent = t[0];
@@ -1982,6 +2012,7 @@ function renderView(viewId) {
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
     case 'admin-preguntes': renderAdminPreguntes(content); break;
+    case 'starter': renderStarter(content); break;
     case 'portal-perfil': renderPortalPerfil(content); break;
     case 'portal-roadmap': renderPortalRoadmap(content); break;
     case 'portal-cartera': renderPortalCartera(content); break;
@@ -4049,6 +4080,225 @@ function renderUpgradePrompt(viewId, pla) {
 // ══════════════════════════════════════════════════
 // PANTALLA DE PLANS
 // ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// STARTER — Onboarding guiat per a clients nous
+// ══════════════════════════════════════════════════
+
+var STARTER_STEP = 1; // Pas actiu del starter
+
+function renderStarter(el) {
+  var step = STARTER_STEP || 1;
+  var nom = (APP.user && APP.user.name) || 'Client';
+  var firstName = nom.split(' ')[0];
+
+  var html = '<div class="content-inner fade-in" style="max-width:720px;margin:0 auto">';
+  
+  // Progress bar
+  html += '<div style="margin-bottom:32px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    + '<span style="font-size:10px;color:#9A9690;text-transform:uppercase;letter-spacing:.08em">Pas ' + step + ' de 3</span>'
+    + '<button onclick="saltarStarter()" style="background:transparent;border:none;font-size:11px;color:#9A9690;cursor:pointer;text-decoration:underline">Saltar</button>'
+    + '</div>'
+    + '<div style="height:4px;background:#E8E6E1;border-radius:3px;overflow:hidden">'
+    + '<div style="width:' + (step*33.33) + '%;height:100%;background:#1B3A6B;transition:width .4s"></div>'
+    + '</div></div>';
+
+  if (step === 1) html += renderStarterPas1(firstName);
+  else if (step === 2) html += renderStarterPas2(firstName);
+  else if (step === 3) html += renderStarterPas3(firstName);
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderStarterPas1(firstName) {
+  return '<div style="background:#fff;border:1px solid #E8E6E1;border-radius:16px;padding:36px 40px;text-align:center">'
+    + '<div style="font-size:48px;margin-bottom:12px">👋</div>'
+    + '<div style="font-family:var(--fd);font-size:32px;font-weight:400;letter-spacing:-.4px;margin-bottom:8px">Hola ' + firstName + '!</div>'
+    + '<div style="font-size:14px;color:#6B6762;margin-bottom:28px;line-height:1.7;max-width:440px;margin-left:auto;margin-right:auto">'
+      + 'Benvingut a <strong>The Boring Investor</strong>. Per configurar-te la plataforma necessitem conèixer el teu perfil inversor.'
+    + '</div>'
+    + '<div style="background:#F7F6F4;border-radius:12px;padding:20px 24px;margin-bottom:28px;text-align:left">'
+      + '<div style="font-size:11px;color:#9A9690;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">El que farem</div>'
+      + '<div style="display:flex;flex-direction:column;gap:10px">'
+      + starterBullet('1', 'Qüestionari de 23 preguntes', '5-8 minuts · descobreix el teu arquetip inversor')
+      + starterBullet('2', 'Indica la teva situació actual', 'Estalvis, aportacions mensuals, horitzó')
+      + starterBullet('3', 'Rebre la teva cartera recomanada', 'Basada en el teu perfil i objectius')
+      + '</div>'
+    + '</div>'
+    + '<button onclick="avancarStarter(2)" style="padding:14px 40px;background:#0A0A0A;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb)">Començar →</button>'
+    + '<div style="font-size:11px;color:#C8C5BE;margin-top:14px">Pots aturar-te i continuar quan vulguis</div>'
+    + '</div>';
+}
+
+function starterBullet(num, nom, desc) {
+  return '<div style="display:flex;gap:12px;align-items:flex-start">'
+    + '<div style="min-width:24px;height:24px;border-radius:50%;background:#1B3A6B;color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center">' + num + '</div>'
+    + '<div><div style="font-size:13px;font-weight:500;color:#0A0A0A">' + nom + '</div><div style="font-size:12px;color:#6B6762">' + desc + '</div></div>'
+    + '</div>';
+}
+
+function renderStarterPas2(firstName) {
+  return '<div style="background:#fff;border:1px solid #E8E6E1;border-radius:16px;padding:36px 40px">'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:8px">Qüestionari de perfil</div>'
+    + '<div style="font-size:13px;color:#6B6762;margin-bottom:28px;line-height:1.7">'
+      + 'Obriràs el qüestionari en una nova pestanya. Respon les 23 preguntes i, al final, <strong>descarrega el fitxer JSON amb el teu perfil</strong>. Després torna aquí i puja\'l.'
+    + '</div>'
+    + '<div style="background:#EBF0FA;border-left:3px solid #1B3A6B;border-radius:8px;padding:16px 20px;margin-bottom:24px">'
+      + '<div style="font-size:12px;color:#1B3A6B;line-height:1.6">'
+        + '<strong>💡 Consell:</strong> Respon amb sinceritat. No hi ha respostes correctes o incorrectes — el teu arquetip reflecteix com et comportes realment com a inversor.'
+      + '</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">'
+      + '<a href="client_onboarding_v3.html" target="_blank" onclick="marcarQuestionariObert()" style="display:block;padding:18px 20px;background:#0A0A0A;color:#fff;text-decoration:none;border-radius:10px;text-align:center;font-size:13px;font-weight:500">'
+        + '📋 Fer el qüestionari →'
+      + '</a>'
+      + '<label style="display:block;padding:18px 20px;background:#F7F6F4;border:1.5px dashed #C8C5BE;border-radius:10px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;color:#6B6762">'
+        + '📤 Pujar fitxer JSON'
+        + '<input type="file" accept=".json" onchange="importarPerfilJSON(event)" style="display:none">'
+      + '</label>'
+    + '</div>'
+    + '<div id="import-status" style="min-height:20px;font-size:12px;margin-bottom:16px"></div>'
+    + '<div style="display:flex;justify-content:space-between;gap:12px">'
+      + '<button onclick="avancarStarter(1)" style="padding:12px 24px;background:transparent;border:1.5px solid #E8E6E1;border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:#6B6762">← Enrere</button>'
+      + '<button id="btn-pas3" onclick="avancarStarter(3)" disabled style="padding:12px 32px;background:#C8C5BE;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:500;cursor:not-allowed;font-family:var(--fb)">Continuar →</button>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderStarterPas3(firstName) {
+  var c = APP.clientData || {};
+  var arq = c.arquetip || 'El teu arquetip';
+  var cartera = c.cartera || 'La teva cartera';
+  var sc = c.scoring || 0;
+  
+  return '<div style="background:#fff;border:1px solid #E8E6E1;border-radius:16px;padding:36px 40px;text-align:center">'
+    + '<div style="font-size:44px;margin-bottom:10px">🎉</div>'
+    + '<div style="font-family:var(--fd);font-size:28px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px">Perfil completat!</div>'
+    + '<div style="font-size:13px;color:#6B6762;margin-bottom:28px">Aquí tens el teu resum</div>'
+    + '<div style="background:#0A0A0A;color:#fff;border-radius:14px;padding:26px 32px;margin-bottom:24px;text-align:left">'
+      + '<div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">El teu arquetip inversor</div>'
+      + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;margin-bottom:8px">' + arq + '</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:12px">Cartera recomanada: <strong>' + cartera + '</strong></div>'
+      + '<div style="display:inline-block;padding:4px 12px;background:rgba(255,255,255,.15);border-radius:99px;font-size:12px">Scoring: ' + sc + '/100</div>'
+    + '</div>'
+    + '<div style="background:#F7F6F4;border-radius:12px;padding:20px 24px;margin-bottom:24px;text-align:left">'
+      + '<div style="font-size:11px;color:#9A9690;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Què trobaràs al portal</div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:#0A0A0A;line-height:1.6">'
+        + '<div>📊 <strong>Resum</strong> — vista general del teu perfil i cartera</div>'
+        + '<div>💼 <strong>La meva cartera</strong> — composició detallada</div>'
+        + '<div>📅 <strong>Pla d\'aportacions</strong> — calendari de contribucions</div>'
+        + '<div>💬 <strong>Missatges / Preguntes</strong> — comunicació amb Guillem</div>'
+        + '<div>📈 <strong>Mercats</strong> — dades en temps real (Bitcoin, Or, BCE, IPC…)</div>'
+        + '<div>💎 <strong>El meu pla</strong> — gestió de la subscripció</div>'
+      + '</div>'
+    + '</div>'
+    + '<button onclick="finalitzarStarter()" style="padding:14px 44px;background:#0A0A0A;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb)">Accedir al portal →</button>'
+    + '</div>';
+}
+
+function avancarStarter(nou) {
+  STARTER_STEP = nou;
+  renderView('starter');
+  // Scroll a dalt
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function marcarQuestionariObert() {
+  // Marcador visual per si l'usuari torna a aquesta pantalla
+  var st = document.getElementById('import-status');
+  if (st) {
+    st.style.color = '#1B3A6B';
+    st.textContent = 'Qüestionari obert en una nova pestanya. Quan acabis, torna aquí i puja el JSON.';
+  }
+}
+
+async function importarPerfilJSON(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var st = document.getElementById('import-status');
+  var btnContinuar = document.getElementById('btn-pas3');
+  
+  st.style.color = '#6B6762';
+  st.textContent = 'Processant fitxer...';
+  
+  try {
+    var text = await file.text();
+    var data = JSON.parse(text);
+    
+    // Validar estructura mínima
+    if (!data.arquetip && !data.arquetipId) throw new Error('Fitxer invàlid: falta l\'arquetip');
+    
+    // Normalitzar i guardar al APP.clientData
+    var arquetipId = data.arquetipId || deriveArquetipId(data.arquetip);
+    var arq = getArquetip(arquetipId);
+    
+    APP.clientData = {
+      nom: APP.user.name || data.nom || 'Client',
+      email: APP.user.email,
+      arquetipId: arquetipId,
+      arquetip: arq.nom + ' — ' + arq.ep.split('·')[0].trim(),
+      cartera: arq.cartNom,
+      scoring: data.scoring || data.scoreTotal || 0,
+      perfil: {
+        capitalInicial:   data.capitalInicial || data.perfil && data.perfil.capitalInicial || '—',
+        aportacioMensual: data.aportacioMensual || data.perfil && data.perfil.aportacioMensual || '—',
+        horitzo:          data.horitzo || data.perfil && data.perfil.horitzo || '—',
+        objectiu:         data.objectiu || data.perfil && data.perfil.objectiu || '—',
+        riscFinancer:     data.riscFinancer || data.perfil && data.perfil.riscFinancer || 'Moderat',
+        riscEmocional:    data.riscEmocional || data.perfil && data.perfil.riscEmocional || 'Moderat'
+      },
+      scoring_mods: data.scoring_mods || arq.dims,
+      carteraActual: data.carteraActual || null,
+      pla: (APP.clientData && APP.clientData.pla) || 'essencial',
+      nota: '',
+      historial: [{data: new Date().toISOString().substring(0,10), tipus: 'onboarding', titol: 'Perfil inicial creat via Starter'}]
+    };
+    
+    // Guardar a Supabase
+    if (sb) {
+      try {
+        await sb.from('clients').upsert({
+          email: APP.user.email,
+          nom: APP.clientData.nom,
+          arquetip: APP.clientData.arquetip,
+          cartera: APP.clientData.cartera,
+          scoring: APP.clientData.scoring,
+          pla: APP.clientData.pla,
+          perfil: APP.clientData.perfil
+        }, { onConflict: 'email' });
+      } catch(e) { console.warn('Supabase save:', e); }
+    }
+    
+    st.style.color = '#1A5C3A';
+    st.textContent = '✓ Perfil carregat! Arquetip: ' + arq.nom + '. Ja pots continuar.';
+    
+    // Activar botó continuar
+    if (btnContinuar) {
+      btnContinuar.disabled = false;
+      btnContinuar.style.background = '#0A0A0A';
+      btnContinuar.style.color = '#fff';
+      btnContinuar.style.cursor = 'pointer';
+    }
+  } catch(err) {
+    st.style.color = '#c00';
+    st.textContent = 'Error: ' + err.message + '. Torna a generar el fitxer al qüestionari.';
+  }
+}
+
+function saltarStarter() {
+  if (!confirm('Segur que vols saltar la configuració?\n\nPots fer-la més tard des de Configuració, però les dades seran incompletes.')) return;
+  // Marcar com fet localment
+  localStorage.setItem('tbi_starter_' + (APP.user && APP.user.email), 'skipped');
+  navigateTo('portal-perfil');
+}
+
+function finalitzarStarter() {
+  localStorage.setItem('tbi_starter_' + (APP.user && APP.user.email), 'completed');
+  STARTER_STEP = 1;
+  navigateTo('portal-perfil');
+}
 
 // ══════════════════════════════════════════════════
 // ADMIN — Safata de preguntes dels clients
