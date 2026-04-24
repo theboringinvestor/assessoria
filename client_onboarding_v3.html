@@ -1502,6 +1502,57 @@ function enviarITancar(){
   }, 1500);
 }
 
+// Construir respostes llegibles del qüestionari per guardar a Supabase
+function buildQuestionnaireResponses() {
+  var responses = [];
+  var questions = QS.filter(function(q){ return q.type === 'choice' || q.type === 'slider'; });
+  
+  questions.forEach(function(q) {
+    var ansVal = ans[q.id];
+    if (ansVal === undefined || ansVal === null) return;
+    
+    var respostaLbl = '';
+    var respostaTxt = '';
+    
+    if (q.type === 'choice' && q.opts) {
+      var opt = q.opts.find(function(o){ return o.s === ansVal; });
+      if (opt) {
+        respostaLbl = opt.sym + ' ' + opt.lbl;
+        respostaTxt = opt.txt;
+      }
+    } else if (q.type === 'slider') {
+      var raw = ans[q.id + '_raw'] !== undefined ? ans[q.id + '_raw'] : ansVal;
+      respostaLbl = raw + (q.unit || '');
+      respostaTxt = '';
+    }
+    
+    responses.push({
+      id:     q.id,
+      dim:    q.dim,
+      dn:     q.dn,
+      text:   q.text,
+      score:  ansVal,
+      lbl:    respostaLbl,
+      txt:    respostaTxt,
+    });
+  });
+  
+  // Afegir dades textuals (nom, email, perfil numèric)
+  return {
+    items: responses,
+    txt: {
+      nom:              txt.nom || '',
+      email:            txt.email || '',
+      capitalInicial:   txt.capitalInicial || '',
+      aportacioMensual: txt.aportacioMensual || '',
+      horitzo:          txt.horitzo || '',
+      objectiu:         txt.objectiu || '',
+    },
+    cartera_actual: actius.filter(function(a){ return a.cat && parseFloat(a.pct)>0; }),
+    data: new Date().toISOString(),
+  };
+}
+
 async function guardarASupabase() {
   if (!sbClient) { console.log('Supabase no disponible, skipping'); return; }
   
@@ -1567,6 +1618,8 @@ async function guardarASupabase() {
     ],
     ter: ar.ter,
     cartera_actual_usuari: carteraActualUsuari,
+    questionnaire_responses: buildQuestionnaireResponses(),
+    questionnaire_date: new Date().toISOString(),
   };
   
   try {
