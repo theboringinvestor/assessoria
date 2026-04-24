@@ -36,9 +36,9 @@ html{height:100%;overflow:hidden}body{height:100%;overflow:hidden;font-family:va
 .prog-bar-fill{height:100%;background:var(--accent);transition:width .4s var(--ease)}
 
 /* STAGE */
-.stage{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px 40px;overflow-y:auto;overflow-x:hidden;min-height:0}
-.stage.is-pregunta{align-items:center}
-.q-wrap{width:100%;max-width:600px}
+.stage{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:28px 20px 60px;overflow-y:auto;overflow-x:hidden;min-height:0;scroll-padding-top:20px}
+.stage.is-pregunta{align-items:safe center;padding-top:24px}
+.q-wrap{width:100%;max-width:600px;scroll-margin-top:20px}
 .out-l{animation:outL .17s var(--ease) forwards}
 .in-r{animation:inR .17s var(--ease) forwards}
 .out-r{animation:outR .17s var(--ease) forwards}
@@ -154,7 +154,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
   .res-img,.res-av{width:90px}
   .res-body{padding:16px 16px}
   .hdr-top,.nav-btns{padding:0 16px}
-  .stage{padding:20px 14px}
+  .stage{padding:20px 14px 60px}
+  .stage.is-pregunta{padding-top:20px}
   .score-section{grid-template-columns:repeat(4,1fr)}
 }
 
