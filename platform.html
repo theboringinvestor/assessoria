@@ -1620,6 +1620,13 @@ async function enterApp(role, email, isDemo) {
   } else {
     navigateTo(role === 'admin' ? 'hub' : 'portal-perfil');
   }
+  
+  // Actualitzar badge/banner missatges per a clients
+  if (role === 'client') {
+    setTimeout(function() {
+      try { actualitzarBannerMissatges(); } catch(e) {}
+    }, 800);
+  }
 }
 
 // ── DETECCIÓ DE CLIENT NOU ──
@@ -1878,7 +1885,7 @@ var ADMIN_NAV = [
   {section:'Principal'},
   {id:'hub', icon:'🏠', label:'Hub', desc:'Vista general'},
   {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
-  {id:'portal-missatges', icon:'💬', label:'Missatges clients', badge:'2'},
+  {id:'portal-missatges', icon:'💬', label:'Missatges clients'},
   {id:'admin-plans', icon:'💎', label:'Plans i subscripcions'},
   {id:'admin-preguntes', icon:'❓', label:'Preguntes dels clients', badge:'•'},
   {section:'Portal Client · Preview'},
@@ -1911,7 +1918,7 @@ var CLIENT_NAV = [
   {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
   {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
   {section:'Comunicació'},
-  {id:'portal-missatges', icon:'💬', label:'Missatges', badge:'2'},
+  {id:'portal-missatges', icon:'💬', label:'Missatges'},
   {section:'Contingut'},
   {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
   {id:'portal-informes', icon:'📋', label:'Informes'},
@@ -2313,13 +2320,9 @@ function renderPortalPerfil(el) {
     + '</div>'
   + '</div>';
 
-  // Unread messages alert
-  html += '<div style="padding:12px 16px;background:var(--accent-l);border:1px solid var(--accent);border-radius:10px;margin-bottom:20px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="navigateTo(\'portal-missatges\')">'
-    + '<div style="font-size:20px">💬</div>'
-    + '<div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--accent)">2 missatges nous del teu assessor</div>'
-      + '<div style="font-size:11px;color:var(--g500)">Guillem Puig · Últim: 11 abr 2026</div></div>'
-    + '<div style="font-size:14px;color:var(--accent)">→</div>'
-  + '</div>';
+  // Unread messages alert — dinàmic amb id per actualitzar després
+  html += '<div id="unread-banner" style="display:none"></div>';
+  setTimeout(actualitzarBannerMissatges, 100);
 
   // Rationale — WHY this portfolio for this archetype
   html += '<div class="card">'
@@ -3146,6 +3149,10 @@ async function markThreadRead(email) {
   try {
     var field = APP.role === 'admin' ? 'read_by_admin' : 'read_by_client';
     await sb.from('messages').update({[field]: true}).eq('client_email', email).eq(field, false);
+    // Actualitzar badges/banner després de marcar com llegit
+    if (APP.role === 'client') {
+      actualitzarBannerMissatges();
+    }
   } catch(e) {}
 }
 
@@ -4088,6 +4095,143 @@ function renderSettings(el) {
 // PANTALLA DE BLOQUEIG PER PLA
 // ══════════════════════════════════════════════════
 
+
+// ══════════════════════════════════════════════════
+// COMPTADOR DE MISSATGES NO LLEGITS (dinàmic)
+// ══════════════════════════════════════════════════
+async function actualitzarBannerMissatges() {
+  var banner = document.getElementById('unread-banner');
+  if (!banner || !sb || APP.role === 'admin') return;
+  
+  var email = APP.user && APP.user.email;
+  if (!email) return;
+  
+  try {
+    var res = await sb.from('messages')
+      .select('*', { count: 'exact' })
+      .eq('client_email', email.toLowerCase())
+      .eq('from_role', 'admin')
+      .eq('read_by_client', false);
+    
+    if (res.error) return;
+    var count = res.count || 0;
+    var msgs = res.data || [];
+    
+    if (count > 0) {
+      var lastMsg = msgs[msgs.length-1];
+      var lastDate = lastMsg ? new Date(lastMsg.created_at).toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}) : '';
+      banner.style.display = 'block';
+      banner.innerHTML = '<div style="padding:12px 16px;background:var(--accent-l);border:1px solid var(--accent);border-radius:10px;margin-bottom:20px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="navigateTo(\'portal-missatges\')">'
+        + '<div style="font-size:20px">💬</div>'
+        + '<div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--accent)">' + count + ' missatge' + (count===1?'':'s') + ' nou' + (count===1?'':'s') + ' del teu assessor</div>'
+        + '<div style="font-size:11px;color:var(--g500)">Guillem Puig · Últim: ' + lastDate + '</div></div>'
+        + '<div style="font-size:14px;color:var(--accent)">→</div>'
+      + '</div>';
+    } else {
+      banner.style.display = 'none';
+    }
+    
+    // També actualitzar el badge del nav
+    actualitzarBadgeMissatges(count);
+  } catch(e) { console.warn(e); }
+}
+
+function actualitzarBadgeMissatges(count) {
+  // Buscar l'item del nav "Missatges" i actualitzar-ne el badge
+  var items = document.querySelectorAll('.sidebar-item');
+  items.forEach(function(item) {
+    var label = item.querySelector('.sidebar-item-label');
+    if (label && (label.textContent === 'Missatges' || label.textContent === 'Missatges clients')) {
+      var existing = item.querySelector('.sidebar-item-badge');
+      if (existing) existing.remove();
+      if (count > 0) {
+        var badge = document.createElement('span');
+        badge.className = 'sidebar-item-badge';
+        badge.textContent = count;
+        item.appendChild(badge);
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// MISSATGE DE BENVINGUDA (adaptat al pla)
+// Es crea automàticament la primera vegada que el client entra
+// després d'acabar l'Starter.
+// ══════════════════════════════════════════════════
+async function crearMissatgeBenvinguda(email, pla) {
+  if (!sb || !email) return;
+  
+  // Comprovar si ja existeix un missatge de benvinguda per aquest email
+  try {
+    var existing = await sb.from('messages')
+      .select('id')
+      .eq('client_email', email.toLowerCase())
+      .eq('from_role', 'admin')
+      .ilike('content', '%Benvingut a The Boring Investor%')
+      .limit(1);
+    
+    if (existing.data && existing.data.length > 0) return; // Ja existeix
+  } catch(e) {}
+  
+  // Contingut adaptat al pla
+  var planInfo = PLANS[pla] || PLANS.essencial;
+  var nom = (APP.user && APP.user.name) || 'inversor';
+  var firstName = nom.split(' ')[0];
+  
+  var msgComu = '👋 Hola ' + firstName + ', benvingut a The Boring Investor!\n\n'
+    + 'Sóc Guillem, el teu assessor. He vist que has completat el perfil i t\'hem assignat l\'arquetip ' + (APP.clientData && APP.clientData.arquetip ? APP.clientData.arquetip.split('—')[0].trim() : '') + '. Enhorabona per la primera passa!\n\n';
+  
+  var msgPla = '';
+  if (pla === 'essencial' || !pla) {
+    msgPla = '📋 Com funciona el teu pla Essencial:\n\n'
+      + '• Tens accés complet a la plataforma, arquetip i cartera recomanada\n'
+      + '• Pots fer-me 1 pregunta per setmana (acumulable fins a 4)\n'
+      + '• Les trobaràs al widget "Pregunta setmanal" del teu Resum\n'
+      + '• Resposta en 48h màxim\n\n'
+      + 'Si vols missatgeria il·limitada, sessions personalitzades o pla fiscal, puja a Brúixola, Rumb o Mapa des del menú "El meu pla".';
+  } else if (pla === 'bruxola') {
+    msgPla = '📋 Com funciona el teu pla Brúixola:\n\n'
+      + '• Missatgeria il·limitada amb mi — aquí mateix\n'
+      + '• Anàlisis mensuals de mercat personalitzades\n'
+      + '• Informes PDF trimestrals\n'
+      + '• Turbo Estalvi personalitzat\n\n'
+      + 'Escriu-me sempre que necessitis. Responc en 24-48h laborables.';
+  } else if (pla === 'rumb') {
+    msgPla = '📋 Com funciona el teu pla Rumb:\n\n'
+      + '• Missatgeria il·limitada amb mi\n'
+      + '• Sessió 1h cada 3 mesos (agendarem la primera aviat)\n'
+      + '• Revisió completa de cartera\n'
+      + '• Suport per decisions importants\n\n'
+      + 'La primera sessió te l\'enviaré per email aquesta setmana per agendar-la.';
+  } else if (pla === 'mapa') {
+    msgPla = '📋 Com funciona el teu pla Mapa:\n\n'
+      + '• Missatgeria il·limitada amb mi\n'
+      + '• Sessió mensual 1h — la primera aquesta setmana\n'
+      + '• Planificació fiscal anual completa\n'
+      + '• Pla FIRE personalitzat\n'
+      + '• Acompanyament 1-a-1\n\n'
+      + 'T\'enviaré un email aviat per agendar la primera sessió i començar el teu pla.';
+  }
+  
+  var msgFinal = '\n\n🚀 Pròxims passos recomanats:\n\n'
+    + '1. Explora la teva cartera recomanada a "La meva cartera"\n'
+    + '2. Configura les teves aportacions al "Pla d\'aportacions"\n'
+    + '3. Consulta la Calculadora FIRE per veure la teva projecció\n\n'
+    + 'Si tens qualsevol dubte, aquí em tens!\n\n— Guillem';
+  
+  try {
+    await sb.from('messages').insert({
+      client_email: email.toLowerCase(),
+      from_email: 'guillem@theboringinvestor.com',
+      from_role: 'admin',
+      content: msgComu + msgPla + msgFinal,
+      read_by_admin: true,
+      read_by_client: false
+    });
+  } catch(e) { console.warn('Error creating welcome message:', e); }
+}
+
 function renderStarterRequired() {
   return '<div class="content-inner fade-in" style="max-width:560px;margin:60px auto">'
     + '<div style="background:#fff;border:1px solid #E8E6E1;border-radius:16px;padding:40px 44px;text-align:center">'
@@ -4338,8 +4482,14 @@ function saltarStarter() {
 }
 
 function finalitzarStarter() {
-  localStorage.setItem('tbi_starter_' + (APP.user && APP.user.email), 'completed');
+  var email = APP.user && APP.user.email;
+  localStorage.setItem('tbi_starter_' + email, 'completed');
   STARTER_STEP = 1;
+  
+  // Crear missatge de benvinguda adaptat al pla (asíncron, no bloqueja)
+  var pla = (APP.clientData && APP.clientData.pla) || 'essencial';
+  crearMissatgeBenvinguda(email, pla).catch(function(e){ console.warn(e); });
+  
   navigateTo('portal-perfil');
 }
 
