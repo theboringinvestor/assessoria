@@ -1616,7 +1616,15 @@ async function enterApp(role, email, isDemo) {
   
   // Detectar si és client nou (sense arquetip/scoring) → redirigir al Starter
   if (role === 'client' && esClientNou(APP.clientData)) {
-    navigateTo('starter');
+    // Si torna del qüestionari, forcar pas 2 i auto-comprovar
+    if (window._starterReturning) {
+      STARTER_STEP = 2;
+      navigateTo('starter');
+      setTimeout(function() { comprovarPerfilSupabase(); }, 800);
+      window._starterReturning = false;
+    } else {
+      navigateTo('starter');
+    }
   } else {
     navigateTo(role === 'admin' ? 'hub' : 'portal-perfil');
   }
@@ -4337,19 +4345,14 @@ function renderStarterPas2(firstName) {
         + '<strong>💡 Consell:</strong> Respon amb sinceritat. No hi ha respostes correctes o incorrectes — el teu arquetip reflecteix com et comportes realment com a inversor.'
       + '</div>'
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px">'
-      + '<a href="client_onboarding_v3.html" target="_blank" onclick="marcarQuestionariObert()" style="display:block;padding:18px 20px;background:#0A0A0A;color:#fff;text-decoration:none;border-radius:10px;text-align:center;font-size:13px;font-weight:500">'
+    + '<a id="btn-open-questionnaire" onclick="obrirQuestionari();return false;" style="display:block;padding:20px 24px;background:#0A0A0A;color:#fff;text-decoration:none;border-radius:10px;text-align:center;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:20px">'
         + '📋 Fer el qüestionari →'
       + '</a>'
-      + '<label style="display:block;padding:18px 20px;background:#F7F6F4;border:1.5px dashed #C8C5BE;border-radius:10px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;color:#6B6762">'
-        + '📤 Pujar fitxer JSON'
-        + '<input type="file" accept=".json" onchange="importarPerfilJSON(event)" style="display:none">'
-      + '</label>'
-    + '</div>'
+    + '<div style="padding:14px 16px;background:#F7F6F4;border-radius:8px;font-size:12px;color:#6B6762;line-height:1.6;margin-bottom:20px;text-align:center">✨ No cal descarregar cap fitxer. Quan acabis el qüestionari, torna aquí i el teu perfil es carregarà automàticament.</div>'
     + '<div id="import-status" style="min-height:20px;font-size:12px;margin-bottom:16px"></div>'
     + '<div style="display:flex;justify-content:space-between;gap:12px">'
       + '<button onclick="avancarStarter(1)" style="padding:12px 24px;background:transparent;border:1.5px solid #E8E6E1;border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:#6B6762">← Enrere</button>'
-      + '<button id="btn-pas3" onclick="avancarStarter(3)" disabled style="padding:12px 32px;background:#C8C5BE;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:500;cursor:not-allowed;font-family:var(--fb)">Continuar →</button>'
+      + '<button onclick="comprovarPerfilSupabase()" style="padding:12px 28px;background:#1B3A6B;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Ja he acabat, continuar →</button>'
     + '</div>'
     + '</div>';
 }
@@ -4401,6 +4404,55 @@ function marcarQuestionariObert() {
   }
 }
 
+// Obre el qüestionari amb l'email i nom pre-omplerts
+function obrirQuestionari() {
+  var email = (APP.user && APP.user.email) || '';
+  var name  = (APP.user && APP.user.name) || '';
+  var url = 'client_onboarding_v3.html?from=starter'
+    + '&email=' + encodeURIComponent(email)
+    + '&name='  + encodeURIComponent(name);
+  window.open(url, '_blank');
+  
+  var st = document.getElementById('import-status');
+  if (st) {
+    st.style.color = '#1B3A6B';
+    st.innerHTML = '🔄 Qüestionari obert en una nova pestanya. Quan acabis, torna aquí i clica "Ja he acabat".';
+  }
+}
+
+// Comprova si Supabase ja té el perfil de l'usuari completat
+async function comprovarPerfilSupabase() {
+  var email = APP.user && APP.user.email;
+  if (!email) return;
+  
+  var st = document.getElementById('import-status');
+  if (st) { st.style.color = '#6B6762'; st.textContent = 'Comprovant el teu perfil...'; }
+  
+  if (!sb) {
+    if (st) { st.style.color = '#c00'; st.textContent = 'Supabase no disponible. Recarrega la pàgina.'; }
+    return;
+  }
+  
+  try {
+    var cd = await loadClientFromSupabase(email);
+    if (cd && cd.scoring && cd.scoring > 0) {
+      // Perfil trobat! Actualitzar APP.clientData
+      APP.clientData = cd;
+      if (cd.nom) APP.user.name = cd.nom;
+      if (st) { st.style.color = '#1A5C3A'; st.textContent = '✓ Perfil detectat! Arquetip: ' + (cd.arquetip||'').split('—')[0].trim(); }
+      setTimeout(function(){ avancarStarter(3); }, 900);
+    } else {
+      if (st) { 
+        st.style.color = '#c00'; 
+        st.textContent = 'Encara no s\'ha trobat el teu perfil. Has acabat el qüestionari? Torna a provar en uns segons.'; 
+      }
+    }
+  } catch(err) {
+    if (st) { st.style.color = '#c00'; st.textContent = 'Error: ' + err.message; }
+  }
+}
+
+// Versió antiga per si algú encara té un JSON descarregat — mantenim com a fallback
 async function importarPerfilJSON(event) {
   var file = event.target.files[0];
   if (!file) return;
@@ -4829,6 +4881,17 @@ function renderPlansScreen(el) {
     + '</div>';
   html += '</div>';
   el.innerHTML = html;
+}
+
+// ── DETECCIÓ DE RETORN DEL QÜESTIONARI ──
+function handleStarterReturn() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('starter_completed') === 'true') {
+    // Netejar URL
+    history.replaceState({}, '', window.location.pathname);
+    // Marcar que quan s'obri la pantalla cal comprovar Supabase automàticament
+    window._starterReturning = true;
+  }
 }
 
 // ── GESTIÓ RESET CONTRASENYA ──
@@ -5282,6 +5345,7 @@ function renderPlatformTickers(data, el, updEl) {
 // ══════════════════════════════════════════════════
 handleCheckoutReturn();
 handlePasswordReset();
+handleStarterReturn();
 if (!checkSession()) {
   // Show login screen (already visible by default)
 }

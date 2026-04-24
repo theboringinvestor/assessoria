@@ -1308,7 +1308,7 @@ function buildResult(){
     +'<div style="display:flex;flex-direction:column;gap:9px">'
       +'<button id="btn-enviar" onclick="enviarITancar()" style="width:100%;padding:13px;background:#0A0A0A;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('send_btn')+'</button>'
       
-      +'<a id="btn-portal" href="https://theboringinvestor.github.io/assessoria/platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
+      +'<a id="btn-portal" href="#" onclick="anarAPlatform();return false;" style="display:none;cursor:pointer;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
         +(ONB_LANG==='es'?'🔗 Acceder a mi portal →':'🔗 Accedeix al teu portal →')
       +'</a>'
       
@@ -1455,6 +1455,12 @@ function enviarITancar(){
       portalBtn.scrollIntoView({behavior:'smooth', block:'center'});
     }
   }, 1500);
+}
+
+function anarAPlatform() {
+  var url = 'https://theboringinvestor.github.io/assessoria/platform.html';
+  if (FROM_STARTER) url += '?starter_completed=true';
+  window.location.href = url;
 }
 
 async function guardarASupabase() {
