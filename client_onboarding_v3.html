@@ -736,6 +736,17 @@ const QS = [
     ]},
   {type:'choice',id:'D7P3',dim:'D7 · Preferències',dn:7,
     text:'Com valores la inversió responsable (ESG) a la teva cartera?',
+    info: `<div style="margin-bottom:14px;padding:12px 14px;background:rgba(255,255,255,.06);border-left:3px solid rgba(255,255,255,.25);border-radius:8px;font-size:12px;line-height:1.7;color:rgba(255,255,255,.75)">
+      <div style="font-weight:600;color:#fff;margin-bottom:6px">💡 Què és la inversió ESG?</div>
+      ESG significa <strong>Environmental, Social i Governance</strong> (Ambiental, Social i Governança). Els fons ESG exclouen o infraponden sectors i empreses amb impacte negatiu:<br><br>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px">
+        <span>🚫 Armes i defensa</span><span>🚫 Tabac</span>
+        <span>🚫 Carbó i petroli</span><span>🚫 Jocs d'atzar</span>
+        <span>🚫 Alcohol</span><span>🚫 Pornografia</span>
+        <span>🚫 Empreses corruptes</span><span>🚫 Treball infantil</span>
+      </div><br>
+      <strong>Atenció:</strong> els fons ESG solen tenir un cost lleugerament superior (TER ~0,05-0,15% més) i pot reduir diversificació sectorial.
+    </div>`,
     opts:[
       {sym:'—',lbl:'No prioritari',txt:'Prefereixo el millor retorn possible.',s:1},
       {sym:'~',lbl:'Una mica',txt:'Evitaria els sectors més controvertits.',s:2},
@@ -809,7 +820,31 @@ const TOTAL = QS.length;
 let cur = 0;
 let ans = {};
 let txt = {};
-let actius = [{nom:'Compte Corrent / Liquiditat',pct:'100',plat:''},{nom:'',pct:'',plat:''}];
+
+// Categories macro d'actius — alineades amb les carteres de la plataforma
+const ACTIU_CATEGORIES = [
+  { id: 'rv_global',    ca: 'RV Global Indexada',      es: 'RV Global Indexada',     emoji: '🌍', tip: 'ETF MSCI World, S&P 500, ETF de mercat global' },
+  { id: 'rv_dividend',  ca: 'Dividend ETF / Renda',    es: 'Dividend ETF / Renta',   emoji: '💵', tip: 'ETFs de dividend, accions de renda estable' },
+  { id: 'rv_tematica',  ca: 'Temàtica / Sectorial',    es: 'Temática / Sectorial',   emoji: '🔬', tip: 'IA, Tech, salut, energia neta, etc.' },
+  { id: 'rv_emergent',  ca: 'Emergents (EM)',           es: 'Emergentes (EM)',         emoji: '🌏', tip: 'Índexs de mercats emergents (EMIM, etc.)' },
+  { id: 'rf_gov',       ca: 'RF Governamental',         es: 'RF Gubernamental',        emoji: '🏛️', tip: 'Bons de governs (EUR AAA, Tresor US, etc.)' },
+  { id: 'rf_corp',      ca: 'RF Corporativa IG',        es: 'RF Corporativa IG',       emoji: '🏢', tip: 'Bons corporatius Investment Grade' },
+  { id: 'rf_monetari',  ca: 'Liquiditat / Monetari',   es: 'Liquidez / Monetario',   emoji: '💧', tip: 'Compte corrent, dipòsits, mercat monetari, OCIs' },
+  { id: 'or_metalls',   ca: 'Or i Metalls preciosos',  es: 'Oro y Metales preciosos', emoji: '🥇', tip: 'Or físic (ETC), plata, platí' },
+  { id: 'reits',        ca: 'REITs / Immobiliaris',     es: 'REITs / Inmobiliarios',   emoji: '🏠', tip: 'Fons immobiliaris cotitzats, socimis' },
+  { id: 'crypto',       ca: 'Crypto / Actius digitals', es: 'Crypto / Activos digitales', emoji: '₿', tip: 'Bitcoin, Ethereum, altcoins' },
+  { id: 'crowdlending', ca: 'Crowdlending / P2P',       es: 'Crowdlending / P2P',     emoji: '🤝', tip: 'Plataformes de préstecs P2P, finançament col·lectiu' },
+  { id: 'pe_startups',  ca: 'Private Equity / Start-ups', es: 'Private Equity / Start-ups', emoji: '🚀', tip: 'Inversió en empreses no cotitzades, capital risc' },
+  { id: 'altres',       ca: 'Altres',                   es: 'Otros',                   emoji: '📦', tip: 'Qualsevol actiu no inclòs a les categories anteriors' },
+];
+
+function getCategoriaNom(id) {
+  const cat = ACTIU_CATEGORIES.find(c => c.id === id);
+  if (!cat) return id;
+  return (ONB_LANG === 'es' ? cat.es : cat.ca);
+}
+
+let actius = [{cat:'rf_monetari', pct:'100'},{cat:'',pct:''}];
 let going = false;
 let _dadesEnviades = false;
 
@@ -895,6 +930,7 @@ function buildQ(q){
 
   if(q.type==='choice') return `${d}
     <div class="q-text">${q.text}</div>
+    ${q.info ? q.info : ''}
     <div class="opts">${q.opts.map((o,i)=>`
       <div class="opt${ans[q.id]===o.s?' sel':''}" onclick="pick(this,'${q.id}',${o.s})">
         <div class="opt-sym">${o.sym}</div>
@@ -918,11 +954,9 @@ function buildQ(q){
 
   if(q.type==='cartera') return `${d}
     <div class="q-text">${q.text}</div>
-    <div class="actiu-hdr">
-      <span class="form-lbl" style="padding:0 2px">${ONB_LANG==='es'?'Producto':'Producte'}</span>
-      <span class="form-lbl" style="text-align:center">%</span>
-      <span class="form-lbl" style="padding:0 2px">${ONB_LANG==='es'?'Plataforma':'Plataforma'}</span>
-      <span></span>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0 2px;margin-bottom:4px">
+      <span class="form-lbl">${ONB_LANG==='es'?'Categoría d\'actiu':'Categoria d\'actiu'}</span>
+      <span class="form-lbl" style="margin-right:32px">%</span>
     </div>
     <div id="aw">${renderActius()}</div>
     <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
@@ -939,23 +973,34 @@ function getTotal(){ return actius.reduce((s,a)=>s+(parseFloat(a.pct)||0),0); }
 function renderActius(){
   const total = getTotal();
   const ok    = Math.abs(total-100)<1;
-  const rows  = actius.map((a,i)=>{
+  
+  // Opcions del select de categories
+  const optsHtml = '<option value="">\u2014 ' + (ONB_LANG==='es'?'Selecciona categoría':'Selecciona categoria') + ' \u2014</option>'
+    + ACTIU_CATEGORIES.map(c =>
+        '<option value="'+c.id+'">'+c.emoji+' '+(ONB_LANG==='es'?c.es:c.ca)+'</option>'
+      ).join('');
+  
+  const rows = actius.map((a,i)=>{
     const pct = parseFloat(a.pct)||0;
-    return '<div class="actiu-row" style="flex-direction:column;gap:4px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
+    const cat = ACTIU_CATEGORIES.find(c=>c.id===a.cat);
+    const tip = cat ? cat.tip : '';
+    return '<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)">'
       +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<input class="inp-sm" style="flex:1" placeholder="'+uiT('cartera_placeholder')+'" value="'+a.nom+'" oninput="actius['+i+'].nom=this.value">'
-      +'<input class="inp-sm" style="width:60px;text-align:center;font-family:var(--fm)" type="number" placeholder="%" min="0" max="100" step="5" value="'+a.pct+'" oninput="actius['+i+'].pct=this.value;refreshActius()">'
-      +'<button class="btn-rm" onclick="rmA('+i+')">×</button>'
+      +'<select class="inp-sm" style="flex:1;cursor:pointer" onchange="actius['+i+'].cat=this.value;refreshActius()">'
+        +optsHtml.replace('value="'+a.cat+'"','value="'+a.cat+'" selected')
+      +'</select>'
+      +'<input class="inp-sm" style="width:58px;text-align:center;font-family:var(--fm)" type="number" placeholder="%" min="0" max="100" step="5" value="'+a.pct+'" oninput="actius['+i+'].pct=this.value;refreshActius()">'
+      +'<button class="btn-rm" onclick="rmA('+i+')">\xd7</button>'
       +'</div>'
-      +(pct>0?'<div style="height:3px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin:0 2px">'
+      +(tip && a.cat ? '<div style="font-size:10px;color:rgba(255,255,255,.32);margin:3px 2px 0">'+tip+'</div>' : '')
+      +(pct>0?'<div style="height:3px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin:4px 2px 0">'
         +'<div style="width:'+Math.min(100,pct)+'%;height:100%;background:rgba(255,255,255,.4);border-radius:99px;transition:width .2s"></div>'
         +'</div>':'')
       +'</div>';
   }).join('');
   const totalRow = '<div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;padding:8px 2px 4px;border-top:1px solid rgba(255,255,255,.08);margin-top:4px">'
     +'<span style="font-size:11px;color:rgba(255,255,255,.3);">'+uiT('cartera_pct_total')+'</span>'
-    +'<span style="font-family:var(--fm);font-size:14px;font-weight:500;color:'+(ok?'rgba(100,220,120,.9)':total>100?'rgba(230,90,80,.9)':'rgba(255,255,255,.6)')+'">'
-    +Math.round(total)+'%</span>'
+    +'<span style="font-family:var(--fm);font-size:14px;font-weight:500;color:'+(ok?'rgba(100,220,120,.9)':total>100?'rgba(230,90,80,.9)':'rgba(255,255,255,.6)')+'">'+Math.round(total)+'%</span>'
     +'</div>';
   return rows + totalRow;
 }
@@ -1308,7 +1353,7 @@ function buildResult(){
     +'<div style="display:flex;flex-direction:column;gap:9px">'
       +'<button id="btn-enviar" onclick="enviarITancar()" style="width:100%;padding:13px;background:#0A0A0A;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('send_btn')+'</button>'
       
-      +'<a id="btn-portal" href="#" onclick="anarAPlatform();return false;" style="display:none;cursor:pointer;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
+      +'<a id="btn-portal" href="https://theboringinvestor.github.io/assessoria/platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
         +(ONB_LANG==='es'?'🔗 Acceder a mi portal →':'🔗 Accedeix al teu portal →')
       +'</a>'
       
@@ -1355,7 +1400,7 @@ function onSl(el,qid){
   document.getElementById('btn-next').disabled=false;
 }
 
-function addA(){ actius.push({nom:'',pct:'',plat:''}); refreshActius(); }
+function addA(){ actius.push({cat:'',pct:''}); refreshActius(); }
 function rmA(i){ if(actius.length<=1){ actius[0]={nom:'',pct:'',plat:''}; }else{ actius.splice(i,1); } refreshActius(); }
 
 function attachEv(q){
@@ -1457,12 +1502,6 @@ function enviarITancar(){
   }, 1500);
 }
 
-function anarAPlatform() {
-  var url = 'https://theboringinvestor.github.io/assessoria/platform.html';
-  if (FROM_STARTER) url += '?starter_completed=true';
-  window.location.href = url;
-}
-
 async function guardarASupabase() {
   if (!sbClient) { console.log('Supabase no disponible, skipping'); return; }
   
@@ -1493,6 +1532,19 @@ async function guardarASupabase() {
     return { nom: a.n, pct: a.p, target: a.p, actual: a.p, valor: 0, color: '' };
   });
   
+  // Cartera actual introduïda per l'usuari (amb categories macro)
+  var carteraActualUsuari = actius
+    .filter(function(a){ return a.cat && parseFloat(a.pct)>0; })
+    .map(function(a){
+      var cat = ACTIU_CATEGORIES.find(function(c){ return c.id===a.cat; });
+      return {
+        cat: a.cat,
+        nom: cat ? (ONB_LANG==='es' ? cat.es : cat.ca) : a.cat,
+        emoji: cat ? cat.emoji : '📦',
+        pct: parseFloat(a.pct)||0
+      };
+    });
+  
   // Build the client record
   var clientData = {
     nom: txt.nom || '—',
@@ -1514,6 +1566,7 @@ async function guardarASupabase() {
       }
     ],
     ter: ar.ter,
+    cartera_actual_usuari: carteraActualUsuari,
   };
   
   try {
