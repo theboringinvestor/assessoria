@@ -1624,6 +1624,8 @@ async function guardarASupabase() {
     cartera_actual_usuari: carteraActualUsuari,
     questionnaire_responses: buildQuestionnaireResponses(),
     questionnaire_date: new Date().toISOString(),
+    status: 'pending',  // ⏳ Espera validació de l'admin
+    submitted_at: new Date().toISOString(),
   };
   
   try {

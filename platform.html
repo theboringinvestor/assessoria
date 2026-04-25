@@ -1580,13 +1580,18 @@ async function enterApp(role, email, isDemo) {
 
     if (role === 'client') {
       var cd = await loadClientFromSupabase(email);
-      if (cd && cd.scoring && cd.scoring > 0) {
-        // Client amb dades reals — carregar tot
+      if (cd && cd.scoring && cd.scoring > 0 && cd.status === 'active') {
+        // Client actiu amb dades — carregar portal complet
+        APP.clientData = cd;
+        APP.user.name = cd.nom || email;
+        APP.user.initials = getInitials(cd.nom || email);
+      } else if (cd && cd.scoring && cd.scoring > 0 && (cd.status === 'pending' || cd.status === 'review' || cd.status === 'rejected')) {
+        // Client en espera de validació — mostra pantalla específica
         APP.clientData = cd;
         APP.user.name = cd.nom || email;
         APP.user.initials = getInitials(cd.nom || email);
       } else {
-        // Client nou o incomplet — NO assignar DEMO_CLIENT (perquè ens porta al Starter)
+        // Client nou sense qüestionari — Starter
         APP.clientData = null;
         if (cd && cd.nom) APP.user.name = cd.nom;
         APP.user.initials = (APP.user.name || email)[0].toUpperCase();
@@ -1614,9 +1619,10 @@ async function enterApp(role, email, isDemo) {
 
   setupSidebar();
   
-  // Detectar si és client nou (sense arquetip/scoring) → redirigir al Starter
-  if (role === 'client' && esClientNou(APP.clientData)) {
-    // Si torna del qüestionari, forcar pas 2 i auto-comprovar
+  if (role === 'admin') {
+    navigateTo('hub');
+  } else if (esClientNou(APP.clientData)) {
+    // Client sense qüestionari — Starter
     if (window._starterReturning) {
       STARTER_STEP = 2;
       navigateTo('starter');
@@ -1625,14 +1631,23 @@ async function enterApp(role, email, isDemo) {
     } else {
       navigateTo('starter');
     }
+  } else if (APP.clientData && APP.clientData.status && APP.clientData.status !== 'active') {
+    // Client amb qüestionari completat però no validat — pantalla d'espera
+    navigateTo('pending-review');
   } else {
-    navigateTo(role === 'admin' ? 'hub' : 'portal-perfil');
+    // Client actiu — portal complet
+    navigateTo('portal-perfil');
   }
   
   // Actualitzar badge/banner missatges per a clients
   if (role === 'client') {
     setTimeout(function() {
       try { actualitzarBannerMissatges(); } catch(e) {}
+    }, 800);
+  }
+  if (role === 'admin') {
+    setTimeout(function() {
+      try { actualitzarBadgePendents(); } catch(e) {}
     }, 800);
   }
 }
@@ -1893,6 +1908,7 @@ var ADMIN_NAV = [
   {section:'Principal'},
   {id:'hub', icon:'🏠', label:'Hub', desc:'Vista general'},
   {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
+  {id:'admin-pendents', icon:'⏳', label:'Sol·licituds pendents'},
   {id:'portal-missatges', icon:'💬', label:'Missatges clients'},
   {id:'portal-questionnaire', icon:'📋', label:'Qüestionari client'},
   {id:'admin-plans', icon:'💎', label:'Plans i subscripcions'},
@@ -2015,6 +2031,8 @@ function navigateTo(viewId) {
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
     'admin-preguntes': ['Preguntes dels clients', 'Respon les preguntes pendents dels clients Essencial'],
     'starter': ['Benvingut', 'Completa el teu perfil en 3 passos'],
+    'pending-review': ['Sol·licitud rebuda', 'Esperant validació de l\'assessor'],
+    'admin-pendents': ['Sol·licituds pendents', 'Clients esperant validació'],
   };
   var t = titles[viewId] || [viewId, ''];
   document.getElementById('topbar-title').textContent = t[0];
@@ -2037,9 +2055,14 @@ function renderView(viewId) {
   
   // Bloqueig per "client nou": si encara no ha completat el starter, 
   // les seccions del portal mostren un recordatori
-  if (APP.role !== 'admin' && viewId.startsWith('portal-') && viewId !== 'starter') {
+  if (APP.role !== 'admin' && viewId.startsWith('portal-') && viewId !== 'starter' && viewId !== 'pending-review') {
     if (esClientNou(APP.clientData)) {
       content.innerHTML = renderStarterRequired();
+      return;
+    }
+    // Si client té status≠active, només pot accedir a pending-review
+    if (APP.clientData && APP.clientData.status && APP.clientData.status !== 'active') {
+      navigateTo('pending-review');
       return;
     }
   }
@@ -2060,6 +2083,8 @@ function renderView(viewId) {
     case 'admin-plans': renderAdminPlans(content); break;
     case 'admin-preguntes': renderAdminPreguntes(content); break;
     case 'starter': renderStarter(content); break;
+    case 'pending-review': renderPendingReview(content); break;
+    case 'admin-pendents': renderAdminPendents(content); break;
     case 'portal-perfil': renderPortalPerfil(content); break;
     case 'portal-roadmap': renderPortalRoadmap(content); break;
     case 'portal-cartera': renderPortalCartera(content); break;
@@ -4402,6 +4427,399 @@ async function crearMissatgeBenvinguda(email, pla) {
       read_by_client: false
     });
   } catch(e) { console.warn('Error creating welcome message:', e); }
+}
+
+
+// ══════════════════════════════════════════════════
+// PENDING REVIEW — pantalla d'espera del client
+// ══════════════════════════════════════════════════
+
+function renderPendingReview(el) {
+  var c = APP.clientData || {};
+  var status = c.status || 'pending';
+  var date = c.submitted_at 
+    ? new Date(c.submitted_at).toLocaleDateString('ca-ES', {day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'})
+    : '';
+  
+  var configs = {
+    pending: {
+      icon: '⏳', color: '#D4943A', bg: '#FEF3E0',
+      title: 'Sol·licitud rebuda',
+      sub: 'El teu perfil està pendent de validació',
+      text: 'Hem rebut el teu qüestionari completat. El teu assessor revisarà el teu perfil i la cartera proposada per assegurar que tot està correcte abans d\'activar-te l\'accés complet al portal.',
+      timeline: 'Resposta habitual: 24-48 hores laborables',
+      action: '💬 Mentrestant pots enviar-li un missatge si tens alguna pregunta'
+    },
+    review: {
+      icon: '📝', color: '#1B3A6B', bg: '#EBF0FA',
+      title: 'En revisió',
+      sub: 'L\'assessor està revisant el teu perfil',
+      text: 'L\'assessor ja està treballant en el teu perfil. Pot ser que et contacti per missatge per aclarir alguns detalls abans d\'activar el teu accés.',
+      timeline: 'Pendent de l\'assessor',
+      action: '💬 Revisa la teva safata de missatges'
+    },
+    rejected: {
+      icon: '⚠️', color: '#C0392B', bg: '#FCEBEB',
+      title: 'Cal modificar el perfil',
+      sub: 'L\'assessor ha indicat que has de revisar el qüestionari',
+      text: c.rejection_reason || 'L\'assessor ha trobat alguna inconsistència al teu qüestionari. Per favor, refes-lo amb les dades correctes.',
+      timeline: '',
+      action: '🔄 Refer el qüestionari'
+    }
+  };
+  
+  var cfg = configs[status] || configs.pending;
+  
+  var html = '<div class="content-inner fade-in" style="max-width:640px;margin:40px auto">';
+  
+  // Hero card
+  html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:16px;overflow:hidden;margin-bottom:20px">';
+  html += '<div style="background:' + cfg.bg + ';padding:32px 36px;text-align:center;border-bottom:1px solid var(--g100)">'
+    + '<div style="font-size:48px;margin-bottom:10px">' + cfg.icon + '</div>'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px;color:' + cfg.color + '">' + cfg.title + '</div>'
+    + '<div style="font-size:13px;color:var(--g500)">' + cfg.sub + '</div>'
+  + '</div>';
+  
+  html += '<div style="padding:28px 36px">';
+  html += '<div style="font-size:14px;color:var(--g700);line-height:1.7;margin-bottom:20px">' + cfg.text + '</div>';
+  
+  // Resum del perfil enviat
+  if (c.scoring) {
+    html += '<div style="background:var(--g50);border-radius:10px;padding:16px 20px;margin-bottom:20px">'
+      + '<div style="font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Resum del teu perfil</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+    if (c.arquetip) html += '<div><div style="font-size:11px;color:var(--g500)">Arquetip</div><div style="font-size:13px;font-weight:500;color:var(--black)">' + c.arquetip.split('—')[0].trim() + '</div></div>';
+    if (c.cartera)  html += '<div><div style="font-size:11px;color:var(--g500)">Cartera proposada</div><div style="font-size:13px;font-weight:500;color:var(--black)">' + c.cartera + '</div></div>';
+    if (c.scoring)  html += '<div><div style="font-size:11px;color:var(--g500)">Scoring</div><div style="font-size:13px;font-weight:500;color:var(--accent)">' + c.scoring + '/100</div></div>';
+    if (date)       html += '<div><div style="font-size:11px;color:var(--g500)">Enviat</div><div style="font-size:13px;font-weight:500;color:var(--black)">' + date + '</div></div>';
+    html += '</div></div>';
+  }
+  
+  if (cfg.timeline) {
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#F0F4FF;border-radius:8px;margin-bottom:20px;font-size:12px;color:#1B3A6B"><span>⏱</span><span>' + cfg.timeline + '</span></div>';
+  }
+  
+  // Accions
+  html += '<div style="display:flex;flex-direction:column;gap:10px">';
+  if (status === 'rejected') {
+    html += '<button onclick="referQuestionari()" style="padding:13px 20px;background:#0A0A0A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">🔄 Refer el qüestionari</button>';
+  }
+  html += '<button onclick="navigateTo(\'portal-missatges\')" style="padding:13px 20px;background:transparent;color:var(--accent);border:1.5px solid var(--accent);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">💬 Missatge a l\'assessor</button>';
+  html += '<button onclick="comprovarEstat()" style="padding:11px 20px;background:transparent;color:var(--g500);border:1px solid var(--g200);border-radius:10px;font-size:12px;cursor:pointer;font-family:var(--fb)">↻ Comprovar estat</button>';
+  html += '</div>';
+  
+  html += '</div></div>';
+  html += '</div>';
+  
+  el.innerHTML = html;
+}
+
+async function comprovarEstat() {
+  if (!sb || !APP.user || !APP.user.email) return;
+  toast('Comprovant estat...');
+  try {
+    var cd = await loadClientFromSupabase(APP.user.email);
+    if (cd) {
+      APP.clientData = cd;
+      if (cd.status === 'active') {
+        toast('✓ Compte activat!');
+        setTimeout(function(){ navigateTo('portal-perfil'); }, 700);
+      } else {
+        renderView('pending-review');
+      }
+    }
+  } catch(e) { console.warn(e); }
+}
+
+function referQuestionari() {
+  if (!confirm('Vols refer el qüestionari?\nLes dades anteriors seran sobreescrites.')) return;
+  var email = APP.user && APP.user.email;
+  var name  = APP.user && APP.user.name;
+  var url = 'client_onboarding_v3.html?from=starter'
+    + '&email=' + encodeURIComponent(email||'')
+    + '&name='  + encodeURIComponent(name||'');
+  window.open(url, '_blank');
+}
+
+// ══════════════════════════════════════════════════
+// ADMIN PENDENTS — Llistat de sol·licituds pendents
+// ══════════════════════════════════════════════════
+
+async function renderAdminPendents(el) {
+  el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:40px;color:var(--g500)">Carregant sol·licituds...</div></div>';
+  
+  if (!sb) {
+    el.innerHTML = '<div class="content-inner"><div class="card">Supabase no disponible</div></div>';
+    return;
+  }
+  
+  try {
+    var res = await sb.from('clients')
+      .select('*')
+      .in('status', ['pending', 'review', 'rejected'])
+      .order('submitted_at', { ascending: false });
+    
+    var clients = res.data || [];
+    var html = '<div class="content-inner fade-in">';
+    
+    // Stats
+    var pCount = clients.filter(function(c){ return c.status==='pending'; }).length;
+    var rCount = clients.filter(function(c){ return c.status==='review'; }).length;
+    var jCount = clients.filter(function(c){ return c.status==='rejected'; }).length;
+    
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">';
+    html += '<div class="card" style="background:#FEF3E0;border-color:#D4943A"><div style="font-family:var(--fm);font-size:28px;font-weight:500;color:#7A4A00">' + pCount + '</div><div style="font-size:11px;color:#7A4A00;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">⏳ Pendents</div></div>';
+    html += '<div class="card" style="background:#EBF0FA;border-color:#1B3A6B"><div style="font-family:var(--fm);font-size:28px;font-weight:500;color:#1B3A6B">' + rCount + '</div><div style="font-size:11px;color:#1B3A6B;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">📝 En revisió</div></div>';
+    html += '<div class="card" style="background:#FCEBEB;border-color:#C0392B"><div style="font-family:var(--fm);font-size:28px;font-weight:500;color:#8B1A1A">' + jCount + '</div><div style="font-size:11px;color:#8B1A1A;text-transform:uppercase;letter-spacing:.08em;margin-top:4px">⚠ Rebutjats</div></div>';
+    html += '</div>';
+    
+    if (clients.length === 0) {
+      html += '<div class="card" style="text-align:center;padding:48px"><div style="font-size:36px;margin-bottom:10px">✓</div><div style="font-family:var(--fd);font-size:20px;margin-bottom:6px">Cap sol·licitud pendent</div><div style="font-size:13px;color:var(--g500)">Tots els clients estan validats!</div></div>';
+    } else {
+      html += '<div class="card" style="padding:0;overflow:hidden">';
+      html += '<div style="padding:14px 20px;border-bottom:1px solid var(--g100);background:var(--g50);font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;font-weight:500">' + clients.length + ' sol·licitud' + (clients.length>1?'s':'') + ' a revisar</div>';
+      
+      clients.forEach(function(c) {
+        var badge = '';
+        var badgeColor = '';
+        if (c.status === 'pending')  { badge = '⏳ Pendent';   badgeColor = 'background:#FEF3E0;color:#7A4A00'; }
+        else if (c.status === 'review') { badge = '📝 En revisió'; badgeColor = 'background:#EBF0FA;color:#1B3A6B'; }
+        else if (c.status === 'rejected') { badge = '⚠ Rebutjat'; badgeColor = 'background:#FCEBEB;color:#8B1A1A'; }
+        
+        var date = c.submitted_at 
+          ? new Date(c.submitted_at).toLocaleDateString('ca-ES', {day:'numeric', month:'short', year:'numeric'})
+          : '—';
+        var hours = c.submitted_at 
+          ? Math.round((Date.now() - new Date(c.submitted_at).getTime()) / 3600000)
+          : 0;
+        var hoursLabel = hours < 24 ? 'fa ' + hours + 'h' : 'fa ' + Math.floor(hours/24) + 'd';
+        
+        html += '<div onclick="obrirRevisio(\''+ c.email + '\')" style="display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--g100);cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'var(--g50)\'" onmouseout="this.style.background=\'transparent\'">'
+          + '<div style="width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0">' + (c.nom||'?').charAt(0).toUpperCase() + '</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
+              + '<div style="font-size:14px;font-weight:500;color:var(--black)">' + (c.nom || '—') + '</div>'
+              + '<span style="' + badgeColor + ';padding:2px 8px;border-radius:99px;font-size:10px;font-weight:500">' + badge + '</span>'
+            + '</div>'
+            + '<div style="font-size:12px;color:var(--g500)">' + c.email + ' · ' + (c.arquetip ? c.arquetip.split('—')[0].trim() + ' · ' : '') + 'Score ' + (c.scoring||0) + '/100</div>'
+          + '</div>'
+          + '<div style="text-align:right;flex-shrink:0">'
+            + '<div style="font-size:12px;color:var(--g600)">' + date + '</div>'
+            + '<div style="font-size:11px;color:var(--g400)">' + hoursLabel + '</div>'
+          + '</div>'
+          + '<div style="font-size:18px;color:var(--g300)">→</div>'
+        + '</div>';
+      });
+      html += '</div>';
+    }
+    
+    html += '</div>';
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div class="content-inner"><div class="card">Error: ' + e.message + '</div></div>';
+  }
+}
+
+function obrirRevisio(email) {
+  // Carregar el client al previewClient i mostrar modal de validació
+  previewClient(email);
+  setTimeout(function(){ obrirModalValidacio(email); }, 500);
+}
+
+function obrirModalValidacio(email) {
+  if (!APP.clientData) return;
+  var c = APP.clientData;
+  
+  var modal = document.createElement('div');
+  modal.id = 'modal-validacio';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+  
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto">'
+    + '<div style="padding:24px 28px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:flex-start">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.2px;margin-bottom:4px">Validar sol·licitud</div>'
+        + '<div style="font-size:12px;color:var(--g500)">' + c.nom + ' · ' + c.email + '</div>'
+      + '</div>'
+      + '<button onclick="tancarModalValidacio()" style="background:none;border:none;font-size:20px;color:var(--g400);cursor:pointer">×</button>'
+    + '</div>'
+    + '<div style="padding:24px 28px">'
+      + '<div style="background:var(--g50);border-radius:10px;padding:14px 16px;margin-bottom:18px">'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px">'
+          + '<div><div style="color:var(--g500);margin-bottom:2px">Arquetip</div><div style="font-weight:500">' + (c.arquetip||'—').split('—')[0].trim() + '</div></div>'
+          + '<div><div style="color:var(--g500);margin-bottom:2px">Cartera</div><div style="font-weight:500">' + (c.cartera||'—') + '</div></div>'
+          + '<div><div style="color:var(--g500);margin-bottom:2px">Scoring</div><div style="font-weight:500;color:var(--accent)">' + (c.scoring||0) + '/100</div></div>'
+          + '<div><div style="color:var(--g500);margin-bottom:2px">Capital inicial</div><div style="font-weight:500">' + (c.perfil && c.perfil.capitalInicial || '—') + '</div></div>'
+        + '</div>'
+      + '</div>'
+      
+      + '<div style="margin-bottom:16px">'
+        + '<button onclick="navigateTo(\'portal-questionnaire\');tancarModalValidacio()" style="width:100%;padding:11px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">📋 Veure totes les respostes del qüestionari</button>'
+      + '</div>'
+      
+      + '<div style="margin-bottom:14px">'
+        + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Pla a assignar (en aprovar)</label>'
+        + '<select id="val-pla" style="width:100%;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+          + '<option value="essencial">Essencial — 7€/mes</option>'
+          + '<option value="bruxola">Brúixola — 29€/mes</option>'
+          + '<option value="rumb">Rumb — 59€/mes</option>'
+          + '<option value="mapa">Mapa — 99€/mes</option>'
+        + '</select>'
+      + '</div>'
+      
+      + '<div style="margin-bottom:18px">'
+        + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Notes / Motiu (opcional)</label>'
+        + '<textarea id="val-notes" placeholder="Ex: Demanaria aclariment sobre l\'horitzó..." style="width:100%;min-height:70px;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb);resize:vertical"></textarea>'
+      + '</div>'
+      
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+        + '<button onclick="rebutjarSollicitud(\'' + email + '\')" style="padding:12px;background:#fff;color:#C0392B;border:1.5px solid #F4C0C0;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">⚠ Rebutjar</button>'
+        + '<button onclick="marcarRevisio(\'' + email + '\')" style="padding:12px;background:#fff;color:#1B3A6B;border:1.5px solid #B5D4F4;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">📝 En revisió</button>'
+        + '<button onclick="aprovarSollicitud(\'' + email + '\')" style="padding:12px;background:#1A5C3A;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">✓ Aprovar</button>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+  
+  document.body.appendChild(modal);
+  
+  // Pre-omplir el pla actual del client
+  setTimeout(function(){
+    var sel = document.getElementById('val-pla');
+    if (sel && c.pla) sel.value = c.pla;
+  }, 50);
+}
+
+function tancarModalValidacio() {
+  var m = document.getElementById('modal-validacio');
+  if (m) m.remove();
+}
+
+async function aprovarSollicitud(email) {
+  var pla   = document.getElementById('val-pla').value;
+  var notes = document.getElementById('val-notes').value.trim();
+  
+  if (!sb) return;
+  try {
+    await sb.from('clients').update({
+      status: 'active',
+      pla: pla,
+      activated_at: new Date().toISOString(),
+      rejection_reason: null,
+    }).eq('email', email);
+    
+    // Missatge automàtic al client
+    var msg = '🎉 La teva sol·licitud ha estat aprovada!\n\nT\'he assignat el pla **' + getPlaLabel(pla) + '**. Ja tens accés complet al portal.';
+    if (notes) msg += '\n\nNotes:\n' + notes;
+    msg += '\n\nQualsevol dubte, escriu-me!\n\n— Guillem';
+    
+    await sb.from('messages').insert({
+      client_email: email.toLowerCase(),
+      from_email: 'guillem@theboringinvestor.com',
+      from_role: 'admin',
+      content: msg,
+      read_by_admin: true,
+      read_by_client: false
+    });
+    
+    tancarModalValidacio();
+    toast('✓ Client aprovat i activat');
+    setTimeout(function(){ navigateTo('admin-pendents'); }, 600);
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+async function rebutjarSollicitud(email) {
+  var notes = document.getElementById('val-notes').value.trim();
+  if (!notes) {
+    if (!confirm('No has indicat un motiu. Vols rebutjar igualment?')) return;
+  }
+  
+  if (!sb) return;
+  try {
+    await sb.from('clients').update({
+      status: 'rejected',
+      rejection_reason: notes || 'Cal revisar el qüestionari',
+    }).eq('email', email);
+    
+    var msg = '⚠ He revisat el teu qüestionari i caldria refer-lo.\n\n' + (notes || 'Cal revisar algunes respostes per poder activar el teu compte correctament.') + '\n\nQuan vulguis, refes-lo des del portal i jo el reviso de nou.\n\n— Guillem';
+    
+    await sb.from('messages').insert({
+      client_email: email.toLowerCase(),
+      from_email: 'guillem@theboringinvestor.com',
+      from_role: 'admin',
+      content: msg,
+      read_by_admin: true,
+      read_by_client: false
+    });
+    
+    tancarModalValidacio();
+    toast('Sol·licitud rebutjada');
+    setTimeout(function(){ navigateTo('admin-pendents'); }, 600);
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+async function marcarRevisio(email) {
+  var notes = document.getElementById('val-notes').value.trim();
+  if (!sb) return;
+  try {
+    await sb.from('clients').update({
+      status: 'review',
+    }).eq('email', email);
+    
+    if (notes) {
+      var msg = '📝 He començat a revisar el teu perfil.\n\n' + notes + '\n\n— Guillem';
+      await sb.from('messages').insert({
+        client_email: email.toLowerCase(),
+        from_email: 'guillem@theboringinvestor.com',
+        from_role: 'admin',
+        content: msg,
+        read_by_admin: true,
+        read_by_client: false
+      });
+    }
+    
+    tancarModalValidacio();
+    toast('Marcat com en revisió');
+    setTimeout(function(){ navigateTo('admin-pendents'); }, 600);
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+function getPlaLabel(pla) {
+  var labels = { essencial:'Essencial (7€/mes)', bruxola:'Brúixola (29€/mes)', rumb:'Rumb (59€/mes)', mapa:'Mapa (99€/mes)' };
+  return labels[pla] || pla;
+}
+
+// ══════════════════════════════════════════════════
+// BADGE comptador de sol·licituds pendents al sidebar admin
+// ══════════════════════════════════════════════════
+async function actualitzarBadgePendents() {
+  if (APP.role !== 'admin' || !sb) return;
+  try {
+    var res = await sb.from('clients')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['pending', 'review', 'rejected']);
+    var count = res.count || 0;
+    
+    var items = document.querySelectorAll('.sidebar-item');
+    items.forEach(function(item) {
+      var label = item.querySelector('.sidebar-item-label');
+      if (label && label.textContent === 'Sol·licituds pendents') {
+        var existing = item.querySelector('.sidebar-item-badge');
+        if (existing) existing.remove();
+        if (count > 0) {
+          var badge = document.createElement('span');
+          badge.className = 'sidebar-item-badge';
+          badge.textContent = count;
+          badge.style.cssText = 'background:#D4943A;color:#fff';
+          item.appendChild(badge);
+        }
+      }
+    });
+  } catch(e) { console.warn(e); }
 }
 
 function renderStarterRequired() {
