@@ -207,6 +207,75 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 .footer{font-size:10px;color:var(--g400);text-align:center;padding:8px 0;line-height:1.5}
 .send-ok{font-size:12px;color:var(--green);text-align:center;padding:6px}
 .send-note{font-size:12px;color:var(--g500);text-align:center;padding:4px}
+
+/* ── COMPTE ENRERE auto-redirecció a la plataforma ── */
+#countdown-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(10,10,10,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  animation:cdFadeIn .25s ease-out;transition:opacity .22s ease;
+}
+@keyframes cdFadeIn{from{opacity:0}to{opacity:1}}
+.countdown-card{
+  background:#fff;border-radius:20px;padding:36px 40px 28px;
+  width:100%;max-width:380px;text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,.3);
+  animation:cdSlideUp .35s cubic-bezier(.2,.8,.3,1.1);
+}
+@keyframes cdSlideUp{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.countdown-check{
+  width:56px;height:56px;border-radius:50%;
+  background:#E8F5E9;color:#1A5C3A;
+  font-size:28px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 18px;
+  animation:cdCheckPop .45s cubic-bezier(.2,.8,.3,1.4) .15s both;
+}
+@keyframes cdCheckPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.countdown-title{
+  font-family:var(--fd, Georgia, serif);
+  font-size:22px;font-weight:400;color:#0A0A0A;letter-spacing:-.3px;
+  margin-bottom:8px;
+}
+.countdown-sub{
+  font-size:13px;color:#6B6762;margin-bottom:14px;line-height:1.5;
+}
+.countdown-num{
+  font-family:var(--fm, monospace);
+  font-size:48px;font-weight:300;color:#1B3A6B;
+  line-height:1;margin-bottom:4px;
+  font-variant-numeric:tabular-nums;
+}
+.countdown-secs{
+  font-size:11px;color:#9A9690;text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:18px;
+}
+.countdown-progress{
+  width:100%;height:3px;background:#F0EFEC;border-radius:99px;overflow:hidden;
+  margin-bottom:22px;
+}
+.countdown-bar{
+  width:100%;height:100%;background:linear-gradient(90deg,#1B3A6B,#4A7CC7);border-radius:99px;
+}
+.countdown-actions{
+  display:flex;flex-direction:column;gap:8px;
+}
+.countdown-btn-primary{
+  width:100%;padding:12px 18px;
+  background:#0A0A0A;color:#fff;
+  border:none;border-radius:10px;
+  font-size:13px;font-weight:500;cursor:pointer;
+  font-family:inherit;transition:all .15s;
+}
+.countdown-btn-primary:hover{background:#1B3A6B;transform:translateY(-1px)}
+.countdown-btn-ghost{
+  width:100%;padding:10px 18px;
+  background:transparent;color:#6B6762;
+  border:none;border-radius:10px;
+  font-size:12px;cursor:pointer;
+  font-family:inherit;text-decoration:underline;
+}
+.countdown-btn-ghost:hover{color:#0A0A0A}
 </style>
 
 </head>
@@ -1455,9 +1524,12 @@ function next(){
     if(q.isEmail&&v&&!v.includes('@')){ toast(uiT('email_invalid')); return; }
   }
   if(q.type==='result'){
-    // Si no s'ha enviat encara, enviar primer
-    // El botó "Tornar a la web" al nav simplement redirigeix
-    window.location.href = 'https://theboringinvestor.github.io/assessoria/platform.html';
+    // Si ve de la plataforma, redirigir-hi amb el flag just_completed=true
+    // Si no, anar a la home pública
+    var fromPlatform = new URLSearchParams(window.location.search).get('from') === 'platform';
+    window.location.href = fromPlatform
+      ? 'platform.html?just_completed=true'
+      : 'https://theboringinvestor.github.io/assessoria/platform.html';
     return;
   }
   going=true;
@@ -1487,6 +1559,9 @@ function enviarITancar(){
   // 2. Guardar a Supabase (nou)
   guardarASupabase();
   
+  // Detectar si ve de la plataforma
+  var fromPlatform = new URLSearchParams(window.location.search).get('from') === 'platform';
+  
   // 3. Mostrar botó d'accés al portal (després de 1.5s)
   setTimeout(function(){
     // Canviar botó enviar a "Guardat"
@@ -1494,16 +1569,99 @@ function enviarITancar(){
       btn.textContent = ONB_LANG === 'es' ? '✓ Perfil guardado' : '✓ Perfil guardat';
       btn.style.background = '#1A5C3A';
     }
-    // Mostrar botó portal
+    // Mostrar botó portal amb URL adequada
     var portalBtn = document.getElementById('btn-portal');
     if (portalBtn) {
+      if (fromPlatform) {
+        portalBtn.setAttribute('href', 'platform.html?just_completed=true');
+      }
       portalBtn.style.display = 'block';
     }
-    // Scroll per veure el botó
     if (portalBtn) {
       portalBtn.scrollIntoView({behavior:'smooth', block:'center'});
     }
+    
+    // 4. Si ve de la plataforma, iniciar compte enrere automàtic
+    if (fromPlatform) {
+      iniciarCompteEnrere(5);
+    }
   }, 1500);
+}
+
+// ════════════════════════════════════════════
+// COMPTE ENRERE AUTO-REDIRECCIÓ A LA PLATAFORMA
+// ════════════════════════════════════════════
+var _countdownInterval = null;
+var _countdownCancelled = false;
+
+function iniciarCompteEnrere(segons){
+  if (document.getElementById('countdown-overlay')) return; // ja està
+  _countdownCancelled = false;
+  
+  var isEs = ONB_LANG === 'es';
+  var labelTitle = isEs ? 'Perfil enviado' : 'Perfil enviat';
+  var labelSub = isEs 
+    ? 'Volviendo a la plataforma en' 
+    : 'Tornant a la plataforma en';
+  var labelSec = isEs ? 'segundos' : 'segons';
+  var labelGo  = isEs ? 'Ir ahora →' : 'Anar ara →';
+  var labelStay = isEs ? 'Quedarme aquí' : 'Quedar-me aquí';
+  
+  var overlay = document.createElement('div');
+  overlay.id = 'countdown-overlay';
+  overlay.innerHTML = ''
+    + '<div class="countdown-card">'
+    +   '<div class="countdown-check">✓</div>'
+    +   '<div class="countdown-title">' + labelTitle + '</div>'
+    +   '<div class="countdown-sub">' + labelSub + '</div>'
+    +   '<div class="countdown-num"><span id="countdown-n">' + segons + '</span></div>'
+    +   '<div class="countdown-secs">' + labelSec + '</div>'
+    +   '<div class="countdown-progress"><div class="countdown-bar" id="countdown-bar"></div></div>'
+    +   '<div class="countdown-actions">'
+    +     '<button class="countdown-btn-primary" onclick="anarAraAlaPlataforma()">' + labelGo + '</button>'
+    +     '<button class="countdown-btn-ghost" onclick="cancellarCompteEnrere()">' + labelStay + '</button>'
+    +   '</div>'
+    + '</div>';
+  document.body.appendChild(overlay);
+  
+  // Animar barra de progrés (de 100% a 0%)
+  setTimeout(function(){
+    var bar = document.getElementById('countdown-bar');
+    if (bar) {
+      bar.style.transition = 'width ' + segons + 's linear';
+      bar.style.width = '0%';
+    }
+  }, 50);
+  
+  var restant = segons;
+  _countdownInterval = setInterval(function(){
+    if (_countdownCancelled) {
+      clearInterval(_countdownInterval);
+      return;
+    }
+    restant--;
+    var n = document.getElementById('countdown-n');
+    if (n) n.textContent = Math.max(0, restant);
+    if (restant <= 0) {
+      clearInterval(_countdownInterval);
+      anarAraAlaPlataforma();
+    }
+  }, 1000);
+}
+
+function anarAraAlaPlataforma(){
+  if (_countdownInterval) clearInterval(_countdownInterval);
+  window.location.href = 'platform.html?just_completed=true';
+}
+
+function cancellarCompteEnrere(){
+  _countdownCancelled = true;
+  if (_countdownInterval) clearInterval(_countdownInterval);
+  var overlay = document.getElementById('countdown-overlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    setTimeout(function(){ if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 220);
+  }
 }
 
 // Construir respostes llegibles del qüestionari per guardar a Supabase
