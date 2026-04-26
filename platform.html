@@ -2314,15 +2314,32 @@ async function doLogout() {
   APP = { role: null, user: null, view: null, isDemo: false, isPreview: false, clientData: null, clientsList: null, analisis: null, loading: false };
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app-shell').classList.add('hidden');
-  document.getElementById('login-email').value = '';
-  document.getElementById('login-password').value = '';
-  document.getElementById('login-msg').textContent = '';
-  document.getElementById('btn-login').disabled = false;
-  document.getElementById('btn-login').textContent = 'Accedir →';
+  // Netejar inputs (poden no existir si l'usuari està en una pestanya diferent)
+  ['login-email','login-email-pwd','login-password','reg-nom','reg-email','reg-password','reg-password2','forgot-email'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['login-msg','login-msg-pwd','reg-msg','forgot-msg'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.textContent = '';
+  });
+  // Tornar a la pestanya de magic link i restaurar el botó
+  showAuthTab && showAuthTab('login');
+  var btnMagic = document.getElementById('btn-magic');
+  if (btnMagic) { btnMagic.disabled = false; btnMagic.textContent = 'Enviar enllaç màgic →'; }
+  var btnLogin = document.getElementById('btn-login');
+  if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = 'Accedir →'; }
 }
 
 // Check for existing session on load
 async function checkSession() {
+  // Si l'usuari ha tornat amb ?logout=1, forçar signOut a Supabase abans
+  // de fer res més (la sessió cookie de Supabase és la que persisteix).
+  if (window._forceLogout) {
+    window._forceLogout = false;
+    try { localStorage.removeItem('tbi_session'); } catch(e){}
+    if (sb) { try { await sb.auth.signOut(); } catch(e) { console.warn('signOut error:', e); } }
+    return false; // → es mostra el login screen
+  }
+
   // Mode demo: les sessions demo no toquen Supabase, llegim directament de localStorage
   try {
     var raw = localStorage.getItem('tbi_session');
@@ -5464,13 +5481,58 @@ function renderUpgradePrompt(viewId, pla) {
 // REDIRECCIÓ AL QÜESTIONARI — clients nous van directament al qüestionari
 // ══════════════════════════════════════════════════
 
+// Antigament redirigia directament al qüestionari. Ara mostra una pantalla
+// intermèdia perquè l'usuari sàpiga qui és, què ha de fer, i pugui tancar
+// sessió si ha entrat per error.
 function redirectToQuestionnaire() {
+  mostrarPantallaCompletaPerfil();
+}
+
+function anarAlQuestionari() {
   var email = (APP.user && APP.user.email) || '';
   var name  = (APP.user && APP.user.name) || '';
   var url = 'client_onboarding_v3.html?from=platform'
     + '&email=' + encodeURIComponent(email)
     + '&name='  + encodeURIComponent(name);
   window.location.href = url;
+}
+
+function mostrarPantallaCompletaPerfil() {
+  // Assegurar que l'app shell és visible (i el login amagat) — quan vens
+  // de checkSession, enterApp ja ho ha fet, però per si de cas:
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+  setupSidebar();
+
+  var content = document.getElementById('content');
+  if (!content) return;
+  var firstName = ((APP.user && APP.user.name) || '').split(' ')[0] || '';
+  var email = (APP.user && APP.user.email) || '';
+
+  content.innerHTML = ''
+    + '<div class="content-inner fade-in" style="max-width:520px;margin:60px auto 40px;padding:0 24px">'
+      + '<div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px">'
+        + '<div style="width:64px;height:64px;border-radius:50%;background:rgba(212,148,58,.1);color:#D4943A;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:300">📋</div>'
+        + (firstName ? '<div style="font-size:13px;color:var(--g500);margin-bottom:-6px">Benvingut, ' + firstName + '</div>' : '')
+        + '<h1 style="font-family:var(--fd);font-size:30px;font-weight:400;letter-spacing:-.4px;line-height:1.18;color:var(--black);margin:0;max-width:440px">Per accedir, primer cal completar el teu perfil</h1>'
+        + '<p style="font-size:14px;color:var(--g600);line-height:1.65;max-width:420px;margin:6px auto 0">Necessitem que responguis un qüestionari de 5-8 minuts perquè el teu assessor pugui validar la teva sol·licitud i activar el teu accés.</p>'
+      + '</div>'
+
+      + '<div style="margin-top:32px;display:flex;flex-direction:column;gap:10px;max-width:380px;margin-left:auto;margin-right:auto">'
+        + '<button onclick="anarAlQuestionari()" style="padding:13px 20px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s" onmouseover="this.style.background=\'#1a1a1a\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.background=\'#0A0A0A\';this.style.transform=\'translateY(0)\'">Començar el qüestionari →</button>'
+        + '<button onclick="doLogout()" style="padding:11px 18px;background:transparent;color:var(--g500);border:1px solid var(--g200);border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--fb);transition:all .15s" onmouseover="this.style.color=\'var(--black)\';this.style.borderColor=\'var(--g300)\'" onmouseout="this.style.color=\'#6B6762\';this.style.borderColor=\'#E8E6E1\'">Tancar sessió</button>'
+      + '</div>'
+
+      + '<div style="margin-top:28px;padding:14px 16px;background:var(--g50);border-radius:10px;font-size:11px;color:var(--g500);line-height:1.6;text-align:center">'
+        + 'Sessió iniciada com <strong style="color:var(--black);font-weight:500">' + email + '</strong>'
+      + '</div>'
+    + '</div>';
+
+  // Actualitzar el topbar
+  var topbar = document.getElementById('topbar-title');
+  if (topbar) topbar.textContent = 'Completa el teu perfil';
+  var topbarSub = document.getElementById('topbar-sub');
+  if (topbarSub) topbarSub.textContent = 'Pas previ per accedir a la plataforma';
 }
 
 // ══════════════════════════════════════════════════
@@ -5816,12 +5878,11 @@ function handleQuestionnaireReturn() {
   var params = new URLSearchParams(window.location.search);
 
   // Cas 1: l'usuari ha sortit del qüestionari sense desar.
-  // Tanquem sessió perquè vegi el login (i així pugui canviar d'usuari/admin).
+  // Marquem un flag que checkSession llegirà per fer signOut a Supabase
+  // (no podem cridar-lo aquí perquè és async i aquesta funció és sync).
   if (params.get('logout') === '1') {
     history.replaceState({}, '', window.location.pathname);
-    try { localStorage.removeItem('tbi_session'); } catch(e){}
-    // No cridem doLogout() perquè en aquest punt l'app encara no s'ha inicialitzat.
-    // Simplement esborrem la sessió i deixem que es mostri el login screen.
+    window._forceLogout = true;
     return;
   }
 
