@@ -2032,17 +2032,29 @@ function reiniciar(){
   setOnbLang(ONB_LANG);
 }
 
-// Sortir del qüestionari sense desar — torna a la plataforma sense flag
-// (la plataforma detectarà que el client encara no té qüestionari complet
-// i tornarà a oferir-lo, però l'usuari pot tancar sessió o anar al login)
-function sortirAlPortal(){
+// Sortir del qüestionari sense desar — tanca la sessió a Supabase i torna
+// al login. IMPORTANT: cal fer el signOut aquí, no només a la plataforma,
+// perquè el qüestionari té la seva pròpia connexió Supabase i comparteix
+// les cookies del domini.
+async function sortirAlPortal(){
   var msg = ONB_LANG === 'es'
-    ? '¿Salir del cuestionario sin guardar?\n\nLas respuestas no se guardarán.'
-    : 'Sortir del qüestionari sense desar?\n\nLes respostes no es guardaran.';
+    ? '¿Salir del cuestionario sin guardar?\n\nLas respuestas no se guardarán y se cerrará la sesión.'
+    : 'Sortir del qüestionari sense desar?\n\nLes respostes no es guardaran i es tancarà la sessió.';
   if (!confirm(msg)) return;
-  // Anem a platform.html sense ?just_completed perquè no s'ha completat.
-  // També afegim ?logout=1 per tal que la plataforma faci logout i mostri el login.
-  window.location.href = 'platform.html?logout=1';
+
+  // Indicar visualment que estem tancant sessió
+  var banner = document.getElementById('session-banner');
+  if (banner) banner.querySelector('button').textContent = 'Tancant...';
+
+  try {
+    if (sbClient) await sbClient.auth.signOut();
+  } catch(e) { console.warn('signOut error:', e); }
+
+  // Netejar qualsevol residu local
+  try { localStorage.removeItem('tbi_session'); } catch(e){}
+
+  // Redirigir al login (sense ?logout=1 perquè ja està fet)
+  window.location.href = 'platform.html';
 }
 
 function initRadar(){

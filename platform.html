@@ -5132,9 +5132,105 @@ async function renderAdminPendents(el) {
     }
     
     html += '</div>';
+
+    // ── EINA DE NETEJA (només admins) ──
+    // Per esborrar files de proves antigues durant el desenvolupament.
+    html += '<div style="margin-top:36px;padding:18px 22px;border:1px dashed #E8E6E1;border-radius:10px;background:#FAFAF8">'
+      + '<div style="font-size:10px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">🛠 Eines de manteniment</div>'
+      + '<div style="font-size:12px;color:var(--g600);line-height:1.6;margin-bottom:12px">Si tens files de proves antigues (testos d\'usuaris fictícis), pots esborrar-les individualment. Aquesta acció és <strong>irreversible</strong> i només afecta la taula <code style="background:#F0EFEC;padding:1px 5px;border-radius:3px;font-family:var(--fm);font-size:11px">clients</code> de Supabase. Els usuaris d\'autenticació continuen existint a Auth (els hauràs d\'esborrar manualment des de Supabase si vols).</div>'
+      + '<button onclick="obrirNetejaProves()" style="padding:9px 14px;background:transparent;color:var(--g600);border:1px solid var(--g300);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500">🗑 Esborrar files de prova...</button>'
+    + '</div>';
+
+    html += '</div>';
     el.innerHTML = html;
   } catch(e) {
     el.innerHTML = '<div class="content-inner"><div class="card">Error: ' + e.message + '</div></div>';
+  }
+}
+
+// ══════════════════════════════════════════════════
+// NETEJA DE FILES DE PROVA — modal admin
+// ══════════════════════════════════════════════════
+async function obrirNetejaProves() {
+  if (!sb) { toast('Supabase no disponible'); return; }
+  if (APP.role !== 'admin') return;
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-neteja';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+  modal.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:680px;width:100%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column">'
+    + '<div style="padding:20px 24px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:20px;font-weight:400;letter-spacing:-.2px">Esborrar files de prova</div>'
+        + '<div style="font-size:11px;color:var(--g500);margin-top:2px">Llistat complet de la taula <code style="background:#F4F3F0;padding:1px 5px;border-radius:3px;font-family:var(--fm)">clients</code></div>'
+      + '</div>'
+      + '<button onclick="document.getElementById(\'modal-neteja\').remove()" style="background:none;border:none;font-size:22px;color:var(--g400);cursor:pointer;padding:4px 8px">×</button>'
+    + '</div>'
+    + '<div id="neteja-list" style="flex:1;overflow-y:auto;padding:8px 0">'
+      + '<div style="text-align:center;padding:32px;color:var(--g400);font-size:13px">Carregant clients...</div>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+
+  // Carregar TOTES les files (sense filtre per status)
+  try {
+    var res = await sb.from('clients')
+      .select('id,nom,email,status,scoring,arquetip,submitted_at,activated_at')
+      .order('submitted_at', { ascending: false, nullsFirst: false });
+    if (res.error) throw res.error;
+    var clients = res.data || [];
+    var list = document.getElementById('neteja-list');
+    if (!list) return;
+    if (clients.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--g500);font-size:13px">La taula <code>clients</code> està buida.</div>';
+      return;
+    }
+    var html = '<div style="padding:8px 24px 4px;font-size:11px;color:var(--g500)">' + clients.length + ' fila' + (clients.length>1?'s':'') + '</div>';
+    clients.forEach(function(c){
+      var statusBadge = '';
+      var sc = c.status || 'unknown';
+      var statusColors = {
+        active:    'background:#EAF5EE;color:#1A5C3A',
+        pending:   'background:#FEF3E0;color:#7A4A00',
+        review:    'background:#EBF0FA;color:#1B3A6B',
+        rejected:  'background:#FCEBEB;color:#8B1A1A',
+        unknown:   'background:#F4F3F0;color:#6B6762',
+      };
+      statusBadge = '<span style="' + (statusColors[sc] || statusColors.unknown) + ';padding:2px 8px;border-radius:99px;font-size:10px;font-weight:500">' + sc + '</span>';
+      var date = c.submitted_at ? new Date(c.submitted_at).toLocaleDateString('ca-ES', {day:'numeric',month:'short',year:'numeric'}) : (c.activated_at ? 'Act: ' + new Date(c.activated_at).toLocaleDateString('ca-ES') : 'Sense data');
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 24px;border-bottom:1px solid #F4F3F0">'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">'
+            + '<div style="font-size:13px;font-weight:500;color:var(--black)">' + (c.nom || '—') + '</div>'
+            + statusBadge
+          + '</div>'
+          + '<div style="font-size:11px;color:var(--g500)">' + (c.email || '—') + ' · ' + (c.scoring || 0) + '/100 · ' + date + '</div>'
+        + '</div>'
+        + '<button onclick="esborrarClient(\'' + (c.email || '').replace(/'/g, "\\'") + '\', \'' + (c.nom || '').replace(/'/g, "\\'") + '\')" style="padding:6px 12px;background:#FCEBEB;color:#8B1A1A;border:1px solid #E8B0A8;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb);flex-shrink:0">🗑 Esborrar</button>'
+      + '</div>';
+    });
+    list.innerHTML = html;
+  } catch(e) {
+    var list = document.getElementById('neteja-list');
+    if (list) list.innerHTML = '<div style="padding:24px;color:#8B1A1A;font-size:12px">Error carregant: ' + (e.message || e) + '</div>';
+  }
+}
+
+async function esborrarClient(email, nom) {
+  if (!email) return;
+  var pregunta = 'Esborrar definitivament la fila de "' + (nom || email) + '"?\n\nAixò elimina la fila de la taula clients però NO elimina l\'usuari de Supabase Auth (cal fer-ho manualment al panell de Supabase).\n\nL\'acció és irreversible.';
+  if (!confirm(pregunta)) return;
+  try {
+    var res = await sb.from('clients').delete().eq('email', email);
+    if (res.error) throw res.error;
+    toast('✓ Fila esborrada: ' + email);
+    // Refrescar la llista
+    document.getElementById('modal-neteja').remove();
+    setTimeout(function(){ obrirNetejaProves(); }, 200);
+    // Refrescar també el badge de pendents
+    setTimeout(function(){ try { actualitzarBadgePendents(); } catch(e){} }, 400);
+  } catch(e) {
+    toast('Error: ' + (e.message || e));
   }
 }
 
