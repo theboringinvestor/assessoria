@@ -280,6 +280,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 
 </head>
 <body>
+<!-- Banner de sessió: només visible quan venim de la plataforma loguejat -->
+<div id="session-banner" style="display:none;background:#1B3A6B;color:#fff;padding:8px 20px;font-size:12px;display:none;align-items:center;gap:12px;font-family:'DM Sans',system-ui,sans-serif">
+  <span style="opacity:.7;font-size:11px">Sessió iniciada com</span>
+  <strong id="session-banner-email" style="font-weight:500">—</strong>
+  <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <span id="session-banner-msg" style="font-size:11px;opacity:.6;display:none">No ets tu? </span>
+    <button onclick="sortirAlPortal()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s">Tancar sessió</button>
+  </span>
+</div>
 <header class="hdr">
   <div class="hdr-top">
     <div class="logo">
@@ -1935,10 +1944,21 @@ function reiniciar(){
         }
       }
     }
-    // Botó "✕ Sortir" només si venim de la plataforma
+    // Banner de sessió + botó "✕ Sortir" només si venim de la plataforma
     if (params.get('from') === 'platform') {
       const exitBtn = document.getElementById('onb-exit');
       if (exitBtn) exitBtn.style.display = 'inline-block';
+
+      // Mostrar banner superior amb el nom/email de la sessió
+      const banner = document.getElementById('session-banner');
+      const bannerEmail = document.getElementById('session-banner-email');
+      const bannerMsg = document.getElementById('session-banner-msg');
+      if (banner && bannerEmail) {
+        var displayName = txt.nom || txt.email || 'Usuari';
+        bannerEmail.textContent = displayName + (txt.email && txt.nom ? ' · ' + txt.email : '');
+        banner.style.display = 'flex';
+        if (bannerMsg) bannerMsg.style.display = 'inline';
+      }
     }
   })();
   // Restaurar llengua onboarding

@@ -2235,18 +2235,56 @@ async function doLogout() {
 }
 
 // Check for existing session on load
-function checkSession() {
+async function checkSession() {
   var s = localStorage.getItem('tbi_session');
-  if (s) {
-    try {
-      s = JSON.parse(s);
-      if (s.role && s.email) {
-        enterApp(s.role, s.email, s.isDemo || false);
-        return true;
-      }
-    } catch(e) {}
+  if (!s) return false;
+  try {
+    s = JSON.parse(s);
+  } catch(e) {
+    localStorage.removeItem('tbi_session');
+    return false;
   }
-  return false;
+  if (!s.role || !s.email) {
+    localStorage.removeItem('tbi_session');
+    return false;
+  }
+
+  // Demo: la sessió no depèn de Supabase, la honorem directament
+  if (s.isDemo) {
+    enterApp(s.role, s.email, true);
+    return true;
+  }
+
+  // Sessions reals: verificar que Supabase encara reconeix l'usuari.
+  // Si l'usuari ha esborrat cookies (o Supabase ha invalidat la sessió),
+  // ho detectem aquí i netegem el localStorage en comptes de fingir
+  // que segueix loguejat.
+  if (sb) {
+    try {
+      var res = await sb.auth.getSession();
+      var hasValidSession = res && res.data && res.data.session && res.data.session.user;
+      if (!hasValidSession) {
+        // Sessió antiga: Supabase ja no la reconeix → esborrem-la
+        localStorage.removeItem('tbi_session');
+        return false;
+      }
+      // Comprovació extra: l'email ha de coincidir
+      var supEmail = (res.data.session.user.email || '').toLowerCase();
+      if (supEmail && supEmail !== s.email.toLowerCase()) {
+        localStorage.removeItem('tbi_session');
+        return false;
+      }
+    } catch(e) {
+      // Si Supabase no respon, ser permissius (offline/error temporal)
+      // però no fer enterApp si no podem verificar
+      console.warn('No s\'ha pogut verificar la sessió:', e);
+      localStorage.removeItem('tbi_session');
+      return false;
+    }
+  }
+
+  enterApp(s.role, s.email, false);
+  return true;
 }
 
 // ══════════════════════════════════════════════════
@@ -6102,9 +6140,12 @@ function renderPlatformTickers(data, el, updEl) {
 handleCheckoutReturn();
 handlePasswordReset();
 handleQuestionnaireReturn();
-if (!checkSession()) {
-  // Show login screen (already visible by default)
-}
+// checkSession és asíncron (verifica amb Supabase). Mentrestant la pantalla
+// de login és visible per defecte; si la sessió és vàlida, enterApp la
+// substituirà per l'app shell. Si no, queda visible.
+checkSession().catch(function(e) {
+  console.warn('Error a checkSession:', e);
+});
 </script>
 </body>
 </html>
