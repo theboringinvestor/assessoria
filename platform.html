@@ -1950,34 +1950,36 @@ async function enterApp(role, email, isDemo) {
   
   if (role === 'admin') {
     navigateTo('hub');
+  } else if (window._justCompletedQuestionnaire) {
+    // PRIORITAT MÀXIMA: acaba de tornar del qüestionari
+    // (cal comprovar-ho ABANS d'esClientNou per evitar bucle si Supabase
+    // encara no ha sincronitzat les dades acabades de guardar)
+    window._justCompletedQuestionnaire = false;
+    if (APP.clientData && APP.clientData.status === 'active') {
+      navigateTo('portal-perfil');
+    } else if (APP.clientData && APP.clientData.scoring) {
+      // Dades ja sincronitzades — anem directament a pending-review
+      navigateTo('pending-review');
+    } else {
+      // Race condition: dades encara no sincronitzades — reintentar
+      // (NO redirigim al qüestionari; mostrem pantalla d'espera amb retry)
+      navigateTo('pending-review');
+      toast('Actualitzant el teu perfil...');
+      setTimeout(async function() {
+        try {
+          var cd = await loadClientFromSupabase(APP.user.email);
+          if (cd) {
+            APP.clientData = cd;
+            if (cd.nom) APP.user.name = cd.nom;
+            renderView('pending-review');
+          }
+        } catch(e) { console.warn(e); }
+      }, 2000);
+    }
   } else if (esClientNou(APP.clientData)) {
     // Client sense qüestionari — redirigir directament al qüestionari
     redirectToQuestionnaire();
     return;
-  } else if (window._justCompletedQuestionnaire) {
-    // Acaba de tornar del qüestionari — netejar flag i anar a pending-review
-    // (o al portal si per algun motiu ja és active)
-    window._justCompletedQuestionnaire = false;
-    if (APP.clientData && APP.clientData.status === 'active') {
-      navigateTo('portal-perfil');
-    } else {
-      // Si encara no hi ha dades (race condition), reintentar un cop
-      if (!APP.clientData || !APP.clientData.scoring) {
-        toast('Actualitzant el teu perfil...');
-        setTimeout(async function() {
-          try {
-            var cd = await loadClientFromSupabase(APP.user.email);
-            if (cd) {
-              APP.clientData = cd;
-              if (cd.nom) APP.user.name = cd.nom;
-            }
-          } catch(e) { console.warn(e); }
-          navigateTo('pending-review');
-        }, 1500);
-      } else {
-        navigateTo('pending-review');
-      }
-    }
   } else if (APP.clientData && APP.clientData.status && APP.clientData.status !== 'active') {
     // Client amb qüestionari completat però no validat — pantalla d'espera
     navigateTo('pending-review');
@@ -2001,11 +2003,15 @@ async function enterApp(role, email, isDemo) {
 
 // ── DETECCIÓ DE CLIENT NOU ──
 function esClientNou(clientData) {
+  // Mode demo: NO redirigir mai al qüestionari (es vol veure el portal complet)
+  if (APP.isDemo) return false;
+
   // Si clientData és null → client nou sense dades
   if (!clientData) return true;
 
-  // Si ve del DEMO_CLIENT, és nou
-  if (clientData === DEMO_CLIENT) return true;
+  // DEMO_CLIENT NO és client nou (té dades hardcoded completes)
+  // — Si APP.isDemo és false però per algun motiu ens passen DEMO_CLIENT,
+  //   tampoc el considerem nou perquè té scoring vàlid.
 
   // Si no té scoring real, és nou
   if (!clientData.scoring || clientData.scoring === 0) return true;
@@ -5626,12 +5632,20 @@ function renderPlansScreen(el) {
 // ── DETECCIÓ DE RETORN DEL QÜESTIONARI ──
 function handleQuestionnaireReturn() {
   var params = new URLSearchParams(window.location.search);
-  if (params.get('just_completed') === 'true') {
-    // Netejar URL (treure el param però mantenir la resta si n'hi hagués)
+
+  // Cas 1: l'usuari ha sortit del qüestionari sense desar.
+  // Tanquem sessió perquè vegi el login (i així pugui canviar d'usuari/admin).
+  if (params.get('logout') === '1') {
     history.replaceState({}, '', window.location.pathname);
-    // Marcar que el client acaba de completar el qüestionari →
-    // loadCurrentUser ho detectarà i navegarà a pending-review
-    // (o farà reintent si Supabase encara no té les dades fresques)
+    try { localStorage.removeItem('tbi_session'); } catch(e){}
+    // No cridem doLogout() perquè en aquest punt l'app encara no s'ha inicialitzat.
+    // Simplement esborrem la sessió i deixem que es mostri el login screen.
+    return;
+  }
+
+  // Cas 2: l'usuari ha completat el qüestionari i ha tornat (manualment o per countdown)
+  if (params.get('just_completed') === 'true') {
+    history.replaceState({}, '', window.location.pathname);
     window._justCompletedQuestionnaire = true;
   }
 }

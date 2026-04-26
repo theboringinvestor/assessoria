@@ -292,7 +292,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
       </svg>
       <span class="logo-name">The Boring Investor</span>
     </div>
-    <div style="display:flex;gap:4px;margin:0 10px 0 auto">
+    <div style="display:flex;gap:4px;margin:0 10px 0 auto;align-items:center">
+      <button id="onb-exit" onclick="sortirAlPortal()" style="display:none;padding:5px 10px;margin-right:6px;border-radius:6px;font-size:11px;font-weight:400;cursor:pointer;border:1px solid var(--g200);background:transparent;color:var(--g500);font-family:var(--fb);transition:all .12s" title="Sortir sense desar">✕ Sortir</button>
       <button id="onb-lang-ca" onclick="setOnbLang('ca')" style="padding:3px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--black);background:var(--black);color:white;font-family:var(--fb);transition:all .12s">CA</button>
       <button id="onb-lang-es" onclick="setOnbLang('es')" style="padding:3px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--g200);background:transparent;color:var(--g400);font-family:var(--fb);transition:all .12s">ES</button>
     </div>
@@ -1301,21 +1302,21 @@ function buildArqFactors(ar) {
   if (ar.factorsD8 || ar.factorsD9) {
     html += '<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">';
     if (ar.factorsD8) {
-      html += '<div style="padding:8px 12px;background:rgba(27,58,107,.2);border-radius:8px;border-left:3px solid #4A8FD4">'
-        + '<div style="font-size:9px;font-weight:600;color:#4A8FD4;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">\u23f0 Edat & Retir</div>'
-        + '<div style="font-size:11px;color:rgba(255,255,255,.75)">' + ar.factorsD8 + '</div></div>';
+      html += '<div style="padding:8px 12px;background:rgba(74,143,212,.12);border-radius:8px;border-left:3px solid #4A8FD4">'
+        + '<div style="font-size:9px;font-weight:600;color:#1B3A6B;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">\u23f0 Edat & Retir</div>'
+        + '<div style="font-size:11px;color:#3A3835">' + ar.factorsD8 + '</div></div>';
     }
     if (ar.factorsD9) {
       html += '<div style="padding:8px 12px;background:rgba(76,175,130,.15);border-radius:8px;border-left:3px solid #4CAF82">'
-        + '<div style="font-size:9px;font-weight:600;color:#4CAF82;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">\U0001f500 Alternatius</div>'
-        + '<div style="font-size:11px;color:rgba(255,255,255,.75)">' + ar.factorsD9 + '</div></div>';
+        + '<div style="font-size:9px;font-weight:600;color:#4CAF82;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">\uD83D\uDD00 Alternatius</div>'
+        + '<div style="font-size:11px;color:#3A3835">' + ar.factorsD9 + '</div></div>';
     }
     html += '</div>';
   }
   if (ar.criteris) {
-    html += '<div style="margin-top:10px;padding:10px 14px;background:rgba(255,255,255,.06);border-radius:8px">'
-      + '<div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Per qu\xe8 aquest arquetip?</div>'
-      + '<div style="font-size:11px;color:rgba(255,255,255,.6);line-height:1.5">' + ar.criteris + '</div></div>';
+    html += '<div style="margin-top:10px;padding:10px 14px;background:#F4F3F0;border-radius:8px">'
+      + '<div style="font-size:9px;font-weight:600;color:#9A9690;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Per qu\xe8 aquest arquetip?</div>'
+      + '<div style="font-size:11px;color:#4A4845;line-height:1.5">' + ar.criteris + '</div></div>';
   }
   return html;
 }
@@ -1914,16 +1915,16 @@ function reiniciar(){
   cur=0;
   render('none');
   updateLangToggle && updateLangToggle();
-  // Pre-omplir des de paràmetres URL (quan ve del dashboard)
+  // Pre-omplir des de paràmetres URL (quan ve del dashboard o de la plataforma)
   (function() {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('nom'))   { txt.nom   = decodeURIComponent(params.get('nom'));   }
-    if (params.get('email')) { txt.email  = decodeURIComponent(params.get('email')); }
-    if (params.get('nom') || params.get('email')) {
-      // Saltar directament a la primera pregunta de perfil (skip nom/email si ja omplert)
-      // Però mostrar igualment per confirmar
+    // Suportem tant ?nom= com ?name= (la plataforma usa name=)
+    const nomParam   = params.get('nom')   || params.get('name')  || '';
+    const emailParam = params.get('email') || '';
+    if (nomParam)   { txt.nom   = decodeURIComponent(nomParam);   }
+    if (emailParam) { txt.email = decodeURIComponent(emailParam); }
+    if (nomParam || emailParam) {
       render('none');
-      // Mostrar benvinguda personalitzada
       const nom = txt.nom || '';
       if (nom) {
         const toastEl = document.getElementById('toast');
@@ -1934,10 +1935,28 @@ function reiniciar(){
         }
       }
     }
+    // Botó "✕ Sortir" només si venim de la plataforma
+    if (params.get('from') === 'platform') {
+      const exitBtn = document.getElementById('onb-exit');
+      if (exitBtn) exitBtn.style.display = 'inline-block';
+    }
   })();
   // Restaurar llengua onboarding
   ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
   setOnbLang(ONB_LANG);
+}
+
+// Sortir del qüestionari sense desar — torna a la plataforma sense flag
+// (la plataforma detectarà que el client encara no té qüestionari complet
+// i tornarà a oferir-lo, però l'usuari pot tancar sessió o anar al login)
+function sortirAlPortal(){
+  var msg = ONB_LANG === 'es'
+    ? '¿Salir del cuestionario sin guardar?\n\nLas respuestas no se guardarán.'
+    : 'Sortir del qüestionari sense desar?\n\nLes respostes no es guardaran.';
+  if (!confirm(msg)) return;
+  // Anem a platform.html sense ?just_completed perquè no s'ha completat.
+  // També afegim ?logout=1 per tal que la plataforma faci logout i mostri el login.
+  window.location.href = 'platform.html?logout=1';
 }
 
 function initRadar(){
@@ -2111,9 +2130,10 @@ render('none');
 </script>
 
 <style>
-.wa-fab-onb{position:fixed;bottom:24px;right:24px;z-index:999;width:52px;height:52px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.4);cursor:pointer;text-decoration:none;transition:transform .2s}
+.wa-fab-onb{position:fixed;bottom:84px;right:20px;z-index:50;width:48px;height:48px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.4);cursor:pointer;text-decoration:none;transition:transform .2s,opacity .2s}
 .wa-fab-onb:hover{transform:scale(1.08)}
-.wa-fab-onb svg{width:26px;height:26px;fill:white}
+.wa-fab-onb svg{width:24px;height:24px;fill:white}
+@media(max-width:600px){.wa-fab-onb{bottom:80px;right:16px;width:44px;height:44px}.wa-fab-onb svg{width:22px;height:22px}}
 </style>
 <a class="wa-fab-onb" href="https://wa.me/34629340892?text=Hola%20Guillem%2C%20acabo%20de%20fer%20el%20q%C3%BCestionari%20de%20The%20Boring%20Investor%20i%20m%27agradaria%20parlar%20sobre%20els%20meus%20resultats." target="_blank" aria-label="WhatsApp">
   <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.553 4.117 1.523 5.845L.057 23.882l6.198-1.625A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.785 9.785 0 01-5.032-1.395l-.36-.214-3.732.979 1.001-3.636-.235-.374A9.786 9.786 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/></svg>
