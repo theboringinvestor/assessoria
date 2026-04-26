@@ -801,15 +801,29 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 
     <!-- Form Login -->
     <div id="auth-login">
-      <div class="login-sub" style="margin-bottom:16px">Introdueix les teves credencials per accedir al teu espai.</div>
+      <div class="login-sub" style="margin-bottom:16px">Accedeix amb un enllaç màgic al teu email — sense contrasenyes.</div>
       <label class="form-label">Email</label>
-      <input type="email" id="login-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
+      <input type="email" id="login-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doMagicLink()">
+      <button class="btn-login" id="btn-magic" onclick="doMagicLink()">Enviar enllaç màgic →</button>
+      <div class="login-msg" id="login-msg"></div>
+      <div style="text-align:center;margin-top:14px;display:flex;gap:14px;justify-content:center;font-size:12px">
+        <a href="#" onclick="showAuthTab('password');return false;" style="color:#9A9690;text-decoration:none">Tinc contrasenya</a>
+        <span style="color:#E8E6E1">·</span>
+        <a href="#" onclick="showAuthTab('forgot');return false;" style="color:#9A9690;text-decoration:none">He oblidat la contrasenya</a>
+      </div>
+    </div>
+
+    <!-- Form Login amb contrasenya (alternatiu) -->
+    <div id="auth-password" style="display:none">
+      <div class="login-sub" style="margin-bottom:16px">Accedeix amb email i contrasenya.</div>
+      <label class="form-label">Email</label>
+      <input type="email" id="login-email-pwd" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
       <label class="form-label">Contrasenya</label>
       <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       <button class="btn-login" id="btn-login" onclick="doLogin()">Accedir →</button>
-      <div class="login-msg" id="login-msg"></div>
+      <div class="login-msg" id="login-msg-pwd"></div>
       <div style="text-align:center;margin-top:12px">
-        <a href="#" onclick="showAuthTab('forgot');return false;" style="font-size:12px;color:#9A9690;text-decoration:none">He oblidat la contrasenya</a>
+        <a href="#" onclick="showAuthTab('login');return false;" style="font-size:12px;color:#9A9690;text-decoration:none">← Usar enllaç màgic</a>
       </div>
     </div>
 
@@ -1734,9 +1748,9 @@ async function loadQuestionsFromSupabase() {
 // AUTH
 // ══════════════════════════════════════════════════
 async function doLogin() {
-  var email = document.getElementById('login-email').value.trim();
+  var email = document.getElementById('login-email-pwd').value.trim();
   var password = document.getElementById('login-password').value;
-  var msg = document.getElementById('login-msg');
+  var msg = document.getElementById('login-msg-pwd');
   var btn = document.getElementById('btn-login');
 
   if (!email || !email.includes('@')) {
@@ -1769,22 +1783,95 @@ async function doLogin() {
   btn.disabled = false; btn.textContent = 'Accedir →';
 }
 
+// ── MAGIC LINK (login sense contrasenya) ──
+async function doMagicLink() {
+  var email = document.getElementById('login-email').value.trim().toLowerCase();
+  var msg = document.getElementById('login-msg');
+  var btn = document.getElementById('btn-magic');
+
+  if (!email || !email.includes('@')) {
+    msg.className = 'login-msg err';
+    msg.textContent = 'Introdueix un email vàlid.';
+    return;
+  }
+  if (!sb) {
+    msg.className = 'login-msg err';
+    msg.textContent = 'Connexió no disponible.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Enviant...';
+  msg.className = 'login-msg';
+  msg.textContent = '';
+
+  try {
+    // emailRedirectTo: on tornarà l'usuari quan cliqui el link de l'email.
+    // Cal que sigui l'URL d'aquesta mateixa pàgina perquè onAuthStateChange
+    // / checkSession detecti la sessió i activi l'app.
+    var redirectTo = window.location.origin + window.location.pathname;
+    var res = await sb.auth.signInWithOtp({
+      email: email,
+      options: {
+        emailRedirectTo: redirectTo,
+        // shouldCreateUser=true permet auto-registrar nous emails.
+        // Per a un sistema més restrictiu (només admin pot convidar),
+        // canviar a false aquí.
+        shouldCreateUser: true,
+      }
+    });
+    if (res.error) throw res.error;
+
+    // Mostrar pantalla d'instruccions: "Comprova el teu email"
+    mostrarMagicLinkSent(email);
+  } catch(e) {
+    msg.className = 'login-msg err';
+    msg.textContent = 'Error: ' + (e.message || 'No s\'ha pogut enviar el link');
+    btn.disabled = false;
+    btn.textContent = 'Enviar enllaç màgic →';
+  }
+}
+
+// Pantalla intermèdia: "hem enviat un email"
+function mostrarMagicLinkSent(email) {
+  var loginContainer = document.getElementById('auth-login');
+  if (!loginContainer) return;
+  loginContainer.innerHTML = ''
+    + '<div style="text-align:center;padding:8px 0">'
+      + '<div style="width:64px;height:64px;border-radius:50%;background:#EAF5EE;color:#1A5C3A;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 18px">✉</div>'
+      + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.2px;color:#0A0A0A;margin-bottom:10px">Comprova el teu email</div>'
+      + '<div style="font-size:13px;color:#6B6762;line-height:1.65;margin-bottom:6px">Hem enviat un enllaç d\'accés a:</div>'
+      + '<div style="font-size:13px;font-weight:500;color:#0A0A0A;margin-bottom:20px;word-break:break-all">' + email + '</div>'
+      + '<div style="font-size:12px;color:#9A9690;line-height:1.6;margin-bottom:18px">Fes click al botó dins l\'email per accedir directament. L\'enllaç caduca en 1 hora.</div>'
+      + '<div style="font-size:11px;color:#9A9690;padding:10px 14px;background:#F4F3F0;border-radius:8px;margin-bottom:18px;text-align:left">'
+        + '<strong>No el trobes?</strong> Mira a la carpeta de spam, o assegura\'t que l\'email és correcte.'
+      + '</div>'
+      + '<a href="#" onclick="location.reload();return false;" style="font-size:12px;color:#9A9690;text-decoration:underline">Tornar a començar</a>'
+    + '</div>';
+}
+
 // ── AUTH TABS ──
 function showAuthTab(tab) {
-  document.getElementById('auth-login').style.display   = tab === 'login' ? 'block' : 'none';
-  document.getElementById('auth-register').style.display = tab === 'register' ? 'block' : 'none';
-  document.getElementById('auth-forgot').style.display  = tab === 'forgot' ? 'block' : 'none';
-  
+  ['auth-login','auth-password','auth-register','auth-forgot'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  var idMap = { login:'auth-login', password:'auth-password', register:'auth-register', forgot:'auth-forgot' };
+  var target = document.getElementById(idMap[tab] || 'auth-login');
+  if (target) target.style.display = 'block';
+
   var tabLogin = document.getElementById('tab-login');
   var tabReg   = document.getElementById('tab-register');
-  
-  tabLogin.style.borderBottomColor = tab === 'login' ? '#0A0A0A' : 'transparent';
-  tabLogin.style.color             = tab === 'login' ? '#0A0A0A' : '#9A9690';
-  tabReg.style.borderBottomColor   = tab === 'register' ? '#0A0A0A' : 'transparent';
-  tabReg.style.color               = tab === 'register' ? '#0A0A0A' : '#9A9690';
-  
+  if (tabLogin && tabReg) {
+    var isLoginVariant = tab === 'login' || tab === 'password' || tab === 'forgot';
+    tabLogin.style.borderBottomColor = isLoginVariant ? '#0A0A0A' : 'transparent';
+    tabLogin.style.color             = isLoginVariant ? '#0A0A0A' : '#9A9690';
+    tabReg.style.borderBottomColor   = tab === 'register' ? '#0A0A0A' : 'transparent';
+    tabReg.style.color               = tab === 'register' ? '#0A0A0A' : '#9A9690';
+  }
+
   // Netejar missatges
-  ['login-msg','reg-msg','forgot-msg'].forEach(function(id){
+  ['login-msg','login-msg-pwd','reg-msg','forgot-msg'].forEach(function(id){
     var el = document.getElementById(id); if (el) el.textContent = '';
   });
 }
@@ -2236,55 +2323,50 @@ async function doLogout() {
 
 // Check for existing session on load
 async function checkSession() {
-  var s = localStorage.getItem('tbi_session');
-  if (!s) return false;
+  // Mode demo: les sessions demo no toquen Supabase, llegim directament de localStorage
   try {
-    s = JSON.parse(s);
-  } catch(e) {
-    localStorage.removeItem('tbi_session');
-    return false;
-  }
-  if (!s.role || !s.email) {
+    var raw = localStorage.getItem('tbi_session');
+    if (raw) {
+      var s = JSON.parse(raw);
+      if (s && s.isDemo && s.role && s.email) {
+        enterApp(s.role, s.email, true);
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  // Sessions reals: Supabase és la font de veritat.
+  // Això permet que el magic link funcioni: després de fer click a l'email,
+  // Supabase auto-crea la sessió i nosaltres la detectem aquí, encara que
+  // localStorage no tingui res.
+  if (!sb) {
+    // Sense Supabase no podem fer res — mostrem login
     localStorage.removeItem('tbi_session');
     return false;
   }
 
-  // Demo: la sessió no depèn de Supabase, la honorem directament
-  if (s.isDemo) {
-    enterApp(s.role, s.email, true);
-    return true;
-  }
-
-  // Sessions reals: verificar que Supabase encara reconeix l'usuari.
-  // Si l'usuari ha esborrat cookies (o Supabase ha invalidat la sessió),
-  // ho detectem aquí i netegem el localStorage en comptes de fingir
-  // que segueix loguejat.
-  if (sb) {
-    try {
-      var res = await sb.auth.getSession();
-      var hasValidSession = res && res.data && res.data.session && res.data.session.user;
-      if (!hasValidSession) {
-        // Sessió antiga: Supabase ja no la reconeix → esborrem-la
-        localStorage.removeItem('tbi_session');
-        return false;
-      }
-      // Comprovació extra: l'email ha de coincidir
-      var supEmail = (res.data.session.user.email || '').toLowerCase();
-      if (supEmail && supEmail !== s.email.toLowerCase()) {
-        localStorage.removeItem('tbi_session');
-        return false;
-      }
-    } catch(e) {
-      // Si Supabase no respon, ser permissius (offline/error temporal)
-      // però no fer enterApp si no podem verificar
-      console.warn('No s\'ha pogut verificar la sessió:', e);
+  try {
+    var res = await sb.auth.getSession();
+    var session = res && res.data && res.data.session;
+    if (!session || !session.user || !session.user.email) {
+      // No hi ha sessió activa a Supabase — netegem qualsevol residu local
       localStorage.removeItem('tbi_session');
       return false;
     }
-  }
 
-  enterApp(s.role, s.email, false);
-  return true;
+    var email = session.user.email.toLowerCase();
+    var role  = ADMIN_EMAILS.indexOf(email) >= 0 ? 'admin' : 'client';
+
+    // Sincronitzar localStorage (per compatibilitat amb la resta del codi)
+    localStorage.setItem('tbi_session', JSON.stringify({ role: role, email: email, isDemo: false }));
+
+    enterApp(role, email, false);
+    return true;
+  } catch(e) {
+    console.warn('No s\'ha pogut verificar la sessió:', e);
+    localStorage.removeItem('tbi_session');
+    return false;
+  }
 }
 
 // ══════════════════════════════════════════════════
