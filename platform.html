@@ -2448,7 +2448,15 @@ function renderView(viewId) {
   }
   
   switch(viewId) {
-    case 'hub': renderHub(content); break;
+    case 'hub':
+      renderHub(content);
+      // Per a admins, refrescar dades de pendents cada cop que entren al Hub
+      if (APP.role === 'admin') {
+        setTimeout(function(){
+          try { actualitzarBadgePendents(); } catch(e) { console.warn(e); }
+        }, 100);
+      }
+      break;
     case 'admin-clients': renderClientsList(content); break;
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
@@ -5218,11 +5226,19 @@ async function actualitzarBadgePendents() {
       .in('status', ['pending', 'review', 'rejected'])
       .order('submitted_at', { ascending: false });
 
+    if (resAll.error) {
+      console.error('Error llegint sol·licituds pendents:', resAll.error);
+      APP._pendentsData = { error: resAll.error.message || 'Error de lectura' };
+      // Refrescar banner si estem al Hub
+      var topbarTitle = document.getElementById('topbar-title');
+      if (topbarTitle && topbarTitle.textContent === 'Hub') refrescarBannerPendentsHub();
+      return;
+    }
+
     var allPendents = (resAll.data || []);
     var urgents = allPendents.filter(function(c){ return c.status==='pending' || c.status==='review'; });
     var totalCount = allPendents.length;
 
-    // Guardar globalment per al banner del Hub
     APP._pendentsData = {
       total: totalCount,
       urgents: urgents,
@@ -5252,31 +5268,77 @@ async function actualitzarBadgePendents() {
     if (topbarTitle && topbarTitle.textContent === 'Hub') {
       refrescarBannerPendentsHub();
     }
-  } catch(e) { console.warn(e); }
+  } catch(e) {
+    console.error('Error a actualitzarBadgePendents:', e);
+    APP._pendentsData = { error: e && e.message || 'Error desconegut' };
+    var topbarTitle = document.getElementById('topbar-title');
+    if (topbarTitle && topbarTitle.textContent === 'Hub') refrescarBannerPendentsHub();
+  }
 }
 
 // Refresca només el banner d'alerta dins el Hub sense rerendritzar tot
 function refrescarBannerPendentsHub() {
   var existing = document.getElementById('hub-alert-pendents');
-  if (existing) existing.remove();
   var content = document.getElementById('content');
   if (!content) return;
   var inner = content.querySelector('.content-inner');
   if (!inner) return;
   var html = renderHubAlertaPendents();
-  if (html) {
-    var wrap = document.createElement('div');
-    wrap.innerHTML = html;
-    var firstChild = inner.firstChild;
-    if (firstChild) inner.insertBefore(wrap.firstChild, firstChild.nextSibling);
-    else inner.appendChild(wrap.firstChild);
-  }
+  if (existing) existing.remove();
+  if (!html) return; // (només si APP.role!=='admin')
+  var wrap = document.createElement('div');
+  wrap.innerHTML = html;
+  var newBanner = wrap.firstChild;
+  // Inserir just després del header (primer fill de .content-inner)
+  var firstChild = inner.firstChild;
+  if (firstChild && firstChild.nextSibling) inner.insertBefore(newBanner, firstChild.nextSibling);
+  else if (firstChild) inner.appendChild(newBanner);
+  else inner.appendChild(newBanner);
 }
 
-// Banner d'alerta admin al Hub — només es mostra si hi ha pending/review
+// Banner d'alerta admin al Hub.
+// Sempre visible per a admins: mostra l'estat real de Supabase (carregant /
+// 0 pendents / N pendents / error) per facilitar el diagnòstic.
 function renderHubAlertaPendents() {
+  if (APP.role !== 'admin') return '';
   var d = APP._pendentsData;
-  if (!d || d.urgentCount === 0) return '';
+
+  // Estat: carregant (encara no s'ha cridat actualitzarBadgePendents)
+  if (!d) {
+    return '<div id="hub-alert-pendents" class="hub-alert-pendents" style="background:#F4F3F0;border-color:#E8E6E1;border-left-color:#9A9690;cursor:default">'
+      + '<div class="hub-alert-icon" style="background:#fff;animation:none">⏳</div>'
+      + '<div class="hub-alert-body">'
+        + '<div class="hub-alert-title" style="color:#3A3835">Comprovant sol·licituds pendents...</div>'
+        + '<div class="hub-alert-sub" style="color:#6B6762">Connectant amb Supabase</div>'
+      + '</div>'
+    + '</div>';
+  }
+
+  // Estat: error
+  if (d.error) {
+    return '<div id="hub-alert-pendents" class="hub-alert-pendents" style="background:#FCEBEB;border-color:#E8B0A8;border-left-color:#C0392B;cursor:default">'
+      + '<div class="hub-alert-icon" style="background:#fff;color:#C0392B;animation:none">⚠</div>'
+      + '<div class="hub-alert-body">'
+        + '<div class="hub-alert-title" style="color:#7A1A1A">No s\'han pogut llegir les sol·licituds</div>'
+        + '<div class="hub-alert-sub" style="color:#9A4A3A">' + d.error + '</div>'
+      + '</div>'
+      + '<button class="hub-alert-cta" onclick="event.stopPropagation();actualitzarBadgePendents()" style="background:rgba(255,255,255,.7);color:#7A1A1A;border:none;cursor:pointer">↻ Reintentar</button>'
+    + '</div>';
+  }
+
+  // Estat: 0 pendents urgents → estat positiu, però visible
+  if (d.urgentCount === 0) {
+    return '<div id="hub-alert-pendents" class="hub-alert-pendents" style="background:#EAF5EE;border-color:#B8DBC4;border-left-color:#1A5C3A;cursor:default">'
+      + '<div class="hub-alert-icon" style="background:#fff;color:#1A5C3A;animation:none">✓</div>'
+      + '<div class="hub-alert-body">'
+        + '<div class="hub-alert-title" style="color:#1A5C3A">Cap sol·licitud pendent de validació</div>'
+        + '<div class="hub-alert-sub" style="color:#3A6B4A">' + (d.total > 0 ? d.total + ' antic' + (d.total>1?'s':'') + ' (rebutjats) · ' : '') + 'Tots els clients estan validats</div>'
+      + '</div>'
+      + '<button class="hub-alert-cta" onclick="event.stopPropagation();actualitzarBadgePendents()" style="background:rgba(255,255,255,.7);color:#1A5C3A;border:none;cursor:pointer" title="Tornar a comprovar">↻</button>'
+    + '</div>';
+  }
+
+  // Estat: hi ha pendents urgents
   var urgents = d.urgents || [];
   var preview = urgents.slice(0, 3).map(function(c){
     return c.nom || c.email || '—';
