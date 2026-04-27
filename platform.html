@@ -2101,17 +2101,22 @@ function esClientNou(clientData) {
   // Si clientData és null → client nou sense dades
   if (!clientData) return true;
 
-  // DEMO_CLIENT NO és client nou (té dades hardcoded completes)
-  // — Si APP.isDemo és false però per algun motiu ens passen DEMO_CLIENT,
-  //   tampoc el considerem nou perquè té scoring vàlid.
+  // PRIORITAT: si l'admin ha aprovat el client (status='active'), MAI l'enviem
+  // al qüestionari. L'aprovació admin és l'autoritat final, sigui quina sigui
+  // la qualitat de les dades guardades del qüestionari.
+  if (clientData.status === 'active') return false;
+
+  // Si està en validació (pending/review/rejected), tampoc és "client nou":
+  // la fila existeix, té dades, només cal esperar/refer.
+  if (clientData.status === 'pending' || clientData.status === 'review' || clientData.status === 'rejected') {
+    return false;
+  }
 
   // Si no té scoring real, és nou
   if (!clientData.scoring || clientData.scoring === 0) return true;
-  
-  // Si el perfil té valors per defecte, és nou
-  var p = clientData.perfil || {};
-  if (!p.capitalInicial || p.capitalInicial === '—' || p.capitalInicial === 0) return true;
-  
+
+  // Si arriba aquí (status null o desconegut, però scoring vàlid),
+  // confiem en l'scoring i el considerem no-nou.
   return false;
 }
 
@@ -2188,7 +2193,20 @@ async function previewClient(email) {
     }
   } else {
     var cd = await loadClientFromSupabase(email);
-    APP.clientData = cd || DEMO_CLIENT;
+    if (!cd) {
+      // No usem DEMO_CLIENT com a fallback: si no podem llegir el client,
+      // mostrem un error explícit en lloc de mostrar dades de Maria.
+      APP.clientData = null;
+      content.innerHTML = '<div class="content-inner" style="padding:40px;text-align:center">'
+        + '<div style="font-family:var(--fd);font-size:22px;margin-bottom:8px;color:var(--black)">No s\'ha pogut carregar el client</div>'
+        + '<div style="font-size:13px;color:var(--g500);margin-bottom:6px">No s\'han trobat dades a Supabase per a:</div>'
+        + '<div style="font-size:13px;color:var(--black);font-weight:500;margin-bottom:18px">' + email + '</div>'
+        + '<div style="font-size:11px;color:var(--g400);max-width:480px;margin:0 auto 18px;line-height:1.6">Possibles causes: l\'email no coincideix exactament (majúscules/minúscules), la fila s\'ha esborrat, o RLS no permet llegir aquesta fila des de la sessió actual.</div>'
+        + '<button onclick="navigateTo(\'admin-pendents\')" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--fb)">← Tornar a sol·licituds</button>'
+      + '</div>';
+      return;
+    }
+    APP.clientData = cd;
   }
 
   APP.user.name = APP.clientData.nom || 'Client';
@@ -5248,10 +5266,19 @@ async function esborrarClient(email, nom) {
   }
 }
 
-function obrirRevisio(email) {
-  // Carregar el client al previewClient i mostrar modal de validació
-  previewClient(email);
-  setTimeout(function(){ obrirModalValidacio(email); }, 500);
+async function obrirRevisio(email) {
+  // 1) Carregar les dades del client (esperem!)
+  await previewClient(email);
+  // 2) Si previewClient no ha pogut carregar les dades, no obrim el modal
+  //    (l'usuari ja veu un missatge d'error in-place)
+  if (!APP.clientData) return;
+  // 3) Verificar que les dades carregades són per a l'email correcte
+  //    (defensiu: si per algun motiu queda APP.clientData d'una sessió anterior)
+  if ((APP.clientData.email || '').toLowerCase() !== (email || '').toLowerCase()) {
+    toast('Les dades carregades no coincideixen amb el client sol·licitat');
+    return;
+  }
+  obrirModalValidacio(email);
 }
 
 function obrirModalValidacio(email) {
@@ -5324,30 +5351,46 @@ function tancarModalValidacio() {
 async function aprovarSollicitud(email) {
   var pla   = document.getElementById('val-pla').value;
   var notes = document.getElementById('val-notes').value.trim();
-  
+
   if (!sb) return;
+  if (!email) { toast('Falta email del client'); return; }
+  // Normalitzar a minúscules — el qüestionari guarda l'email així
+  email = email.toLowerCase().trim();
+
   try {
-    await sb.from('clients').update({
+    // .select() retorna les files modificades, així podem comprovar que l'UPDATE
+    // realment ha tocat alguna cosa. Sense això, si l'email no coincideix exactament
+    // o RLS bloqueja l'update, l'API retorna OK amb 0 files i ningú se n'assabenta.
+    var res = await sb.from('clients').update({
       status: 'active',
       pla: pla,
       activated_at: new Date().toISOString(),
       rejection_reason: null,
-    }).eq('email', email);
-    
+    }).eq('email', email).select('id,email,status');
+
+    if (res.error) throw res.error;
+    if (!res.data || res.data.length === 0) {
+      // Possibles causes: email no existeix, RLS bloqueja l'update, o
+      // l'admin no té permisos d'escriptura sobre la fila.
+      toast('⚠ No s\'ha pogut activar: cap fila modificada per a ' + email);
+      console.error('Aprovació sense efecte. Comprova que la fila existeix i que les RLS policies permeten UPDATE per al rol admin.', res);
+      return;
+    }
+
     // Missatge automàtic al client
     var msg = '🎉 La teva sol·licitud ha estat aprovada!\n\nT\'he assignat el pla **' + getPlaLabel(pla) + '**. Ja tens accés complet al portal.';
     if (notes) msg += '\n\nNotes:\n' + notes;
     msg += '\n\nQualsevol dubte, escriu-me!\n\n— Guillem';
-    
+
     await sb.from('messages').insert({
-      client_email: email.toLowerCase(),
+      client_email: email,
       from_email: 'guillem@theboringinvestor.com',
       from_role: 'admin',
       content: msg,
       read_by_admin: true,
       read_by_client: false
     });
-    
+
     tancarModalValidacio();
     toast('✓ Client aprovat i activat');
     setTimeout(function(){ navigateTo('admin-pendents'); }, 600);
@@ -5361,25 +5404,34 @@ async function rebutjarSollicitud(email) {
   if (!notes) {
     if (!confirm('No has indicat un motiu. Vols rebutjar igualment?')) return;
   }
-  
+
   if (!sb) return;
+  if (!email) { toast('Falta email del client'); return; }
+  email = email.toLowerCase().trim();
+
   try {
-    await sb.from('clients').update({
+    var res = await sb.from('clients').update({
       status: 'rejected',
       rejection_reason: notes || 'Cal revisar el qüestionari',
-    }).eq('email', email);
-    
+    }).eq('email', email).select('id,email,status');
+
+    if (res.error) throw res.error;
+    if (!res.data || res.data.length === 0) {
+      toast('⚠ No s\'ha pogut rebutjar: cap fila modificada per a ' + email);
+      return;
+    }
+
     var msg = '⚠ He revisat el teu qüestionari i caldria refer-lo.\n\n' + (notes || 'Cal revisar algunes respostes per poder activar el teu compte correctament.') + '\n\nQuan vulguis, refes-lo des del portal i jo el reviso de nou.\n\n— Guillem';
-    
+
     await sb.from('messages').insert({
-      client_email: email.toLowerCase(),
+      client_email: email,
       from_email: 'guillem@theboringinvestor.com',
       from_role: 'admin',
       content: msg,
       read_by_admin: true,
       read_by_client: false
     });
-    
+
     tancarModalValidacio();
     toast('Sol·licitud rebutjada');
     setTimeout(function(){ navigateTo('admin-pendents'); }, 600);
@@ -5391,15 +5443,24 @@ async function rebutjarSollicitud(email) {
 async function marcarRevisio(email) {
   var notes = document.getElementById('val-notes').value.trim();
   if (!sb) return;
+  if (!email) { toast('Falta email del client'); return; }
+  email = email.toLowerCase().trim();
+
   try {
-    await sb.from('clients').update({
+    var res = await sb.from('clients').update({
       status: 'review',
-    }).eq('email', email);
-    
+    }).eq('email', email).select('id,email,status');
+
+    if (res.error) throw res.error;
+    if (!res.data || res.data.length === 0) {
+      toast('⚠ No s\'ha pogut marcar en revisió: cap fila modificada per a ' + email);
+      return;
+    }
+
     if (notes) {
       var msg = '📝 He començat a revisar el teu perfil.\n\n' + notes + '\n\n— Guillem';
       await sb.from('messages').insert({
-        client_email: email.toLowerCase(),
+        client_email: email,
         from_email: 'guillem@theboringinvestor.com',
         from_role: 'admin',
         content: msg,
@@ -5407,7 +5468,7 @@ async function marcarRevisio(email) {
         read_by_client: false
       });
     }
-    
+
     tancarModalValidacio();
     toast('Marcat com en revisió');
     setTimeout(function(){ navigateTo('admin-pendents'); }, 600);
