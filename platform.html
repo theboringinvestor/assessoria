@@ -799,37 +799,37 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
       <button id="tab-register" onclick="showAuthTab('register')" style="flex:1;padding:10px 0;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:13px;font-weight:500;color:#9A9690;cursor:pointer;font-family:var(--fb)">Crear compte</button>
     </div>
 
-    <!-- Form Login -->
+    <!-- Form Login (CONTRASENYA — opció primària) -->
     <div id="auth-login">
-      <div class="login-sub" style="margin-bottom:16px">Accedeix amb un enllaç màgic al teu email — sense contrasenyes.</div>
+      <div class="login-sub" style="margin-bottom:16px">Introdueix les teves credencials per accedir.</div>
       <label class="form-label">Email</label>
-      <input type="email" id="login-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doMagicLink()">
-      <button class="btn-login" id="btn-magic" onclick="doMagicLink()">Enviar enllaç màgic →</button>
-      <div class="login-msg" id="login-msg"></div>
-      <div style="text-align:center;margin-top:14px;display:flex;gap:14px;justify-content:center;font-size:12px">
-        <a href="#" onclick="showAuthTab('password');return false;" style="color:#9A9690;text-decoration:none">Tinc contrasenya</a>
-        <span style="color:#E8E6E1">·</span>
-        <a href="#" onclick="showAuthTab('forgot');return false;" style="color:#9A9690;text-decoration:none">He oblidat la contrasenya</a>
-      </div>
-    </div>
-
-    <!-- Form Login amb contrasenya (alternatiu) -->
-    <div id="auth-password" style="display:none">
-      <div class="login-sub" style="margin-bottom:16px">Accedeix amb email i contrasenya.</div>
-      <label class="form-label">Email</label>
-      <input type="email" id="login-email-pwd" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
+      <input type="email" id="login-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email">
       <label class="form-label">Contrasenya</label>
       <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       <button class="btn-login" id="btn-login" onclick="doLogin()">Accedir →</button>
-      <div class="login-msg" id="login-msg-pwd"></div>
+      <div class="login-msg" id="login-msg"></div>
+      <div style="text-align:center;margin-top:14px;display:flex;gap:14px;justify-content:center;font-size:12px;flex-wrap:wrap">
+        <a href="#" onclick="showAuthTab('forgot');return false;" style="color:#9A9690;text-decoration:none">He oblidat la contrasenya</a>
+        <span style="color:#E8E6E1">·</span>
+        <a href="#" onclick="showAuthTab('magic');return false;" style="color:#9A9690;text-decoration:none">Rebre enllaç al correu</a>
+      </div>
+    </div>
+
+    <!-- Form Login amb magic link (alternatiu) -->
+    <div id="auth-magic" style="display:none">
+      <div class="login-sub" style="margin-bottom:16px">T'enviarem un enllaç al correu per accedir sense contrasenya.</div>
+      <label class="form-label">Email</label>
+      <input type="email" id="magic-email" class="form-input" placeholder="el.teu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doMagicLink()">
+      <button class="btn-login" id="btn-magic" onclick="doMagicLink()">Enviar enllaç màgic →</button>
+      <div class="login-msg" id="magic-msg"></div>
       <div style="text-align:center;margin-top:12px">
-        <a href="#" onclick="showAuthTab('login');return false;" style="font-size:12px;color:#9A9690;text-decoration:none">← Usar enllaç màgic</a>
+        <a href="#" onclick="showAuthTab('login');return false;" style="font-size:12px;color:#9A9690;text-decoration:none">← Accedir amb contrasenya</a>
       </div>
     </div>
 
     <!-- Form Registre -->
     <div id="auth-register" style="display:none">
-      <div class="login-sub" style="margin-bottom:16px">Crea el teu compte per accedir a la plataforma. Necessites un codi d'invitació o haver completat el qüestionari.</div>
+      <div class="login-sub" style="margin-bottom:16px">Crea el teu compte. Després de validar el teu email, podràs completar el qüestionari i el teu assessor activarà el teu accés.</div>
       <label class="form-label">Nom complet</label>
       <input type="text" id="reg-nom" class="form-input" placeholder="El teu nom i cognoms" autocomplete="name">
       <label class="form-label">Email</label>
@@ -1748,9 +1748,9 @@ async function loadQuestionsFromSupabase() {
 // AUTH
 // ══════════════════════════════════════════════════
 async function doLogin() {
-  var email = document.getElementById('login-email-pwd').value.trim();
+  var email = document.getElementById('login-email').value.trim();
   var password = document.getElementById('login-password').value;
-  var msg = document.getElementById('login-msg-pwd');
+  var msg = document.getElementById('login-msg');
   var btn = document.getElementById('btn-login');
 
   if (!email || !email.includes('@')) {
@@ -1771,22 +1771,28 @@ async function doLogin() {
       return;
     } catch(e) {
       msg.className = 'login-msg err';
-      msg.textContent = 'Error: ' + (e.message || 'No s\'ha pogut connectar');
+      // Missatges d'error més útils
+      var errMsg = e.message || 'No s\'ha pogut connectar';
+      if (errMsg.toLowerCase().indexOf('invalid login') >= 0 || errMsg.toLowerCase().indexOf('invalid_credentials') >= 0) {
+        errMsg = 'Email o contrasenya incorrectes.';
+      } else if (errMsg.toLowerCase().indexOf('email not confirmed') >= 0) {
+        errMsg = 'Has de confirmar el teu email primer. Mira el correu que t\'hem enviat.';
+      }
+      msg.textContent = errMsg;
       btn.disabled = false; btn.textContent = 'Accedir →';
       return;
     }
   }
 
-  // Fallback: demo mode if Supabase not available
   msg.className = 'login-msg err';
   msg.textContent = 'Connexió no disponible. Usa el mode demo.';
   btn.disabled = false; btn.textContent = 'Accedir →';
 }
 
-// ── MAGIC LINK (login sense contrasenya) ──
+// ── MAGIC LINK (login sense contrasenya — opció secundària) ──
 async function doMagicLink() {
-  var email = document.getElementById('login-email').value.trim().toLowerCase();
-  var msg = document.getElementById('login-msg');
+  var email = document.getElementById('magic-email').value.trim().toLowerCase();
+  var msg = document.getElementById('magic-msg');
   var btn = document.getElementById('btn-magic');
 
   if (!email || !email.includes('@')) {
@@ -1806,27 +1812,27 @@ async function doMagicLink() {
   msg.textContent = '';
 
   try {
-    // emailRedirectTo: on tornarà l'usuari quan cliqui el link de l'email.
-    // Cal que sigui l'URL d'aquesta mateixa pàgina perquè onAuthStateChange
-    // / checkSession detecti la sessió i activi l'app.
     var redirectTo = window.location.origin + window.location.pathname;
     var res = await sb.auth.signInWithOtp({
       email: email,
       options: {
         emailRedirectTo: redirectTo,
-        // shouldCreateUser=true permet auto-registrar nous emails.
-        // Per a un sistema més restrictiu (només admin pot convidar),
-        // canviar a false aquí.
-        shouldCreateUser: true,
+        // shouldCreateUser=false: NO permet auto-registrar comptes nous
+        // amb magic link. Els nous usuaris han de passar pel "Crear compte"
+        // (que els validarà l'email amb un magic link de confirmació però
+        // requerirà també contrasenya per a usos futurs).
+        shouldCreateUser: false,
       }
     });
     if (res.error) throw res.error;
-
-    // Mostrar pantalla d'instruccions: "Comprova el teu email"
     mostrarMagicLinkSent(email);
   } catch(e) {
     msg.className = 'login-msg err';
-    msg.textContent = 'Error: ' + (e.message || 'No s\'ha pogut enviar el link');
+    var errMsg = e.message || 'No s\'ha pogut enviar el link';
+    if (errMsg.toLowerCase().indexOf('signups not allowed') >= 0 || errMsg.toLowerCase().indexOf('not found') >= 0) {
+      errMsg = 'No tenim cap compte amb aquest email. Crea\'n un primer a "Crear compte".';
+    }
+    msg.textContent = errMsg;
     btn.disabled = false;
     btn.textContent = 'Enviar enllaç màgic →';
   }
@@ -1834,7 +1840,7 @@ async function doMagicLink() {
 
 // Pantalla intermèdia: "hem enviat un email"
 function mostrarMagicLinkSent(email) {
-  var loginContainer = document.getElementById('auth-login');
+  var loginContainer = document.getElementById('auth-magic');
   if (!loginContainer) return;
   loginContainer.innerHTML = ''
     + '<div style="text-align:center;padding:8px 0">'
@@ -1852,26 +1858,25 @@ function mostrarMagicLinkSent(email) {
 
 // ── AUTH TABS ──
 function showAuthTab(tab) {
-  ['auth-login','auth-password','auth-register','auth-forgot'].forEach(function(id){
+  ['auth-login','auth-magic','auth-register','auth-forgot'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  var idMap = { login:'auth-login', password:'auth-password', register:'auth-register', forgot:'auth-forgot' };
+  var idMap = { login:'auth-login', magic:'auth-magic', register:'auth-register', forgot:'auth-forgot' };
   var target = document.getElementById(idMap[tab] || 'auth-login');
   if (target) target.style.display = 'block';
 
   var tabLogin = document.getElementById('tab-login');
   var tabReg   = document.getElementById('tab-register');
   if (tabLogin && tabReg) {
-    var isLoginVariant = tab === 'login' || tab === 'password' || tab === 'forgot';
+    var isLoginVariant = tab === 'login' || tab === 'magic' || tab === 'forgot';
     tabLogin.style.borderBottomColor = isLoginVariant ? '#0A0A0A' : 'transparent';
     tabLogin.style.color             = isLoginVariant ? '#0A0A0A' : '#9A9690';
     tabReg.style.borderBottomColor   = tab === 'register' ? '#0A0A0A' : 'transparent';
     tabReg.style.color               = tab === 'register' ? '#0A0A0A' : '#9A9690';
   }
 
-  // Netejar missatges
-  ['login-msg','login-msg-pwd','reg-msg','forgot-msg'].forEach(function(id){
+  ['login-msg','magic-msg','reg-msg','forgot-msg'].forEach(function(id){
     var el = document.getElementById(id); if (el) el.textContent = '';
   });
 }
@@ -2257,7 +2262,12 @@ function getInitials(name) {
 // ── DATA ACCESSORS (real or demo fallback) ──
 
 function getClient() {
-  return APP.clientData || DEMO_CLIENT;
+  // En mode demo retornem DEMO_CLIENT com a fallback. En mode real, NO:
+  // si APP.clientData és null és perquè el client encara no està validat
+  // (no té fila a Supabase amb scoring), i el codi que ho cridi ha de
+  // tractar el cas null abans de renderitzar res.
+  if (APP.isDemo) return APP.clientData || DEMO_CLIENT;
+  return APP.clientData || null;
 }
 
 function getClientsList() {
@@ -2270,37 +2280,41 @@ function getAnalisis() {
 
 function getMoviments() {
   var c = getClient();
-  return (c.moviments && c.moviments.length > 0) ? c.moviments : DEMO_MOVIMENTS;
+  if (!c) return APP.isDemo ? DEMO_MOVIMENTS : [];
+  return (c.moviments && c.moviments.length > 0) ? c.moviments : (APP.isDemo ? DEMO_MOVIMENTS : []);
 }
 
 function getCarteraActual() {
   var c = getClient();
-  // If client has cartera_composicio with valor fields, use it
+  if (!c) return APP.isDemo ? DEMO_CARTERA_ACTUAL : [];
   if (c.cartera_composicio && c.cartera_composicio.length > 0 && c.cartera_composicio[0].valor) {
     return c.cartera_composicio;
   }
-  // Otherwise derive from archetype + demo values
-  return DEMO_CARTERA_ACTUAL;
+  return APP.isDemo ? DEMO_CARTERA_ACTUAL : [];
 }
 
 function getEvolucio() {
   var c = getClient();
-  return (c.evolucio && c.evolucio.length > 0) ? c.evolucio : DEMO_EVOLUCIO;
+  if (!c) return APP.isDemo ? DEMO_EVOLUCIO : [];
+  return (c.evolucio && c.evolucio.length > 0) ? c.evolucio : (APP.isDemo ? DEMO_EVOLUCIO : []);
 }
 
 function getPlaAportacions() {
   var c = getClient();
-  return c.pla_aportacions || DEMO_PLA_APORTACIONS;
+  if (!c) return APP.isDemo ? DEMO_PLA_APORTACIONS : null;
+  return c.pla_aportacions || (APP.isDemo ? DEMO_PLA_APORTACIONS : null);
 }
 
 function getEmergencia() {
   var c = getClient();
-  return c.fons_emergencia || DEMO_EMERGENCIA;
+  if (!c) return APP.isDemo ? DEMO_EMERGENCIA : null;
+  return c.fons_emergencia || (APP.isDemo ? DEMO_EMERGENCIA : null);
 }
 
 function getFire() {
   var c = getClient();
-  return c.fire || DEMO_FIRE;
+  if (!c) return APP.isDemo ? DEMO_FIRE : null;
+  return c.fire || (APP.isDemo ? DEMO_FIRE : null);
 }
 
 function getRoadmap() {
