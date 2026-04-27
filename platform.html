@@ -2843,15 +2843,42 @@ function renderPortalPerfil(el) {
   + '</div>';
 
   // Quick snapshot cards
-  var totalValor = getCarteraActual().reduce(function(s,a){return s+a.valor;},0);
-  var totalAportat = getEvolucio()[getEvolucio().length-1].aportat;
+  // Defensa: si el client encara no té cartera real (acaba de ser validat
+  // però l'admin encara no li ha generat la cartera), tot això són zeros
+  // i s'amaga la fila d'snapshot.
+  var carteraActual = getCarteraActual();
+  var evolucio = getEvolucio();
+  var totalValor = (carteraActual && carteraActual.length > 0)
+    ? carteraActual.reduce(function(s,a){return s + (a.valor||0);}, 0)
+    : 0;
+  var totalAportat = (evolucio && evolucio.length > 0 && evolucio[evolucio.length-1])
+    ? (evolucio[evolucio.length-1].aportat || 0)
+    : 0;
   var rendEur = totalValor - totalAportat;
-  var rendPct = totalAportat>0?((totalValor/totalAportat-1)*100):0;
+  var rendPct = totalAportat>0 ? ((totalValor/totalAportat-1)*100) : 0;
+  var hasPortfolio = totalValor > 0 || totalAportat > 0;
+
+  // Roadmap defensiu
   var road = getRoadmap();
-  var roadActius = road.objectius.filter(function(o){return o.estat==='actiu';}).length;
-  var roadCompleted = road.fases.filter(function(f){return f.estat==='completat';}).length;
-  var roadFaseActual = road.fases.find(function(f){return f.estat==='actiu';});
-  html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px" class="mob-grid">'
+  var roadFases  = (road && road.fases) || [];
+  var roadObjectius = (road && road.objectius) || [];
+  var roadActius = roadObjectius.filter(function(o){return o.estat==='actiu';}).length;
+  var roadCompleted = roadFases.filter(function(f){return f.estat==='completat';}).length;
+  var roadFaseActual = roadFases.find(function(f){return f.estat==='actiu';});
+  var pla = getPlaAportacions();
+  var emerg = getEmergencia();
+  var fire = getFire();
+
+  // Si el client està actiu però encara no té cartera generada, mostrar
+  // un missatge amistós en lloc d'una fila plena de zeros.
+  if (!hasPortfolio && !APP.isPreview) {
+    html += '<div style="padding:24px;background:linear-gradient(135deg,#FAF7F0 0%,#F4ECE0 100%);border:1px solid #E8C285;border-radius:12px;margin-bottom:20px;text-align:center">'
+      + '<div style="font-size:24px;margin-bottom:8px">🎉</div>'
+      + '<div style="font-family:var(--fd);font-size:18px;font-weight:400;letter-spacing:-.2px;color:#7A4A00;margin-bottom:6px">Compte activat — preparant la teva cartera</div>'
+      + '<div style="font-size:12px;color:#9A6B1F;line-height:1.6;max-width:480px;margin:0 auto">El teu perfil ha estat validat. El teu assessor està preparant la teva cartera personalitzada i en breu hi tindràs accés. Mentrestant, pots explorar les anàlisis de mercat i les eines disponibles al menú lateral.</div>'
+    + '</div>';
+  } else {
+    html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px" class="mob-grid">'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-cartera\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">💼 Cartera</div>'
       + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black)">' + totalValor.toLocaleString('ca-ES') + '€</div>'
@@ -2865,16 +2892,15 @@ function renderPortalPerfil(el) {
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-aportacions\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">📅 Aportació</div>'
       + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--accent)">1 maig</div>'
-      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + getPlaAportacions().mensual + '€/mes</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + ((pla && pla.mensual) || 0) + '€/mes</div>'
     + '</div>'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-emergencia\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🛡️ Emergència</div>'
       + (function(){
-        var em = getEmergencia();
-        var liq = (em.liquiditat||[]).reduce(function(s,l){return s+l.import;},0);
-        var cli = getClient();
-        var lp = LIQUIDITAT_PERFILS[cli.arquetipId] || LIQUIDITAT_PERFILS.arquitecte;
-        var obj = em.despesesMensuals * lp.mesos;
+        if (!emerg) return '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--g400)">—</div><div style="font-size:10px;color:var(--g400);margin-top:2px">Pendent</div>';
+        var liq = (emerg.liquiditat||[]).reduce(function(s,l){return s+(l.import||0);}, 0);
+        var lp = LIQUIDITAT_PERFILS[c.arquetipId] || LIQUIDITAT_PERFILS.arquitecte;
+        var obj = (emerg.despesesMensuals||0) * lp.mesos;
         var pct = obj>0 ? Math.round(liq/obj*100) : 0;
         var col = pct>=100?'#1A5C3A':pct>=60?'#7A4A00':'#8B1A1A';
         return '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:'+col+'">'+pct+'%</div>'
@@ -2883,10 +2909,11 @@ function renderPortalPerfil(el) {
     + '</div>'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-fire\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🔥 FIRE</div>'
-      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#1A5C3A">' + getFire().anysEstimats + ' anys</div>'
-      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + getFire().objectiuFIRE.toLocaleString('ca-ES') + '€</div>'
+      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#1A5C3A">' + ((fire && fire.anysEstimats) || '—') + ' anys</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + ((fire && fire.objectiuFIRE) ? fire.objectiuFIRE.toLocaleString('ca-ES') : '—') + '€</div>'
     + '</div>'
   + '</div>';
+  } // ← tanca else (block hasPortfolio)
 
   // Unread messages alert — dinàmic amb id per actualitzar després
   html += '<div id="unread-banner" style="display:none"></div>';
