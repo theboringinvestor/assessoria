@@ -2156,9 +2156,11 @@ async function loadClientFromSupabase(email) {
 async function loadAllClientsFromSupabase() {
   if (!sb) return null;
   try {
-    var res = await sb.from('clients').select('nom,email,arquetip,cartera,scoring,pla,perfil').order('nom');
+    var res = await sb.from('clients').select('nom,email,arquetip,cartera,scoring,pla,perfil,status,estat,submitted_at,activated_at').order('nom');
     if (res.error || !res.data) return null;
+    var statusMap = { ok:'active', nou:'pending', critic:'review' };
     return res.data.map(function(c) {
+      var rawStatus = c.status || c.estat || null;
       return {
         nom: c.nom || 'Sense nom',
         email: c.email,
@@ -2167,6 +2169,9 @@ async function loadAllClientsFromSupabase() {
         cartera: c.cartera || '—',
         scoring: c.scoring || 0,
         pla: (c.perfil && c.perfil.pla) ? c.perfil.pla : (c.pla || 'senyal'),
+        status: statusMap[rawStatus] || rawStatus,
+        submitted_at: c.submitted_at || null,
+        activated_at: c.activated_at || null,
       };
     });
   } catch(e) {
@@ -2242,6 +2247,13 @@ function normalizeClient(raw) {
   var arquetipId = raw.arquetipId || raw.arquetip_id || deriveArquetipId(raw.arquetip);
   var arq = getArquetip(arquetipId);
 
+  // 'status' és el camp nou; 'estat' és el legacy (clients vells de la BD)
+  // Si la fila té els dos, prioritzem 'status'. Si només té 'estat',
+  // mapegem els valors legacy al format nou.
+  var rawStatus = raw.status || raw.estat || null;
+  var statusMap = { ok:'active', nou:'pending', critic:'review' };
+  var status = statusMap[rawStatus] || rawStatus;
+
   return {
     nom: raw.nom || 'Client',
     email: raw.email || '',
@@ -2249,6 +2261,11 @@ function normalizeClient(raw) {
     arquetip: raw.arquetip || arq.nom + ' — ' + arq.ep.split('·')[0].trim(),
     cartera: raw.cartera || arq.cartNom,
     scoring: raw.scoring || 0,
+    // ── Camps de validació admin (CRÍTIC: sense això enterApp no detecta active) ──
+    status: status,
+    submitted_at: raw.submitted_at || null,
+    activated_at: raw.activated_at || null,
+    rejection_reason: raw.rejection_reason || null,
     perfil: {
       capitalInicial: perfil.capitalInicial || '—',
       aportacioMensual: perfil.aportacioMensual || '—',
