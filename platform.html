@@ -2125,11 +2125,30 @@ function esClientNou(clientData) {
 async function loadClientFromSupabase(email) {
   if (!sb) return null;
   try {
-    var res = await sb.from('clients').select('*').eq('email', email).limit(1);
-    if (res.error || !res.data || res.data.length === 0) return null;
+    // Normalitzar l'email per evitar mismatch per majúscules/espais
+    var normalized = (email || '').toLowerCase().trim();
+    if (!normalized) return null;
+
+    // Timeout defensiu: si la query no torna en 8s, ho considerem fallat
+    // (millor un error explícit que un loading infinit).
+    var queryPromise = sb.from('clients').select('*').eq('email', normalized).limit(1);
+    var timeoutPromise = new Promise(function(_, reject){
+      setTimeout(function(){ reject(new Error('Timeout llegint client (8s)')); }, 8000);
+    });
+    var res = await Promise.race([queryPromise, timeoutPromise]);
+
+    if (res.error) {
+      console.error('[loadClientFromSupabase] Error de Supabase per a "' + normalized + '":', res.error);
+      console.error('  → Causa probable: les RLS policies de la taula clients no permeten SELECT per al rol actual.');
+      return null;
+    }
+    if (!res.data || res.data.length === 0) {
+      console.warn('[loadClientFromSupabase] Cap fila trobada per a "' + normalized + '". Possibles causes: l\'email no coincideix exactament, la fila s\'ha esborrat, o RLS bloqueja la lectura silenciosament.');
+      return null;
+    }
     return normalizeClient(res.data[0]);
   } catch(e) {
-    console.error('Error loading client:', e);
+    console.error('[loadClientFromSupabase] Excepció:', e);
     return null;
   }
 }
@@ -5170,13 +5189,60 @@ async function renderAdminPendents(el) {
     html += '<div style="margin-top:36px;padding:18px 22px;border:1px dashed #E8E6E1;border-radius:10px;background:#FAFAF8">'
       + '<div style="font-size:10px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">🛠 Eines de manteniment</div>'
       + '<div style="font-size:12px;color:var(--g600);line-height:1.6;margin-bottom:12px">Si tens files de proves antigues (testos d\'usuaris fictícis), pots esborrar-les individualment. Aquesta acció és <strong>irreversible</strong> i només afecta la taula <code style="background:#F0EFEC;padding:1px 5px;border-radius:3px;font-family:var(--fm);font-size:11px">clients</code> de Supabase. Els usuaris d\'autenticació continuen existint a Auth (els hauràs d\'esborrar manualment des de Supabase si vols).</div>'
-      + '<button onclick="obrirNetejaProves()" style="padding:9px 14px;background:transparent;color:var(--g600);border:1px solid var(--g300);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500">🗑 Esborrar files de prova...</button>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+        + '<button onclick="obrirNetejaProves()" style="padding:9px 14px;background:transparent;color:var(--g600);border:1px solid var(--g300);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500">🗑 Esborrar files de prova...</button>'
+        + '<button onclick="forcarActivacioRapida()" style="padding:9px 14px;background:transparent;color:#1A5C3A;border:1px solid #B8DBC4;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500">⚡ Forçar activació ràpida...</button>'
+      + '</div>'
     + '</div>';
 
     html += '</div>';
     el.innerHTML = html;
   } catch(e) {
     el.innerHTML = '<div class="content-inner"><div class="card">Error: ' + e.message + '</div></div>';
+  }
+}
+
+// Eina de testing/emergència: activar un client directament per email
+// sense passar pel modal (útil quan el modal està trencat o quan l'aprovació
+// "normal" no funciona per RLS o altres causes).
+async function forcarActivacioRapida() {
+  if (!sb || APP.role !== 'admin') return;
+  var email = prompt('Email del client a activar:');
+  if (!email) return;
+  email = email.toLowerCase().trim();
+
+  var pla = prompt('Pla a assignar (essencial / bruxola / rumb / mapa):', 'essencial');
+  if (!pla) return;
+  pla = pla.toLowerCase().trim();
+  if (['essencial','bruxola','rumb','mapa'].indexOf(pla) < 0) {
+    toast('Pla no vàlid');
+    return;
+  }
+
+  if (!confirm('Activar ' + email + ' amb pla "' + pla + '"?')) return;
+
+  try {
+    var res = await sb.from('clients').update({
+      status: 'active',
+      pla: pla,
+      activated_at: new Date().toISOString(),
+      rejection_reason: null,
+    }).eq('email', email).select('id,email,status,pla');
+
+    if (res.error) {
+      toast('Error: ' + res.error.message);
+      console.error('Forçar activació:', res.error);
+      return;
+    }
+    if (!res.data || res.data.length === 0) {
+      toast('⚠ Cap fila modificada per a ' + email + '. Comprova RLS o que la fila existeix.');
+      return;
+    }
+    toast('✓ ' + email + ' activat amb pla ' + pla);
+    setTimeout(function(){ navigateTo('admin-pendents'); }, 800);
+    setTimeout(function(){ try { actualitzarBadgePendents(); } catch(e){} }, 1200);
+  } catch(e) {
+    toast('Error: ' + (e.message || e));
   }
 }
 
@@ -5266,19 +5332,47 @@ async function esborrarClient(email, nom) {
   }
 }
 
+// Obrir el modal de validació directament SENSE passar per previewClient.
+// Per validar només calen: nom, email, arquetip, cartera, scoring, pla — no
+// cal carregar tot el portal del client. Així evitem race conditions amb
+// previewClient i el modal s'obre amb les dades correctes garantit.
 async function obrirRevisio(email) {
-  // 1) Carregar les dades del client (esperem!)
-  await previewClient(email);
-  // 2) Si previewClient no ha pogut carregar les dades, no obrim el modal
-  //    (l'usuari ja veu un missatge d'error in-place)
-  if (!APP.clientData) return;
-  // 3) Verificar que les dades carregades són per a l'email correcte
-  //    (defensiu: si per algun motiu queda APP.clientData d'una sessió anterior)
-  if ((APP.clientData.email || '').toLowerCase() !== (email || '').toLowerCase()) {
-    toast('Les dades carregades no coincideixen amb el client sol·licitat');
-    return;
+  if (!email) return;
+  if (!sb) { toast('Supabase no disponible'); return; }
+  email = email.toLowerCase().trim();
+
+  // Mostrar feedback de càrrega
+  toast('Carregant ' + email + '...');
+
+  try {
+    // Query mínima: només els camps que el modal necessita
+    var queryPromise = sb.from('clients')
+      .select('id,nom,email,arquetip,cartera,scoring,pla,status,perfil,submitted_at')
+      .eq('email', email)
+      .limit(1);
+    var timeoutPromise = new Promise(function(_, reject){
+      setTimeout(function(){ reject(new Error('Timeout (8s)')); }, 8000);
+    });
+    var res = await Promise.race([queryPromise, timeoutPromise]);
+
+    if (res.error) {
+      console.error('[obrirRevisio] Error de Supabase:', res.error);
+      toast('⚠ Error: ' + (res.error.message || 'No s\'ha pogut llegir la fila'));
+      return;
+    }
+    if (!res.data || res.data.length === 0) {
+      toast('⚠ No s\'ha trobat cap client amb email: ' + email);
+      console.warn('Cap fila per a', email, '— comprova RLS i format d\'email a la BD.');
+      return;
+    }
+
+    // Carregar les dades al APP per al modal
+    APP.clientData = res.data[0];
+    obrirModalValidacio(email);
+  } catch(e) {
+    console.error('[obrirRevisio] Excepció:', e);
+    toast('Error: ' + (e.message || 'desconegut'));
   }
-  obrirModalValidacio(email);
 }
 
 function obrirModalValidacio(email) {
