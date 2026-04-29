@@ -901,21 +901,32 @@ let cur = 0;
 let ans = {};
 let txt = {};
 
-// Categories macro d'actius — alineades amb les carteres de la plataforma
+// ════════════════════════════════════════════
+// TAXONOMIA D'ACTIUS — alineada amb platform.html
+// 21 categories definitives (mateixa llista)
+// ════════════════════════════════════════════
 const ACTIU_CATEGORIES = [
-  { id: 'rv_global',    ca: 'RV Global Indexada',      es: 'RV Global Indexada',     emoji: '🌍', tip: 'ETF MSCI World, S&P 500, ETF de mercat global' },
-  { id: 'rv_dividend',  ca: 'Dividend ETF / Renda',    es: 'Dividend ETF / Renta',   emoji: '💵', tip: 'ETFs de dividend, accions de renda estable' },
-  { id: 'rv_tematica',  ca: 'Temàtica / Sectorial',    es: 'Temática / Sectorial',   emoji: '🔬', tip: 'IA, Tech, salut, energia neta, etc.' },
-  { id: 'rv_emergent',  ca: 'Emergents (EM)',           es: 'Emergentes (EM)',         emoji: '🌏', tip: 'Índexs de mercats emergents (EMIM, etc.)' },
-  { id: 'rf_gov',       ca: 'RF Governamental',         es: 'RF Gubernamental',        emoji: '🏛️', tip: 'Bons de governs (EUR AAA, Tresor US, etc.)' },
-  { id: 'rf_corp',      ca: 'RF Corporativa IG',        es: 'RF Corporativa IG',       emoji: '🏢', tip: 'Bons corporatius Investment Grade' },
-  { id: 'rf_monetari',  ca: 'Liquiditat / Monetari',   es: 'Liquidez / Monetario',   emoji: '💧', tip: 'Compte corrent, dipòsits, mercat monetari, OCIs' },
-  { id: 'or_metalls',   ca: 'Or i Metalls preciosos',  es: 'Oro y Metales preciosos', emoji: '🥇', tip: 'Or físic (ETC), plata, platí' },
-  { id: 'reits',        ca: 'REITs / Immobiliaris',     es: 'REITs / Inmobiliarios',   emoji: '🏠', tip: 'Fons immobiliaris cotitzats, socimis' },
-  { id: 'crypto',       ca: 'Crypto / Actius digitals', es: 'Crypto / Activos digitales', emoji: '₿', tip: 'Bitcoin, Ethereum, altcoins' },
-  { id: 'crowdlending', ca: 'Crowdlending / P2P',       es: 'Crowdlending / P2P',     emoji: '🤝', tip: 'Plataformes de préstecs P2P, finançament col·lectiu' },
-  { id: 'pe_startups',  ca: 'Private Equity / Start-ups', es: 'Private Equity / Start-ups', emoji: '🚀', tip: 'Inversió en empreses no cotitzades, capital risc' },
-  { id: 'altres',       ca: 'Altres',                   es: 'Otros',                   emoji: '📦', tip: 'Qualsevol actiu no inclòs a les categories anteriors' },
+  { id:'rv_global',       ca:'RV Global Indexada',              es:'RV Global Indexada',              emoji:'🌍' },
+  { id:'rv_dividend',     ca:'RV Dividends / Renda',            es:'RV Dividends / Renta',            emoji:'💵' },
+  { id:'rv_reits',        ca:'REITs / Immobiliaris cotitzats',  es:'REITs / Inmobiliarios cotizados', emoji:'🏠' },
+  { id:'rv_growth',       ca:'RV Growth / Tecnològic',          es:'RV Growth / Tecnológico',         emoji:'🚀' },
+  { id:'rv_value',        ca:'RV Value / Defensiu',             es:'RV Value / Defensivo',            emoji:'⚖️' },
+  { id:'rv_emergent',     ca:'RV Mercats Emergents',            es:'RV Mercados Emergentes',          emoji:'🌏' },
+  { id:'rf_global',       ca:'RF Global Agregat',               es:'RF Global Agregado',              emoji:'🌐' },
+  { id:'rf_gov_curt',     ca:'RF Gov. Curt termini',            es:'RF Gov. Corto plazo',             emoji:'🏦' },
+  { id:'rf_gov_llarg',    ca:'RF Gov. Llarg termini',           es:'RF Gov. Largo plazo',             emoji:'🏛️' },
+  { id:'rf_corp',         ca:'RF Corporativa IG',               es:'RF Corporativa IG',               emoji:'🏢' },
+  { id:'rf_hy',           ca:'RF High Yield (Alt Rendiment)',   es:'RF High Yield (Alto Rendimiento)',emoji:'⚡' },
+  { id:'or_metalls',      ca:'Or i Metalls preciosos',          es:'Oro y Metales preciosos',         emoji:'🥇' },
+  { id:'commodities',     ca:'Matèries primeres',               es:'Materias primas',                 emoji:'🛢️' },
+  { id:'liquiditat',      ca:'Liquiditat / Monetari / Dipòsits',es:'Liquidez / Monetario / Depósitos',emoji:'💧' },
+  { id:'crowdlending',    ca:'Crowdlending / P2P Lending',      es:'Crowdlending / P2P Lending',      emoji:'🤝' },
+  { id:'crypto',          ca:'Crypto / Actius Digitals',        es:'Crypto / Activos Digitales',      emoji:'₿'  },
+  { id:'private_equity',  ca:'Private Equity / Capital Risc',   es:'Private Equity / Capital Riesgo', emoji:'🏭' },
+  { id:'startups',        ca:'Start-ups / Venture Capital',     es:'Start-ups / Venture Capital',     emoji:'💡' },
+  { id:'infraestructures',ca:'Infraestructures',                es:'Infraestructuras',                emoji:'🌉' },
+  { id:'hedge_funds',     ca:'Hedge Funds / Estratègies alt.',  es:'Hedge Funds / Estrategias alt.',  emoji:'🎯' },
+  { id:'altres',          ca:'Altres / No classificats',        es:'Otros / No clasificados',         emoji:'📦' },
 ];
 
 function getCategoriaNom(id) {

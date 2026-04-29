@@ -971,7 +971,7 @@ var DEMO_CLIENT = {
   email: 'maria.garcia@example.com',
   arquetipId: 'arquitecte',
   arquetip: "L'Arquitecte — Brunelleschi",
-  cartera: 'IV · La Catedral',
+  cartera: 'IV · Amsterdam',
   scoring: 67,
   perfil: {
     capitalInicial: '5.000 €',
@@ -993,11 +993,11 @@ var DEMO_CLIENT = {
 };
 
 var DEMO_CLIENTS_LIST = [
-  {nom:'Maria García López', email:'maria.garcia@example.com', arquetipId:'arquitecte', arquetip:"L'Arquitecte", cartera:'IV · La Catedral', scoring:67, pla:'bruxola'},
-  {nom:'Joan Martí Valls', email:'joan.marti@example.com', arquetipId:'estoic', arquetip:"L'Estoic", cartera:'I · La Catapulta', scoring:78, pla:'rumb'},
-  {nom:'Laia Pujol Serra', email:'laia.pujol@example.com', arquetipId:'explorador', arquetip:"L'Exploradora", cartera:'II · La Caravella', scoring:52, pla:'senyal'},
-  {nom:'Pere Font Solé', email:'pere.font@example.com', arquetipId:'tresorer', arquetip:"El Tresorer", cartera:'V · La Muralla', scoring:41, pla:'bruxola'},
-  {nom:'Anna Rovira Costa', email:'anna.rovira@example.com', arquetipId:'navegant', arquetip:"La Navegant", cartera:'III · El Galeó', scoring:85, pla:'mapa'},
+  {nom:'Maria García López', email:'maria.garcia@example.com', arquetipId:'arquitecte', arquetip:"L'Arquitecte", cartera:'IV · Amsterdam', scoring:67, pla:'bruxola'},
+  {nom:'Joan Martí Valls', email:'joan.marti@example.com', arquetipId:'estoic', arquetip:"L'Estoic", cartera:'I · Nova York', scoring:78, pla:'rumb'},
+  {nom:'Laia Pujol Serra', email:'laia.pujol@example.com', arquetipId:'explorador', arquetip:"L'Exploradora", cartera:'II · Singapur', scoring:52, pla:'senyal'},
+  {nom:'Pere Font Solé', email:'pere.font@example.com', arquetipId:'tresorer', arquetip:"El Tresorer", cartera:'V · Ginebra', scoring:41, pla:'bruxola'},
+  {nom:'Anna Rovira Costa', email:'anna.rovira@example.com', arquetipId:'navegant', arquetip:"La Navegant", cartera:'III · Roma', scoring:85, pla:'mapa'},
 ];
 
 var DEMO_ANALISIS = [
@@ -1007,101 +1007,405 @@ var DEMO_ANALISIS = [
 ];
 
 // ══════════════════════════════════════════════════
-// SISTEMA UNIFICAT: 8 ARQUETIPS → 8 CARTERES
+// TAXONOMIA D'ACTIUS — 21 categories definitives
+// Font única de veritat per a carteres, qüestionari,
+// posicions reals i la vista educativa.
+// ══════════════════════════════════════════════════
+var ACTIUS_TAXONOMY = [
+  // ── RENDA VARIABLE ──
+  {
+    id:'rv_global', grup:'rv', emoji:'🌍',
+    ca:'RV Global Indexada', es:'RV Global Indexada', color:'#1B3A6B',
+    desc:'Exposició a milers d\'empreses de tot el món a través d\'ETFs que repliquen índexs amplis com MSCI World o FTSE All-World. El motor principal de creixement a llarg termini.',
+    exemples:'iShares Core MSCI World (IWDA), Vanguard FTSE All-World (VWCE), Amundi MSCI World',
+    pros:['Diversificació global màxima en un sol producte','Cost molt baix (TER 0,10–0,22%)','Alta liquiditat, es pot vendre qualsevol dia de borsa','Rendibilitat histèrica ~7–10% anual real a llarg termini'],
+    contres:['Alta volatilitat a curt termini (-40% en crisi severa)','Exposició a divises (USD, JPY…) no cobertes','Concentrat en EUA (65–70% de MSCI World)','No genera renda periòdica visible (acumulació)'],
+    risc:4, liquiditat:'Alta', horitzo:'≥ 7 anys', retorn:'6–9% anual',
+    cicle:{expansio:5,pic:3,recessio:1,recuperacio:4},
+    correlacioRV:'Alta (és la referència)'
+  },
+  {
+    id:'rv_dividend', grup:'rv', emoji:'💵',
+    ca:'RV Dividends / Renda', es:'RV Dividends / Renta', color:'#2E5FA3',
+    desc:'ETFs i accions d\'empreses que distribueixen dividend elevat i consistent. Generen un flux de caixa visible que actua com a ancoratge psicològic i font d\'ingressos passius.',
+    exemples:'Vanguard FTSE All-World High Dividend, iShares Global Dividend, Schwab US Dividend Equity',
+    pros:['Genera ingressos passius regulars (3–6% anual)','Menys volàtil que la RV de creixement','Empreses madures amb balanços sòlids','Reforça la disciplina inversora (veus els dividends)'],
+    contres:['Menor creixement potencial que la RV global','Pot concentrar-se en sectors estancs (utilities, bancs)','En recessió profunda els dividends es retallen','Doble imposició fiscal si el fons no és acumulació'],
+    risc:3, liquiditat:'Alta', horitzo:'≥ 5 anys', retorn:'4–7% anual',
+    cicle:{expansio:4,pic:4,recessio:2,recuperacio:3},
+    correlacioRV:'Mitjana (0,70–0,80)'
+  },
+  {
+    id:'rv_reits', grup:'rv', emoji:'🏠',
+    ca:'REITs / Immobiliaris cotitzats', es:'REITs / Inmobiliarios cotizados', color:'#0F6E56',
+    desc:'Fons d\'inversió immobiliaris cotitzats a borsa. Permeten invertir en immobles comercials, logístics, sanitaris i residencials sense haver de comprar directament. Obligats a distribuir ≥90% del benefici.',
+    exemples:'Vanguard Real Estate ETF (VNQ), iShares Global REIT, Amundi Index FTSE EPRA NAREIT Global',
+    pros:['Ingressos per lloguers (dividend 3–5%)','Cobertura natural contra la inflació','Diversificació respecte RV tradicional','Accés a actius immobiliaris sense gestió directa'],
+    contres:['Molt sensibles als tipus d\'interès (puja TI → cauen)','Alta correlació amb RV en crisis de liquiditat','Menys líquids que ETF d\'accions en èpoques de stress','Risc de concentració geogràfica (EUA 60–70%)'],
+    risc:3, liquiditat:'Alta', horitzo:'≥ 5 anys', retorn:'4–7% anual',
+    cicle:{expansio:4,pic:2,recessio:1,recuperacio:4},
+    correlacioRV:'Mitjana (0,65–0,75)'
+  },
+  {
+    id:'rv_growth', grup:'rv', emoji:'🚀',
+    ca:'RV Growth / Tecnològic', es:'RV Growth / Tecnológico', color:'#4CAF82',
+    desc:'Accions i ETFs de sectors de creixement ràpid: tecnologia, IA, biotecnologia, energies netes. Valoracions altes per expectatives de creixement futur extraordinari. L\'actiu que més puja i més cau.',
+    exemples:'Invesco QQQ (Nasdaq 100), iShares Global Clean Energy, ARK Innovation ETF, Xtrackers MSCI World IT',
+    pros:['Potencial de creixement molt superior a la mitjana','Exposició a les empreses que definiran el futur','Rendibilitat extraordinària en fases alcistes','Alta liquiditat'],
+    contres:['Volatilitat extrema (-70% possible en crisi tech)','Valoracions molt estirades (PER 30–60x)','Concentrat en poques empreses grans','Molt sensible als tipus d\'interès i a la narrativa del mercat'],
+    risc:5, liquiditat:'Alta', horitzo:'≥ 10 anys', retorn:'8–14% anual',
+    cicle:{expansio:5,pic:4,recessio:1,recuperacio:5},
+    correlacioRV:'Alta (0,85–0,95)'
+  },
+  {
+    id:'rv_value', grup:'rv', emoji:'⚖️',
+    ca:'RV Value / Defensiu', es:'RV Value / Defensivo', color:'#5D4037',
+    desc:'Empreses infravalorades respecte als seus fonamentals (PER baix, dividend alt, balanç sòlid). Sectors: energia, bancs, industrials, consum bàsic. Tendeix a superar Growth en fases d\'altes inflació i tipus alts.',
+    exemples:'iShares MSCI World Value Factor, Vanguard Value ETF, iShares Edge MSCI World Value',
+    pros:['Menor volatilitat que Growth en caigudes','Millor comportament en entorns inflacionistes','Dividend raonable (2–4%)','Baixes valoracions = major marge de seguretat'],
+    contres:['Pot quedar enrere en llargs cicles de creixement (2010–2020)','Concentrat en sectors cíclics','Risc de "value trap" (empresa barata que segueix caient)','Menys emocionant, difícil mantenir la disciplina'],
+    risc:3, liquiditat:'Alta', horitzo:'≥ 5 anys', retorn:'5–8% anual',
+    cicle:{expansio:3,pic:4,recessio:2,recuperacio:3},
+    correlacioRV:'Alta (0,80–0,90)'
+  },
+  {
+    id:'rv_emergent', grup:'rv', emoji:'🌏',
+    ca:'RV Mercats Emergents', es:'RV Mercados Emergentes', color:'#FF6F00',
+    desc:'Accions de països en vies de desenvolupament: Xina, Índia, Brasil, Taiwan, Corea del Sud… Creixement econòmic més elevat però amb riscos polítics, de divisa i de governança superiors.',
+    exemples:'iShares Core MSCI Emerging Markets (EMIM), Vanguard FTSE Emerging Markets, Amundi MSCI Emerging Markets',
+    pros:['Creixement econòmic superior als mercats desenvolupats','Valoracions generalment més baixes','Diversificació geogràfica real','Exposició a classe mitjana emergent global'],
+    contres:['Alta volatilitat i riscos geopolítics','Risc de divisa significatiu','Menor transparència i govern corporatiu','Correlació creixent amb RV global en crisis'],
+    risc:4, liquiditat:'Alta', horitzo:'≥ 10 anys', retorn:'6–10% anual',
+    cicle:{expansio:5,pic:3,recessio:1,recuperacio:4},
+    correlacioRV:'Mitjana-Alta (0,70–0,80)'
+  },
+  // ── RENDA FIXA ──
+  {
+    id:'rf_global', grup:'rf', emoji:'🌐',
+    ca:'RF Global Agregat', es:'RF Global Agregado', color:'#607D8B',
+    desc:'Cartera diversificada de bons governamentals i corporatius d\'arreu del món. Equilibri entre seguretat i rendiment. És la RF més diversificada que pots tenir en un sol ETF.',
+    exemples:'iShares Core Global Aggregate Bond (AGGG), Vanguard Global Bond Index, Amundi Bloomberg Global Aggregate',
+    pros:['Diversificació global de deute en un sol producte','Correlació negativa amb RV en crisis','Estabilitzador de cartera','Cost baix'],
+    contres:['Exposició a divises si no és cobert (hedged)','Sensible als tipus d\'interès globals','Rendiment real baix en entorns d\'inflació alta','Complexitat interna (mescla de qualitats creditícies)'],
+    risc:2, liquiditat:'Alta', horitzo:'≥ 3 anys', retorn:'2–4% anual',
+    cicle:{expansio:2,pic:3,recessio:4,recuperacio:2},
+    correlacioRV:'Baixa-Negativa (-0,20 a 0,30)'
+  },
+  {
+    id:'rf_gov_curt', grup:'rf', emoji:'🏦',
+    ca:'RF Governamental Curt termini', es:'RF Gubernamental Corto plazo', color:'#78909C',
+    desc:'Bons de governs amb venciment 1–3 anys. Molt menor sensibilitat als tipus d\'interès que la RF llarga. Funcionalment similar a la liquiditat però amb lleuger plus de rendiment.',
+    exemples:'iShares € Govt Bond 1–3yr, Lyxor Euro Government Bond 1–3Y, Vanguard Short-Term Government Bond',
+    pros:['Molt baixa volatilitat (-2% en el pitjor any)','Menys sensible a pujades de tipus','Rendiment superior a compte corrent','Altament líquid'],
+    contres:['Rendiment real baix o negatiu en inflació alta','Poca protecció en caigudes borsàtils','No creix significativament en llarg termini','Perd valor real si la inflació supera el cupó'],
+    risc:1, liquiditat:'Alta', horitzo:'1–3 anys', retorn:'1,5–3% anual',
+    cicle:{expansio:2,pic:3,recessio:4,recuperacio:2},
+    correlacioRV:'Baixa (0,00–0,20)'
+  },
+  {
+    id:'rf_gov_llarg', grup:'rf', emoji:'🏛️',
+    ca:'RF Governamental Llarg termini', es:'RF Gubernamental Largo plazo', color:'#546E7A',
+    desc:'Bons de governs amb venciment >10 anys. Molt sensibles als canvis en tipus d\'interès: puja de tipus → cauen molt. Actuen com assegurança en deflació o crisi econòmica severa.',
+    exemples:'iShares € Govt Bond 7–10yr, PIMCO 25+ Year US STRIPS Bond, iShares 20+ Year Treasury Bond',
+    pros:['Màxima protecció en deflació i crisis severes','Rendiments elevats en entorns de tipus baixos','Diversificador fort contra RV en crisis','Pot apreciar-se molt quan els bancs centrals baixen tipus'],
+    contres:['Alta durada = gran sensibilitat als tipus','Risc de pèrdues importants si pugen els tipus','No protegeix contra inflació (al contrari)','Comportament contraintuitiu per a inversors novells'],
+    risc:3, liquiditat:'Alta', horitzo:'≥ 5 anys', retorn:'2–5% anual',
+    cicle:{expansio:1,pic:2,recessio:5,recuperacio:2},
+    correlacioRV:'Negativa (-0,30 a -0,50)'
+  },
+  {
+    id:'rf_corp', grup:'rf', emoji:'🏢',
+    ca:'RF Corporativa Investment Grade', es:'RF Corporativa Investment Grade', color:'#8D6E63',
+    desc:'Bons emesos per empreses amb rating creditici alt (≥BBB). Ofereix un spread addicional respecte als bons governamentals a canvi d\'un risc de crèdit moderat. Equilibri entre seguretat i rendiment.',
+    exemples:'iShares Core € Corp Bond, Vanguard EUR Corporate Bond, Amundi EUR Corporate IG',
+    pros:['Rendiment superior als bons governamentals (+0,5–1,5%)','Risc de crèdit moderat (empreses sòlides)','Amplia diversificació entre sectors i emissors','Bona liquiditat'],
+    contres:['Correlació amb RV en crisis de crèdit (Lehman 2008)','Sensible als tipus d\'interès com qualsevol RF','Risc de rebaixa de rating','Menys protector que deute governamental en crisis severes'],
+    risc:2, liquiditat:'Alta', horitzo:'≥ 3 anys', retorn:'2,5–4,5% anual',
+    cicle:{expansio:3,pic:3,recessio:2,recuperacio:3},
+    correlacioRV:'Baixa-Mitjana (0,20–0,50)'
+  },
+  {
+    id:'rf_hy', grup:'rf', emoji:'⚡',
+    ca:'RF High Yield (Alt Rendiment)', es:'RF High Yield (Alto Rendimiento)', color:'#BF360C',
+    desc:'Bons emesos per empreses amb rating baix (≤BB). Ofereixen cupons molt elevats per compensar l\'alt risc de impagament. Es comporten parcialment com a renda variable en cicles econòmics.',
+    exemples:'iShares € High Yield Corp Bond, SPDR Bloomberg High Yield Bond, Xtrackers USD High Yield Corp Bond',
+    pros:['Cupons alts (5–9% anual)','Diversificació de fonts de rendiment','Supera la RF IG en fases d\'expansió'],
+    contres:['Alta taxa de default en recessió','Molt correlat amb RV en crisis','Menor liquiditat en moments de pànic','Requereix gestió activa per seleccionar emissors'],
+    risc:4, liquiditat:'Mitjana', horitzo:'≥ 5 anys', retorn:'4–8% anual',
+    cicle:{expansio:4,pic:3,recessio:1,recuperacio:4},
+    correlacioRV:'Mitjana-Alta (0,60–0,75)'
+  },
+  // ── ALTERNATIUS REALS ──
+  {
+    id:'or_metalls', grup:'alt', emoji:'🥇',
+    ca:'Or i Metalls preciosos', es:'Oro y Metales preciosos', color:'#C0392B',
+    desc:'Or físic (via ETCs), plata i platí. Actiu de refugi per excel·lència en crisi, inflació i incertesa geopolítica. No genera rendiment per sí sol — el seu valor ve de la seva escassetat i historia com a reserva de valor.',
+    exemples:'iShares Physical Gold (SGLN), Invesco Physical Gold (SGLD), WisdomTree Physical Silver',
+    pros:['Cobertura clàssica contra inflació i crisi','Historial de milers d\'anys com a reserva de valor','Descorrelació real amb RV i RF','Molt líquid en ETCs físics'],
+    contres:['No genera dividends ni cupons','Alta volatilitat a curt termini','Rendiment real pràcticament 0 en períodes llargs','Cost d\'emmagatzematge (inclòs en l\'ETC però existeix)'],
+    risc:3, liquiditat:'Alta', horitzo:'≥ 5 anys', retorn:'1–5% anual (molt variable)',
+    cicle:{expansio:2,pic:3,recessio:5,recuperacio:3},
+    correlacioRV:'Baixa-Negativa (-0,10 a 0,20)'
+  },
+  {
+    id:'commodities', grup:'alt', emoji:'🛢️',
+    ca:'Matèries primeres (Commodities)', es:'Materias primas (Commodities)', color:'#E65100',
+    desc:'Petroli, gas natural, agricultura (blat, soja, cafè), metalls industrials (coure, alumini). Protecció contra inflació de costos i exposició al cicle econòmic global. Habitualment via ETFs de futurs.',
+    exemples:'iShares Diversified Commodity Swap, Invesco Bloomberg Commodity, WisdomTree Broad Commodities',
+    pros:['Millor cobertura contra inflació que l\'or','Exposició al creixement industrial global','Descorrelació real amb actius financers','Diversificació genuïna de la cartera'],
+    contres:['Cost de roll (futures): pot perdre 3–5% anual en contango','Alta volatilitat i difícil de valorar','Impacte mediambiental qüestionat (fòssils)','Retorn esperat baix a molt llarg termini'],
+    risc:4, liquiditat:'Alta', horitzo:'≥ 3 anys', retorn:'0–6% anual (molt cíclic)',
+    cicle:{expansio:4,pic:5,recessio:1,recuperacio:3},
+    correlacioRV:'Baixa (0,10–0,30)'
+  },
+  {
+    id:'liquiditat', grup:'cash', emoji:'💧',
+    ca:'Liquiditat / Monetari / Dipòsits', es:'Liquidez / Monetario / Depósitos', color:'#90A4AE',
+    desc:'Compte corrent remunerat, fons del mercat monetari (OCI, UCITS monetaris), dipòsits a termini fix i lletres del tresor a curt termini. La posició defensiva per excel·lència i la reserva per a oportunitats.',
+    exemples:'Compte Trade Republic (4%), Fondo FMMA (Caixabank), iShares € Ultrashort Bond, Dipòsit Banca March',
+    pros:['Capital garantit (dipòsits fins €100k pel FGD)','Accés immediat (compte remunerat, fons monetari)','Rendiment positiu real en entorns de tipus alts','Zero volatilitat comptable'],
+    contres:['Perd valor real si la inflació supera el rendiment','No creix a llarg termini','Risc de "paralitzar-se" i no invertir mai (cash drag)','Rendiment cau ràpidament quan els bancs centrals baixen tipus'],
+    risc:1, liquiditat:'Alta', horitzo:'0–2 anys', retorn:'2–4% actual (variable)',
+    cicle:{expansio:1,pic:3,recessio:4,recuperacio:2},
+    correlacioRV:'Cap (0,00)'
+  },
+  {
+    id:'crowdlending', grup:'alt', emoji:'🤝',
+    ca:'Crowdlending / P2P Lending', es:'Crowdlending / P2P Lending', color:'#D4943A',
+    desc:'Préstecs directes a empreses (P2B) o particulars (P2P) a través de plataformes online. Genera rendiment fix mensual independent de la borsa. Il·líquid o semi-líquid depenent de la plataforma.',
+    exemples:'Mintos (aggregador), October (P2B), Housers (immobiliari), Lendahand (impacte)',
+    pros:['Rendiment fix alt independent de mercats financers (6–12%)','Diversificació real de font de rendiment','Flux de caixa mensual predecible','Exposició a l\'economia real'],
+    contres:['Il·líquid: no pots recuperar el capital fàcilment','Risc d\'impagament i frau de plataforma','Sense protecció FGD ni FOGAIN','Regulació incompleta a moltes plataformes europees'],
+    risc:4, liquiditat:'Baixa', horitzo:'≥ 2 anys', retorn:'6–12% anual',
+    cicle:{expansio:4,pic:3,recessio:1,recuperacio:3},
+    correlacioRV:'Baixa (0,10–0,20)'
+  },
+  {
+    id:'crypto', grup:'alt', emoji:'₿',
+    ca:'Crypto / Actius Digitals', es:'Crypto / Activos Digitales', color:'#534AB7',
+    desc:'Bitcoin, Ethereum i altres actius digitals basats en blockchain. Actiu especulatiu d\'alta volatilitat amb propietats úniques: escassetat programada, neutralitat política, globalitat. Extremadament asimètric.',
+    exemples:'Bitcoin (BTC), Ethereum (ETH), ETFs spot BTC (iShares Bitcoin Trust), Staking ETH',
+    pros:['Potencial de revalorització asimètric','Descorrelació respecte actius tradicionals (parcial)','Cobertura contra debasement monetari','Alta liquiditat 24/7 global'],
+    contres:['Volatilitat extrema (-80% en cicles baixistes)','Risc regulatori i geopolític elevat','Sense valor intrínsec fonamental clàssic','Risc de custòdia i hackeig si no és ETF'],
+    risc:5, liquiditat:'Alta', horitzo:'≥ 5 anys (molt especulatiu)', retorn:'15–30% o -80% (asimètric)',
+    cicle:{expansio:5,pic:4,recessio:1,recuperacio:5},
+    correlacioRV:'Variable (0,30–0,70)'
+  },
+  {
+    id:'private_equity', grup:'alt', emoji:'🏭',
+    ca:'Private Equity / Capital Risc', es:'Private Equity / Capital Riesgo', color:'#4A148C',
+    desc:'Inversió en empreses no cotitzades a través de fons (buyouts, venture, growth equity). Accés a rendiments superiors als mercats cotitzats a canvi d\'il·liquiditat total durant 8–12 anys.',
+    exemples:'EQT, KKR, Blackstone (vehicles retail), Amundi Private Equity (fons ELTIF), co-inversió directa',
+    pros:['Rendiments històricament superiors a la RV cotitzada (2–4% extra)','Diversificació real fora dels mercats','Accés a fases de creixement que no arriben a borsa','Protecció contra volatilitat diària (no coteixes)'],
+    contres:['Il·líquid totalment durant 8–12 anys','Minimums molt alts (€100k–1M per vehicles professionals)','Comissions elevades (2% gestió + 20% carried interest)','Opacitat en valoració i reporting'],
+    risc:5, liquiditat:'Molt Baixa', horitzo:'≥ 10 anys', retorn:'10–18% anual (brut)',
+    cicle:{expansio:5,pic:4,recessio:2,recuperacio:4},
+    correlacioRV:'Mitjana (0,50–0,70, retardada)'
+  },
+  {
+    id:'startups', grup:'alt', emoji:'💡',
+    ca:'Start-ups / Venture Capital', es:'Start-ups / Venture Capital', color:'#1B5E20',
+    desc:'Inversió directa en empreses en etapes inicials (pre-seed, seed, Series A) o via fons de Venture Capital. La majoria fracassen; les que triomfen poden retornar 10–100x. Porta Pareto extrema.',
+    exemples:'Crowdcube, Seedrs, Lanzadera (indirecte), fons VC (Kibo Ventures, Adara), EIS/SEIS al Regne Unit',
+    pros:['Potencial de retorn asimètric (10–100x en winners)','Involucració en emprenedoria i innovació','Beneficis fiscals en alguns marcs (SEIS, EIS)','Accés a tendències del futur abans de borsa'],
+    contres:['>70% de les inversions es perden totalment','Il·líquid 5–10 anys sense mercat secundari','Molt dependent de la qualitat de la selecció','Requereix coneixement i xarxa per accedir a bones oportunitats'],
+    risc:5, liquiditat:'Molt Baixa', horitzo:'≥ 7 anys', retorn:'0% o 10x (binari)',
+    cicle:{expansio:5,pic:3,recessio:1,recuperacio:4},
+    correlacioRV:'Baixa (0,20–0,40, retardada)'
+  },
+  {
+    id:'infraestructures', grup:'alt', emoji:'🌉',
+    ca:'Infraestructures', es:'Infraestructuras', color:'#37474F',
+    desc:'Inversió en actius d\'infraestructures: autopistes (peatge), aeroports, ports, xarxes elèctriques, fibra òptica, energies renovables. Fluxos de caixa contractats a llarg termini, protegits contra inflació.',
+    exemples:'iShares Global Infrastructure ETF, Macquarie Infrastructure, BBVA Asset Mgmt Infraestructuras',
+    pros:['Fluxes de caixa contractats i previsibles','Protecció natural contra la inflació (tarifes indexades)','Baixa correlació amb mercats financers','Dividend estable (3–5%)'],
+    contres:['Il·líquid si és inversió directa (líquid en ETF)','Risc regulatori i polític (governs canvien règims de tarifes)','Requereix capitals grans en inversió directa','ETFs de infraestructures correlacionen amb RF en pujada de tipus'],
+    risc:2, liquiditat:'Baixa (directa) / Alta (ETF)', horitzo:'≥ 7 anys', retorn:'4–7% anual',
+    cicle:{expansio:3,pic:3,recessio:3,recuperacio:3},
+    correlacioRV:'Baixa (0,20–0,40)'
+  },
+  {
+    id:'hedge_funds', grup:'alt', emoji:'🎯',
+    ca:'Hedge Funds / Estratègies alternatives', es:'Hedge Funds / Estrategias alternativas', color:'#880E4F',
+    desc:'Fons que usen estratègies complexes: long/short, arbitratge, global macro, CTA/tendències. Objectiu: rendiment positiu independent del mercat (alpha). Habitualment reservats a inversors qualificats.',
+    exemples:'Man AHL (CTA), Bridgewater All Weather, UCITS alternatius (Natixis H2O, Carmignac)',
+    pros:['Rendiment independent dels mercats (en teoria)','Diversificació genuïna en cartera sofisticada','Pot protegir en crisis severes','Varietat d\'estratègies amb perfils de risc molt diversos'],
+    contres:['Comissions molt altes (2+20%)','Opacitat en estratègia i risc real','Historial mixt: molts fondos tanquen en 3 anys','Difícil avaluar la qualitat del gestor per a inversors retail'],
+    risc:3, liquiditat:'Baixa', horitzo:'≥ 3 anys', retorn:'4–8% anual objectiu',
+    cicle:{expansio:3,pic:4,recessio:4,recuperacio:3},
+    correlacioRV:'Variable (objectiu: baixa)'
+  },
+  {
+    id:'altres', grup:'altres', emoji:'📦',
+    ca:'Altres / No classificats', es:'Otros / No clasificados', color:'#9E9E9E',
+    desc:'Qualsevol actiu que no encaixa en les categories anteriors: art, vi, col·leccionisme, productes estructurats, divises, etc. Usar com a categoria residual per a posicions que no quadren en cap altre grup.',
+    exemples:'Productes estructurats bancaris, fons de fons, assegurances d\'inversió (unit-linked), posicions en divises',
+    pros:['Flexibilitat per classificar qualsevol actiu','Visibilitat total de la cartera real'],
+    contres:['Difícil comparar amb el target d\'arquetip','Cal descriure bé la posició per entendre-la'],
+    risc:3, liquiditat:'Variable', horitzo:'Variable', retorn:'Variable',
+    cicle:{expansio:3,pic:3,recessio:3,recuperacio:3},
+    correlacioRV:'Desconeguda'
+  },
+];
+
+// Helpers ràpids per a la taxonomia
+function getActiu(id) {
+  return ACTIUS_TAXONOMY.find(function(a){ return a.id === id; }) || ACTIUS_TAXONOMY[ACTIUS_TAXONOMY.length-1];
+}
+function getActiuNom(id, lang) {
+  var a = getActiu(id);
+  return lang === 'es' ? a.es : a.ca;
+}
+
+// ══════════════════════════════════════════════════
+// CARTERES MODEL — 10 arquetips amb noms de ciutats
+// Alineades amb la taxonomia ACTIUS_TAXONOMY
 // ══════════════════════════════════════════════════
 var ARQUETIPS_CARTERES = [
   {
     id:'estoic', nom:"L'Estoic", ep:'Marc Aureli · 121–180 d.C.',
-    cartNom:'I · La Catapulta', cartSub:'Màxima RV, horitzó >15 anys, sense RF ni alternatius',
+    cartNom:'Nova York', cartRoma:'I · Nova York', cartSub:'Màxima RV global, horitzó >15 anys. Tot en creixement.',
     rationale:"Alta tolerància al risc real, control emocional excel·lent i horitzó +15 anys. No necessita àncores de RF — cada euro en monetari és un cost d'oportunitat. El temps és la millor cobertura.",
     diff:"Cap component defensiu. Drawdown màxim esperat: -45% en crisi severa. El risc és assumit conscientment.",
-    actius:[{nom:'MSCI World ETF',pct:60,color:'#1B3A6B'},{nom:"S&P 500 ETF",pct:25,color:'#2E5FA3'},{nom:'Emergents (EMIM)',pct:15,color:'#D4943A'}],
-    ter:'~0,16%', retorn:'8–10%', risc:'Alt', riscClass:'amber',
-    dims:[11,9,11,10,11,10,9]
+    actius:[
+      {id:'rv_global', nom:'RV Global Indexada', pct:60, color:'#1B3A6B'},
+      {id:'rv_growth', nom:'RV Growth / Tecnològic', pct:25, color:'#4CAF82'},
+      {id:'rv_emergent', nom:'RV Mercats Emergents', pct:15, color:'#FF6F00'},
+    ],
+    ter:'~0,16%', retorn:'8–10%', risc:'Alt', riscClass:'amber', dims:[11,9,11,10,11,10,9]
   },
   {
     id:'explorador', nom:"L'Explorador", ep:'Shackleton · 1874–1922',
-    cartNom:'II · La Caravella', cartSub:'Creixement moderat-alt amb alternatius (crypto + or)',
+    cartNom:'Singapur', cartRoma:'II · Singapur', cartSub:'Creixement amb alternatius selectius. Dinamisme i diversificació.',
     rationale:"Adaptabilitat alta, en fase d'acumulació. Necessita diversificació activa que inclogui crypto i metalls com a opcionalitat. L'or i els alternatius canalitzen l'energia sense turisme d'actius.",
     diff:"Alternatius al 25% (crypto+or+REITs). RF curta al 5% com a coixí emocional, no com a protecció.",
-    actius:[{nom:'MSCI World ETF',pct:50,color:'#1B3A6B'},{nom:'Temàtica Tech/IA',pct:15,color:'#4CAF82'},{nom:'Or físic (ETC)',pct:10,color:'#C0392B'},{nom:'Crypto (BTC)',pct:10,color:'#534AB7'},{nom:'REITs Global',pct:10,color:'#0F6E56'},{nom:'RF Curta Gov.',pct:5,color:'#9A9690'}],
-    ter:'~0,26%', retorn:'7–9%', risc:'Mig-Alt', riscClass:'amber',
-    dims:[10,8,10,9,10,8,8]
+    actius:[
+      {id:'rv_global', nom:'RV Global Indexada', pct:50, color:'#1B3A6B'},
+      {id:'rv_growth', nom:'RV Growth / Tecnològic', pct:15, color:'#4CAF82'},
+      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:10, color:'#C0392B'},
+      {id:'crypto', nom:'Crypto / Actius Digitals', pct:10, color:'#534AB7'},
+      {id:'rv_reits', nom:'REITs / Immobiliaris', pct:10, color:'#0F6E56'},
+      {id:'rf_gov_curt', nom:'RF Gov. Curt termini', pct:5, color:'#78909C'},
+    ],
+    ter:'~0,26%', retorn:'7–9%', risc:'Mig-Alt', riscClass:'amber', dims:[10,8,10,9,10,8,8]
   },
   {
     id:'navegant', nom:"El Navegant", ep:'Zheng He · 1371–1433',
-    cartNom:'III · El Galeó', cartSub:'Equilibri creixement-estabilitat, horitzó 7–15 anys',
+    cartNom:'Roma', cartRoma:'III · Roma', cartSub:'Equilibri creixement-estabilitat. Diversificat i robust.',
     rationale:"Bon coneixement, horitzó mig. El dividend ETF serveix d'ancoratge psicològic: genera flux visible que demostra que el pla funciona. La RF i l'or protegeixen en les caigudes.",
     diff:"El dividend mensual visible és la clau. Els cupons i dividends fan de brúixola psicològica quan la RV cau.",
-    actius:[{nom:'RV Global Indexada',pct:45,color:'#1B3A6B'},{nom:'Dividend ETF Global',pct:15,color:'#2E5FA3'},{nom:'RF Gov. EUR',pct:20,color:'#9A9690'},{nom:'Or físic (ETC)',pct:10,color:'#C0392B'},{nom:'REITs Global',pct:10,color:'#0F6E56'}],
-    ter:'~0,19%', retorn:'5–7%', risc:'Mig', riscClass:'green',
-    dims:[9,7,9,9,9,6,8]
+    actius:[
+      {id:'rv_global', nom:'RV Global Indexada', pct:45, color:'#1B3A6B'},
+      {id:'rv_dividend', nom:'RV Dividends / Renda', pct:15, color:'#2E5FA3'},
+      {id:'rf_gov_llarg', nom:'RF Gov. Llarg termini', pct:20, color:'#546E7A'},
+      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:10, color:'#C0392B'},
+      {id:'rv_reits', nom:'REITs / Immobiliaris', pct:10, color:'#0F6E56'},
+    ],
+    ter:'~0,19%', retorn:'5–7%', risc:'Mig', riscClass:'green', dims:[9,7,9,9,9,6,8]
   },
   {
     id:'arquitecte', nom:"L'Arquitecte", ep:'Brunelleschi · 1377–1446',
-    cartNom:'IV · La Catedral', cartSub:'Estructurada amb 7 blocs, inclou alternatius il·líquids',
+    cartNom:'Amsterdam', cartRoma:'IV · Amsterdam', cartSub:'7 blocs estructurats. Alternatius il·líquids selectius.',
     rationale:"Alt coneixement i meticulositat. Pot gestionar complexitat real amb crowdlending i PE. Cada bloc té funció estructural clara, com la cúpula de Santa Maria del Fiore.",
     diff:"El PE/Crowd és opcional i mai >15%. Si l'Arquitecte vol afegir un 8è bloc, ha d'eliminar un altre primer.",
-    actius:[{nom:'RV Global Core',pct:35,color:'#1B3A6B'},{nom:'RF Corporativa IG',pct:15,color:'#8A8680'},{nom:'Liquiditat estratègica',pct:15,color:'#C8C5BE'},{nom:'REITs Global',pct:10,color:'#0F6E56'},{nom:'Or físic (ETC)',pct:10,color:'#C0392B'},{nom:'Crowdlending P2B',pct:10,color:'#D4943A'},{nom:'Private Equity (seed)',pct:5,color:'#7A4A00'}],
-    ter:'~0,26%', retorn:'5–7%', risc:'Mig', riscClass:'amber',
-    dims:[8,7,8,8,7,7,8]
+    actius:[
+      {id:'rv_global', nom:'RV Global Indexada', pct:35, color:'#1B3A6B'},
+      {id:'rf_corp', nom:'RF Corporativa IG', pct:15, color:'#8D6E63'},
+      {id:'liquiditat', nom:'Liquiditat / Monetari', pct:15, color:'#90A4AE'},
+      {id:'rv_reits', nom:'REITs / Immobiliaris', pct:10, color:'#0F6E56'},
+      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:10, color:'#C0392B'},
+      {id:'crowdlending', nom:'Crowdlending / P2P', pct:10, color:'#D4943A'},
+      {id:'private_equity', nom:'Private Equity', pct:5, color:'#4A148C'},
+    ],
+    ter:'~0,26%', retorn:'5–7%', risc:'Mig', riscClass:'amber', dims:[8,7,8,8,7,7,8]
   },
   {
     id:'tresorer', nom:"El Tresorer", ep:'Jakob Fugger · 1459–1525',
-    cartNom:'V · La Muralla', cartSub:'Preservació del capital real contra la inflació',
+    cartNom:'Ginebra', cartRoma:'V · Ginebra', cartSub:'Preservació del capital real. Refugi i estabilitat.',
     rationale:"Prioritat: no perdre. L'or protegeix el poder adquisitiu real. El dividend defensiu genera renda visible. La RV és mínima però imprescindible contra la inflació silenciosa.",
     diff:"La RV mínima (via Dividend ETF) no és un risc — és l'antídot contra la inflació silenciosa. Sense ella, el Tresorer perd un 2–3% real cada any.",
-    actius:[{nom:'RF Gov. EUR (AAA)',pct:35,color:'#9A9690'},{nom:'Or físic (ETC)',pct:25,color:'#C0392B'},{nom:'Dividend ETF (>6%)',pct:20,color:'#2E5FA3'},{nom:'Liquiditat remunerat',pct:10,color:'#C8C5BE'},{nom:'REITs Defensiu',pct:10,color:'#0F6E56'}],
-    ter:'~0,18%', retorn:'3–5%', risc:'Baix', riscClass:'green',
-    dims:[3,5,4,5,3,7,4]
+    actius:[
+      {id:'rf_gov_llarg', nom:'RF Gov. Llarg termini', pct:35, color:'#546E7A'},
+      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:25, color:'#C0392B'},
+      {id:'rv_dividend', nom:'RV Dividends (defensiu)', pct:20, color:'#2E5FA3'},
+      {id:'liquiditat', nom:'Liquiditat remunerat', pct:10, color:'#90A4AE'},
+      {id:'rv_reits', nom:'REITs Defensiu', pct:10, color:'#0F6E56'},
+    ],
+    ter:'~0,18%', retorn:'3–5%', risc:'Baix', riscClass:'green', dims:[3,5,4,5,3,7,4]
   },
   {
     id:'cronista', nom:"El Cronista", ep:'Heròdot · 484–425 a.C.',
-    cartNom:'VI · El Scriptorium', cartSub:'Cartera pedagògica per aprendre fent',
+    cartNom:'Atenes', cartRoma:'VI · Atenes', cartSub:'Cartera pedagògica clàssica. Aprendre fent.',
     rationale:"Alt coneixement teòric però baixa execució. La diversificació per tipus d'actiu permet entendre com funciona cada bloc i executar millor en cada revisió.",
     diff:"Cada revisió trimestral és una 'entrada al diari'. El Cronista no canvia la cartera — documenta per què no la canvia.",
-    actius:[{nom:'RV Global Indexada',pct:40,color:'#1B3A6B'},{nom:'RF Gov. Diversificada',pct:25,color:'#9A9690'},{nom:'Or físic (ETC)',pct:15,color:'#C0392B'},{nom:'Dividend ETF',pct:10,color:'#2E5FA3'},{nom:'REITs',pct:10,color:'#0F6E56'}],
-    ter:'~0,19%', retorn:'4–6%', risc:'Mig-Baix', riscClass:'green',
-    dims:[5,5,5,8,4,6,5]
+    actius:[
+      {id:'rv_global', nom:'RV Global Indexada', pct:40, color:'#1B3A6B'},
+      {id:'rf_global', nom:'RF Global Agregat', pct:25, color:'#607D8B'},
+      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:15, color:'#C0392B'},
+      {id:'rv_dividend', nom:'RV Dividends', pct:10, color:'#2E5FA3'},
+      {id:'rv_reits', nom:'REITs', pct:10, color:'#0F6E56'},
+    ],
+    ter:'~0,19%', retorn:'4–6%', risc:'Mig-Baix', riscClass:'green', dims:[5,5,5,8,4,6,5]
   },
   {
     id:'alquimista', nom:"L'Alquimista", ep:'Paracels · 1493–1541',
-    cartNom:"VII · L'Alambí", cartSub:'70% àncora + 30% experimentació amb alternatius',
+    cartNom:'Dubhai', cartRoma:"VII · Dubhai", cartSub:'70% àncora indexada + 30% experimentació. Alt risc controlat.',
     rationale:"Alta energia sense procés. Crypto i startups protagonistes, base indexada per no descarrilar. Necessita la vàlvula de vapor del 30% experimental — sense ella, vendrà tot en la primera crisi.",
     diff:"El 30% alternatiu és deliberat. Si l'Alquimista vol més exposició, ha de vendre del satèl·lit per comprar al nucli. Mai a l'inrevés.",
-    actius:[{nom:'RV Global Core',pct:40,color:'#1B3A6B'},{nom:'Crypto (BTC+ETH)',pct:20,color:'#534AB7'},{nom:'Crowdlending',pct:15,color:'#D4943A'},{nom:'Temàtica (IA/Tech)',pct:10,color:'#4CAF82'},{nom:'Start-ups (PE)',pct:5,color:'#7A4A00'},{nom:'Or físic',pct:5,color:'#C0392B'},{nom:'RF Curta',pct:5,color:'#9A9690'}],
-    ter:'~0,38%', retorn:'9–13%', risc:'Alt', riscClass:'amber',
-    dims:[8,4,7,6,8,3,4]
+    actius:[
+      {id:'rv_global', nom:'RV Global Indexada', pct:40, color:'#1B3A6B'},
+      {id:'crypto', nom:'Crypto (BTC+ETH)', pct:20, color:'#534AB7'},
+      {id:'crowdlending', nom:'Crowdlending', pct:15, color:'#D4943A'},
+      {id:'rv_growth', nom:'RV Growth / IA Tech', pct:10, color:'#4CAF82'},
+      {id:'startups', nom:'Start-ups (PE seed)', pct:5, color:'#1B5E20'},
+      {id:'or_metalls', nom:'Or físic', pct:5, color:'#C0392B'},
+      {id:'rf_gov_curt', nom:'RF Curta', pct:5, color:'#78909C'},
+    ],
+    ter:'~0,38%', retorn:'9–13%', risc:'Alt', riscClass:'amber', dims:[8,4,7,6,8,3,4]
   },
   {
     id:'eremita', nom:"L'Ermità", ep:'Diògenes · 412–323 a.C.',
-    cartNom:'VIII · El Sarró', cartSub:'La cartera més simple possible que funcioni',
+    cartNom:'Reykjavik', cartRoma:'VIII · Reykjavik', cartSub:'Màxima simplicitat. 2 productes. Funciona i prou.',
     rationale:"Desconfiança cap a la complexitat. Un sol ETF global + compte remunerat. Sense decisions actives. Quan porti 12 mesos sense tocar-ho, es pot parlar d'afegir un 3r bloc.",
     diff:"2 productes màxim. La complexitat és l'enemic de l'Ermità. La simplicitat és la seva fortalesa real.",
-    actius:[{nom:'ETF Global (VWCE/IWDA)',pct:60,color:'#1B3A6B'},{nom:'Compte remunerat / Monetari',pct:40,color:'#C8C5BE'}],
-    ter:'~0,22%', retorn:'3–5%', risc:'Baix', riscClass:'green',
-    dims:[3,4,4,5,3,5,4]
+    actius:[
+      {id:'rv_global', nom:'ETF Global (VWCE)', pct:60, color:'#1B3A6B'},
+      {id:'liquiditat', nom:'Compte remunerat / Monetari', pct:40, color:'#90A4AE'},
+    ],
+    ter:'~0,22%', retorn:'3–5%', risc:'Baix', riscClass:'green', dims:[3,4,4,5,3,5,4]
   },
   {
     id:'pionier', nom:"El Pionier", ep:'Perfil especial · Edat ≤35',
-    cartNom:'IX · El Pionier', cartSub:'Màxim creixement alternatiu, FIRE agressiu',
+    cartNom:'Shanghai', cartRoma:'IX · Shanghai', cartSub:'Màxim creixement i alternatius. FIRE agressiu jove.',
     rationale:"Per a inversors joves (≤35 anys) amb màxim interès en crypto i alternatius. Alta volatilitat a canvi de potencial de creixement asimètric. FIRE agressiu. Requereix convicció i horitzó >10 anys.",
     diff:"Alternatius al 45%. La base de RV global (35%) és l'àncora que evita la ruïna total en crisi crypto. Mai eliminar-la.",
-    actius:[{nom:'RV Global (àncora)',pct:35,color:'#1B3A6B'},{nom:'Crypto diversificat',pct:25,color:'#534AB7'},{nom:'Crowdlending P2P',pct:10,color:'#D4943A'},{nom:'Temàtica IA/Tech',pct:10,color:'#4CAF82'},{nom:'Private Equity',pct:10,color:'#7A4A00'},{nom:'Or físic',pct:5,color:'#C0392B'},{nom:'RF Monetari',pct:5,color:'#C8C5BE'}],
-    ter:'~0,45%', retorn:'12–18%', risc:'Molt Alt', riscClass:'amber',
-    dims:[10,6,10,8,11,4,9]
+    actius:[
+      {id:'rv_global', nom:'RV Global (àncora)', pct:35, color:'#1B3A6B'},
+      {id:'crypto', nom:'Crypto diversificat', pct:25, color:'#534AB7'},
+      {id:'crowdlending', nom:'Crowdlending P2P', pct:10, color:'#D4943A'},
+      {id:'rv_growth', nom:'RV Growth / IA Tech', pct:10, color:'#4CAF82'},
+      {id:'private_equity', nom:'Private Equity', pct:10, color:'#4A148C'},
+      {id:'or_metalls', nom:'Or físic', pct:5, color:'#C0392B'},
+      {id:'liquiditat', nom:'RF Monetari', pct:5, color:'#90A4AE'},
+    ],
+    ter:'~0,45%', retorn:'12–18%', risc:'Molt Alt', riscClass:'amber', dims:[10,6,10,8,11,4,9]
   },
   {
     id:'renda', nom:"La Renda", ep:'Perfil especial · Pre-retir/Retir',
-    cartNom:'X · La Renda', cartSub:'Renda passiva, dividend >6% sostingut',
+    cartNom:'Venècia', cartRoma:'X · Venècia', cartSub:'Renda passiva sostinguda. Dividend >6%. Viure dels rendiments.',
     rationale:"Per a inversors en pre-retir o retir. Maximitza dividends i cupons per viure dels rendiments sense tocar el capital. L'objectiu no és créixer sinó generar flux.",
     diff:"No és una cartera de creixement. L'objectiu és dividend yield >6% sostingut. L'or protegeix el capital en crisis.",
-    actius:[{nom:'Dividend ETF Global',pct:35,color:'#2E5FA3'},{nom:'Dividend IBEX (>7%)',pct:15,color:'#1B3A6B'},{nom:'RF Corporativa IG',pct:20,color:'#9A9690'},{nom:'Or físic (ETC)',pct:15,color:'#C0392B'},{nom:'REITs Dividend (>6%)',pct:10,color:'#0F6E56'},{nom:'Liquiditat remunerat',pct:5,color:'#C8C5BE'}],
-    ter:'~0,23%', retorn:'5–7%', risc:'Mig-Baix', riscClass:'green',
-    dims:[5,6,4,6,4,8,5]
+    actius:[
+      {id:'rv_dividend', nom:'Dividend ETF Global', pct:35, color:'#2E5FA3'},
+      {id:'rv_dividend', nom:'Dividend IBEX (>7%)', pct:15, color:'#1B3A6B'},
+      {id:'rf_corp', nom:'RF Corporativa IG', pct:20, color:'#8D6E63'},
+      {id:'or_metalls', nom:'Or físic (ETC)', pct:15, color:'#C0392B'},
+      {id:'rv_reits', nom:'REITs Dividend (>6%)', pct:10, color:'#0F6E56'},
+      {id:'liquiditat', nom:'Liquiditat remunerat', pct:5, color:'#90A4AE'},
+    ],
+    ter:'~0,23%', retorn:'5–7%', risc:'Mig-Baix', riscClass:'green', dims:[5,6,4,6,4,8,5]
   }
 ];
-
 // Helper: find archetype by id
 function getArquetip(id) {
   for (var i = 0; i < ARQUETIPS_CARTERES.length; i++) {
@@ -1186,7 +1490,7 @@ var DEMO_MISSATGES = [
 
 var DEMO_INFORMES = [
   {id:'r1', titol:'Informe trimestral Q1 2026', data:'2026-04-01', tipus:'trimestral', desc:'Revisió completa de cartera, rendiment vs benchmark, i recomanacions pel Q2.', estat:'disponible'},
-  {id:'r2', titol:'Informe perfil inversor', data:'2026-01-15', tipus:'perfil', desc:'Resultat del qüestionari de perfil. Arquetip: L\'Arquitecte. Cartera: La Catedral.', estat:'disponible'},
+  {id:'r2', titol:'Informe perfil inversor', data:'2026-01-15', tipus:'perfil', desc:'Resultat del qüestionari de perfil. Arquetip: L\'Arquitecte. Cartera: Amsterdam.', estat:'disponible'},
   {id:'r3', titol:'Pla financer personalitzat', data:'2026-01-20', tipus:'pla', desc:'Pla a 15 anys amb projeccions Montecarlo, objectius i estratègia d\'aportacions.', estat:'disponible'},
   {id:'r4', titol:'Informe trimestral Q2 2026', data:'2026-07-01', tipus:'trimestral', desc:'Pendent de generació.', estat:'pendent'},
 ];
@@ -2474,6 +2778,7 @@ var ADMIN_NAV = [
   {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
   {id:'portal-informes', icon:'📋', label:'Informes'},
   {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
+  {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
   {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
   {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
@@ -2501,6 +2806,7 @@ var CLIENT_NAV = [
   {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
   {id:'portal-informes', icon:'📋', label:'Informes'},
   {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
+  {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
   {section:'Eines'},
   {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
   {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
@@ -2560,6 +2866,7 @@ function navigateTo(viewId) {
     'portal-assessoria': APP.role === 'admin' ? ['Portal Client · Assessoria', '👁 Previsualització'] : ['Anàlisi de mercat', 'Informació financera de The Boring Investor'],
     'portal-informes': APP.role === 'admin' ? ['Portal Client · Informes', '👁 Previsualització'] : ['Informes', 'Documents i informes generats'],
     'portal-carteres': APP.role === 'admin' ? ['Portal Client · Carteres Model', '👁 Previsualització'] : ['Carteres Model', '10 carteres personalitzades per perfil'],
+    'portal-actius': ['Guia d\'Actius', '21 categories d\'inversió — educació i referència'],
     'portal-fire': APP.role === 'admin' ? ['Portal Client · FIRE', '👁 Previsualització'] : ['Calculadora FIRE', 'Financial Independence, Retire Early'],
     'portal-turbo': APP.role === 'admin' ? ['Portal Client · Turbo Estalvi', '👁 Previsualització · Editable'] : ['Turbo Estalvi', 'Optimitza la teva taxa d\'estalvi'],
     'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', '👁 Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
@@ -2638,6 +2945,7 @@ function renderView(viewId) {
     case 'portal-assessoria': renderPortalAssessoria(content); break;
     case 'portal-informes': renderPortalInformes(content); break;
     case 'portal-carteres': renderPortalCarteres(content); break;
+    case 'portal-actius': renderPortalActius(content); break;
     case 'portal-fire': renderPortalFIRE(content); break;
     case 'portal-turbo': renderPortalTurbo(content); break;
     case 'portal-emergencia': renderPortalEmergencia(content); break;
@@ -3098,6 +3406,171 @@ function renderPortalAssessoria(el) {
 // ══════════════════════════════════════════════════
 // VIEW: PORTAL CARTERES
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// GUIA D'ACTIUS — vista educativa (client + admin)
+// ══════════════════════════════════════════════════
+function renderPortalActius(el) {
+  var GRUPS = [
+    { id:'rv',    label:'Renda Variable',  emoji:'📈', desc:'Propietat d\'empreses. Major creixement, major risc.' },
+    { id:'rf',    label:'Renda Fixa',      emoji:'🏦', desc:'Préstecs a governs i empreses. Estabilitat i renda.' },
+    { id:'alt',   label:'Alternatius',     emoji:'🔀', desc:'Actius reals i estratègies fora dels mercats cotitzats.' },
+    { id:'cash',  label:'Liquiditat',      emoji:'💧', desc:'Reserva de capital segura i accessible.' },
+    { id:'altres',label:'Altres',          emoji:'📦', desc:'Categoria residual per a actius no classificats.' },
+  ];
+
+  // CSS específic de la vista
+  var css = '<style>'
+    + '.actius-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}'
+    + '.actiu-tab{padding:8px 16px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--g200);background:#fff;color:var(--g500);font-family:var(--fb);transition:all .15s}'
+    + '.actiu-tab.active{background:var(--black);color:#fff;border-color:var(--black)}'
+    + '.actiu-tab:hover:not(.active){border-color:var(--g400);color:var(--black)}'
+    + '.actius-grid{display:flex;flex-direction:column;gap:10px}'
+    + '.actiu-card{border:1px solid var(--g100);border-radius:12px;overflow:hidden;background:#fff;transition:box-shadow .15s}'
+    + '.actiu-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06)}'
+    + '.actiu-header{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;user-select:none}'
+    + '.actiu-emoji{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}'
+    + '.actiu-name{flex:1;font-size:14px;font-weight:500;color:var(--black);letter-spacing:-.1px}'
+    + '.actiu-chips{display:flex;gap:6px;align-items:center;flex-wrap:wrap}'
+    + '.actiu-chip{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500;font-family:var(--fm)}'
+    + '.actiu-chevron{font-size:12px;color:var(--g400);transition:transform .2s;flex-shrink:0}'
+    + '.actiu-body{padding:0 20px 20px;border-top:1px solid var(--g100);display:none}'
+    + '.actiu-body.open{display:block}'
+    + '.actiu-desc{font-size:13px;color:var(--g600);line-height:1.65;margin-bottom:16px;padding-top:14px}'
+    + '.actiu-section-title{font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}'
+    + '.actiu-pros-contres{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}'
+    + '@media(max-width:600px){.actiu-pros-contres{grid-template-columns:1fr}}'
+    + '.actiu-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px}'
+    + '.actiu-list li{font-size:12px;color:var(--g600);padding-left:14px;position:relative;line-height:1.5}'
+    + '.actiu-list.pros li::before{content:"✓";position:absolute;left:0;color:#1A5C3A;font-weight:600}'
+    + '.actiu-list.contres li::before{content:"✗";position:absolute;left:0;color:#C0392B;font-weight:600}'
+    + '.actiu-meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}'
+    + '@media(max-width:600px){.actiu-meta-grid{grid-template-columns:1fr 1fr}}'
+    + '.actiu-meta-item{background:var(--g50);border-radius:8px;padding:10px 12px}'
+    + '.actiu-meta-lbl{font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}'
+    + '.actiu-meta-val{font-size:13px;font-weight:500;color:var(--black)}'
+    + '.actiu-cicle-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}'
+    + '.actiu-cicle-item{text-align:center;padding:10px 6px;background:var(--g50);border-radius:8px}'
+    + '.actiu-cicle-lbl{font-size:9px;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}'
+    + '.actiu-stars{font-size:12px;letter-spacing:1px}'
+    + '.actiu-exemple{font-size:11px;color:var(--g500);line-height:1.6;padding:10px 12px;background:var(--g50);border-radius:8px;border-left:3px solid var(--g200)}'
+    + '.risc-bar{display:flex;gap:3px;align-items:center}'
+    + '.risc-dot{width:8px;height:8px;border-radius:50%}'
+    + '</style>';
+
+  function riscColors(n) {
+    return ['#C8E6C9','#A5D6A7','#FFF59D','#FFCC02','#FF7043'].slice(0,n)
+      .concat(['#E0E0E0','#E0E0E0','#E0E0E0','#E0E0E0','#E0E0E0'].slice(n));
+  }
+  function renderStars(n, max) {
+    return '★'.repeat(n) + '☆'.repeat(max-n);
+  }
+  function renderActiuCard(actiu) {
+    var riscLabel = ['','Molt Baix','Baix','Mig','Alt','Molt Alt'][actiu.risc] || '—';
+    var riscCol = ['','#4CAF82','#8BC34A','#FFC107','#FF9800','#F44336'][actiu.risc] || '#9E9E9E';
+    var dots = riscColors(actiu.risc).map(function(c){
+      return '<span class="risc-dot" style="background:'+c+'"></span>';
+    }).join('');
+    return '<div class="actiu-card" id="actiu-card-'+actiu.id+'">'
+      + '<div class="actiu-header" onclick="toggleActiu(\''+actiu.id+'\')">'
+        + '<div class="actiu-emoji" style="background:'+actiu.color+'22">' + actiu.emoji + '</div>'
+        + '<div>'
+          + '<div class="actiu-name">' + actiu.ca + '</div>'
+          + '<div style="font-size:11px;color:var(--g500);margin-top:2px">' + actiu.retorn + ' esperats · ' + actiu.horitzo + '</div>'
+        + '</div>'
+        + '<div class="actiu-chips">'
+          + '<div class="risc-bar">' + dots + '</div>'
+          + '<span class="actiu-chip" style="background:'+riscCol+'22;color:'+riscCol+'">' + riscLabel + '</span>'
+          + '<span class="actiu-chip" style="background:var(--g100);color:var(--g500)">' + actiu.liquiditat + '</span>'
+        + '</div>'
+        + '<span class="actiu-chevron" id="actiu-chev-'+actiu.id+'">▼</span>'
+      + '</div>'
+      + '<div class="actiu-body" id="actiu-body-'+actiu.id+'">'
+        + '<p class="actiu-desc">' + actiu.desc + '</p>'
+        + '<div class="actiu-meta-grid">'
+          + '<div class="actiu-meta-item"><div class="actiu-meta-lbl">Risc</div><div class="actiu-meta-val">' + riscLabel + ' (' + actiu.risc + '/5)</div></div>'
+          + '<div class="actiu-meta-item"><div class="actiu-meta-lbl">Liquiditat</div><div class="actiu-meta-val">' + actiu.liquiditat + '</div></div>'
+          + '<div class="actiu-meta-item"><div class="actiu-meta-lbl">Horitzó mínim</div><div class="actiu-meta-val">' + actiu.horitzo + '</div></div>'
+          + '<div class="actiu-meta-item"><div class="actiu-meta-lbl">Retorn esperat</div><div class="actiu-meta-val">' + actiu.retorn + '</div></div>'
+          + '<div class="actiu-meta-item"><div class="actiu-meta-lbl">Correlació RV</div><div class="actiu-meta-val" style="font-size:11px">' + actiu.correlacioRV + '</div></div>'
+        + '</div>'
+        + '<div class="actiu-section-title">Cicle econòmic</div>'
+        + '<div class="actiu-cicle-grid">'
+          + '<div class="actiu-cicle-item"><div class="actiu-cicle-lbl">Expansió</div><div class="actiu-stars" style="color:#1A5C3A">' + renderStars(actiu.cicle.expansio, 5) + '</div></div>'
+          + '<div class="actiu-cicle-item"><div class="actiu-cicle-lbl">Pic</div><div class="actiu-stars" style="color:#D4943A">' + renderStars(actiu.cicle.pic, 5) + '</div></div>'
+          + '<div class="actiu-cicle-item"><div class="actiu-cicle-lbl">Recessió</div><div class="actiu-stars" style="color:#C0392B">' + renderStars(actiu.cicle.recessio, 5) + '</div></div>'
+          + '<div class="actiu-cicle-item"><div class="actiu-cicle-lbl">Recuperació</div><div class="actiu-stars" style="color:#2E5FA3">' + renderStars(actiu.cicle.recuperacio, 5) + '</div></div>'
+        + '</div>'
+        + '<div class="actiu-pros-contres">'
+          + '<div><div class="actiu-section-title">✓ Avantatges</div><ul class="actiu-list pros">'
+            + actiu.pros.map(function(p){ return '<li>'+p+'</li>'; }).join('')
+          + '</ul></div>'
+          + '<div><div class="actiu-section-title">✗ Riscos</div><ul class="actiu-list contres">'
+            + actiu.contres.map(function(c){ return '<li>'+c+'</li>'; }).join('')
+          + '</ul></div>'
+        + '</div>'
+        + '<div class="actiu-section-title">Exemples i productes</div>'
+        + '<div class="actiu-exemple">' + actiu.exemples + '</div>'
+      + '</div>'
+    + '</div>';
+  }
+
+  var tabsHtml = '<div class="actius-tabs">'
+    + '<button class="actiu-tab active" onclick="filterActius(\'tots\',this)">Tots (' + ACTIUS_TAXONOMY.length + ')</button>'
+    + GRUPS.map(function(g){
+        var cnt = ACTIUS_TAXONOMY.filter(function(a){return a.grup===g.id;}).length;
+        return '<button class="actiu-tab" onclick="filterActius(\''+g.id+'\',this)">'
+          + g.emoji + ' ' + g.label + ' (' + cnt + ')</button>';
+      }).join('')
+    + '</div>';
+
+  var cardsHtml = '<div class="actius-grid" id="actius-grid">'
+    + ACTIUS_TAXONOMY.map(renderActiuCard).join('')
+    + '</div>';
+
+  el.innerHTML = css
+    + '<div class="content-inner fade-in">'
+      + '<div style="margin-bottom:24px">'
+        + '<div style="font-size:13px;color:var(--g500);line-height:1.65;max-width:680px">'
+          + 'Les 21 categories d\'actius que usa The Boring Investor per a totes les carteres, el qüestionari i les posicions reals. Fes clic a qualsevol actiu per veure-\'n la descripció completa, exemples concrets i el comportament per cicle econòmic.'
+        + '</div>'
+      + '</div>'
+      + tabsHtml
+      + cardsHtml
+    + '</div>';
+}
+
+function toggleActiu(id) {
+  var body = document.getElementById('actiu-body-' + id);
+  var chev = document.getElementById('actiu-chev-' + id);
+  if (!body) return;
+  var open = body.classList.contains('open');
+  // Tancar tots
+  document.querySelectorAll('.actiu-body').forEach(function(b){ b.classList.remove('open'); });
+  document.querySelectorAll('.actiu-chevron').forEach(function(c){ c.style.transform = ''; });
+  if (!open) {
+    body.classList.add('open');
+    if (chev) chev.style.transform = 'rotate(180deg)';
+    // Scroll suau fins a la card
+    var card = document.getElementById('actiu-card-' + id);
+    if (card) setTimeout(function(){ card.scrollIntoView({behavior:'smooth', block:'nearest'}); }, 100);
+  }
+}
+
+function filterActius(grup, btn) {
+  document.querySelectorAll('.actiu-tab').forEach(function(t){ t.classList.remove('active'); });
+  btn.classList.add('active');
+  var grid = document.getElementById('actius-grid');
+  if (!grid) return;
+  grid.querySelectorAll('.actiu-card').forEach(function(card) {
+    var id = card.id.replace('actiu-card-', '');
+    var actiu = ACTIUS_TAXONOMY.find(function(a){ return a.id === id; });
+    card.style.display = (grup === 'tots' || (actiu && actiu.grup === grup)) ? '' : 'none';
+  });
+  // Tancar tots els expandits al canviar de grup
+  document.querySelectorAll('.actiu-body').forEach(function(b){ b.classList.remove('open'); });
+  document.querySelectorAll('.actiu-chevron').forEach(function(c){ c.style.transform = ''; });
+}
+
 function renderPortalCarteres(el) {
   var myId = getClient().arquetipId;
   var html = '<div class="content-inner fade-in">';
