@@ -1834,6 +1834,12 @@ async function guardarASupabase() {
     status: 'pending',  // ⏳ Espera validació de l'admin
     submitted_at: new Date().toISOString(),
   };
+
+  // Si l'usuari ha fet el qüestionari autenticat (Fase 2), afegim l'auth_user_id
+  // Això permet que les RLS futures usin auth.uid() = auth_user_id en lloc d'email
+  if (window._authUserId) {
+    clientData.auth_user_id = window._authUserId;
+  }
   
   try {
     // Check if client already exists (by email)
@@ -1990,46 +1996,124 @@ function reiniciar(){
   cur=0;
   render('none');
   updateLangToggle && updateLangToggle();
-  // Pre-omplir des de paràmetres URL (quan ve del dashboard o de la plataforma)
-  (function() {
-    const params = new URLSearchParams(window.location.search);
-    // Suportem tant ?nom= com ?name= (la plataforma usa name=)
-    const nomParam   = params.get('nom')   || params.get('name')  || '';
-    const emailParam = params.get('email') || '';
-    if (nomParam)   { txt.nom   = decodeURIComponent(nomParam);   }
-    if (emailParam) { txt.email = decodeURIComponent(emailParam); }
-    if (nomParam || emailParam) {
-      render('none');
-      const nom = txt.nom || '';
-      if (nom) {
-        const toastEl = document.getElementById('toast');
-        if (toastEl) {
-          toastEl.textContent = 'Hola, ' + nom.split(' ')[0] + '! Les teves dades ja estan pre-omplertes.';
-          toastEl.classList.add('show');
-          setTimeout(() => toastEl.classList.remove('show'), 3000);
-        }
-      }
-    }
-    // Banner de sessió + botó "✕ Sortir" només si venim de la plataforma
-    if (params.get('from') === 'platform') {
-      const exitBtn = document.getElementById('onb-exit');
-      if (exitBtn) exitBtn.style.display = 'inline-block';
-
-      // Mostrar banner superior amb el nom/email de la sessió
-      const banner = document.getElementById('session-banner');
-      const bannerEmail = document.getElementById('session-banner-email');
-      const bannerMsg = document.getElementById('session-banner-msg');
-      if (banner && bannerEmail) {
-        var displayName = txt.nom || txt.email || 'Usuari';
-        bannerEmail.textContent = displayName + (txt.email && txt.nom ? ' · ' + txt.email : '');
-        banner.style.display = 'flex';
-        if (bannerMsg) bannerMsg.style.display = 'inline';
-      }
-    }
-  })();
-  // Restaurar llengua onboarding
+  inicialitzarQüestionari();
   ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
   setOnbLang(ONB_LANG);
+}
+
+// ════════════════════════════════════════════
+// INICIALITZACIÓ — detecta sessió i salta nom/email si ja autenticat
+// ════════════════════════════════════════════
+async function inicialitzarQüestionari() {
+  const params = new URLSearchParams(window.location.search);
+  const fromPlatform = params.get('from') === 'platform';
+
+  // 1. Llegir paràmetres URL (fallback base)
+  var urlNom   = decodeURIComponent(params.get('nom') || params.get('name') || '');
+  var urlEmail = decodeURIComponent(params.get('email') || '');
+
+  // 2. Intentar llegir la sessió de Supabase (compartida entre platform.html i aquest fitxer)
+  var authNom   = '';
+  var authEmail = '';
+  var authId    = '';
+  var hasAuth   = false;
+
+  if (sbClient) {
+    try {
+      var sessionRes = await sbClient.auth.getSession();
+      var user = sessionRes && sessionRes.data && sessionRes.data.session && sessionRes.data.session.user;
+      if (user && user.email) {
+        authEmail = user.email.toLowerCase();
+        authId    = user.id || '';
+        // El nom pot venir de: user_metadata, el paràmetre URL, o el que ja hi ha a txt
+        authNom   = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name))
+          || urlNom
+          || '';
+        hasAuth = true;
+      }
+    } catch(e) {
+      console.warn('[QS] No s\'ha pogut llegir la sessió:', e);
+    }
+  }
+
+  // 3. Omplir txt amb la millor font disponible
+  if (hasAuth) {
+    // Opció B: pre-omplir amb les dades de la sessió (nom de user_metadata o URL)
+    // i saltar directament a la primera pregunta real
+    txt.email = authEmail;
+    txt.nom   = authNom || urlNom || '';
+    window._authUserId = authId; // per a guardarASupabase
+
+    // Saltar nom/email → posicionar-nos a la primera pregunta real (D1P1)
+    // Les preguntes 0 (nom) i 1 (email) queden implícitament respostes
+    // Trobem l'índex de D1P1
+    var d1p1Idx = QS.findIndex(function(q){ return q.id === 'D1P1'; });
+    cur = d1p1Idx >= 0 ? d1p1Idx : 2; // fallback a índex 2 si no es troba
+
+    render('none');
+    // Actualitzar el comptador de progrés (no estem a 0)
+    var pBar = document.getElementById('progress');
+    if (pBar) pBar.style.width = Math.round((cur / (QS.length - 1)) * 100) + '%';
+
+    if (fromPlatform) {
+      _mostrarBannerSessio(authNom, authEmail);
+    }
+
+    // Toast de benvinguda amb el nom
+    var firstName = (txt.nom || '').split(' ')[0];
+    if (firstName) {
+      var toastEl = document.getElementById('toast');
+      if (toastEl) {
+        toastEl.textContent = 'Hola, ' + firstName + '! Comencem directament amb les preguntes.';
+        toastEl.classList.add('show');
+        setTimeout(function(){ toastEl.classList.remove('show'); }, 3500);
+      }
+    }
+
+  } else {
+    // Sense sessió: comportament original (demanar nom i email)
+    if (urlNom)   { txt.nom   = urlNom; }
+    if (urlEmail) { txt.email = urlEmail; }
+    cur = 0;
+    render('none');
+
+    if (urlNom || urlEmail) {
+      var toastEl = document.getElementById('toast');
+      if (toastEl) {
+        var firstName2 = (txt.nom || '').split(' ')[0];
+        toastEl.textContent = firstName2
+          ? 'Hola, ' + firstName2 + '! Les teves dades ja estan pre-omplertes.'
+          : 'Email pre-omplert.';
+        toastEl.classList.add('show');
+        setTimeout(function(){ toastEl.classList.remove('show'); }, 3000);
+      }
+    }
+
+    if (fromPlatform) {
+      var exitBtn = document.getElementById('onb-exit');
+      if (exitBtn) exitBtn.style.display = 'inline-block';
+      if (urlNom || urlEmail) {
+        _mostrarBannerSessio(urlNom, urlEmail);
+      }
+    }
+  }
+
+  // Restaurar llengua
+  ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
+  setOnbLang(ONB_LANG);
+}
+
+function _mostrarBannerSessio(nom, email) {
+  var banner     = document.getElementById('session-banner');
+  var bannerEmail = document.getElementById('session-banner-email');
+  var bannerMsg  = document.getElementById('session-banner-msg');
+  if (!banner || !bannerEmail) return;
+  var displayName = nom || email || 'Usuari';
+  bannerEmail.textContent = displayName + (email && nom ? ' · ' + email : '');
+  banner.style.display = 'flex';
+  if (bannerMsg) bannerMsg.style.display = 'inline';
+  var exitBtn = document.getElementById('onb-exit');
+  if (exitBtn) exitBtn.style.display = 'inline-block';
 }
 
 // Sortir del qüestionari sense desar — tanca la sessió a Supabase i torna
@@ -2224,6 +2308,9 @@ document.addEventListener('keydown',e=>{
 });
 
 render('none');
+// Inicialitzar async: detecta sessió Supabase, pre-omple nom/email,
+// i salta les preguntes personals si l'usuari ja és autenticat.
+inicialitzarQüestionari();
 
 </script>
 
