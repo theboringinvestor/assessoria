@@ -868,6 +868,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
         <span class="role-desc">Portal personal</span>
       </button>
     </div>
+    <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em" id="login-version-badge">v…</div>
   </div>
 </div>
 
@@ -909,6 +910,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
         </div>
       </div>
       <button class="btn-logout" onclick="doLogout()">Tancar sessió →</button>
+      <div id="sidebar-version-badge" style="text-align:center;margin-top:10px;font-size:10px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;letter-spacing:.04em;cursor:default" title="Versió de la plataforma">v…</div>
     </div>
   </div>
   
@@ -944,6 +946,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 // CONFIG & STATE
 // ══════════════════════════════════════════════════
 var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+// ── VERSIÓ ──────────────────────────────────────────
+// Format: YYYY-MM-DD.N (N = número de build del dia)
+var TBI_VERSION = '2026-04-30.1';
+// ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
 var sb = null;
@@ -3828,33 +3834,57 @@ function renderPortalCartera(el) {
 
   // ── 2. LES MEVES POSICIONS ──
   html += '<div class="cartera-section cartera-card" style="margin-bottom:20px">'
-    + '<div class="cartera-section-title">💼 Les meves posicions actuals</div>'
+    + '<div class="cartera-section-title">💼 Les meves posicions actuals</div>';
+
+  if (posicions.length === 0) {
+    // Zero-portfolio: CTA per començar
+    html += '<div style="padding:20px;background:#F4F3F0;border-radius:10px;margin-bottom:16px;text-align:center">'
+      + '<div style="font-size:22px;margin-bottom:8px">📊</div>'
+      + '<div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:6px">Afegeix la teva primera posició</div>'
+      + '<div style="font-size:12px;color:var(--g500);margin-bottom:14px;line-height:1.6">Si acabes de començar i fas la teva primera aportació, entra-la aquí. Si ja tens posicions, afegeix-les totes per veure el matching real amb la teva cartera target.</div>'
+      + '<button onclick="afegirPosicio()" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Afegir primera posició</button>'
+    + '</div>';
+  }
+
+  html += '<div style="overflow-x:auto">'
     + '<table class="posicions-table" id="posicions-table">'
     + '<thead><tr>'
       + '<th>Grup d\'actiu</th>'
-      + '<th>Descripció / Producte</th>'
-      + '<th>Broker / Entitat</th>'
-      + '<th style="text-align:right">Valor (€)</th>'
+      + '<th>Producte</th>'
+      + '<th>Broker</th>'
+      + '<th style="text-align:right" title="Import total comprat / invertit">Cost (€)</th>'
+      + '<th style="text-align:right" title="Valor actual de mercat">Valor actual (€)</th>'
+      + '<th style="text-align:right">Rendiment</th>'
       + '<th></th>'
     + '</tr></thead>'
     + '<tbody id="posicions-tbody">';
 
-  // Filas existents
-  posicions.forEach(function(p, i) {
-    html += renderPosicioRow(p, i);
-  });
-  // Fila buida per afegir nova
-  html += renderPosicioRow({}, posicions.length);
+  // Files existents
+  posicions.forEach(function(p, i) { html += renderPosicioRow(p, i); });
+  // Fila buida si n'hi ha posicions
+  if (posicions.length > 0) html += renderPosicioRow({}, posicions.length);
 
-  html += '</tbody></table>'
+  // Totals
+  var totalCost = posicions.reduce(function(s,p){ return s+(parseFloat(p.cost)||0); }, 0);
+  var totalPnl = totalReal - totalCost;
+  var totalPnlPct = totalCost > 0 ? Math.round(totalPnl/totalCost*1000)/10 : 0;
+
+  html += '</tbody>'
+    + (posicions.length > 0 ? '<tfoot><tr style="border-top:2px solid var(--g100)">'
+      + '<td colspan="3" style="padding:10px 8px;font-size:11px;color:var(--g500)">TOTAL</td>'
+      + '<td style="padding:10px 8px;text-align:right;font-family:var(--fm);font-size:12px;font-weight:500">' + (totalCost>0?totalCost.toLocaleString('ca-ES')+'€':'—') + '</td>'
+      + '<td style="padding:10px 8px;text-align:right;font-family:var(--fm);font-size:13px;font-weight:500" class="posicions-total-valor">' + (totalReal>0?totalReal.toLocaleString('ca-ES')+'€':'—') + '</td>'
+      + '<td style="padding:10px 8px;text-align:right;font-size:12px;font-weight:500" id="posicions-total-pnl">' + (totalCost>0?((totalPnl>=0?'+':'')+totalPnl.toLocaleString('ca-ES')+'€ ('+(totalPnlPct>=0?'+':'')+totalPnlPct+'%)'):'—') + '</td>'
+      + '<td></td></tr></tfoot>' : '')
+    + '</table></div>'
     + '<div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
       + '<button onclick="afegirPosicio()" style="padding:8px 14px;background:transparent;border:1.5px dashed var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g500)">+ Afegir posició</button>'
-      + '<div style="font-size:12px;color:var(--g500)">Total: <strong style="color:var(--black);font-family:var(--fm)">' + (totalReal > 0 ? totalReal.toLocaleString('ca-ES') + ' €' : '—') + '</strong></div>'
     + '</div>'
     + '<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">'
       + '<button onclick="guardarPosicions()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">💾 Guardar</button>'
       + '<div id="posicions-msg" style="font-size:12px;color:var(--g400);padding:10px 0;display:none"></div>'
     + '</div>'
+    + '<div style="margin-top:10px;font-size:10px;color:var(--g400);line-height:1.6">Cost = import total comprat. Valor actual = preu actual de mercat. Actualitza el valor actual mensualment per veure el rendiment real.</div>'
   + '</div>';
 
   // ── 3. MATCHING REAL vs TARGET ──
@@ -3952,24 +3982,49 @@ function renderPosicioRow(p, idx) {
     return '<option value="' + a.id + '"' + sel + '>' + a.emoji + ' ' + a.ca + '</option>';
   }).join('');
   return '<tr id="posicio-row-' + idx + '">'
-    + '<td><select onchange="recalcTotal()" style="width:100%"><option value="">— Grup —</option>' + opcionsActius + '</select></td>'
-    + '<td><input type="text" placeholder="iShares MSCI World..." value="' + (p.desc||p.nom||'') + '"></td>'
-    + '<td><input type="text" placeholder="Degiro, IBKR..." value="' + (p.broker||'') + '"></td>'
-    + '<td><input type="number" min="0" step="100" placeholder="0" value="' + (p.valor||'') + '" onchange="recalcTotal()"></td>'
+    + '<td><select onchange="recalcTotal()" style="width:100%;min-width:160px"><option value="">— Grup —</option>' + opcionsActius + '</select></td>'
+    + '<td><input type="text" placeholder="iShares MSCI World..." value="' + (p.desc||p.nom||'') + '" style="min-width:110px"></td>'
+    + '<td><input type="text" placeholder="Degiro..." value="' + (p.broker||'') + '" style="width:90px"></td>'
+    + '<td><input type="number" min="0" step="100" placeholder="Cost" value="' + (p.cost||'') + '" title="Import total invertit (cost base)" style="width:85px" onchange="recalcTotal()"></td>'
+    + '<td><input type="number" min="0" step="100" placeholder="Valor" value="' + (p.valor||'') + '" title="Valor actual de mercat" onchange="recalcTotal()" style="width:85px"></td>'
+    + '<td id="posicio-rd-' + idx + '" style="font-family:var(--fm);font-size:11px;white-space:nowrap">—</td>'
     + '<td><button onclick="esborrarPosicio(' + idx + ')" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--g400);padding:4px">×</button></td>'
   + '</tr>';
 }
 
-// Recalcula el total visible en temps real
+// Recalcula el total visible en temps real + P&L per fila
 function recalcTotal() {
   var rows = document.querySelectorAll('#posicions-tbody tr');
-  var total = 0;
-  rows.forEach(function(row) {
-    var inp = row.querySelectorAll('input[type=number]')[0];
-    if (inp) total += parseFloat(inp.value)||0;
+  var totalValor = 0, totalCost = 0;
+  rows.forEach(function(row, i) {
+    var inps = row.querySelectorAll('input[type=number]');
+    var cost  = parseFloat(inps[0] ? inps[0].value : 0) || 0;
+    var valor = parseFloat(inps[1] ? inps[1].value : 0) || 0;
+    totalCost  += cost;
+    totalValor += valor;
+    // P&L per fila
+    var rdEl = row.querySelector('[id^="posicio-rd-"]');
+    if (rdEl) {
+      if (cost > 0 && valor > 0) {
+        var rd = valor - cost;
+        var rdPct = Math.round(rd / cost * 1000) / 10;
+        rdEl.textContent = (rd >= 0 ? '+' : '') + rd.toLocaleString('ca-ES') + '€ (' + (rdPct >= 0 ? '+' : '') + rdPct + '%)';
+        rdEl.style.color = rd >= 0 ? '#1A5C3A' : '#C0392B';
+      } else {
+        rdEl.textContent = '—';
+        rdEl.style.color = 'var(--g400)';
+      }
+    }
   });
-  var tots = document.querySelectorAll('[id^="posicions-total"]');
-  tots.forEach(function(el){ el.textContent = total > 0 ? total.toLocaleString('ca-ES') + ' €' : '—'; });
+  // Totals
+  var pnl = totalValor - totalCost;
+  var pnlPct = totalCost > 0 ? Math.round(pnl / totalCost * 1000) / 10 : 0;
+  document.querySelectorAll('.posicions-total-valor').forEach(function(el){ el.textContent = totalValor > 0 ? totalValor.toLocaleString('ca-ES') + ' €' : '—'; });
+  var pnlEl = document.getElementById('posicions-total-pnl');
+  if (pnlEl && totalCost > 0) {
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toLocaleString('ca-ES') + '€ (' + (pnlPct >= 0 ? '+' : '') + pnlPct + '%)';
+    pnlEl.style.color = pnl >= 0 ? '#1A5C3A' : '#C0392B';
+  }
 }
 
 // Afegir fila nova
@@ -4010,9 +4065,10 @@ async function guardarPosicions() {
     var cat    = sel ? sel.value : '';
     var desc   = inputs[0] ? inputs[0].value.trim() : '';
     var broker = inputs[1] ? inputs[1].value.trim() : '';
-    var valor  = parseFloat(inputs[2] ? inputs[2].value : 0) || 0;
-    if (cat && valor > 0) {
-      posicions.push({ cat:cat, desc:desc, broker:broker, valor:valor });
+    var cost   = parseFloat(inputs[2] ? inputs[2].value : 0) || 0;
+    var valor  = parseFloat(inputs[3] ? inputs[3].value : 0) || 0;
+    if (cat && (cost > 0 || valor > 0)) {
+      posicions.push({ cat:cat, desc:desc, broker:broker, cost:cost, valor:valor });
     }
   });
 
@@ -4418,57 +4474,154 @@ function renderPortalInformes(el) {
 // VIEW: FIRE
 // ══════════════════════════════════════════════════
 function renderPortalFIRE(el) {
-  var f = getFire();
-  var html = '<div class="content-inner fade-in">';
+  var c = getClient();
+  // Llegir dades guardades (o defaults raonables)
+  var f = (c && c.fire) || {};
+  var perfil = (c && c.perfil) || {};
+  var arq = c ? getArquetip(c.arquetipId) : getArquetip('navegant');
 
-  html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Calculadora FIRE</div>'
-    + '<div style="font-size:12px;color:var(--g500);margin-bottom:24px;line-height:1.7">Financial Independence, Retire Early — quan podries viure dels rendiments de la teva cartera.</div>';
+  // Valors actuals de la cartera real (si n'hi ha)
+  var posicions = (c && c.cartera_actual_usuari) || [];
+  var capitalCartera = posicions.reduce(function(s,p){ return s+(parseFloat(p.valor)||0); }, 0);
 
-  // Big number
-  html += '<div style="background:var(--black);border-radius:14px;padding:28px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">'
-    + '<div>'
-      + '<div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Objectiu FIRE (regla del 4%)</div>'
-      + '<div style="font-family:var(--fm);font-size:36px;font-weight:500;color:var(--white)">' + f.objectiuFIRE.toLocaleString('ca-ES') + ' €</div>'
-      + '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Per cobrir ' + f.objectiuAnual.toLocaleString('ca-ES') + ' €/any de despeses</div>'
-    + '</div>'
-    + '<div style="text-align:right">'
-      + '<div style="font-family:var(--fm);font-size:36px;font-weight:500;color:#4CAF82">' + f.anysEstimats + ' anys</div>'
-      + '<div style="font-size:12px;color:rgba(255,255,255,.4)">Estimació: any ' + f.anyObjectiu + '</div>'
-    + '</div>'
-  + '</div>';
+  // Paràmetres calculadora (prioritat: guardats > calculats > defaults)
+  var objectiuAnual  = f.objectiuAnual  || 0;
+  var capitalActual  = f.capitalActual  || capitalCartera || 0;
+  var aportacioMens  = f.aportacioMensual || parseFloat(String(perfil.aportacioMensual||0).replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
+  var retornEsperat  = f.retornEsperat  || parseFloat(arq.retorn) || 6;
 
-  // Progress bar
-  html += '<div class="card"><div class="card-title">Progrés cap a FIRE</div>'
-    + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">'
-      + '<div style="flex:1;height:12px;background:var(--g200);border-radius:99px;overflow:hidden">'
-        + '<div style="height:100%;width:' + f.progresPct + '%;background:linear-gradient(90deg,var(--accent),#4CAF82);border-radius:99px;transition:width .5s"></div>'
+  // Càlcul FIRE
+  function calcFire(objAnual, capital, aportMens, retornPct) {
+    if (!objAnual || objAnual <= 0) return null;
+    var objectiuFIRE = objAnual / 0.04;
+    if (capital >= objectiuFIRE) return { objectiuFIRE:objectiuFIRE, objectiuAnual:objAnual, anysEstimats:0, anyObjectiu:new Date().getFullYear(), progresPct:100, capitalFinal:capital };
+    var r = retornPct / 100 / 12;
+    var mesos = 0;
+    var cap = capital;
+    while (cap < objectiuFIRE && mesos < 600) {
+      cap = cap * (1 + r) + aportMens;
+      mesos++;
+    }
+    var anys = Math.round(mesos / 12 * 10) / 10;
+    var progresPct = Math.min(Math.round(capital / objectiuFIRE * 100), 100);
+    return { objectiuFIRE:Math.round(objectiuFIRE), objectiuAnual:objAnual, anysEstimats:anys, anyObjectiu:new Date().getFullYear()+Math.ceil(anys), progresPct:progresPct, capitalFinal:Math.round(objectiuFIRE) };
+  }
+
+  var calc = objectiuAnual > 0 ? calcFire(objectiuAnual, capitalActual, aportacioMens, retornEsperat) : null;
+
+  var html = '<style>'
+    + '.fire-input-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}'
+    + '.fire-input-label{font-size:12px;color:var(--g600);width:200px;flex-shrink:0}'
+    + '.fire-input{padding:9px 14px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;font-family:var(--fm);color:var(--black);width:140px;text-align:right}'
+    + '.fire-input:focus{outline:none;border-color:var(--black)}'
+    + '.fire-input-unit{font-size:12px;color:var(--g400)}'
+    + '</style>'
+    + '<div class="content-inner fade-in">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Calculadora FIRE</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:24px;line-height:1.7">Financial Independence, Retire Early — calcula quan podries viure dels rendiments de la teva cartera.</div>';
+
+  // ── RESULTAT (si hi ha dades) ──
+  if (calc) {
+    var progressColor = calc.progresPct >= 75 ? '#1A5C3A' : calc.progresPct >= 40 ? '#D4943A' : '#C0392B';
+    html += '<div style="background:var(--black);border-radius:14px;padding:24px 28px;margin-bottom:20px">'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;flex-wrap:wrap">'
+        + '<div><div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Objectiu FIRE</div><div style="font-family:var(--fm);font-size:26px;font-weight:500;color:#fff">' + calc.objectiuFIRE.toLocaleString('ca-ES') + ' €</div></div>'
+        + '<div><div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Anys estimats</div><div style="font-family:var(--fm);font-size:26px;font-weight:500;color:#4CAF82">' + (calc.anysEstimats === 0 ? '0 🎉' : calc.anysEstimats) + '</div></div>'
+        + '<div><div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Any estimat</div><div style="font-family:var(--fm);font-size:26px;font-weight:500;color:rgba(255,255,255,.7)">' + calc.anyObjectiu + '</div></div>'
       + '</div>'
-      + '<div style="font-family:var(--fm);font-size:14px;font-weight:500;color:var(--accent)">' + f.progresPct + '%</div>'
+      + '<div style="margin-top:20px">'
+        + '<div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px"><span>Progrés cap a FIRE</span><span>' + calc.progresPct + '%</span></div>'
+        + '<div style="height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden"><div style="height:100%;width:' + calc.progresPct + '%;background:linear-gradient(90deg,var(--accent),#4CAF82);border-radius:99px;transition:width .5s ease"></div></div>'
+      + '</div>'
+    + '</div>';
+  } else {
+    html += '<div style="padding:20px;background:#FEF3E0;border-radius:12px;border:1px solid #E8C285;margin-bottom:20px;text-align:center">'
+      + '<div style="font-size:20px;margin-bottom:8px">🔥</div>'
+      + '<div style="font-size:13px;font-weight:500;color:#7A4A00;margin-bottom:4px">Introdueix les dades per calcular el teu FIRE</div>'
+      + '<div style="font-size:12px;color:#9A6B1F">Emplena els camps de sota i clica "Calcular" per veure quan podries ser financerament independent.</div>'
+    + '</div>';
+  }
+
+  // ── CALCULADORA INTERACTIVA ──
+  html += '<div class="card" style="padding:24px">'
+    + '<div style="font-family:var(--fd);font-size:16px;margin-bottom:20px">Paràmetres del càlcul</div>'
+    + '<div class="fire-input-row">'
+      + '<label class="fire-input-label" for="fire-obj-anual">Despeses anuals necessàries</label>'
+      + '<input class="fire-input" id="fire-obj-anual" type="number" min="0" step="1000" placeholder="24000" value="' + (objectiuAnual||'') + '">'
+      + '<span class="fire-input-unit">€/any</span>'
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'
-      + '<div class="kpi-item"><div class="kpi-label">Capital actual</div><div class="kpi-value">' + f.capitalActual.toLocaleString('ca-ES') + '€</div></div>'
-      + '<div class="kpi-item"><div class="kpi-label">Aportació mensual</div><div class="kpi-value">' + f.aportacioMensual + '€</div></div>'
-      + '<div class="kpi-item"><div class="kpi-label">Retorn esperat</div><div class="kpi-value">' + f.retornEsperat + '%</div></div>'
+    + '<div class="fire-input-row">'
+      + '<label class="fire-input-label" for="fire-capital">Capital actual invertit</label>'
+      + '<input class="fire-input" id="fire-capital" type="number" min="0" step="1000" placeholder="0" value="' + (capitalActual||'') + '">'
+      + '<span class="fire-input-unit">€</span>'
+      + (capitalCartera > 0 ? '<span style="font-size:10px;color:var(--g400)">(cartera real: ' + capitalCartera.toLocaleString('ca-ES') + '€)</span>' : '')
     + '</div>'
+    + '<div class="fire-input-row">'
+      + '<label class="fire-input-label" for="fire-aportacio">Aportació mensual</label>'
+      + '<input class="fire-input" id="fire-aportacio" type="number" min="0" step="50" placeholder="300" value="' + (aportacioMens||'') + '">'
+      + '<span class="fire-input-unit">€/mes</span>'
+    + '</div>'
+    + '<div class="fire-input-row">'
+      + '<label class="fire-input-label" for="fire-retorn">Retorn anual esperat</label>'
+      + '<input class="fire-input" id="fire-retorn" type="number" min="0" max="30" step="0.5" placeholder="6" value="' + retornEsperat + '">'
+      + '<span class="fire-input-unit">%</span>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--g400);margin-bottom:20px;line-height:1.6">La <strong>regla del 4%</strong>: si tens 25x les teves despeses anuals invertides, pots retirar el 4% indefinidament sense esgotar el capital (basada en dades histèriques del mercat).</div>'
+    + '<div style="display:flex;gap:10px;flex-wrap:wrap">'
+      + '<button onclick="calcularIGuardarFire()" style="padding:11px 24px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">🔥 Calcular i guardar</button>'
+      + '<div id="fire-msg" style="font-size:12px;color:var(--g400);padding:10px 0;display:none"></div>'
+    + '</div>'
+  + '</div>'
+  + '<div style="margin-top:14px;font-size:11px;color:var(--g400);line-height:1.6;padding:0 4px">'
+    + 'Nota: estimació simplificada. No té en compte inflació, impostos ni variabilitat del mercat. Consulta amb el teu assessor per a un pla personalitzat.'
+  + '</div>'
   + '</div>';
 
-  // Assumptions
-  html += '<div class="card"><div class="card-title">Paràmetres del càlcul</div>'
-    + '<div style="font-size:12px;color:var(--g600);line-height:1.8">'
-      + 'La regla del 4% diu que pots retirar un 4% del teu capital cada any sense esgotar-lo (històricament, amb una cartera diversificada). '
-      + 'Per tant, si necessites ' + f.objectiuAnual.toLocaleString('ca-ES') + '€/any, et calen ' + f.objectiuFIRE.toLocaleString('ca-ES') + '€ invertits. '
-      + 'Amb ' + f.aportacioMensual + '€/mes al ' + f.retornEsperat + '% anual, arriben en uns ' + f.anysEstimats + ' anys.'
-      + '<br><br><em style="color:var(--g400)">Nota: Aquesta és una estimació simplificada. No té en compte inflació, impostos ni variabilitat del mercat. Consulta amb el teu assessor per a un càlcul personalitzat.</em>'
-    + '</div>'
-  + '</div>';
-
-  html += '</div>';
   el.innerHTML = html;
 }
 
-// ══════════════════════════════════════════════════
-// VIEW: FONS D'EMERGÈNCIA & CONTROL DE LIQUIDITAT
-// ══════════════════════════════════════════════════
+async function calcularIGuardarFire() {
+  var objAnual   = parseFloat(document.getElementById('fire-obj-anual').value) || 0;
+  var capital    = parseFloat(document.getElementById('fire-capital').value) || 0;
+  var aportMens  = parseFloat(document.getElementById('fire-aportacio').value) || 0;
+  var retornPct  = parseFloat(document.getElementById('fire-retorn').value) || 6;
+
+  if (objAnual <= 0) { toast('Introdueix les despeses anuals per calcular'); return; }
+
+  var objectiuFIRE = Math.round(objAnual / 0.04);
+  var r = retornPct / 100 / 12;
+  var mesos = 0, cap = capital;
+  while (cap < objectiuFIRE && mesos < 600) { cap = cap*(1+r)+aportMens; mesos++; }
+  var anys = Math.round(mesos/12*10)/10;
+  var anyObj = new Date().getFullYear() + Math.ceil(anys);
+  var progresPct = Math.min(Math.round(capital/objectiuFIRE*100),100);
+
+  var fireData = { objectiuAnual:objAnual, capitalActual:capital, aportacioMensual:aportMens, retornEsperat:retornPct, objectiuFIRE:objectiuFIRE, anysEstimats:anys, anyObjectiu:anyObj, progresPct:progresPct };
+
+  var msg = document.getElementById('fire-msg');
+  if (msg) { msg.style.display='block'; msg.textContent='Guardant...'; msg.style.color='var(--g400)'; }
+
+  if (sb && APP.user && APP.user.email) {
+    try {
+      var res = await sb.from('clients').update({ fire: fireData }).eq('email', APP.user.email.toLowerCase());
+      if (res.error) throw res.error;
+      if (APP.clientData) APP.clientData.fire = fireData;
+      toast('🔥 FIRE calculat: ' + anys + ' anys → any ' + anyObj);
+      setTimeout(function(){ renderView('portal-fire'); }, 800);
+    } catch(e) {
+      if (msg) { msg.textContent='Error: '+(e.message||e); msg.style.color='#C0392B'; }
+    }
+  } else {
+    // Mode demo o sense Supabase: mostrar resultat sense guardar
+    if (APP.clientData) APP.clientData.fire = fireData;
+    toast('🔥 Resultat: ' + anys + ' anys → any ' + anyObj);
+    setTimeout(function(){ renderView('portal-fire'); }, 800);
+  }
+}
+
+  // ══════════════════════════════════════════════════
+  // VIEW: FONS D'EMERGÈNCIA & CONTROL DE LIQUIDITAT
+  // ══════════════════════════════════════════════════
 
 // Archetype-specific liquidity recommendations
 var LIQUIDITAT_PERFILS = {
@@ -4483,252 +4636,153 @@ var LIQUIDITAT_PERFILS = {
 };
 
 function renderPortalEmergencia(el) {
-  var e = getEmergencia();
-  var client = getClient();
-  var arq = getArquetip(client.arquetipId);
-  var liqPerfil = LIQUIDITAT_PERFILS[client.arquetipId] || LIQUIDITAT_PERFILS.arquitecte;
-  var html = '<div class="content-inner fade-in">';
+  var c = getClient();
+  if (!c) { el.innerHTML = '<div class="content-inner"><p style="color:var(--g400);padding:40px 0">Carregant...</p></div>'; return; }
+  var e = getEmergencia() || {};
+  var arq = getArquetip(c.arquetipId);
+  var liqPerfil = LIQUIDITAT_PERFILS[c.arquetipId] || LIQUIDITAT_PERFILS.arquitecte;
 
-  // Calculate totals from liquidity breakdown
   var liqItems = e.liquiditat || [];
-  var totalLiquiditat = liqItems.reduce(function(s,l){return s + l.import;}, 0);
-  var objectiuFE = e.despesesMensuals * liqPerfil.mesos;
-  var progresPct = objectiuFE > 0 ? Math.min(Math.round(totalLiquiditat / objectiuFE * 100), 200) : 0;
-  var progresClamped = Math.min(progresPct, 100);
+  var despesesMensuals = e.despesesMensuals || 0;
+  var totalLiquiditat = liqItems.reduce(function(s,l){ return s+(parseFloat(l.import)||0); }, 0);
+  var objectiuFE = despesesMensuals > 0 ? despesesMensuals * liqPerfil.mesos : 0;
+  var progresPct = objectiuFE > 0 ? Math.min(Math.round(totalLiquiditat/objectiuFE*100),200) : 0;
+  var progresClamped = Math.min(progresPct,100);
   var excedent = totalLiquiditat - objectiuFE;
-  var totalCartera = getCarteraActual().reduce(function(s,a){return s+a.valor;},0);
-  var liqPctTotal = (totalCartera + totalLiquiditat) > 0 ? Math.round(totalLiquiditat / (totalCartera + totalLiquiditat) * 100) : 0;
-  var liqPctIdeal = liqPerfil.maxLiqPct;
 
-  // Determine state
-  var state = progresPct >= 100 ? (excedent > e.despesesMensuals ? 'excess' : 'target') : (progresPct >= 60 ? 'building' : 'start');
+  var html = '<div class="content-inner fade-in">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Fons d\'emergència i liquiditat</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:24px;line-height:1.7">Gestió del coixí de seguretat i control de liquiditat segons el teu perfil d\'inversor.</div>';
 
+  // Si no hi ha dades, mostrar setup primer
+  if (!despesesMensuals || despesesMensuals <= 0) {
+    html += '<div style="padding:22px;background:#FEF3E0;border-radius:12px;border:1px solid #E8C285;margin-bottom:20px">'
+      + '<div style="font-size:13px;font-weight:500;color:#7A4A00;margin-bottom:8px">🛡️ Configura el teu fons d\'emergència</div>'
+      + '<div style="font-size:12px;color:#9A6B1F;margin-bottom:16px;line-height:1.6">Introdueix les teves despeses mensuals per saber quin hauria de ser el teu fons d\'emergència (per arquetip <strong>' + arq.nom + '</strong>: <strong>' + liqPerfil.mesos + ' mesos</strong>).</div>'
+      + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+        + '<input type="number" id="inp-despeses" min="0" step="100" placeholder="2000" style="padding:9px 14px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;font-family:var(--fm);width:130px;text-align:right">'
+        + '<span style="font-size:13px;color:var(--g500)">€ / mes de despeses</span>'
+        + '<button onclick="guardarDespesesEmergencia()" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Calcular →</button>'
+      + '</div>'
+    + '</div>';
+    html += '</div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  // Hero card
+  var state = progresPct>=100 ? (excedent>despesesMensuals?'excess':'target') : (progresPct>=60?'building':'start');
   var stateConfig = {
-    start:    {color:'#8B1A1A', bg:'#FDF0F0', icon:'🔴', label:'Per construir', headline:'Prioritat: construir el coixí'},
-    building: {color:'#7A4A00', bg:'#FEF5E7', icon:'🟡', label:'En construcció', headline:'Bona trajectòria — segueix aportant'},
-    target:   {color:'#1A5C3A', bg:'#EAF3DE', icon:'🟢', label:'Objectiu assolit', headline:'Fons d\'emergència complet ✓'},
-    excess:   {color:'#1B3A6B', bg:'#EBF0FA', icon:'🔵', label:'Excedent de liquiditat', headline:'Tens diners que podrien treballar per tu'},
+    start:    {color:'#8B1A1A',bg:'#FDF0F0',icon:'🔴',label:'Per construir',headline:'Prioritat: construir el coixí'},
+    building: {color:'#7A4A00',bg:'#FEF5E7',icon:'🟡',label:'En construcció',headline:'Bona trajectòria — segueix aportant'},
+    target:   {color:'#1A5C3A',bg:'#EAF3DE',icon:'🟢',label:'Objectiu assolit',headline:'Fons d\'emergència complet ✓'},
+    excess:   {color:'#1B3A6B',bg:'#EBF0FA',icon:'🔵',label:'Excedent',headline:'Tens diners que podrien treballar per tu'},
   };
   var st = stateConfig[state];
 
-  // Header
-  html += '<div style="margin-bottom:24px">'
-    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Fons d\'emergència i liquiditat</div>'
-    + '<div style="font-size:12px;color:var(--g500);line-height:1.7">Gestió del coixí de seguretat i control de liquiditat segons el teu perfil d\'inversor.</div>'
-  + '</div>';
-
-  // ── HERO STATE CARD ──
-  html += '<div style="background:' + (state==='excess'?'var(--accent)':'var(--black)') + ';border-radius:14px;padding:24px 28px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px" class="em-hero">'
-    + '<div style="flex:1;min-width:200px">'
-      + '<div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">' + st.icon + ' ' + st.label + '</div>'
-      + '<div style="font-family:var(--fd);font-size:22px;color:var(--white);margin-bottom:6px">' + st.headline + '</div>'
-      + '<div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">'
-        + 'Liquiditat total: <strong style="color:rgba(255,255,255,.85)">' + totalLiquiditat.toLocaleString('ca-ES') + ' €</strong>'
-        + ' · Objectiu ' + arq.nom + ': <strong style="color:rgba(255,255,255,.85)">' + objectiuFE.toLocaleString('ca-ES') + ' €</strong>'
-        + ' (' + liqPerfil.mesos + ' mesos)'
-      + '</div>'
+  html += '<div style="background:var(--black);border-radius:14px;padding:24px 28px;margin-bottom:20px">'
+    + '<div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">' + st.icon + ' ' + st.label + '</div>'
+    + '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:16px">'
+      + '<div><div style="font-family:var(--fm);font-size:28px;font-weight:500;color:#fff">' + totalLiquiditat.toLocaleString('ca-ES') + ' €</div><div style="font-size:11px;color:rgba(255,255,255,.4)">Liquiditat total</div></div>'
+      + '<div style="text-align:right"><div style="font-family:var(--fm);font-size:28px;font-weight:500;color:rgba(255,255,255,.6)">' + objectiuFE.toLocaleString('ca-ES') + ' €</div><div style="font-size:11px;color:rgba(255,255,255,.4)">Objectiu (' + liqPerfil.mesos + ' mesos)</div></div>'
     + '</div>'
-    // Ring
-    + '<div style="width:120px;height:120px;position:relative;flex-shrink:0">'
-      + '<svg viewBox="0 0 36 36" style="transform:rotate(-90deg);width:100%;height:100%">'
-        + '<circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="2.5"/>'
-        + '<circle cx="18" cy="18" r="15.9" fill="none" stroke="' + st.color + '" stroke-width="2.5" stroke-dasharray="' + progresClamped + ' ' + (100-progresClamped) + '" stroke-linecap="round"/>'
-      + '</svg>'
-      + '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">'
-        + '<div style="font-family:var(--fm);font-size:24px;font-weight:500;color:' + (progresPct>100?'#4CAF82':st.color) + '">' + progresPct + '%</div>'
-        + '<div style="font-size:9px;color:rgba(255,255,255,.4)">' + (progresPct>=100?'cobert':'del target') + '</div>'
-      + '</div>'
+    + '<div><div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.4);margin-bottom:6px"><span>Progrés</span><span>' + progresClamped + '%</span></div>'
+      + '<div style="height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden"><div style="height:100%;width:' + progresClamped + '%;background:linear-gradient(90deg,var(--accent),#4CAF82);border-radius:99px"></div></div>'
     + '</div>'
   + '</div>';
 
-  // ── KPIs ──
-  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" class="mob-grid">'
-    + kpiCard('Despeses mensuals', e.despesesMensuals.toLocaleString('ca-ES') + ' €', null)
-    + kpiCard('Target (' + liqPerfil.mesos + ' mesos)', objectiuFE.toLocaleString('ca-ES') + ' €', null)
-    + kpiCard('Liquiditat total', totalLiquiditat.toLocaleString('ca-ES') + ' €', progresPct >= 100)
-    + kpiCard('% liquiditat vs patrimoni', liqPctTotal + '%', liqPctTotal <= liqPctIdeal)
-  + '</div>';
+  // Posicions de liquiditat editables
+  html += '<div class="card" style="padding:22px;margin-bottom:16px">'
+    + '<div class="card-title">On tinc la liquiditat</div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12px" id="em-table">'
+    + '<thead><tr>'
+      + '<th style="text-align:left;padding:0 6px 10px;font-size:10px;font-weight:500;color:var(--g400);border-bottom:1px solid var(--g100)">Compte / Producte</th>'
+      + '<th style="text-align:right;padding:0 6px 10px;font-size:10px;font-weight:500;color:var(--g400);border-bottom:1px solid var(--g100)">Import (€)</th>'
+      + '<th style="width:32px;border-bottom:1px solid var(--g100)"></th>'
+    + '</tr></thead><tbody id="em-tbody">';
 
-  // ── PERFIL RECOMANACIÓ ──
-  html += '<div class="card">'
-    + '<div class="card-title">' + arq.nom + ' — Recomanació de liquiditat</div>'
-    + '<div style="display:flex;gap:14px;align-items:flex-start">'
-      + '<div style="font-size:28px;flex-shrink:0">' + st.icon + '</div>'
-      + '<div>'
-        + '<div style="font-size:13px;color:var(--g600);line-height:1.8;margin-bottom:8px">' + liqPerfil.label + '</div>'
-        + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-          + '<span style="font-size:10px;padding:3px 10px;border-radius:99px;background:var(--g100);color:var(--g500)">Target: ' + liqPerfil.mesos + ' mesos</span>'
-          + '<span style="font-size:10px;padding:3px 10px;border-radius:99px;background:var(--g100);color:var(--g500)">Màx recomanat: ' + liqPctIdeal + '% del patrimoni</span>'
-          + '<span style="font-size:10px;padding:3px 10px;border-radius:99px;background:' + (liqPctTotal <= liqPctIdeal ? '#EAF3DE' : '#FEF5E7') + ';color:' + (liqPctTotal <= liqPctIdeal ? '#1A5C3A' : '#7A4A00') + '">Actual: ' + liqPctTotal + '%</span>'
-        + '</div>'
-      + '</div>'
-    + '</div>'
-  + '</div>';
-
-  // ── BREAKDOWN LIQUIDITAT ──
-  html += '<div class="card"><div class="card-title">Distribució de liquiditat</div>';
-  var rendPonderatNum = 0;
-  liqItems.forEach(function(l){
-    var tipusColors = {corrent:{bg:'#FDF0F0',tc:'#8B1A1A',lbl:'Corrent'},estalvi:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Estalvi'},monetari:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Monetari'},diposit:{bg:'#FEF5E7',tc:'#7A4A00',lbl:'Dipòsit'}};
-    var t = tipusColors[l.tipus] || tipusColors.corrent;
-    var pctOfTotal = totalLiquiditat > 0 ? Math.round(l.import / totalLiquiditat * 100) : 0;
-    var rendNum = parseFloat((l.rendiment||'0').replace(',','.').replace('%','').replace('TAE','').trim()) || 0;
-    rendPonderatNum += rendNum * l.import;
-    html += '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--g100)">'
-      + '<div style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:' + t.bg + ';color:' + t.tc + ';min-width:55px;text-align:center">' + t.lbl + '</div>'
-      + '<div style="font-size:12px;color:var(--black);flex:1">' + l.nom + '</div>'
-      + '<div style="font-size:10px;color:var(--g400);width:40px;text-align:right">' + l.rendiment + '</div>'
-      + '<div style="width:60px;height:5px;background:var(--g200);border-radius:99px;overflow:hidden"><div style="height:100%;width:' + pctOfTotal + '%;background:' + t.tc + ';border-radius:99px;opacity:.5"></div></div>'
-      + '<div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--black);min-width:60px;text-align:right">' + l.import.toLocaleString('ca-ES') + '€</div>'
-    + '</div>';
+  liqItems.forEach(function(item, i) {
+    html += '<tr><td style="padding:8px 6px"><input type="text" value="' + (item.nom||item.desc||'') + '" placeholder="Compte ING..." style="border:1px solid var(--g200);border-radius:6px;padding:5px 8px;font-size:12px;width:100%"></td>'
+      + '<td style="padding:8px 6px;text-align:right"><input type="number" value="' + (item.import||'') + '" min="0" step="100" onchange="recalcEmergencia()" style="border:1px solid var(--g200);border-radius:6px;padding:5px 8px;font-size:12px;width:100px;text-align:right"></td>'
+      + '<td style="padding:8px 4px;text-align:center"><button onclick="this.closest(\'tr\').remove();recalcEmergencia()" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--g400)">×</button></td></tr>';
   });
-  var rendPonderat = totalLiquiditat > 0 ? (rendPonderatNum / totalLiquiditat).toFixed(2) : '0';
-  html += '<div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--g200);font-size:11px">'
-    + '<span style="color:var(--g400)">Rendiment ponderat: <strong style="color:var(--accent)">' + rendPonderat + '%</strong></span>'
-    + '<span style="font-family:var(--fm);font-weight:500;color:var(--black)">' + totalLiquiditat.toLocaleString('ca-ES') + ' €</span>'
-  + '</div></div>';
-
-  // ── CONTEXTUAL ACTION CARDS ──
-  if (state === 'start' || state === 'building') {
-    // CONSTRUCTION MODE
-    var falten = objectiuFE - totalLiquiditat;
-    var mesesFalten = e.aportacioMensualFE > 0 ? Math.ceil(falten / e.aportacioMensualFE) : '∞';
-    html += '<div class="card" style="border-left:3px solid ' + st.color + '">'
-      + '<div class="card-title">🔨 Pla de construcció</div>'
-      + '<div style="font-size:13px;color:var(--g600);line-height:1.8;margin-bottom:14px">'
-        + 'Falten <strong style="color:' + st.color + '">' + falten.toLocaleString('ca-ES') + ' €</strong> per arribar a l\'objectiu de ' + liqPerfil.mesos + ' mesos.'
-        + ' Amb ' + e.aportacioMensualFE + '€/mes, arribaràs en uns <strong>' + mesesFalten + ' mesos</strong> (sense comptar rendiment).'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-        + '<div class="perfil-item"><div class="perfil-lbl">Aportació FE mensual</div><div class="perfil-val">' + e.aportacioMensualFE + ' €/mes</div></div>'
-        + '<div class="perfil-item"><div class="perfil-lbl">Data estimada objectiu</div><div class="perfil-val">' + estimarDataObjectiu(mesesFalten) + '</div></div>'
-      + '</div>';
-
-    // Optimisation suggestions
-    var compteCorrent = liqItems.filter(function(l){return l.tipus==='corrent';});
-    if (compteCorrent.length > 0) {
-      var totalCorrent = compteCorrent.reduce(function(s,l){return s+l.import;},0);
-      if (totalCorrent > e.despesesMensuals) {
-        html += '<div style="margin-top:12px;padding:12px;background:#FEF5E7;border-radius:8px;border-left:3px solid #7A4A00;font-size:12px;color:#7A4A00;line-height:1.7">'
-          + '<strong>💡 Optimització:</strong> Tens ' + totalCorrent.toLocaleString('ca-ES') + '€ en comptes corrents al 0%. '
-          + 'Mou ' + (totalCorrent - e.despesesMensuals).toLocaleString('ca-ES') + '€ a un compte estalvi remunerat o fons monetari — sense perdre liquiditat, guanyes rendiment.'
-        + '</div>';
-      }
-    }
-    html += '</div>';
-
-  } else if (state === 'excess') {
-    // EXCESS LIQUIDITY MODE
-    html += '<div class="card" style="border-left:3px solid var(--accent)">'
-      + '<div class="card-title">💡 Excedent de liquiditat — ' + excedent.toLocaleString('ca-ES') + ' €</div>'
-      + '<div style="font-size:13px;color:var(--g600);line-height:1.8;margin-bottom:14px">'
-        + 'El teu fons d\'emergència (' + objectiuFE.toLocaleString('ca-ES') + '€) ja està cobert. Tens <strong style="color:var(--accent)">' + excedent.toLocaleString('ca-ES') + ' € addicionals</strong> en liquiditat '
-        + 'que podrien estar generant rendiment a la teva cartera.'
-      + '</div>';
-
-    // Risk-adjusted recommendation
-    var recHtml = '';
-    if (liqPctTotal > liqPctIdeal) {
-      var idealLiq = Math.round((totalCartera + totalLiquiditat) * liqPctIdeal / 100);
-      var moure = totalLiquiditat - Math.max(idealLiq, objectiuFE);
-      if (moure > 0) {
-        recHtml += '<div style="padding:14px;background:var(--accent-l);border-radius:10px;border-left:3px solid var(--accent);margin-bottom:10px">'
-          + '<div style="font-size:13px;font-weight:500;color:var(--accent);margin-bottom:6px">Recomanació per a ' + arq.nom + '</div>'
-          + '<div style="font-size:12px;color:var(--g600);line-height:1.7">'
-            + 'Amb el teu perfil, la liquiditat ideal és ≤' + liqPctIdeal + '% del patrimoni total. '
-            + 'Pots moure <strong style="color:var(--accent)">' + moure.toLocaleString('ca-ES') + '€</strong> a la teva cartera '
-            + '<strong>' + arq.cartNom + '</strong> seguint la distribució d\'actius del teu pla.'
-          + '</div>'
-        + '</div>';
-
-        // Proposed allocation of excess
-        recHtml += '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:14px">Distribució proposada dels ' + moure.toLocaleString('ca-ES') + '€</div>';
-        arq.actius.forEach(function(a){
-          var importActiu = Math.round(moure * a.pct / 100);
-          recHtml += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--g100)">'
-            + '<div style="width:8px;height:8px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></div>'
-            + '<div style="font-size:11px;flex:1">' + a.nom + '</div>'
-            + '<div style="font-family:var(--fm);font-size:10px;color:var(--g400);width:28px;text-align:right">' + a.pct + '%</div>'
-            + '<div style="font-family:var(--fm);font-size:11px;font-weight:500;color:var(--accent);width:55px;text-align:right">' + importActiu.toLocaleString('ca-ES') + '€</div>'
-          + '</div>';
-        });
-      }
-    } else {
-      recHtml += '<div style="padding:12px;background:#EAF3DE;border-radius:8px;font-size:12px;color:#1A5C3A;line-height:1.7">'
-        + '✓ La teva liquiditat (' + liqPctTotal + '%) està dins el rang recomanat pel teu perfil (' + liqPctIdeal + '%). '
-        + 'No cal moure res — mantens un bon equilibri entre seguretat i rendiment.'
-      + '</div>';
-    }
-    html += recHtml + '</div>';
-
-    // Optimisation of existing liquidity
-    var compteCorrent = liqItems.filter(function(l){return l.tipus==='corrent';});
-    var totalCorrent = compteCorrent.reduce(function(s,l){return s+l.import;},0);
-    if (totalCorrent > e.despesesMensuals * 1.5) {
-      html += '<div class="card" style="border-left:3px solid #7A4A00">'
-        + '<div class="card-title">⚡ Optimització de rendiment</div>'
-        + '<div style="font-size:12px;color:var(--g600);line-height:1.8">'
-          + 'Tens <strong>' + totalCorrent.toLocaleString('ca-ES') + '€</strong> en comptes corrents al 0%. '
-          + 'Recomanem mantenir només 1 mes de despeses (' + e.despesesMensuals.toLocaleString('ca-ES') + '€) al corrent '
-          + 'i moure ' + (totalCorrent - e.despesesMensuals).toLocaleString('ca-ES') + '€ a un fons monetari (3-3,5% TAE) '
-          + 'sense perdre disponibilitat.'
-        + '</div>'
-      + '</div>';
-    }
-
-  } else {
-    // TARGET REACHED — no excess
-    html += '<div class="card" style="border-left:3px solid #1A5C3A">'
-      + '<div class="card-title">✓ Situació òptima</div>'
-      + '<div style="font-size:13px;color:var(--g600);line-height:1.8">'
-        + 'El teu fons d\'emergència cobreix ' + liqPerfil.mesos + ' mesos de despeses. '
-        + 'La liquiditat (' + liqPctTotal + '%) està dins el rang recomanat pel teu perfil ' + arq.nom + ' (≤' + liqPctIdeal + '%). '
-        + 'Pots concentrar totes les aportacions a la cartera <strong>' + arq.cartNom + '</strong>.'
-      + '</div>'
-    + '</div>';
-  }
-
-  // ── PARÀMETRES (editable) ──
-  html += '<div class="card"><div class="card-title">Paràmetres</div>'
-    + '<div style="font-size:12px;color:var(--g500);line-height:1.7;margin-bottom:12px">'
-      + 'Pots ajustar les despeses mensuals per recalcular l\'objectiu del fons.'
+  html += '</tbody></table>'
+    + '<div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'
+      + '<button onclick="afegirLiquiditat()" style="padding:7px 14px;background:transparent;border:1.5px dashed var(--g200);border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g500)">+ Afegir compte</button>'
+      + '<div style="font-size:12px;color:var(--g500)">Total: <strong id="em-total" style="color:var(--black);font-family:var(--fm)">' + totalLiquiditat.toLocaleString('ca-ES') + ' €</strong></div>'
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end" class="form-row">'
-      + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Despeses mensuals (€)</div>'
-        + '<input type="number" class="form-input" style="margin:0;padding:8px 10px;font-size:12px" value="' + e.despesesMensuals + '" id="fe-despeses"></div>'
-      + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Mesos coixí (' + arq.nom + ': ' + liqPerfil.mesos + ')</div>'
-        + '<input type="number" class="form-input" style="margin:0;padding:8px 10px;font-size:12px" value="' + liqPerfil.mesos + '" id="fe-mesos" min="1" max="24"></div>'
-      + '<button style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);height:38px" onclick="recalcEmergencia()">Recalcular</button>'
+    + '<div style="margin-top:14px;display:flex;gap:10px">'
+      + '<button onclick="guardarLiquiditat()" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">💾 Guardar</button>'
+      + '<div id="em-msg" style="font-size:12px;color:var(--g400);padding:10px 0;display:none"></div>'
+    + '</div>'
+    + '<div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+      + '<span style="font-size:12px;color:var(--g500)">Despeses mensuals: <strong style="color:var(--black)">' + despesesMensuals.toLocaleString('ca-ES') + ' €</strong></span>'
+      + '<button onclick="editarDespeses()" style="font-size:11px;color:var(--g400);background:none;border:1px solid var(--g200);border-radius:6px;padding:3px 10px;cursor:pointer">Editar</button>'
     + '</div>'
   + '</div>';
 
-  html += '</div>';
+  html += '<div style="padding:14px 16px;background:var(--g50);border-radius:10px;font-size:11px;color:var(--g500);line-height:1.7">'
+    + '<strong style="color:var(--black)">📌 ' + arq.nom + ' · Recomanació:</strong> ' + liqPerfil.label
+  + '</div>'
+  + '</div>';
   el.innerHTML = html;
 }
 
-function kpiCard(label, value, isGood) {
-  var col = isGood === null ? 'var(--black)' : isGood ? '#1A5C3A' : '#7A4A00';
-  return '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;text-align:center">'
-    + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">' + label + '</div>'
-    + '<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:' + col + '">' + value + '</div>'
-  + '</div>';
-}
-
-function estimarDataObjectiu(mesos) {
-  if (mesos === '∞' || !mesos) return '—';
-  var d = new Date();
-  d.setMonth(d.getMonth() + parseInt(mesos));
-  return d.toLocaleDateString('ca-ES', {month:'short', year:'numeric'});
-}
-
 function recalcEmergencia() {
-  var despeses = parseFloat(document.getElementById('fe-despeses').value) || 2200;
-  var mesos = parseInt(document.getElementById('fe-mesos').value) || 6;
-  DEMO_EMERGENCIA.despesesMensuals = despeses;
-  DEMO_EMERGENCIA.mesesObjectiu = mesos;
-  DEMO_EMERGENCIA.objectiu = despeses * mesos;
-  renderPortalEmergencia(document.getElementById('content'));
-  toast('Paràmetres actualitzats');
+  var rows = document.querySelectorAll('#em-tbody tr');
+  var total = 0;
+  rows.forEach(function(r){ var inp = r.querySelectorAll('input[type=number]')[0]; if(inp) total += parseFloat(inp.value)||0; });
+  var el = document.getElementById('em-total'); if(el) el.textContent = total.toLocaleString('ca-ES') + ' €';
+}
+
+function afegirLiquiditat() {
+  var tbody = document.getElementById('em-tbody'); if(!tbody) return;
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td style="padding:8px 6px"><input type="text" placeholder="Compte ING..." style="border:1px solid var(--g200);border-radius:6px;padding:5px 8px;font-size:12px;width:100%"></td>'
+    + '<td style="padding:8px 6px;text-align:right"><input type="number" min="0" step="100" onchange="recalcEmergencia()" style="border:1px solid var(--g200);border-radius:6px;padding:5px 8px;font-size:12px;width:100px;text-align:right"></td>'
+    + '<td style="padding:8px 4px;text-align:center"><button onclick="this.closest(\'tr\').remove();recalcEmergencia()" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--g400)">×</button></td>';
+  tbody.appendChild(tr);
+}
+
+async function guardarDespesesEmergencia() {
+  var inp = document.getElementById('inp-despeses'); if(!inp) return;
+  var val = parseFloat(inp.value)||0;
+  if(val<=0){ toast('Introdueix unes despeses mensuals vàlides'); return; }
+  await _guardarEmergenciaData({ despesesMensuals: val, liquiditat: [] });
+  renderView('portal-emergencia');
+}
+
+async function editarDespeses() {
+  var c = getClient(); var e = (c&&c.fons_emergencia)||{};
+  var nou = prompt('Despeses mensuals (€):', e.despesesMensuals||'');
+  if(nou===null) return;
+  var val = parseFloat(String(nou).replace(',','.'))||0;
+  if(val<0){toast('Valor no vàlid');return;}
+  await _guardarEmergenciaData(Object.assign({}, e, { despesesMensuals: val }));
+  renderView('portal-emergencia');
+}
+
+async function guardarLiquiditat() {
+  var rows = document.querySelectorAll('#em-tbody tr');
+  var items = [];
+  rows.forEach(function(r){
+    var txt = r.querySelector('input[type=text]'); var num = r.querySelector('input[type=number]');
+    var nom = txt?txt.value.trim():''; var imp = parseFloat(num?num.value:0)||0;
+    if(nom||imp>0) items.push({nom:nom, import:imp});
+  });
+  var c = getClient(); var e = (c&&c.fons_emergencia)||{};
+  var msg = document.getElementById('em-msg');
+  if(msg){msg.style.display='block';msg.textContent='Guardant...';msg.style.color='var(--g400)';}
+  await _guardarEmergenciaData(Object.assign({}, e, { liquiditat: items }));
+  if(msg){msg.textContent='✓ Guardat';msg.style.color='#1A5C3A';}
+  setTimeout(function(){ renderView('portal-emergencia'); }, 800);
+}
+
+async function _guardarEmergenciaData(data) {
+  if(APP.clientData) APP.clientData.fons_emergencia = data;
+  if(!sb||!APP.user||!APP.user.email) return;
+  try { await sb.from('clients').update({fons_emergencia: data}).eq('email', APP.user.email.toLowerCase()); }
+  catch(e){ toast('Error guardant: '+(e.message||e)); }
 }
 
 // ══════════════════════════════════════════════════
@@ -5130,10 +5184,12 @@ async function saveRoadmapField(field, value) {
 // ══════════════════════════════════════════════════
 function getSavingsPlan() {
   var c = getClient();
+  if (!c || APP.isDemo) return DEMO_SAVINGS_PLAN;
   return c.savings_plan || DEMO_SAVINGS_PLAN;
 }
 
 function renderPortalTurbo(el) {
+  var c = getClient();
   var sp = getSavingsPlan();
   var client = getClient();
   var arq = getArquetip(client.arquetipId);
@@ -7249,9 +7305,14 @@ function renderPlatformTickers(data, el, updEl) {
 handleCheckoutReturn();
 handlePasswordReset();
 handleQuestionnaireReturn();
-// checkSession és asíncron (verifica amb Supabase). Mentrestant la pantalla
-// de login és visible per defecte; si la sessió és vàlida, enterApp la
-// substituirà per l'app shell. Si no, queda visible.
+// Injectar versió als badges
+(function() {
+  var els = ['login-version-badge', 'sidebar-version-badge'];
+  els.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = 'platform v' + TBI_VERSION;
+  });
+})();
 checkSession().catch(function(e) {
   console.warn('Error a checkSession:', e);
 });
