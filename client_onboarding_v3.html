@@ -345,7 +345,7 @@ let ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
 // SUPABASE CONNECTION
 // ══════════════════════════════════════════════
 var SB_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
-var TBI_VERSION = '2026-04-30.1'; // ha de coincidir amb platform.html
+var TBI_VERSION = '2026-04-30.3'; // ha de coincidir amb platform.html
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 var sbClient = null;
 try { sbClient = supabase.createClient(SB_URL, SB_KEY); } catch(e) { console.log('Supabase no disponible'); }

@@ -868,7 +868,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
         <span class="role-desc">Portal personal</span>
       </button>
     </div>
-    <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em" id="login-version-badge">v…</div>
+    <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;letter-spacing:.05em;background:rgba(255,255,255,.06);padding:5px 12px;border-radius:6px;display:inline-block;width:auto" id="login-version-badge">v…</div>
   </div>
 </div>
 
@@ -910,7 +910,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
         </div>
       </div>
       <button class="btn-logout" onclick="doLogout()">Tancar sessió →</button>
-      <div id="sidebar-version-badge" style="text-align:center;margin-top:10px;font-size:10px;color:rgba(255,255,255,.3);font-family:'DM Mono',monospace;letter-spacing:.04em;cursor:default" title="Versió de la plataforma">v…</div>
+      <div id="sidebar-version-badge" style="text-align:center;margin-top:10px;font-size:10px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:.04em;background:rgba(255,255,255,.07);padding:4px 8px;border-radius:5px" title="Versió de la plataforma">v…</div>
     </div>
   </div>
   
@@ -947,8 +947,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 // ══════════════════════════════════════════════════
 var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
-// Format: YYYY-MM-DD.N (N = número de build del dia)
-var TBI_VERSION = '2026-04-30.1';
+// Format: YYYY-MM-DD.N — incrementar N cada deploy
+var TBI_VERSION = '2026-04-30.3';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
@@ -2728,9 +2728,41 @@ function getFire() {
   return c.fire || (APP.isDemo ? DEMO_FIRE : null);
 }
 
+// ── ROADMAP ESTÀNDARD PER ARQUETIP ──────────────────
+// 5 fases fixes per a tots els arquetips. La fase actual depèn de l'estat del client.
+function getRoadmapEstandard(arquetipId) {
+  var fases = [
+    { id:'f1', titol:'Constitució del perfil', desc:'Completar el qüestionari inversor, definir l\'arquetip i establir la cartera target personalitzada.', estat:'completat', icon:'✅' },
+    { id:'f2', titol:'Activació del compte', desc:'Validació de la sol·licitud per l\'assessor i activació de l\'accés complet a la plataforma.', estat:'completat', icon:'✅' },
+    { id:'f3', titol:'Construir la base', desc:'Primera aportació, configurar el fons d\'emergència i automatitzar les aportacions mensuals.', estat:'actiu', icon:'🔵' },
+    { id:'f4', titol:'Creixement consistent', desc:'Aportacions regulars i rebalanceig trimestral per mantenir els pesos target de la cartera.', estat:'pendent', icon:'⬜' },
+    { id:'f5', titol:'Optimització avançada', desc:'Fiscalitat, diversificació d\'alternatius, revisió anual d\'objectius i ajust del pla.', estat:'pendent', icon:'⬜' },
+  ];
+  return { fases: fases, fites: [], metodologia: '', ultimaRevisio: '—', properaRevisio: '—' };
+}
+
 function getRoadmap() {
   var c = getClient();
-  return c.roadmap || DEMO_ROADMAP;
+  if (!c) return getRoadmapEstandard('navegant');
+  if (c.roadmap) {
+    // Fusionar fases estàndard amb estat guardat + fites de l'admin
+    var base = getRoadmapEstandard(c.arquetipId);
+    var saved = c.roadmap;
+    // Actualitzar estats de les fases estàndard si l'admin els ha canviat
+    if (saved.fases && saved.fases.length > 0) {
+      base.fases = base.fases.map(function(f) {
+        var savedFase = saved.fases.find(function(sf){ return sf.id === f.id; });
+        return savedFase ? Object.assign({}, f, savedFase) : f;
+      });
+    }
+    base.fites = saved.fites || [];
+    base.metodologia = saved.metodologia || '';
+    base.ultimaRevisio = saved.ultimaRevisio || '—';
+    base.properaRevisio = saved.properaRevisio || '—';
+    return base;
+  }
+  // Client sense roadmap guardat: roadmap estàndard base
+  return getRoadmapEstandard(c.arquetipId || 'navegant');
 }
 
 async function doLogout() {
@@ -2820,6 +2852,7 @@ var ADMIN_NAV = [
   {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
   {id:'admin-pendents', icon:'⏳', label:'Sol·licituds pendents'},
   {id:'portal-missatges', icon:'💬', label:'Missatges clients'},
+  {id:'admin-broadcast', icon:'📣', label:'Missatge a la comunitat'},
   {id:'portal-questionnaire', icon:'📋', label:'Qüestionari client'},
   {id:'admin-plans', icon:'💎', label:'Plans i subscripcions'},
   {id:'admin-preguntes', icon:'❓', label:'Preguntes dels clients', badge:'•'},
@@ -2944,6 +2977,7 @@ function navigateTo(viewId) {
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
     'admin-preguntes': ['Preguntes dels clients', 'Respon les preguntes pendents dels clients Essencial'],
+    'admin-broadcast': ['Missatge a la comunitat', 'Envia un comunicat a tots els clients actius'],
     'pending-review': ['Sol·licitud rebuda', 'Esperant validació de l\'assessor'],
     'admin-pendents': ['Sol·licituds pendents', 'Clients esperant validació'],
   };
@@ -3003,6 +3037,7 @@ function renderView(viewId) {
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
     case 'admin-preguntes': renderAdminPreguntes(content); break;
+    case 'admin-broadcast': renderAdminBroadcast(content); break;
     case 'pending-review': renderPendingReview(content); break;
     case 'admin-pendents': renderAdminPendents(content); break;
     case 'portal-perfil': renderPortalPerfil(content); break;
@@ -3198,15 +3233,20 @@ function renderClientsList(el) {
 // ══════════════════════════════════════════════════
 function renderPortalPerfil(el) {
   var c = getClient();
-  var arq = getArquetip(c.arquetipId);
-  var sc = c.scoring;
+  if (!c) {
+    el.innerHTML = '<div class="content-inner"><div style="padding:60px;text-align:center;color:var(--g400);font-size:13px">Carregant el teu perfil...</div></div>';
+    return;
+  }
+  var arq = getArquetip(c.arquetipId || 'navegant');
+  var sc = c.scoring || 0;
   var scoreColor = sc>=70?'#4CAF82':sc>=50?'#5B8FD4':sc>=30?'#D4943A':'#C0392B';
   var scoreBg    = sc>=70?'#EAF3DE':sc>=50?'#EBF0FA':sc>=30?'#FEF5E7':'#FDF0F0';
   var scoreLabel = sc>=70?'Excel·lent':sc>=50?'Bona base':sc>=30?'Millorable':'En revisió';
-  var perfil = c.perfil;
-  var mods = c.scoring_mods;
-  var proj = c.projeccions;
-  var hist = c.historial;
+  var perfil = c.perfil || {};
+  var mods = c.scoring_mods || arq.dims || [];
+  var proj = c.projeccions || {};
+  var hist = c.historial || [];
+  var nom = c.nom || 'Client';
   var dlbls = ['Objectius','Situació','Horitzó','Coneixement','Risc fin.','Risc em.','Preferències'];
   var dataAvui = new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
   var diffClass = arq.riscClass === 'green' ? 'diff-green' : arq.riscClass === 'red' ? 'diff-red' : 'diff-amber';
@@ -3216,7 +3256,7 @@ function renderPortalPerfil(el) {
   // Hello
   html += '<div class="portal-hello">'
     + '<div class="portal-hello-eye">Portal personal</div>'
-    + '<div class="portal-hello-name">Hola, ' + c.nom.split(' ')[0] + ' 👋</div>'
+    + '<div class="portal-hello-name">Hola, ' + nom.split(' ')[0] + ' 👋</div>'
     + '<div class="portal-hello-sub">El teu perfil inversor actualitzat a ' + dataAvui + '</div>'
   + '</div>';
 
@@ -3640,7 +3680,8 @@ function filterActius(grup, btn) {
 }
 
 function renderPortalCarteres(el) {
-  var myId = getClient().arquetipId;
+  var c = getClient();
+  var myId = (c && c.arquetipId) || 'navegant';
   var html = '<div class="content-inner fade-in">';
 
   html += '<div style="margin-bottom:24px">'
@@ -4993,195 +5034,280 @@ function renderPortalEducacio(el) {
 }
 
 // ══════════════════════════════════════════════════
-// VIEW: FULL DE RUTA
+// VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 function renderPortalRoadmap(el) {
+  var c = getClient();
+  var client = c || DEMO_CLIENT;
+  var arq = getArquetip((client && client.arquetipId) || 'navegant');
   var road = getRoadmap();
-  var client = getClient();
-  var arq = getArquetip(client.arquetipId);
   var isAdmin = APP.role === 'admin';
-  var html = '<div class="content-inner fade-in">';
+  var nom = (client && client.nom) || 'Client';
 
-  // Header
+  var css = '<style>'
+    + '.road-fase{border:1px solid var(--g100);border-radius:12px;margin-bottom:10px;overflow:hidden;background:#fff}'
+    + '.road-fase-header{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;user-select:none}'
+    + '.road-fase-icon{font-size:20px;flex-shrink:0;width:28px;text-align:center}'
+    + '.road-fase-info{flex:1}'
+    + '.road-fase-title{font-size:14px;font-weight:500;color:var(--black);letter-spacing:-.1px}'
+    + '.road-fase-sub{font-size:11px;color:var(--g500);margin-top:2px;line-height:1.4}'
+    + '.road-fase-badge{font-size:10px;padding:3px 10px;border-radius:99px;font-weight:500;flex-shrink:0}'
+    + '.road-fase-body{padding:0 20px 18px;border-top:1px solid var(--g100);display:none;animation:fadeIn .2s}'
+    + '.road-fase.open .road-fase-body{display:block}'
+    + '.road-fase.completat{border-color:#C8E6C9;background:#FAFFF8}'
+    + '.road-fase.actiu{border-color:#1B3A6B;box-shadow:0 0 0 3px rgba(27,58,107,.08)}'
+    + '.road-fita{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--g50)}'
+    + '.road-fita:last-child{border-bottom:none}'
+    + '.road-fita-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}'
+    + '.road-fita-text{flex:1;font-size:12px;color:var(--g600);line-height:1.5}'
+    + '.road-fita-data{font-size:10px;color:var(--g400);white-space:nowrap;font-family:var(--fm)}'
+    + '.road-add-fita{display:flex;gap:8px;margin-top:12px;align-items:center}'
+    + '.road-add-fita input{flex:1;padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fb)}'
+    + '.road-add-fita input[type=date]{flex:0;width:130px}'
+    + '.road-add-fita button{padding:7px 14px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);white-space:nowrap}'
+    + '.road-fase-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}'
+    + '.road-fase-btn{padding:6px 12px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb);border:1.5px solid transparent}'
+    + '.road-metodologia{font-size:12px;color:var(--g600);line-height:1.7;padding:14px;background:var(--g50);border-radius:8px;border-left:3px solid var(--g200)}'
+    + '.road-metodologia-edit{width:100%;margin-top:8px;padding:10px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb);resize:vertical;min-height:80px}'
+    + '</style>';
+
+  var html = css + '<div class="content-inner fade-in">';
+
+  // ── HEADER ──
+  var faseActual = road.fases.find(function(f){ return f.estat === 'actiu'; });
+  var completades = road.fases.filter(function(f){ return f.estat === 'completat'; }).length;
+  var progresFases = Math.round(completades / road.fases.length * 100);
+
   html += '<div style="margin-bottom:24px">'
-    + '<div style="font-family:var(--fd);font-size:24px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px">Full de Ruta Financer</div>'
-    + '<div style="font-size:12px;color:var(--g500);line-height:1.7">' + client.nom + ' · ' + arq.nom + ' · Cartera ' + arq.cartNom + '</div>'
-    + '<div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--g400)">'
-      + '<span>📅 Última revisió: <strong style="color:var(--black)">' + road.ultimaRevisio + '</strong></span>'
-      + '<span>📅 Propera revisió: <strong style="color:var(--accent)">' + road.properaRevisio + '</strong></span>'
+    + '<div style="font-family:var(--fd);font-size:24px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Full de Ruta Financer</div>'
+    + '<div style="font-size:12px;color:var(--g500);line-height:1.7">'
+      + nom + ' · ' + arq.nom + ' · ' + arq.cartRoma
     + '</div>'
+    + '<div style="margin-top:14px;display:flex;align-items:center;gap:14px">'
+      + '<div style="flex:1;height:6px;background:var(--g100);border-radius:99px;overflow:hidden">'
+        + '<div style="height:100%;width:' + progresFases + '%;background:linear-gradient(90deg,#1A5C3A,#4CAF82);border-radius:99px"></div>'
+      + '</div>'
+      + '<div style="font-size:11px;color:var(--g500);white-space:nowrap">' + completades + ' de ' + road.fases.length + ' fases</div>'
+    + '</div>'
+    + (faseActual ? '<div style="margin-top:8px;font-size:12px;color:#1B3A6B;font-weight:500">🔵 Fase actual: ' + faseActual.titol + '</div>' : '')
+    + (road.ultimaRevisio && road.ultimaRevisio !== '—' ? '<div style="margin-top:4px;font-size:11px;color:var(--g400)">Última revisió: <strong>' + road.ultimaRevisio + '</strong>' + (road.properaRevisio && road.properaRevisio !== '—' ? ' · Propera: <strong style="color:var(--accent)">' + road.properaRevisio + '</strong>' : '') + '</div>' : '')
   + '</div>';
 
-  // Metodologia
-  html += '<div class="card">'
-    + '<div class="card-title">Metodologia</div>'
-    + '<div style="font-size:13px;color:var(--g600);line-height:1.8">' + road.metodologia + '</div>';
+  // ── METODOLOGIA (si hi ha) ──
+  if (road.metodologia || isAdmin) {
+    html += '<div class="card" style="margin-bottom:16px">'
+      + '<div class="card-title">📋 Nota de l\'assessor</div>';
+    if (road.metodologia) {
+      html += '<div class="road-metodologia">' + road.metodologia.replace(/\n/g,'<br>') + '</div>';
+    } else if (isAdmin) {
+      html += '<div style="font-size:12px;color:var(--g400);font-style:italic">Sense nota. Escriu-ne una per a aquest client.</div>';
+    }
+    if (isAdmin) {
+      html += '<div style="margin-top:10px">'
+        + '<textarea class="road-metodologia-edit" id="road-metodologia-input" placeholder="Nota personalitzada per a ' + nom + '...">' + (road.metodologia||'') + '</textarea>'
+        + '<button onclick="guardarRoadmapField(\'metodologia\',document.getElementById(\'road-metodologia-input\').value)" style="margin-top:6px;padding:7px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb)">Guardar nota</button>'
+      + '</div>';
+    }
+    html += '</div>';
+  }
+
+  // ── REVISIONS (admin) ──
   if (isAdmin) {
-    html += '<div class="road-edit-area">'
-      + '<div style="font-size:10px;color:var(--g400);margin-bottom:4px">✏ Editar metodologia</div>'
-      + '<textarea id="edit-metodologia">' + road.metodologia + '</textarea>'
-      + '<button class="road-edit-btn" onclick="saveRoadmapField(\'metodologia\',document.getElementById(\'edit-metodologia\').value)">Guardar</button>'
+    html += '<div class="card" style="margin-bottom:16px">'
+      + '<div class="card-title">📅 Dates de revisió</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+        + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Última revisió</div>'
+          + '<input type="date" id="road-ultima-revisio" value="' + (road.ultimaRevisio !== '—' ? road.ultimaRevisio : '') + '" style="padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;width:100%"></div>'
+        + '<div><div style="font-size:10px;color:var(--g400);margin-bottom:4px">Propera revisió</div>'
+          + '<input type="date" id="road-propera-revisio" value="' + (road.properaRevisio !== '—' ? road.properaRevisio : '') + '" style="padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;width:100%"></div>'
+      + '</div>'
+      + '<button onclick="guardarRevisions()" style="margin-top:10px;padding:7px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb)">Guardar dates</button>'
     + '</div>';
   }
-  html += '</div>';
 
-  // ── OBJECTIUS SMART ──
-  html += '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px;margin-top:8px">🎯 Objectius SMART</div>';
+  // ── FASES ESTÀNDARD ──
+  html += '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px">🗺 Fases del procés</div>';
 
-  road.objectius.forEach(function(obj, idx) {
-    var progCol = obj.progres >= 75 ? '#1A5C3A' : obj.progres >= 40 ? '#1B3A6B' : obj.progres >= 1 ? '#7A4A00' : '#9A9690';
-    var prioClass = obj.prioritat === 'alta' ? 'high' : 'mid';
-    var estatBadge = obj.estat === 'completat' ? '<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:#EAF3DE;color:#1A5C3A;font-weight:500">✓ Completat</span>'
-      : obj.estat === 'actiu' ? '<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:#EBF0FA;color:#1B3A6B;font-weight:500">En curs</span>'
-      : '<span style="font-size:10px;padding:2px 8px;border-radius:99px;background:#F4F3F0;color:#9A9690;font-weight:500">Pendent</span>';
+  road.fases.forEach(function(fase, i) {
+    var isOpen  = fase.estat === 'actiu';
+    var badgeStyle = fase.estat === 'completat'
+      ? 'background:#EAF3DE;color:#1A5C3A'
+      : fase.estat === 'actiu'
+        ? 'background:#EBF0FA;color:#1B3A6B'
+        : 'background:var(--g100);color:var(--g400)';
+    var badgeLabel = fase.estat === 'completat' ? '✓ Completat' : fase.estat === 'actiu' ? '● En curs' : 'Pendent';
 
-    html += '<div class="obj-card ' + prioClass + '" id="obj-' + obj.id + '">'
-      + '<div class="obj-header" onclick="toggleObj(\'' + obj.id + '\')">'
-        + '<div style="font-size:16px;flex-shrink:0">' + (obj.estat === 'completat' ? '✅' : obj.estat === 'actiu' ? '🔵' : '⬜') + '</div>'
-        + '<div class="obj-title">' + obj.titol + '</div>'
-        + '<div class="obj-progress"><div class="obj-progress-fill" style="width:' + obj.progres + '%;background:' + progCol + '"></div></div>'
-        + '<div class="obj-pct">' + obj.progres + '%</div>'
-        + estatBadge
-      + '</div>'
-      + '<div class="obj-body">';
-
-    // SMART breakdown
-    html += '<div class="smart-grid">'
-      + '<div class="smart-row"><div class="smart-letter">S</div><div class="smart-text"><strong>Específic:</strong> ' + obj.smart.s + '</div></div>'
-      + '<div class="smart-row"><div class="smart-letter">M</div><div class="smart-text"><strong>Mesurable:</strong> ' + obj.smart.m + '</div></div>'
-      + '<div class="smart-row"><div class="smart-letter">A</div><div class="smart-text"><strong>Assolible:</strong> ' + obj.smart.a + '</div></div>'
-      + '<div class="smart-row"><div class="smart-letter">R</div><div class="smart-text"><strong>Rellevant:</strong> ' + obj.smart.r + '</div></div>'
-      + '<div class="smart-row"><div class="smart-letter">T</div><div class="smart-text"><strong>Temporal:</strong> ' + obj.smart.t + '</div></div>'
-    + '</div>';
-
-    // Admin edit for this objective
-    if (isAdmin) {
-      html += '<div class="road-edit-area">'
-        + '<div style="font-size:10px;color:var(--g400);margin-bottom:4px">✏ Editar progrés (0-100)</div>'
-        + '<div style="display:flex;gap:8px;align-items:center">'
-          + '<input type="range" min="0" max="100" value="' + obj.progres + '" style="flex:1" oninput="this.nextElementSibling.textContent=this.value+\'%\'">'
-          + '<span style="font-family:var(--fm);font-size:12px;min-width:35px">' + obj.progres + '%</span>'
-          + '<select style="padding:4px 8px;border:1px solid var(--g200);border-radius:5px;font-size:11px;font-family:var(--fb)">'
-            + '<option' + (obj.estat==='pendent'?' selected':'') + '>pendent</option>'
-            + '<option' + (obj.estat==='actiu'?' selected':'') + '>actiu</option>'
-            + '<option' + (obj.estat==='completat'?' selected':'') + '>completat</option>'
-          + '</select>'
-          + '<button class="road-edit-btn" onclick="toast(\'✓ Objectiu actualitzat (demo)\')">Guardar</button>'
+    html += '<div class="road-fase ' + fase.estat + (isOpen ? ' open' : '') + '" id="fase-' + fase.id + '">'
+      + '<div class="road-fase-header" onclick="toggleRoadFase(\'' + fase.id + '\')">'
+        + '<div class="road-fase-icon">' + fase.icon + '</div>'
+        + '<div class="road-fase-info">'
+          + '<div class="road-fase-title">' + fase.titol + '</div>'
+          + '<div class="road-fase-sub">' + fase.desc + '</div>'
         + '</div>'
+        + '<span class="road-fase-badge" style="' + badgeStyle + '">' + badgeLabel + '</span>'
+      + '</div>'
+      + '<div class="road-fase-body">';
+
+    // Fites d'aquesta fase (filtrades per fase_id)
+    var fitasFase = (road.fites || []).filter(function(f){ return f.fase === fase.id; });
+    if (fitasFase.length > 0) {
+      html += '<div style="margin-bottom:12px">';
+      fitasFase.forEach(function(fita, fi) {
+        var dotCol = fita.estat === 'fet' ? '#1A5C3A' : fita.estat === 'curs' ? '#1B3A6B' : '#9A9690';
+        var icon = fita.estat === 'fet' ? '✓' : fita.estat === 'curs' ? '●' : '○';
+        html += '<div class="road-fita">'
+          + '<div class="road-fita-dot" style="background:' + dotCol + '" title="' + (fita.estat||'pendent') + '">' + '</div>'
+          + '<div class="road-fita-text"><strong>' + icon + '</strong> ' + fita.titol + (fita.nota ? '<div style="font-size:11px;color:var(--g500);margin-top:2px">' + fita.nota + '</div>' : '') + '</div>'
+          + (fita.data ? '<div class="road-fita-data">' + fita.data + '</div>' : '')
+          + (isAdmin ? '<button onclick="esborrarFita(\'' + fase.id + '\',' + fi + ')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:2px 6px;flex-shrink:0">×</button>' : '')
+        + '</div>';
+      });
+      html += '</div>';
+    } else if (!isAdmin) {
+      html += '<div style="font-size:12px;color:var(--g400);font-style:italic;padding:6px 0">Sense fites personalitzades per a aquesta fase.</div>';
+    }
+
+    // Admin: afegir fita nova
+    if (isAdmin) {
+      html += '<div class="road-add-fita">'
+        + '<input type="text" id="fita-text-' + fase.id + '" placeholder="Nova fita...">'
+        + '<input type="date" id="fita-data-' + fase.id + '">'
+        + '<button onclick="afegirFita(\'' + fase.id + '\')">+ Afegir</button>'
+      + '</div>';
+      // Admin: canviar estat de la fase
+      html += '<div class="road-fase-actions" style="margin-top:14px">'
+        + '<button class="road-fase-btn" style="background:var(--g50);color:var(--g600);border-color:var(--g200)" onclick="canviarEstatFase(\'' + fase.id + '\',\'pendent\')">⬜ Pendent</button>'
+        + '<button class="road-fase-btn" style="background:#EBF0FA;color:#1B3A6B;border-color:#B8C8E8" onclick="canviarEstatFase(\'' + fase.id + '\',\'actiu\')">🔵 Actiu</button>'
+        + '<button class="road-fase-btn" style="background:#EAF3DE;color:#1A5C3A;border-color:#B8DBC4" onclick="canviarEstatFase(\'' + fase.id + '\',\'completat\')">✅ Completat</button>'
       + '</div>';
     }
 
     html += '</div></div>';
   });
-
-  // Admin: add new objective
-  if (isAdmin) {
-    html += '<div style="text-align:center;padding:12px;border:1.5px dashed var(--g200);border-radius:12px;margin-bottom:20px;cursor:pointer;color:var(--g400);font-size:12px" onclick="toast(\'Funcionalitat d\\\'afegir objectiu — pròximament\')">'
-      + '+ Afegir objectiu SMART'
-    + '</div>';
-  }
-
-  // ── FASES I MILESTONES ──
-  html += '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px;margin-top:28px">📍 Fases i Milestones</div>';
-
-  road.fases.forEach(function(fase, fi) {
-    var isActive = fase.estat === 'actiu';
-    var isDone = fase.estat === 'completat';
-    var completats = fase.milestones.filter(function(m){return m.estat==='completat';}).length;
-    var total = fase.milestones.length;
-    var faseOpen = isActive;
-    var badgeCol = isActive ? 'background:var(--accent-l);color:var(--accent)' : isDone ? 'background:#EAF3DE;color:#1A5C3A' : 'background:var(--g100);color:var(--g400)';
-    var badgeLbl = isActive ? '▸ Fase actual' : isDone ? '✓ Completada' : 'Pendent';
-
-    html += '<div class="road-phase' + (isActive?' is-active':'') + (isDone?' done':'') + (faseOpen?' open':'') + '" id="fase-' + fase.id + '">'
-      + '<div class="road-phase-header" onclick="toggleFase(\'' + fase.id + '\')">'
-        + '<div class="road-phase-dot"></div>'
-        + '<div class="road-phase-info">'
-          + '<div class="road-phase-nom">' + fase.nom + '</div>'
-          + '<div class="road-phase-periode">' + fase.periode + ' · ' + completats + '/' + total + ' milestones</div>'
-        + '</div>'
-        + '<div class="road-phase-badge" style="' + badgeCol + '">' + badgeLbl + '</div>'
-      + '</div>'
-      + '<div class="road-phase-body">'
-        + '<div style="font-size:12px;color:var(--g500);line-height:1.7;margin:14px 0 16px;padding:10px 14px;background:var(--g100);border-radius:8px">' + fase.desc + '</div>';
-
-    // Milestones timeline
-    fase.milestones.forEach(function(ms) {
-      var msClass = ms.estat === 'completat' ? 'done' : ms.estat === 'actiu' ? 'active' : '';
-      var checkIcon = ms.estat === 'completat' ? '✓' : ms.estat === 'actiu' ? '◉' : '○';
-      html += '<div class="road-ms ' + msClass + '">'
-        + '<div class="road-ms-line"></div>'
-        + '<div class="road-ms-dot"></div>'
-        + '<div class="road-ms-content">'
-          + '<div class="road-ms-titol">' + ms.titol + '</div>'
-          + '<div class="road-ms-data">' + ms.data + (ms.notes ? ' · ' + ms.notes : '') + '</div>'
-        + '</div>'
-        + '<div class="road-ms-check">' + checkIcon + '</div>'
-      + '</div>';
-    });
-
-    // Admin: add milestone to this phase
-    if (isAdmin) {
-      html += '<div style="text-align:center;padding:8px;border:1px dashed var(--g200);border-radius:8px;margin-top:10px;cursor:pointer;color:var(--g400);font-size:11px" onclick="toast(\'Afegir milestone — pròximament\')">'
-        + '+ Afegir milestone'
-      + '</div>';
-    }
-
-    html += '</div></div>';
-  });
-
-  // ── NOTES ASSESSOR ──
-  html += '<div class="card">'
-    + '<div class="card-title">Notes de l\'assessor</div>'
-    + '<div class="nota-box">' + road.notesAssessor + '</div>';
-  if (isAdmin) {
-    html += '<div class="road-edit-area">'
-      + '<div style="font-size:10px;color:var(--g400);margin-bottom:4px">✏ Editar notes</div>'
-      + '<textarea id="edit-notes-assessor">' + road.notesAssessor + '</textarea>'
-      + '<button class="road-edit-btn" onclick="saveRoadmapField(\'notesAssessor\',document.getElementById(\'edit-notes-assessor\').value)">Guardar</button>'
-    + '</div>';
-  }
-  html += '</div>';
-
-  // Disclaimer
-  html += '<div class="disc">Full de ruta generat automàticament a partir del perfil inversor. Revisat i personalitzat per Guillem Puig, assessor financer independent. '
-    + 'Aquest document no constitueix assessorament regulat MiFID II. Última revisió: ' + road.ultimaRevisio + '.</div>';
 
   html += '</div>';
   el.innerHTML = html;
 }
 
-function toggleObj(id) {
-  var card = document.getElementById('obj-' + id);
-  if (card) card.classList.toggle('open');
+function toggleRoadFase(id) {
+  var el = document.getElementById('fase-' + id);
+  if (el) el.classList.toggle('open');
 }
 
-function toggleFase(id) {
-  var fase = document.getElementById('fase-' + id);
-  if (fase) fase.classList.toggle('open');
-}
-
-async function saveRoadmapField(field, value) {
-  // Update local demo data
-  DEMO_ROADMAP[field] = value;
-  toast('✓ ' + field + ' actualitzat');
-
-  // Try to save to Supabase
+async function guardarRoadmapField(field, value) {
+  var c = getClient(); if (!c) return;
+  var road = getRoadmap();
+  road[field] = value;
+  if (APP.clientData) APP.clientData.roadmap = road;
   if (sb && !APP.isDemo) {
     try {
-      var roadmap = getRoadmap();
-      roadmap[field] = value;
-      var email = getClient().email;
-      await sb.from('clients').update({roadmap: roadmap}).eq('email', email);
-    } catch(e) {
-      console.error('Error saving roadmap:', e);
-    }
+      await sb.from('clients').update({ roadmap: road }).eq('email', c.email.toLowerCase());
+      toast('✓ Guardat');
+    } catch(e) { toast('Error: ' + (e.message||e)); }
   }
+}
+
+async function guardarRevisions() {
+  var u = document.getElementById('road-ultima-revisio');
+  var p = document.getElementById('road-propera-revisio');
+  var road = getRoadmap();
+  if (u) road.ultimaRevisio = u.value || '—';
+  if (p) road.properaRevisio = p.value || '—';
+  var c = getClient(); if (!c) return;
+  if (APP.clientData) APP.clientData.roadmap = road;
+  if (sb && !APP.isDemo) {
+    try {
+      await sb.from('clients').update({ roadmap: road }).eq('email', c.email.toLowerCase());
+      toast('✓ Dates guardades');
+      renderView('portal-roadmap');
+    } catch(e) { toast('Error: ' + (e.message||e)); }
+  }
+}
+
+async function afegirFita(faseId) {
+  var textEl = document.getElementById('fita-text-' + faseId);
+  var dataEl = document.getElementById('fita-data-' + faseId);
+  if (!textEl || !textEl.value.trim()) { toast('Escriu el text de la fita'); return; }
+  var road = getRoadmap();
+  road.fites = road.fites || [];
+  road.fites.push({ fase: faseId, titol: textEl.value.trim(), data: (dataEl && dataEl.value) || '', estat: 'pendent', nota: '' });
+  var c = getClient(); if (!c) return;
+  if (APP.clientData) APP.clientData.roadmap = road;
+  if (sb && !APP.isDemo) {
+    try {
+      await sb.from('clients').update({ roadmap: road }).eq('email', c.email.toLowerCase());
+      toast('✓ Fita afegida');
+      renderView('portal-roadmap');
+    } catch(e) { toast('Error: ' + (e.message||e)); }
+  } else { renderView('portal-roadmap'); }
+}
+
+async function esborrarFita(faseId, idx) {
+  if (!confirm('Esborrar aquesta fita?')) return;
+  var road = getRoadmap();
+  road.fites = (road.fites || []).filter(function(f, i) {
+    var countInFase = road.fites.filter(function(ff){ return ff.fase === faseId; });
+    return !(f.fase === faseId && countInFase.indexOf(f) === idx);
+  });
+  var c = getClient(); if (!c) return;
+  if (APP.clientData) APP.clientData.roadmap = road;
+  if (sb && !APP.isDemo) {
+    try {
+      await sb.from('clients').update({ roadmap: road }).eq('email', c.email.toLowerCase());
+      toast('✓ Fita esborrada');
+      renderView('portal-roadmap');
+    } catch(e) { toast('Error: ' + (e.message||e)); }
+  } else { renderView('portal-roadmap'); }
+}
+
+async function canviarEstatFase(faseId, nouEstat) {
+  var road = getRoadmap();
+  var fase = road.fases.find(function(f){ return f.id === faseId; });
+  if (!fase) return;
+  var icones = { completat:'✅', actiu:'🔵', pendent:'⬜' };
+  fase.estat = nouEstat;
+  fase.icon = icones[nouEstat] || '⬜';
+  var c = getClient(); if (!c) return;
+  if (APP.clientData) APP.clientData.roadmap = road;
+  if (sb && !APP.isDemo) {
+    try {
+      await sb.from('clients').update({ roadmap: road }).eq('email', c.email.toLowerCase());
+      toast('✓ Estat actualitzat: ' + nouEstat);
+      renderView('portal-roadmap');
+    } catch(e) { toast('Error: ' + (e.message||e)); }
+  } else { renderView('portal-roadmap'); }
 }
 
 // ══════════════════════════════════════════════════
 // VIEW: TURBO ESTALVI
 // ══════════════════════════════════════════════════
+async function guardarDadesTurbo() {
+  var ingressos = parseFloat(document.getElementById('turbo-ingressos').value) || 0;
+  var despeses  = parseFloat(document.getElementById('turbo-despeses').value) || 0;
+  var msg = document.getElementById('turbo-setup-msg');
+  if (ingressos <= 0) { if(msg) msg.textContent = 'Introdueix els ingressos mensuals'; return; }
+  var taxa = ingressos > 0 ? Math.round((ingressos - despeses) / ingressos * 100) : 0;
+  var plan = {
+    ingressosMensuals: ingressos,
+    despesesMensuals: despeses,
+    taxaEstalviActual: Math.max(0, taxa),
+    taxaEstalviObjectiu: 20,
+    accionsActives: [],
+    accionsCompletades: [],
+  };
+  if (sb && APP.user && APP.user.email) {
+    try {
+      await sb.from('clients').update({ savings_plan: plan }).eq('email', APP.user.email.toLowerCase());
+      if (APP.clientData) APP.clientData.savings_plan = plan;
+      toast('✓ Turbo Estalvi activat!');
+      renderView('portal-turbo');
+    } catch(e) { if(msg) msg.textContent = 'Error: ' + (e.message||e); }
+  } else {
+    if (APP.clientData) APP.clientData.savings_plan = plan;
+    renderView('portal-turbo');
+  }
+}
+
 function getSavingsPlan() {
   var c = getClient();
   if (!c || APP.isDemo) return DEMO_SAVINGS_PLAN;
@@ -5190,14 +5316,36 @@ function getSavingsPlan() {
 
 function renderPortalTurbo(el) {
   var c = getClient();
-  var sp = getSavingsPlan();
-  var client = getClient();
-  var arq = getArquetip(client.arquetipId);
+  var client = c || DEMO_CLIENT;
+  var arq = getArquetip((client && client.arquetipId) || 'navegant');
   var isAdmin = APP.role === 'admin';
-  var taxa = sp.taxaEstalviActual;
-  var obj = sp.taxaEstalviObjectiu;
+  var sp = getSavingsPlan();
+
+  // Per a clients reals sense dades d'estalvi, mostrar un setup mínim
+  // en lloc de les dades fictícies del DEMO
+  var isRealClientNoData = !APP.isDemo && !APP.isPreview && c && (!c.savings_plan || !c.savings_plan.ingressosMensuals);
+  if (isRealClientNoData) {
+    el.innerHTML = '<div class="content-inner fade-in">'
+      + '<div style="font-family:var(--fd);font-size:24px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">🚀 Turbo Estalvi</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.7;margin-bottom:28px">Optimitza la teva taxa d\'estalvi amb accions concretes, sense culpa, sense restriccions extremes.</div>'
+      + '<div style="padding:24px;background:#FEF3E0;border-radius:12px;border:1px solid #E8C285;margin-bottom:20px">'
+        + '<div style="font-size:14px;font-weight:500;color:#7A4A00;margin-bottom:10px">💡 Configura el teu punt de partida</div>'
+        + '<div style="font-size:12px;color:#9A6B1F;margin-bottom:20px;line-height:1.6">Per activar el motor de recomanacions de Turbo Estalvi necessitem saber els teus ingressos i despeses mensuals. Tota la informació queda guardada al teu perfil.</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">'
+          + '<div><div style="font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Ingressos nets mensuals</div><div style="display:flex;align-items:center;gap:8px"><input type="number" id="turbo-ingressos" min="0" step="100" placeholder="2500" style="flex:1;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;font-family:var(--fm)"><span style="color:var(--g400);font-size:13px">€</span></div></div>'
+          + '<div><div style="font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Despeses mensuals totals</div><div style="display:flex;align-items:center;gap:8px"><input type="number" id="turbo-despeses" min="0" step="100" placeholder="1800" style="flex:1;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;font-family:var(--fm)"><span style="color:var(--g400);font-size:13px">€</span></div></div>'
+        + '</div>'
+        + '<button onclick="guardarDadesTurbo()" style="padding:11px 24px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Activar Turbo Estalvi →</button>'
+        + '<div id="turbo-setup-msg" style="margin-top:10px;font-size:12px;color:var(--g400)"></div>'
+      + '</div>'
+    + '</div>';
+    return;
+  }
+
+  var taxa = sp.taxaEstalviActual || 0;
+  var obj = sp.taxaEstalviObjectiu || 20;
   var gap = calcGapEstalvi(taxa, obj);
-  var estalviMensual = sp.ingressosMensuals - sp.despesesMensuals;
+  var estalviMensual = (sp.ingressosMensuals || 0) - (sp.despesesMensuals || 0);
   var jaDinsTarget = taxa >= obj;
   var catLabels = {automatitzacio:'⚙️ Automatització',despesa_fixa:'🏠 Despesa fixa',despesa_variable:'🛒 Despesa variable',deute:'💳 Deute',ingressos:'💰 Ingressos',mental:'🧠 Mental model'};
   var difLabels = {baixa:'🟢 Fàcil',mitjana:'🟡 Mitjana',alta:'🔴 Difícil'};
@@ -5808,6 +5956,212 @@ function referQuestionari() {
 // ══════════════════════════════════════════════════
 // ADMIN PENDENTS — Llistat de sol·licituds pendents
 // ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// MISSATGE A LA COMUNITAT — Broadcast admin
+// ══════════════════════════════════════════════════
+async function renderAdminBroadcast(el) {
+  if (APP.role !== 'admin') return;
+
+  // Carregar historial de broadcasts i nombre de clients actius
+  var clientsActius = 0;
+  var historial = [];
+  if (sb) {
+    try {
+      var resC = await sb.from('clients').select('email,nom', { count:'exact' }).eq('status','active');
+      clientsActius = (resC.data || []).length;
+    } catch(e) { console.warn(e); }
+    try {
+      var resH = await sb.from('messages')
+        .select('*')
+        .eq('broadcast', true)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      historial = resH.data || [];
+    } catch(e) { console.warn(e); }
+  }
+
+  var html = '<div class="content-inner fade-in">'
+    + '<div style="font-size:13px;color:var(--g500);line-height:1.65;max-width:680px;margin-bottom:28px">'
+      + 'Envia un comunicat que arribarà com a missatge privat a tots els clients amb compte actiu. Apareixerà a la safata "Missatges" de cada client.'
+    + '</div>';
+
+  // ── FORMULARI D'ENVIAMENT ──
+  html += '<div class="card" style="max-width:680px;margin-bottom:24px">'
+    + '<div class="card-title">✉ Nou comunicat</div>'
+    + '<div style="margin-bottom:8px">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Destinataris</div>'
+      + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+        + '<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="bc-dest" value="all" checked> Tots els clients actius <strong style="color:var(--accent)">(' + clientsActius + ')</strong></label>'
+        + '<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="bc-dest" value="pla"> Per pla...</label>'
+      + '</div>'
+      + '<div id="bc-pla-sel" style="display:none;margin-top:8px;display:none">'
+        + '<select id="bc-pla-value" style="padding:7px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb)">'
+          + '<option value="essencial">Essencial</option>'
+          + '<option value="bruxola">Brúixola</option>'
+          + '<option value="rumb">Rumb</option>'
+          + '<option value="mapa">Mapa</option>'
+        + '</select>'
+      + '</div>'
+    + '</div>'
+
+    + '<div style="margin:16px 0 8px">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Assumpte</div>'
+      + '<input type="text" id="bc-assumpte" placeholder="Ex: Actualització del mercat — Abril 2026" style="width:100%;padding:10px 14px;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-family:var(--fb);box-sizing:border-box">'
+    + '</div>'
+
+    + '<div style="margin-bottom:16px">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Missatge</div>'
+      + '<textarea id="bc-cos" rows="8" placeholder="Escriu aquí el missatge per als teus clients..." style="width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-family:var(--fb);resize:vertical;box-sizing:border-box;line-height:1.65"></textarea>'
+      + '<div style="font-size:11px;color:var(--g400);margin-top:4px">Pots usar línies en blanc per separar seccions. El teu nom (Guillem) s\'afegeix automàticament a la signatura.</div>'
+    + '</div>'
+
+    + '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+      + '<button onclick="enviarBroadcast()" id="bc-btn" style="padding:11px 24px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">📣 Enviar comunicat</button>'
+      + '<button onclick="previsualitzarBroadcast()" style="padding:11px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb);color:var(--g600)">👁 Previsualitzar</button>'
+      + '<div id="bc-msg" style="font-size:12px;color:var(--g400);display:none"></div>'
+    + '</div>'
+  + '</div>';
+
+  // ── PREVISUALITZACIÓ (s'omplirà dinàmicament) ──
+  html += '<div id="bc-preview" style="display:none;max-width:680px;margin-bottom:24px">'
+    + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px">Previsualització del missatge</div>'
+    + '<div style="border:1px solid var(--g100);border-radius:12px;padding:20px 24px;background:#fff;font-size:13px;line-height:1.7;color:var(--g700);white-space:pre-wrap" id="bc-preview-cos"></div>'
+  + '</div>';
+
+  // ── HISTORIAL ──
+  if (historial.length > 0) {
+    html += '<div style="max-width:680px">'
+      + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px">📋 Historial de comunicats</div>';
+    historial.forEach(function(msg) {
+      var data = msg.created_at ? new Date(msg.created_at).toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      var preview = (msg.content||'').slice(0,120) + ((msg.content||'').length > 120 ? '…' : '');
+      html += '<div style="padding:14px 18px;border:1px solid var(--g100);border-radius:10px;margin-bottom:8px;background:#fff">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">'
+          + '<div style="font-size:13px;font-weight:500;color:var(--black)">' + (msg.subject || 'Comunicat') + '</div>'
+          + '<div style="font-size:10px;color:var(--g400);white-space:nowrap;font-family:var(--fm)">' + data + '</div>'
+        + '</div>'
+        + '<div style="font-size:12px;color:var(--g500);line-height:1.5">' + preview + '</div>'
+        + (msg.broadcast_count ? '<div style="font-size:10px;color:var(--g400);margin-top:6px">Enviat a ' + msg.broadcast_count + ' clients</div>' : '')
+      + '</div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="max-width:680px;padding:20px;background:var(--g50);border-radius:10px;text-align:center;font-size:13px;color:var(--g400)">Encara no has enviat cap comunicat.</div>';
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+
+  // Mostrar/amagar selector de pla
+  document.querySelectorAll('input[name="bc-dest"]').forEach(function(r) {
+    r.addEventListener('change', function() {
+      var sel = document.getElementById('bc-pla-sel');
+      if (sel) sel.style.display = this.value === 'pla' ? 'block' : 'none';
+    });
+  });
+}
+
+function previsualitzarBroadcast() {
+  var assumpte = (document.getElementById('bc-assumpte')||{}).value || '';
+  var cos = (document.getElementById('bc-cos')||{}).value || '';
+  if (!cos.trim()) { toast('Escriu el missatge primer'); return; }
+  var text = (assumpte ? '📣 ' + assumpte + '\n\n' : '') + cos + '\n\n— Guillem Puig\n   The Boring Investor';
+  var preview = document.getElementById('bc-preview');
+  var previewCos = document.getElementById('bc-preview-cos');
+  if (preview && previewCos) {
+    previewCos.textContent = text;
+    preview.style.display = 'block';
+    preview.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+}
+
+async function enviarBroadcast() {
+  if (APP.role !== 'admin') return;
+  var assumpte  = (document.getElementById('bc-assumpte')||{}).value || '';
+  var cos       = (document.getElementById('bc-cos')||{}).value || '';
+  var destRadio = document.querySelector('input[name="bc-dest"]:checked');
+  var dest      = destRadio ? destRadio.value : 'all';
+  var plaFiltrat = dest === 'pla' ? ((document.getElementById('bc-pla-value')||{}).value || 'essencial') : null;
+
+  if (!cos.trim()) { toast('Escriu el missatge primer'); return; }
+  if (!assumpte.trim()) { toast('Afegeix un assumpte'); return; }
+
+  var missatgeFinal = cos.trim() + '\n\n— Guillem Puig\n   The Boring Investor';
+
+  var confirmMsg = 'Enviar "' + assumpte + '" a ';
+  confirmMsg += plaFiltrat ? 'tots els clients del pla ' + plaFiltrat + '?' : 'TOTS els clients actius?';
+  confirmMsg += '\n\nAquesta acció és irreversible.';
+  if (!confirm(confirmMsg)) return;
+
+  var btn = document.getElementById('bc-btn');
+  var msg = document.getElementById('bc-msg');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviant...'; }
+  if (msg) { msg.style.display = 'block'; msg.textContent = 'Carregant destinataris...'; msg.style.color = 'var(--g400)'; }
+
+  if (!sb) {
+    if (msg) { msg.textContent = 'Supabase no disponible'; msg.style.color = '#C0392B'; }
+    if (btn) { btn.disabled = false; btn.textContent = '📣 Enviar comunicat'; }
+    return;
+  }
+
+  try {
+    // 1. Carregar destinataris
+    var query = sb.from('clients').select('email,nom').eq('status','active');
+    if (plaFiltrat) query = query.eq('pla', plaFiltrat);
+    var resD = await query;
+    if (resD.error) throw resD.error;
+    var destinataris = resD.data || [];
+    if (destinataris.length === 0) {
+      if (msg) { msg.textContent = 'Cap client actiu trobat amb els filtres seleccionats.'; msg.style.color = '#7A4A00'; }
+      if (btn) { btn.disabled = false; btn.textContent = '📣 Enviar comunicat'; }
+      return;
+    }
+
+    if (msg) msg.textContent = 'Enviant a ' + destinataris.length + ' clients...';
+
+    // 2. Inserir un missatge per a cada destinatari
+    var payloads = destinataris.map(function(d) {
+      return {
+        client_email:    d.email,
+        from_email:      'guillem@theboringinvestor.com',
+        from_role:       'admin',
+        subject:         assumpte,
+        content:         missatgeFinal,
+        read_by_admin:   true,
+        read_by_client:  false,
+        broadcast:       true,
+        broadcast_count: destinataris.length,
+      };
+    });
+
+    // Inserir en lots de 50 per evitar timeout
+    var lots = [];
+    for (var i = 0; i < payloads.length; i += 50) {
+      lots.push(payloads.slice(i, i + 50));
+    }
+    for (var li = 0; li < lots.length; li++) {
+      var resI = await sb.from('messages').insert(lots[li]);
+      if (resI.error) throw resI.error;
+      if (msg) msg.textContent = 'Enviant... (' + Math.min((li+1)*50, payloads.length) + '/' + payloads.length + ')';
+    }
+
+    // 3. Èxit
+    if (msg) { msg.textContent = '✓ Comunicat enviat a ' + destinataris.length + ' clients!'; msg.style.color = '#1A5C3A'; }
+    if (btn) { btn.textContent = '✓ Enviat'; }
+    // Netejar formulari
+    var ass = document.getElementById('bc-assumpte'); if (ass) ass.value = '';
+    var cosel = document.getElementById('bc-cos'); if (cosel) cosel.value = '';
+    var prev = document.getElementById('bc-preview'); if (prev) prev.style.display = 'none';
+    // Refrescar per veure historial actualitzat
+    setTimeout(function(){ navigateTo('admin-broadcast'); }, 2000);
+
+  } catch(e) {
+    console.error('Error broadcast:', e);
+    if (msg) { msg.textContent = 'Error: ' + (e.message || e); msg.style.color = '#C0392B'; }
+    if (btn) { btn.disabled = false; btn.textContent = '📣 Enviar comunicat'; }
+  }
+}
 
 async function renderAdminPendents(el) {
   el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:40px;color:var(--g500)">Carregant sol·licituds...</div></div>';
