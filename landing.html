@@ -2,658 +2,868 @@
 <html lang="ca">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>The Boring Investor — Assessoria Financera Independent</title>
-<meta name="description" content="Assessorament financer independent. Fee-only. Sense comissions. Sense conflictes d'interès. Per a assalariats que volen entendre i controlar els seus diners.">
-<meta property="og:title" content="The Boring Investor — Assessoria Financera Independent">
-<meta property="og:description" content="Assessorament financer fee-only. Sense comissions, sense conflictes d'interès.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Boring Investor &mdash; Assessoria Financera Independent</title>
+<meta name="description" content="Assessor financer independent fee-only. 6 anys d'experiencia inversora. 13,5% rendiment mig anual. Des de 8&euro;/mes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+*{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --black:#0A0A0A;--white:#FFFFFF;--bg:#F7F6F4;
-  --g100:#F4F3F0;--g200:#E8E6E1;--g300:#C8C5BE;--g400:#9A9690;--g500:#6B6762;
-  --accent:#1B3A6B;--accent-l:#EBF0FA;
-  --green:#1A5C3A;
-  --fd:'Playfair Display',Georgia,serif;
-  --fb:'DM Sans',system-ui,sans-serif;
-  --fm:'DM Mono',monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
+  --black:#0D0D0D;--white:#FAFAF8;--cream:#F5F3ED;
+  --gold:#C8A54A;--gold-light:#E8D49A;--gold-dark:#9A7B2F;
+  --green:#1A5C3A;--green-light:#EAF3DE;
+  --red:#8B1A1A;--blue:#1B3A6B;
+  --g50:#F9F8F5;--g100:#E8E6E0;--g200:#D4D1C9;--g300:#B0ADA5;--g400:#8A8780;--g500:#6B685F;--g600:#4A473F;
+  --fd:"Playfair Display",Georgia,serif;--fb:"DM Sans",system-ui,sans-serif;--fm:"DM Mono",monospace;--max:1120px}
 html{scroll-behavior:smooth}
-body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-smoothing:antialiased;overflow-x:hidden}
-
-/* ── TOPBAR ── */
-.topbar{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  height:56px;background:rgba(247,246,244,.92);backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--g200);
-  display:flex;align-items:center;justify-content:space-between;padding:0 32px;
-}
-.topbar-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--black)}
-.topbar-brand{font-size:13px;font-weight:500}
-.topbar-cta{
-  padding:8px 18px;background:var(--black);color:var(--white);
-  border:none;border-radius:7px;font-size:12px;font-weight:500;
-  cursor:pointer;font-family:var(--fb);text-decoration:none;
-  transition:opacity .15s;
-}
-.topbar-cta:hover{opacity:.82}
-
-/* ── HERO ── */
-.hero{
-  min-height:100vh;display:flex;align-items:center;
-  padding:100px 32px 80px;
-  background:var(--white);
-  position:relative;overflow:hidden;
-}
-.hero::before{
-  content:'';position:absolute;
-  top:-40%;right:-20%;
-  width:600px;height:600px;
-  background:radial-gradient(circle, rgba(27,58,107,.06) 0%, transparent 70%);
-  border-radius:50%;pointer-events:none;
-}
-.hero-inner{max-width:780px;margin:0 auto;width:100%;position:relative;z-index:1}
-.hero-tag{
-  display:inline-flex;align-items:center;gap:8px;
-  font-size:11px;font-weight:500;color:var(--accent);
-  text-transform:uppercase;letter-spacing:.1em;
-  padding:6px 12px;background:var(--accent-l);border-radius:99px;
-  margin-bottom:28px;
-  
-}
-.hero-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.hero-h1{
-  font-family:var(--fd);
-  font-size:clamp(40px,6vw,68px);
-  font-weight:400;line-height:1.08;
-  letter-spacing:-.5px;
-  color:var(--black);
-  margin-bottom:24px;
-  
-}
-.hero-h1 em{font-style:italic;color:var(--accent)}
-.hero-sub{
-  font-size:clamp(15px,2vw,18px);
-  color:var(--g500);line-height:1.7;
-  max-width:560px;margin-bottom:40px;
-  
-}
-.hero-actions{
-  display:flex;gap:12px;flex-wrap:wrap;
-  
-}
-.btn-hero{
-  padding:14px 28px;background:var(--black);color:var(--white);
-  border:none;border-radius:10px;font-size:15px;font-weight:500;
-  cursor:pointer;font-family:var(--fb);text-decoration:none;
-  transition:all .2s;display:inline-block;
-}
-.btn-hero:hover{background:#1a1a18;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
-.btn-hero-sec{
-  padding:14px 28px;background:transparent;color:var(--black);
-  border:1.5px solid var(--g200);border-radius:10px;font-size:15px;font-weight:500;
-  cursor:pointer;font-family:var(--fb);text-decoration:none;
-  transition:all .2s;display:inline-block;
-}
-.btn-hero-sec:hover{border-color:var(--black)}
-.hero-proof{
-  margin-top:52px;display:flex;align-items:center;gap:20px;
-  
-}
-.hero-proof-line{width:40px;height:1px;background:var(--g300)}
-.hero-proof-txt{font-size:12px;color:var(--g400);font-style:italic}
-
-/* ── NUMBERS ── */
-.numbers{
-  background:var(--black);padding:60px 32px;
-}
-.numbers-inner{
-  max-width:900px;margin:0 auto;
-  display:grid;grid-template-columns:repeat(3,1fr);
-  border:1px solid rgba(255,255,255,.1);border-radius:12px;overflow:hidden;
-}
-.num-item{
-  padding:40px 32px;background:var(--black);text-align:center;
-  border-right:1px solid rgba(255,255,255,.08);
-}
-.num-item:last-child{border-right:none}
-.num-val{
-  font-family:var(--fd);font-size:clamp(36px,5vw,52px);
-  font-weight:400;color:var(--white);margin-bottom:6px;letter-spacing:-.5px;
-}
-.num-lbl{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.09em}
-
-/* ── PAIN ── */
-.pain{padding:96px 32px;background:var(--bg)}
-.section-inner{max-width:900px;margin:0 auto}
-.section-eye{font-size:10px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
-.section-h2{font-family:var(--fd);font-size:clamp(28px,4vw,42px);font-weight:400;line-height:1.15;letter-spacing:-.3px;margin-bottom:48px}
-.pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.pain-card{
-  background:var(--white);border:1px solid var(--g200);border-radius:14px;padding:28px 24px;
-  transition:border-color .2s;
-}
-.pain-card:hover{border-color:var(--g300)}
-.pain-icon{font-size:24px;margin-bottom:16px}
-.pain-title{font-size:15px;font-weight:500;color:var(--black);margin-bottom:8px}
-.pain-txt{font-size:13px;color:var(--g500);line-height:1.7}
-
-/* ── HOW ── */
-.how{padding:96px 32px;background:var(--white)}
-.how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:48px}
-.step{position:relative}
-.step-num{
-  font-family:var(--fm);font-size:11px;color:var(--accent);
-  margin-bottom:14px;display:flex;align-items:center;gap:8px;
-}
-.step-num::after{content:'';flex:1;height:1px;background:var(--g200)}
-.step-title{font-size:16px;font-weight:500;color:var(--black);margin-bottom:8px}
-.step-txt{font-size:13px;color:var(--g500);line-height:1.7}
-.step-badge{
-  display:inline-block;margin-top:14px;
-  font-size:11px;padding:4px 10px;background:var(--accent-l);
-  color:var(--accent);border-radius:99px;font-weight:500;
-}
-
-/* ── WHAT YOU GET ── */
-.gets{padding:96px 32px;background:var(--bg)}
-.gets-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:48px}
-.get-item{
-  display:flex;gap:14px;align-items:start;
-  padding:20px 22px;background:var(--white);
-  border:1px solid var(--g200);border-radius:12px;
-}
-.get-icon{font-size:18px;flex-shrink:0;margin-top:1px}
-.get-title{font-size:13px;font-weight:500;color:var(--black);margin-bottom:3px}
-.get-txt{font-size:12px;color:var(--g500);line-height:1.6}
-
-/* ── FEE-ONLY ── */
-.feeonly{
-  padding:96px 32px;
-  background:var(--black);
-  position:relative;overflow:hidden;
-}
-.feeonly::before{
-  content:'fee-only';
-  position:absolute;right:-60px;top:50%;transform:translateY(-50%);
-  font-family:var(--fd);font-size:180px;font-weight:400;
-  color:rgba(255,255,255,.03);white-space:nowrap;letter-spacing:-5px;
-  pointer-events:none;
-}
-.feeonly-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;position:relative;z-index:1}
-.feeonly-h2{font-family:var(--fd);font-size:clamp(28px,4vw,42px);font-weight:400;color:var(--white);line-height:1.2;letter-spacing:-.3px;margin-bottom:20px}
-.feeonly-h2 em{font-style:italic;color:rgba(255,255,255,.5)}
-.feeonly-txt{font-size:14px;color:rgba(255,255,255,.55);line-height:1.8}
-.feeonly-points{display:flex;flex-direction:column;gap:16px}
-.feeonly-point{
-  display:flex;gap:14px;align-items:start;
-  padding:16px 18px;border:1px solid rgba(255,255,255,.08);border-radius:10px;
-}
-.feeonly-point-icon{color:rgba(255,255,255,.4);font-size:16px;flex-shrink:0}
-.feeonly-point-title{font-size:13px;font-weight:500;color:var(--white);margin-bottom:3px}
-.feeonly-point-txt{font-size:12px;color:rgba(255,255,255,.45);line-height:1.6}
-
-/* ── ABOUT ── */
-.about{padding:96px 32px;background:var(--white)}
-.about-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:auto 1fr;gap:56px;align-items:start}
-.about-avatar{
-  width:120px;height:120px;border-radius:50%;
-  background:var(--black);display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-}
-.about-avatar-initials{font-family:var(--fd);font-size:36px;font-weight:400;color:rgba(255,255,255,.25)}
-.about-name{font-family:var(--fd);font-size:28px;font-weight:400;margin-bottom:4px;letter-spacing:-.2px}
-.about-role{font-size:12px;color:var(--g400);margin-bottom:20px}
-.about-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-.about-tag{font-size:10px;padding:4px 10px;background:var(--g100);border-radius:99px;color:var(--g500);font-weight:500}
-.about-txt{font-size:14px;color:var(--g500);line-height:1.8;margin-bottom:16px}
-.about-quote{
-  border-left:3px solid var(--g200);padding:12px 16px;
-  font-size:14px;font-style:italic;color:var(--g500);line-height:1.7;
-  background:var(--g100);border-radius:0 8px 8px 0;
-}
-
-/* ── FAQ ── */
-.faq{padding:96px 32px;background:var(--bg)}
-.faq-list{margin-top:48px;display:flex;flex-direction:column;gap:2px}
-.faq-item{background:var(--white);border:1px solid var(--g200);border-radius:10px;overflow:hidden}
-.faq-q{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:18px 22px;cursor:pointer;font-size:14px;font-weight:500;
-  transition:background .15s;user-select:none;
-}
-.faq-q:hover{background:var(--g100)}
-.faq-q-icon{font-size:18px;color:var(--g400);transition:transform .2s;flex-shrink:0}
-.faq-a{
-  padding:0 22px;max-height:0;overflow:hidden;
-  font-size:13px;color:var(--g500);line-height:1.75;
-  transition:max-height .3s ease, padding .3s ease;
-}
-.faq-item.open .faq-a{max-height:200px;padding:0 22px 18px}
-.faq-item.open .faq-q-icon{transform:rotate(45deg)}
-
-/* ── FINAL CTA ── */
-.final-cta{
-  padding:96px 32px;background:var(--black);text-align:center;
-}
-.final-cta-eye{font-size:10px;font-weight:500;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-bottom:20px}
-.final-cta-h2{
-  font-family:var(--fd);font-size:clamp(32px,5vw,52px);
-  font-weight:400;color:var(--white);line-height:1.1;
-  letter-spacing:-.5px;margin-bottom:16px;max-width:600px;margin-left:auto;margin-right:auto;
-}
-.final-cta-sub{font-size:15px;color:rgba(255,255,255,.45);margin-bottom:40px;line-height:1.6}
-.btn-final{
-  padding:16px 36px;background:var(--white);color:var(--black);
-  border:none;border-radius:10px;font-size:15px;font-weight:500;
-  cursor:pointer;font-family:var(--fb);text-decoration:none;
-  display:inline-block;transition:all .2s;
-}
-.btn-final:hover{background:var(--g100);transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,255,255,.1)}
-.final-note{margin-top:20px;font-size:11px;color:rgba(255,255,255,.25)}
-
-/* ── FOOTER ── */
-.footer{
-  padding:32px;background:var(--black);border-top:1px solid rgba(255,255,255,.06);
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
-}
-.footer-brand{font-size:12px;color:rgba(255,255,255,.35)}
-.footer-links{display:flex;gap:20px}
-.footer-link{font-size:11px;color:rgba(255,255,255,.25);text-decoration:none;transition:color .15s}
-.footer-link:hover{color:rgba(255,255,255,.5)}
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(16px)}
-  to{opacity:1;transform:translateY(0)}
-}
-/* Hero elements: visibles per defecte, animació com a millora progressiva */
-.hero-tag,.hero-h1,.hero-sub,.hero-actions,.hero-proof{
-  opacity:1;transform:none;
-}
-.reveal{opacity:0;transform:translateY(20px);transition:opacity .55s ease, transform .55s ease}
-.reveal.visible{opacity:1;transform:none}
-
-/* ── RESPONSIVE ── */
-@media(max-width:768px){
-  .topbar{padding:0 20px}
-  .hero{padding:80px 20px 60px}
-  .numbers-inner{grid-template-columns:1fr;gap:0}
-  .pain-grid,.how-steps,.gets-grid{grid-template-columns:1fr}
-  .feeonly-inner{grid-template-columns:1fr;gap:40px}
-  .about-inner{grid-template-columns:1fr}
-  .about-avatar{width:80px;height:80px}
-  .about-avatar-initials{font-size:24px}
-  .footer{flex-direction:column;text-align:center}
-  .hero-proof{flex-direction:column;align-items:flex-start}
-  .hero-proof-line{display:none}
-}
-
-/* ── PRICING ── */
-.pricing{padding:96px 32px;background:var(--white)}
-.pricing-sub{font-size:15px;color:var(--g500);margin-bottom:48px;line-height:1.6;max-width:560px}
-.pricing-grid{
-  display:grid;grid-template-columns:repeat(5,1fr);gap:14px;
-  align-items:start;margin-bottom:40px;
-}
-.pack-card{
-  background:var(--bg);border:1.5px solid var(--g200);border-radius:16px;
-  padding:24px 22px;position:relative;transition:border-color .2s;
-}
-.pack-card:hover{border-color:var(--g300)}
-.pack-star{
-  background:var(--white);border-color:var(--accent);
-  box-shadow:0 8px 32px rgba(27,58,107,.12);
-  transform:translateY(-6px);
-}
-.pack-badge{
-  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-  background:var(--accent);color:white;font-size:10px;font-weight:500;
-  padding:4px 14px;border-radius:99px;white-space:nowrap;letter-spacing:.06em;
-}
-.pack-num{font-family:var(--fm);font-size:11px;color:var(--g400);margin-bottom:6px}
-.pack-name{font-family:var(--fd);font-size:24px;font-weight:400;color:var(--black);margin-bottom:4px}
-.pack-tagline{font-size:12px;color:var(--g400);font-style:italic;margin-bottom:20px}
-.pack-price{display:flex;align-items:baseline;gap:6px;margin-bottom:4px}
-.price-val{font-family:var(--fd);font-size:36px;font-weight:400;color:var(--black)}
-.price-per{font-size:13px;color:var(--g400)}
-.pack-price-alt{font-size:12px;color:var(--g400);margin-bottom:6px}
-.price-save{color:var(--green);font-weight:500}
-.pack-anchor{
-  font-size:11px;color:var(--g500);font-style:italic;
-  padding:8px 10px;background:var(--g100);border-radius:6px;
-  margin-bottom:20px;line-height:1.5;
-}
-.pack-features{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:20px}
-.pack-features li{font-size:12px;color:var(--g500);line-height:1.5}
-.pack-features li.muted{color:var(--g300)}
-.pack-features strong{color:var(--black)}
-.pack-note{font-size:10px;color:var(--g400);text-align:center;margin-bottom:16px;font-style:italic}
-.pack-cta{
-  display:block;width:100%;padding:12px;text-align:center;
-  border-radius:9px;font-size:13px;font-weight:500;
-  cursor:pointer;font-family:var(--fb);text-decoration:none;
-  transition:all .2s;
-}
-.pack-cta-primary{background:var(--accent);color:white;border:none}
-.pack-cta-primary:hover{background:#152d56}
-.pack-cta-sec{background:transparent;color:var(--black);border:1.5px solid var(--g200)}
-.pack-cta-sec:hover{border-color:var(--black)}
-/* ROI footer */
-.pricing-footer{
-  display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;
-  padding:24px 28px;background:var(--g100);border-radius:12px;
-}
-.pricing-roi-title{font-size:12px;font-weight:500;color:var(--black);margin-bottom:6px}
-.pricing-roi-txt{font-size:12px;color:var(--g500);line-height:1.7}
-.pricing-roi-txt strong{color:var(--black)}
-.pricing-guarantee{display:flex;gap:14px;align-items:start;min-width:260px}
-.pricing-guarantee-icon{font-size:24px;flex-shrink:0}
-.pricing-guarantee-title{font-size:12px;font-weight:500;color:var(--black);margin-bottom:3px}
-.pricing-guarantee-txt{font-size:11px;color:var(--g500);line-height:1.6}
-@media(max-width:1100px){
-  .pricing-grid{grid-template-columns:repeat(3,1fr)}
-}
-@media(max-width:700px){
-  .pricing-grid{grid-template-columns:repeat(1,1fr)}
-  .pack-star{transform:none}
-  .pricing-footer{grid-template-columns:1fr}
-}
-@media(max-width:600px){
-  .pricing-grid{grid-template-columns:1fr}
-}
-
-/* ── METODOLOGIA ── */
-.metodo{padding:96px 32px;background:var(--white)}
-.metodo-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:48px}
-.metodo-steps{display:flex;flex-direction:column;gap:20px}
-.metodo-step{display:flex;gap:16px;align-items:start}
-.metodo-step-num{
-  width:32px;height:32px;border-radius:50%;background:var(--black);
-  color:white;font-family:var(--fm);font-size:11px;font-weight:500;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
-}
-.metodo-step-title{font-size:14px;font-weight:500;color:var(--black);margin-bottom:4px}
-.metodo-step-txt{font-size:13px;color:var(--g500);line-height:1.65}
-/* Visual mock */
-.metodo-visual{background:var(--bg);border:1px solid var(--g200);border-radius:16px;padding:24px;position:relative;overflow:hidden}
-.metodo-visual-badge{font-size:9px;font-weight:500;color:var(--accent);text-transform:uppercase;letter-spacing:.09em;margin-bottom:12px}
-.metodo-visual-title{font-family:var(--fd);font-size:18px;font-weight:400;color:var(--black);margin-bottom:20px}
-/* Radar mock SVG */
-.radar-mock{margin:0 auto 20px;display:block}
-/* Score bars */
-.score-bars{display:flex;flex-direction:column;gap:7px}
-.score-bar-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--g500)}
-.score-bar-lbl{width:100px;flex-shrink:0;font-size:10px}
-.score-bar-track{flex:1;height:5px;background:var(--g200);border-radius:99px;overflow:hidden}
-.score-bar-fill{height:100%;border-radius:99px;background:var(--accent)}
-.score-bar-val{width:28px;text-align:right;font-family:var(--fm);font-size:10px;color:var(--accent)}
-/* Tech stack */
-.tech-section{padding:64px 32px;background:var(--bg)}
-.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:36px}
-.tech-item{background:var(--white);border:1px solid var(--g200);border-radius:12px;padding:18px 16px;text-align:center}
-.tech-item-icon{font-size:24px;margin-bottom:8px}
-.tech-item-name{font-size:12px;font-weight:500;color:var(--black);margin-bottom:3px}
-.tech-item-desc{font-size:11px;color:var(--g400);line-height:1.5}
-@media(max-width:768px){
-  .metodo-grid{grid-template-columns:1fr}
-  .tech-grid{grid-template-columns:repeat(2,1fr)}
-}
+body{font-family:var(--fb);color:var(--black);background:var(--white);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}img{max-width:100%;display:block}
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;transition:all .3s}
+.nav.scrolled{background:rgba(13,13,13,.96);backdrop-filter:blur(12px);box-shadow:0 1px 20px rgba(0,0,0,.18)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:#fff}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{font-size:13px;color:rgba(255,255,255,.5);font-weight:500;transition:color .2s}
+.nav-links a:hover{color:#fff}
+.nav-cta{padding:8px 20px!important;background:var(--gold)!important;color:var(--black)!important;border-radius:8px;font-weight:600!important}
+@media(max-width:768px){.nav-links a:not(.nav-cta){display:none}}
+/* HERO */
+.hero{min-height:100vh;background:var(--black);position:relative;overflow:hidden;display:flex;align-items:center}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 70% 25%,rgba(200,165,74,.09) 0%,transparent 55%)}
+.hero-inner{max-width:var(--max);margin:0 auto;padding:140px 28px 80px;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(200,165,74,.12);border:1px solid rgba(200,165,74,.25);border-radius:99px;font-size:11px;color:var(--gold);font-weight:500;letter-spacing:.04em;margin-bottom:24px}
+.hero h1{font-family:var(--fd);font-size:clamp(36px,5vw,56px);font-weight:500;color:#fff;line-height:1.15;letter-spacing:-.5px;margin-bottom:20px}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.5);line-height:1.78;margin-bottom:36px;max-width:520px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:40px}
+.btn-primary{padding:14px 32px;background:var(--gold);color:var(--black);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,165,74,.35)}
+.btn-secondary{padding:14px 28px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.14);border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .2s}
+.btn-secondary:hover{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.04)}
+.hero-proof{display:flex;gap:28px;flex-wrap:wrap}
+.hero-proof-item{font-size:12px;color:rgba(255,255,255,.32);display:flex;align-items:center;gap:6px}
+.hero-proof-item strong{color:rgba(255,255,255,.7)}
+.hero-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:28px}
+.hero-bar-track{flex:1;height:6px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}
+.hero-bar-fill{height:100%;border-radius:99px}
+@media(max-width:768px){.hero-inner{grid-template-columns:1fr;text-align:center}.hero-sub{margin:0 auto 36px}.hero-ctas{justify-content:center}.hero-proof{justify-content:center}.hero-visual{display:none}}
+/* SECTIONS */
+section{padding:100px 28px}.section-inner{max-width:var(--max);margin:0 auto}
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.13em;color:var(--gold);margin-bottom:12px}
+.section-title{font-family:var(--fd);font-size:clamp(28px,3.5vw,42px);font-weight:500;letter-spacing:-.3px;line-height:1.2;margin-bottom:16px}
+.section-sub{font-size:15px;color:var(--g500);line-height:1.78;max-width:600px;margin-bottom:48px}
+/* PROBLEMA */
+.problema{background:var(--cream)}
+.prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.prob-card{padding:32px 28px;background:#fff;border-radius:16px;border:1px solid var(--g100)}
+.prob-card-num{font-family:var(--fm);font-size:36px;font-weight:500;color:var(--red);margin-bottom:8px}
+.prob-card-title{font-size:15px;font-weight:600;margin-bottom:8px}
+.prob-card-text{font-size:13px;color:var(--g500);line-height:1.72}
+@media(max-width:768px){.prob-grid{grid-template-columns:1fr}}
+/* EXPERIENCIA */
+.experiencia{background:var(--black);color:#fff}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.exp-stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px}
+.exp-stat{padding:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px}
+.exp-stat-num{font-family:var(--fm);font-size:28px;font-weight:500;color:var(--gold);margin-bottom:4px}
+.exp-stat-label{font-size:12px;color:rgba(255,255,255,.4);line-height:1.5}
+.exp-instruments{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.exp-tag{padding:5px 12px;background:rgba(255,255,255,.06);border-radius:99px;font-size:11px;color:rgba(255,255,255,.55)}
+@media(max-width:768px){.exp-grid{grid-template-columns:1fr}}
+/* METODOLOGIA */
+.metodologia{background:var(--cream)}
+.meto-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px}
+.meto-card{padding:24px 20px;background:#fff;border-radius:14px;border:1px solid var(--g100);text-align:center}
+.meto-card-icon{font-size:32px;margin-bottom:12px}
+.meto-card-title{font-size:14px;font-weight:600;margin-bottom:8px}
+.meto-card-text{font-size:12px;color:var(--g500);line-height:1.65}
+.meto-card-pct{font-family:var(--fm);font-size:22px;font-weight:500;color:var(--green);margin-top:8px}
+.meto-result{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.meto-kpi{padding:24px;background:var(--black);border-radius:14px;text-align:center}
+.meto-kpi-num{font-family:var(--fm);font-size:36px;font-weight:500;color:var(--gold);margin-bottom:6px}
+.meto-kpi-label{font-size:12px;color:rgba(255,255,255,.4);line-height:1.5}
+@media(max-width:768px){.meto-grid{grid-template-columns:1fr 1fr}.meto-result{grid-template-columns:1fr}}
+/* COMPARATIVA */
+.comparativa{background:var(--black);color:#fff}
+.comp-wrapper{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:32px}
+.comp-card{border-radius:16px;padding:28px}
+.comp-card.banc{background:rgba(139,26,26,.12);border:1px solid rgba(139,26,26,.25)}
+.comp-card.tbi{background:rgba(26,92,58,.12);border:1px solid rgba(26,92,58,.25)}
+.comp-card-icon{font-size:28px;margin-bottom:12px}
+.comp-card-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.comp-card-sub{font-size:12px;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:20px}
+.comp-card-result{font-family:var(--fm);font-size:36px;font-weight:500;margin-bottom:4px}
+.comp-card.banc .comp-card-result{color:#E57373}
+.comp-card.tbi .comp-card-result{color:#4CAF82}
+.comp-card-detail{font-size:12px;color:rgba(255,255,255,.4)}
+.comp-diff{text-align:center;padding:32px;background:rgba(200,165,74,.08);border:1px solid rgba(200,165,74,.2);border-radius:16px}
+.comp-diff-label{font-size:12px;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.comp-diff-value{font-family:var(--fd);font-size:48px;font-weight:600;color:var(--gold)}
+.comp-diff-sub{font-size:13px;color:rgba(255,255,255,.4);margin-top:8px;line-height:1.6}
+.comp-inputs{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}
+.comp-input-group{display:flex;flex-direction:column;gap:4px}
+.comp-input-group label{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em}
+.comp-input-group input{padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:var(--fm);font-size:14px;width:140px;text-align:center}
+.comp-input-group input:focus{outline:none;border-color:var(--gold)}
+@media(max-width:768px){.comp-wrapper{grid-template-columns:1fr}}
+/* PLATAFORMA */
+.plataforma{background:var(--cream)}
+.screen-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+.screen-tab{padding:8px 18px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--g200);background:#fff;color:var(--g500);transition:all .15s;font-family:var(--fb)}
+.screen-tab.active{background:var(--black);color:#fff;border-color:var(--black)}
+.carteres-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;} .carteres-scroll > div{min-width:160px;} .screen-window{background:var(--black);border-radius:20px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.2)}
+.screen-bar{height:42px;background:#1A1A1A;display:flex;align-items:center;padding:0 16px;gap:8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.screen-dots{display:flex;gap:6px}
+.screen-dot{width:10px;height:10px;border-radius:50%}
+.screen-url{flex:1;height:22px;background:rgba(255,255,255,.06);border-radius:5px;margin:0 12px;display:flex;align-items:center;padding:0 10px}
+.screen-url span{font-size:10px;color:rgba(255,255,255,.3);font-family:var(--fm)}
+.screen-content{padding:24px;display:none}
+.screen-content.active{display:block}
+/* Steps */
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{text-align:center;padding:32px 20px;position:relative}
+.step-num{width:44px;height:44px;border-radius:50%;background:var(--gold);color:var(--black);font-family:var(--fm);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step-title{font-size:14px;font-weight:600;margin-bottom:8px}
+.step-text{font-size:12px;color:var(--g500);line-height:1.7}
+.step-arrow{position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--g300);font-size:18px}
+@media(max-width:768px){.steps-grid{grid-template-columns:1fr 1fr}.step-arrow{display:none}}
+@media(max-width:480px){.steps-grid{grid-template-columns:1fr}}
+/* PRICING */
+.pricing{background:var(--white)}
+.pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+.plan{background:#fff;border:1.5px solid var(--g100);border-radius:16px;padding:24px 20px;position:relative;transition:all .2s}
+.plan:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.08)}
+.plan.featured{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,165,74,.15)}
+.plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-size:10px;font-weight:700;padding:4px 14px;border-radius:99px;white-space:nowrap;letter-spacing:.04em}
+.plan-name{font-family:var(--fd);font-size:22px;font-weight:600;margin-bottom:4px;margin-top:8px}
+.plan-tagline{font-size:11px;color:var(--g400);margin-bottom:16px;line-height:1.5}
+.plan-price{font-family:var(--fm);font-size:32px;font-weight:500;color:var(--black);margin-bottom:2px}
+.plan-price span{font-size:14px;color:var(--g400);font-weight:400}
+.plan-annual{font-size:11px;color:var(--g400);margin-bottom:20px}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.plan-features li{font-size:12px;color:var(--g600);line-height:1.5;padding-left:18px;position:relative}
+.plan-features li::before{content:"\2713";position:absolute;left:0;color:var(--green);font-weight:600;font-size:11px}
+.plan-features li.no::before{content:"\2014";color:var(--g300)}
+.plan-features li.no{color:var(--g300)}
+.plan-btn{width:100%;padding:12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .15s;border:none}
+.plan-btn-primary{background:var(--black);color:#fff}.plan-btn-primary:hover{background:#333}
+.plan-btn-gold{background:var(--gold);color:var(--black)}.plan-btn-gold:hover{background:var(--gold-dark);color:#fff}
+.plan-btn-outline{background:transparent;border:1.5px solid var(--g200);color:var(--g600)}.plan-btn-outline:hover{border-color:var(--black);color:var(--black)}
+.plan-setup{font-size:10px;color:var(--g400);text-align:center;margin-top:10px}
+.plan-pioneer{font-size:10px;color:var(--gold-dark);text-align:center;margin-top:6px;font-weight:600}
+@media(max-width:900px){.pricing-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.pricing-grid{grid-template-columns:1fr;max-width:380px;margin:0 auto}}
+/* ABOUT */
+.about{background:var(--cream)}
+.about-grid{display:flex;gap:24px;align-items:flex-start}
+.about-photo{width:80px;height:80px;border-radius:50%;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,.15);flex-shrink:0}
+.about-creds{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.about-cred{padding:6px 14px;background:#fff;border-radius:99px;font-size:11px;font-weight:500;color:var(--g600)}
+@media(max-width:768px){.about-grid{flex-direction:column;text-align:center;align-items:center}}
+/* FAQ */
+.faq-list{max-width:700px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--g200);padding:20px 0}
+.faq-q{font-size:15px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;user-select:none}
+.faq-q::after{content:"+";font-size:20px;color:var(--g400);transition:transform .2s;flex-shrink:0}
+.faq-q.open::after{transform:rotate(45deg)}
+.faq-a{font-size:13px;color:var(--g500);line-height:1.8;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
+.faq-a.open{max-height:300px;padding-top:12px}
+/* CTA */
+.cta-final{background:var(--black);text-align:center}
+.cta-final .section-title{color:#fff}
+.cta-final .section-sub{color:rgba(255,255,255,.4);margin:0 auto 40px}
+.cta-final-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+/* FOOTER */
+.footer{background:var(--black);border-top:1px solid rgba(255,255,255,.06);padding:28px;text-align:center;font-size:11px;color:rgba(255,255,255,.2)}
+/* WA */
+.wa-fab{position:fixed;bottom:24px;right:24px;z-index:90;width:54px;height:54px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(37,211,102,.35);cursor:pointer;transition:transform .2s}
+.wa-fab:hover{transform:scale(1.08)}.wa-fab svg{width:28px;height:28px;fill:#fff}
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+.fade-up{opacity:0;animation:fadeUp .7s ease forwards}
+.fade-up.d1{animation-delay:.1s}.fade-up.d2{animation-delay:.2s}.fade-up.d3{animation-delay:.3s}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<nav class="topbar">
-  <a class="topbar-logo" href="#">
-    <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="1" width="24" height="24" rx="3" fill="none" stroke="#C8C5BE" stroke-width="1.5"/>
-      <circle cx="8" cy="9" r="1.8" fill="#0A0A0A"/>
-      <circle cx="8" cy="16" r="1.8" fill="#0A0A0A"/>
-      <rect x="11" y="12" width="5.5" height="1.5" rx=".75" fill="#0A0A0A"/>
-      <rect x="18.5" y="7" width="1.5" height="12" rx=".75" fill="#0A0A0A"/>
-    </svg>
-    <span class="topbar-brand">The Boring Investor</span>
-  </a>
-  <a class="topbar-cta" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
-    Descobreix el teu perfil →
-  </a>
+<!-- NAV -->
+<nav class="nav" id="main-nav">
+  <div class="nav-logo"><span style="font-size:20px;margin-right:4px">:-|</span> The Boring Investor</div>
+  <div class="nav-links">
+    <a href="#problema">Per qu&egrave;</a>
+    <a href="#metodologia">Metodologia</a>
+    <a href="#comparativa">Compara</a>
+    <a href="#carteres">Carteres</a><a href="#comp-preus">Vs. competitors</a><a href="#formacio">Formaci&oacute;</a><a href="#pricing">Plans</a>
+    <a href="#about">Qui s&oacute;c</a>
+    <a href="client_onboarding_v3.html" class="nav-cta">Comen&ccedil;ar &rarr;</a>
+  </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
   <div class="hero-inner">
-    <div class="hero-tag">Assessoria Financera Independent · Fee-only</div>
-    <h1 class="hero-h1">
-      Els teus diners<br>
-      mereixen un pla.<br>
-      <em>No una comissió.</em>
-    </h1>
-    <p class="hero-sub">
-      Cobro únicament pels meus serveis. Mai per la venda de productes.
-      Sense conflictes d'interès. Sense productes propis a vendre. Sense excuses.
-    </p>
-    <div class="hero-actions">
-      <a class="btn-hero" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
-        Descobreix el teu perfil inversor →
-      </a>
-      <a class="btn-hero-sec" href="#metodologia">Com funciona →</a>
+    <div class="fade-up">
+      <div class="hero-badge">&#128737; 100% Independent &middot; Fee-Only &middot; Candidat EFA &middot; 6 anys d&apos;experi&egrave;ncia</div>
+      <h1>Deixa de <em>regalar diners</em> al teu banc</h1>
+      <p class="hero-sub">El teu banc anuncia un 4,5% per&ograve; et cobra fins a un 1,8% en comissions ocultes. Mentre, una cartera ben constru&iuml;da pot rendir un <strong style="color:rgba(255,255,255,.85)">13,5% de mitjana anual</strong>. La difer&egrave;ncia en 20 anys &eacute;s de centenars de milers d&apos;euros.</p>
+      <div class="hero-ctas">
+        <a href="client_onboarding_v3.html" class="btn-primary">Fes el test gratuit <span style="font-size:12px;opacity:.6">2 min</span></a>
+        <a href="#comparativa" class="btn-secondary">Quant estic perdent?</a>
+      </div>
+      <div class="hero-proof">
+        <div class="hero-proof-item"><strong>13,5% rendiment mig anual</strong></div>
+        <div class="hero-proof-item"><strong>6 anys d&apos;experi&egrave;ncia</strong></div>
+        <div class="hero-proof-item"><strong>Garantia 30 dies</strong></div>
+      </div>
     </div>
-    <div class="hero-proof">
-      <div class="hero-proof-line"></div>
-      <p class="hero-proof-txt">Qüestionari gratuït de 5 minuts · Sense compromís · Resultats immediats</p>
-    </div>
-  </div>
-</section>
-
-<!-- NUMBERS -->
-<section class="numbers">
-  <div class="numbers-inner">
-    <div class="num-item reveal">
-      <div class="num-val">5'</div>
-      <div class="num-lbl">Per descobrir el teu perfil inversor</div>
-    </div>
-    <div class="num-item reveal">
-      <div class="num-val">0€</div>
-      <div class="num-lbl">De comissions de tercers. Mai.</div>
-    </div>
-    <div class="num-item reveal">
-      <div class="num-val">7</div>
-      <div class="num-lbl">Dimensions analitzades al teu perfil</div>
+    <div class="hero-visual fade-up d2">
+      <div class="hero-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.08em">Cartera Model &middot; Roma</div>
+            <div style="font-family:var(--fm);font-size:32px;color:#fff;font-weight:500;margin-top:4px">47.280 &euro;</div>
+            <div style="font-size:13px;color:#4CAF82;font-weight:500;margin-top:4px">+18,2% &uacute;ltims 12 mesos</div>
+          </div>
+          <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:var(--fm)">III &middot; Roma</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px"><div style="font-size:11px;color:rgba(255,255,255,.4);width:100px;flex-shrink:0">RV Global</div><div class="hero-bar-track"><div class="hero-bar-fill" style="width:45%;background:#1B3A6B"></div></div><div style="font-size:11px;color:rgba(255,255,255,.5);font-family:var(--fm);width:36px;text-align:right">45%</div></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="font-size:11px;color:rgba(255,255,255,.4);width:100px;flex-shrink:0">RV Dividend</div><div class="hero-bar-track"><div class="hero-bar-fill" style="width:15%;background:#2E5FA3"></div></div><div style="font-size:11px;color:rgba(255,255,255,.5);font-family:var(--fm);width:36px;text-align:right">15%</div></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="font-size:11px;color:rgba(255,255,255,.4);width:100px;flex-shrink:0">RF Gov.</div><div class="hero-bar-track"><div class="hero-bar-fill" style="width:20%;background:#546E7A"></div></div><div style="font-size:11px;color:rgba(255,255,255,.5);font-family:var(--fm);width:36px;text-align:right">20%</div></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="font-size:11px;color:rgba(255,255,255,.4);width:100px;flex-shrink:0">Or</div><div class="hero-bar-track"><div class="hero-bar-fill" style="width:10%;background:#C0392B"></div></div><div style="font-size:11px;color:rgba(255,255,255,.5);font-family:var(--fm);width:36px;text-align:right">10%</div></div>
+          <div style="display:flex;align-items:center;gap:10px"><div style="font-size:11px;color:rgba(255,255,255,.4);width:100px;flex-shrink:0">REITs</div><div class="hero-bar-track"><div class="hero-bar-fill" style="width:10%;background:#0F6E56"></div></div><div style="font-size:11px;color:rgba(255,255,255,.5);font-family:var(--fm);width:36px;text-align:right">10%</div></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- PAIN -->
-<section class="pain">
+<!-- PROBLEMA -->
+<section class="problema" id="problema">
   <div class="section-inner">
-    <p class="section-eye reveal">El problema</p>
-    <h2 class="section-h2 reveal">
-      Treballes molt.<br>Però els teus diners, no.
-    </h2>
-    <div class="pain-grid">
-      <div class="pain-card reveal">
-        <div class="pain-icon">📉</div>
-        <div class="pain-title">La inflació et menja els estalvis</div>
-        <div class="pain-txt">Els diners al compte corrent perden poder adquisitiu cada any. Sense invertir, l'estalvi és una ilusió.</div>
-      </div>
-      <div class="pain-card reveal">
-        <div class="pain-icon">🏦</div>
-        <div class="pain-title">El teu banc no és el teu amic</div>
-        <div class="pain-txt">Els assessors bancaris cobren comissions per vendre'te productes. Els seus interessos mai coincidiran exactament amb els teus.</div>
-      </div>
-      <div class="pain-card reveal">
-        <div class="pain-icon">🌀</div>
-        <div class="pain-title">Massa informació, massa soroll</div>
-        <div class="pain-txt">Podcasts, YouTube, fòrums... tothom opina. Però ningú coneix la teva situació real ni els teus objectius concrets.</div>
-      </div>
+    <div class="section-label">El problema</div>
+    <div class="section-title">El teu banc <span style="color:var(--red)">no treballa per tu</span></div>
+    <p class="section-sub">El 92% dels fons d&apos;inversi&oacute; bancaris rendeixen per sota del mercat. I a sobre, et cobren per fer-ho malament.</p>
+    <div class="prob-grid">
+      <div class="prob-card fade-up"><div class="prob-card-num">1,8%</div><div class="prob-card-title">Comissions ocultes anuals</div><div class="prob-card-text">El fons &ldquo;Mi Plan&rdquo; de CaixaBank cobra un 1,8% anual en comissions. Amb 20.000&euro;, s&oacute;n 360&euro;/any que desapareixen. Cada any. Durant d&egrave;cades.</div></div>
+      <div class="prob-card fade-up d1"><div class="prob-card-num" style="color:var(--gold-dark)">0 de 10</div><div class="prob-card-title">Conflicte d&apos;inter&egrave;s total</div><div class="prob-card-text">El teu &ldquo;assessor&rdquo; del banc cobra comissi&oacute; per cada producte que et ven. No treballa per tu &mdash; treballa per al banc. Les recomanacions estan dissenyades per maximitzar el seu bonus.</div></div>
+      <div class="prob-card fade-up d2"><div class="prob-card-num" style="color:var(--blue)">9% menys</div><div class="prob-card-title">Rendiment perdut cada any</div><div class="prob-card-text">La difer&egrave;ncia entre el 4,5% que anuncia el banc i el 13,5% d&apos;una cartera ben constru&iuml;da &eacute;s del 9% anual. Amb inter&egrave;s compost, en 20 anys la difer&egrave;ncia &eacute;s brutal.</div></div>
     </div>
   </div>
 </section>
 
-<!-- HOW -->
-<section class="how" id="com-funciona">
+<!-- EXPERIENCIA -->
+<section class="experiencia" id="experiencia">
   <div class="section-inner">
-    <p class="section-eye reveal">Com funciona</p>
-    <h2 class="section-h2 reveal">Simple, transparent i al teu ritme</h2>
-    <div class="how-steps">
-      <div class="step reveal">
-        <div class="step-num">01</div>
-        <div class="step-title">Descobreix el teu perfil</div>
-        <div class="step-txt">Qüestionari de 5 minuts que analitza 7 dimensions: objectius, situació, horitzó, coneixement, risc financer, comportament i preferències.</div>
-        <span class="step-badge">Gratis · Immediat</span>
+    <div class="exp-grid">
+      <div class="fade-up">
+        <div class="section-label" style="color:var(--gold)">Experi&egrave;ncia real</div>
+        <div class="section-title" style="color:#fff">6 anys invertint tots els instruments del mercat</div>
+        <p style="font-size:15px;color:rgba(255,255,255,.5);line-height:1.78;margin-bottom:24px">He provat pract icament tot: des de fons &iacute;ndex i ETFs fins a crowdlending, crypto, private equity i start-ups. He perdut diners en alguns i guanyat en d&apos;altres. Aquesta experi&egrave;ncia directa &mdash; no te&ograve;rica &mdash; &eacute;s el que et puc aportar com a assessor.</p>
+        <p style="font-size:15px;color:rgba(255,255,255,.5);line-height:1.78">Saber qu&egrave; no funciona &eacute;s tan valuos com saber qu&egrave; funciona. I saber on et col&middot;locar tu, en funci&oacute; del teu perfil i moment vital, &eacute;s el verdader valor de l&apos;assessoria.</p>
+        <div class="exp-instruments">
+          <span class="exp-tag">ETFs indexats</span><span class="exp-tag">Fons actius</span><span class="exp-tag">REITs</span><span class="exp-tag">RF Gov.</span><span class="exp-tag">Or f&iacute;sic</span><span class="exp-tag">Crowdlending</span><span class="exp-tag">Crypto</span><span class="exp-tag">Private Equity</span><span class="exp-tag">Start-ups</span><span class="exp-tag">Opcions</span><span class="exp-tag">Dipòsits</span><span class="exp-tag">Monetari</span>
+        </div>
       </div>
-      <div class="step reveal">
-        <div class="step-num">02</div>
-        <div class="step-title">Sessió de diagnòstic</div>
-        <div class="step-txt">20 minuts per entendre la teva situació real. Sense compromís. Si podem treballar junts, t'ho dic. Si no, també.</div>
-        <span class="step-badge">Sessió gratuïta</span>
-      </div>
-      <div class="step reveal">
-        <div class="step-num">03</div>
-        <div class="step-title">Pla personalitzat</div>
-        <div class="step-txt">Cartera model adaptada al teu perfil, informe de diagnòstic complet i seguiment periòdic. Tu decideixes el ritme.</div>
-        <span class="step-badge">Fee-only · Transparent</span>
+      <div class="fade-up d1">
+        <div class="exp-stats">
+          <div class="exp-stat"><div class="exp-stat-num">6 anys</div><div class="exp-stat-label">d&apos;experi&egrave;ncia inversora activa amb capital propi</div></div>
+          <div class="exp-stat"><div class="exp-stat-num">13,5%</div><div class="exp-stat-label">rendiment mig anual obtingut amb la metodologia TBI</div></div>
+          <div class="exp-stat"><div class="exp-stat-num">12+</div><div class="exp-stat-label">instruments i actius diferents provats i analitzats</div></div>
+          <div class="exp-stat"><div class="exp-stat-num">14%</div><div class="exp-stat-label">volatilitat anual &mdash; risc controlat i assumible</div></div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- WHAT YOU GET -->
-<section class="gets">
+<!-- METODOLOGIA -->
+<section class="metodologia" id="metodologia">
   <div class="section-inner">
-    <p class="section-eye reveal">Què inclou</p>
-    <h2 class="section-h2 reveal">Tot el que necessites per prendre decisions amb criteri</h2>
-    <div class="gets-grid">
-      <div class="get-item reveal">
-        <div class="get-icon">🎯</div>
-        <div>
-          <div class="get-title">Anàlisi del perfil inversor</div>
-          <div class="get-txt">7 dimensions analitzades amb puntuació de 0 a 100. Saps exactament on estàs i on hauràs de millorar.</div>
+    <div class="section-label" style="text-align:center">La metodologia</div>
+    <div class="section-title" style="text-align:center">Simple, provada i replicable</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 40px">La clave no &eacute;s descobrir el prop&egrave;r actiu calent. &Eacute;s construir una cartera robusta que superi el mercat amb risc controlat.</p>
+    <div class="meto-grid">
+      <div class="meto-card fade-up"><div class="meto-card-icon">&#128200;</div><div class="meto-card-title">Passiu (nucli)</div><div class="meto-card-text">ETFs indexats globals de baix cost. Replicar el mercat de forma eficient. La base estable de qualsevol cartera TBI.</div><div class="meto-card-pct">60&ndash;70%</div></div>
+      <div class="meto-card fade-up d1"><div class="meto-card-icon">&#127919;</div><div class="meto-card-title">Actiu selectiu</div><div class="meto-card-text">Sectors i factors amb avantatge estruct ural: Value, Dividend, Growth tecnol&ograve;gic. Selecci&oacute; basada en fonamentals.</div><div class="meto-card-pct">15&ndash;20%</div></div>
+      <div class="meto-card fade-up d2"><div class="meto-card-icon">&#128301;</div><div class="meto-card-title">Alternatius</div><div class="meto-card-text">Or, REITs, Crowdlending, Crypto selectiu. Descorrelaci&oacute; real i protecci&oacute; contra inflaci&oacute; i crisi.</div><div class="meto-card-pct">10&ndash;20%</div></div>
+      <div class="meto-card fade-up d3"><div class="meto-card-icon">&#9878;</div><div class="meto-card-title">Rebalanceig</div><div class="meto-card-text">Algorisme simple: quan un actiu desvia m&eacute;s d&apos;un 5% del target, rebalancejar. Automatitza la disciplina inversora.</div><div class="meto-card-pct">Trimestral</div></div>
+    </div>
+    <div class="meto-result">
+      <div class="meto-kpi fade-up"><div class="meto-kpi-num">13,5%</div><div class="meto-kpi-label">Rendiment mig anual obtingut<br>amb la metodologia TBI</div></div>
+      <div class="meto-kpi fade-up d1"><div class="meto-kpi-num">14%</div><div class="meto-kpi-label">Volatilitat anual controlada<br>Risc assumible a llarg termini</div></div>
+      <div class="meto-kpi fade-up d2"><div class="meto-kpi-num">0,2&ndash;0,4%</div><div class="meto-kpi-label">Cost total de la cartera<br>vs. 1,8% dels fons bancaris</div></div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--g400);margin-top:20px;line-height:1.6">Rendiments passats no garanteixen rendiments futurs. Dades basades en experi&egrave;ncia inversora real 2019&ndash;2025.</p><div style="margin-top:20px;padding:16px 20px;background:#fff;border-radius:12px;border:1px solid var(--g100);display:flex;align-items:flex-start;gap:14px"><div style="font-size:24px;flex-shrink:0">&#9998;</div><div><div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:4px">Carteres fetes a mida</div><div style="font-size:13px;color:var(--g500);line-height:1.7">La cartera TBI &eacute;s una refer&egrave;ncia, no una plantilla. Cada client t&eacute; la seva pr&ograve;pia cartera personalitzada, construida a partir del seu arquetip, situaci&oacute; personal, horitz&oacute; temporal i toler&agrave;ncia al risc. El resultat &eacute;s sempre una cartera &uacute;nica dissenyada espec&iacute;ficament per a tu.</div></div></div</p>
+  </div>
+</section>
+
+<!-- COMPARATIVA -->
+<section class="comparativa" id="comparativa">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Comparativa real</div>
+    <div class="section-title" style="color:#fff;text-align:center">Fons bancari al 4,5% vs. Cartera TBI al 13,5%</div>
+    <p style="font-size:15px;color:rgba(255,255,255,.4);text-align:center;margin:0 auto 28px;line-height:1.7;max-width:560px">Canvia les xifres i veur&agrave;s la difer&egrave;ncia real entre quedar-te amb el teu banc o invertir de forma intel&middot;ligent.</p>
+    <div class="comp-inputs">
+      <div class="comp-input-group"><label>Capital inicial</label><input type="number" id="c-cap" value="20000" min="1000" step="1000" oninput="calcComp()"></div>
+      <div class="comp-input-group"><label>Aportaci&oacute; mensual</label><input type="number" id="c-men" value="200" min="0" step="50" oninput="calcComp()"></div>
+      <div class="comp-input-group"><label>Anys</label><input type="number" id="c-any" value="20" min="5" max="40" step="5" oninput="calcComp()"></div>
+    </div>
+    <div class="comp-wrapper">
+      <div class="comp-card banc">
+        <div class="comp-card-icon">&#127968;</div>
+        <div class="comp-card-title">Fons bancari tradicional</div>
+        <div class="comp-card-sub">Rendiment publicitat: 4,5% &middot; Comissions: 1,8%<br>Ex: Mi Plan CaixaBank, Santander Gesti&oacute;, BBVA Quality</div>
+        <div class="comp-card-result" id="r-banc">126.700 &euro;</div>
+        <div class="comp-card-detail" id="d-banc">Valor final despr&eacute;s de comissions</div>
+      </div>
+      <div class="comp-card tbi">
+        <div class="comp-card-icon">&#128200;</div>
+        <div class="comp-card-title">Cartera TBI (metodologia pr&ograve;pia)</div>
+        <div class="comp-card-sub">Rendiment mig histor ic: 13,5% &middot; TER: ~0,25%<br>Passiu + Actiu selectiu + Alternatius + Rebalanceig</div>
+        <div class="comp-card-result" id="r-tbi">467.200 &euro;</div>
+        <div class="comp-card-detail" id="d-tbi">Valor final amb assessorament TBI</div>
+      </div>
+    </div>
+    <div class="comp-diff">
+      <div class="comp-diff-label">Difer&egrave;ncia en el teu patrimoni</div>
+      <div class="comp-diff-value" id="r-diff">+340.500 &euro;</div>
+      <div class="comp-diff-sub" id="r-diff-sub">Diners que deixes de guanyar si et quedes amb el banc.<br>Prou per a la jubilaci&oacute; que mereixe, la universitat dels fills o la llibertat financera anticipada.</div>
+    </div>
+    <div style="text-align:center;margin-top:32px"><a href="client_onboarding_v3.html" class="btn-primary">Descobreix el teu pla personalitzat &rarr;</a></div>
+  </div>
+</section>
+
+<!-- COM FUNCIONA -->
+<section id="com-funciona">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Com funciona</div>
+    <div class="section-title" style="text-align:center">4 passos per prendre el control</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 48px">No necessites saber res de finances. Nosaltres ens encarreguem de tot.</p>
+    <div class="steps-grid">
+      <div class="step fade-up"><div class="step-num">1</div><div class="step-title">Fes el test</div><div class="step-text">2 minuts. 27 preguntes. Descobreix el teu arquetip inversor i la cartera recomanada.</div><div class="step-arrow">&rarr;</div></div>
+      <div class="step fade-up d1"><div class="step-num">2</div><div class="step-title">Tria el teu pla</div><div class="step-text">Des de 8&euro;/mes. Acc&eacute;s a la plataforma, eines i el teu assessor personal.</div><div class="step-arrow">&rarr;</div></div>
+      <div class="step fade-up d2"><div class="step-num">3</div><div class="step-title">Entrevista inicial</div><div class="step-text">1,5h amb el teu assessor. Entenem la teva situaci&oacute; i constru&iuml;m el teu pla financer.</div><div class="step-arrow">&rarr;</div></div>
+      <div class="step fade-up d3"><div class="step-num">4</div><div class="step-title">Comenc&gt;a a invertir</div><div class="step-text">Seguiment continu, aportacions guiades i coaching. Tu decideixes, nosaltres acompanyem.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATAFORMA -->
+<section class="plataforma" id="plataforma">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">La plataforma</div>
+    <div class="section-title" style="text-align:center">Tot el que necessites, en un sol lloc</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 28px">Cartera, seguiment, eines financeres i comunicaci&oacute; directa amb el teu assessor.</p>
+    <div class="screen-tabs">
+      <button class="screen-tab active" onclick="showScreen('cartera',this)">&#128188; Cartera</button>
+      <button class="screen-tab" onclick="showScreen('seguiment',this)">&#128200; Seguiment</button>
+      <button class="screen-tab" onclick="showScreen('eines',this)">&#128737; Eines</button>
+      <button class="screen-tab" onclick="showScreen('missatges',this)">&#128172; Missatgeria</button>
+    </div>
+    <div class="screen-window">
+      <div class="screen-bar">
+        <div class="screen-dots"><div class="screen-dot" style="background:#FF5F56"></div><div class="screen-dot" style="background:#FFBD2E"></div><div class="screen-dot" style="background:#27C93F"></div></div>
+        <div class="screen-url"><span>assessoria.theboringinvestor.com/portal</span></div>
+      </div>
+      <!-- CARTERA -->
+      <div class="screen-content active" id="screen-cartera" style="background:#0D0D0D">
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:0;min-height:340px">
+          <div style="background:#111;padding:16px;border-right:1px solid rgba(255,255,255,.06)">
+            <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">El meu espai</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="padding:8px 10px;background:rgba(200,165,74,.15);border-radius:7px;font-size:12px;color:var(--gold);font-weight:500">&#128188; La meva Cartera</div>
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128200; Resum</div>
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128506; Full de Ruta</div>
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128466; Pla d&apos;Aportacions</div>
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128172; Missatges</div>
+            </div>
+          </div>
+          <div style="padding:20px">
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:16px">La meva Cartera &mdash; III &middot; Roma</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+              <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px">
+                <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px">Valor Total</div>
+                <div style="font-family:var(--fm);font-size:22px;color:#fff;font-weight:500">47.280 &euro;</div>
+                <div style="font-size:11px;color:#4CAF82;margin-top:2px">+8.120 &euro; (+20,7%)</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px">
+                <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px">Cost Base</div>
+                <div style="font-family:var(--fm);font-size:22px;color:#fff;font-weight:500">39.160 &euro;</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">Capital invertit</div>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:14px">
+              <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Matching Real vs. Target</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;gap:10px"><div style="font-size:11px;color:rgba(255,255,255,.5);width:90px;flex-shrink:0">RV Global</div><div style="flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:99px;position:relative"><div style="height:100%;width:48%;background:#1B3A6B;border-radius:99px"></div></div><div style="font-size:10px;color:#4CAF82;width:32px;text-align:right">=</div></div>
+                <div style="display:flex;align-items:center;gap:10px"><div style="font-size:11px;color:rgba(255,255,255,.5);width:90px;flex-shrink:0">RV Dividend</div><div style="flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:99px;position:relative"><div style="height:100%;width:10%;background:#2E5FA3;border-radius:99px"></div></div><div style="font-size:10px;color:#1B3A6B;width:32px;text-align:right">-5%</div></div>
+                <div style="display:flex;align-items:center;gap:10px"><div style="font-size:11px;color:rgba(255,255,255,.5);width:90px;flex-shrink:0">Or</div><div style="flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:99px;position:relative"><div style="height:100%;width:14%;background:#C0392B;border-radius:99px"></div></div><div style="font-size:10px;color:#D4943A;width:32px;text-align:right">+4%</div></div>
+              </div>
+              <div style="margin-top:12px;padding:10px;background:rgba(200,165,74,.08);border-radius:8px;border:1px solid rgba(200,165,74,.2)">
+                <div style="font-size:11px;color:var(--gold);font-weight:500">Aportaci&oacute; de maig: 300 &euro;</div>
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">RV Dividend: 180 &euro; &middot; RF Gov: 90 &euro; &middot; REITs: 30 &euro;</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="get-item reveal">
-        <div class="get-icon">📊</div>
-        <div>
-          <div class="get-title">Cartera model recomanada</div>
-          <div class="get-txt">Proposta d'actius indexats adaptada al teu perfil, horitzó i tolerància al risc. Amb TER estimat i retorn esperat.</div>
+      <!-- SEGUIMENT -->
+      <div class="screen-content" id="screen-seguiment" style="background:#0D0D0D">
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:0;min-height:340px">
+          <div style="background:#111;padding:16px;border-right:1px solid rgba(255,255,255,.06)">
+            <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">El meu espai</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128188; La meva Cartera</div>
+              <div style="padding:8px 10px;background:rgba(200,165,74,.15);border-radius:7px;font-size:12px;color:var(--gold);font-weight:500">&#128200; Resum</div>
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128506; Full de Ruta</div>
+            </div>
+          </div>
+          <div style="padding:20px">
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:16px">Evoluci&oacute; de la cartera</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+              <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:4px">Valor</div><div style="font-family:var(--fm);font-size:16px;color:#fff;font-weight:500">47.280</div></div>
+              <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:4px">Cost</div><div style="font-family:var(--fm);font-size:16px;color:#fff;font-weight:500">39.160</div></div>
+              <div style="background:rgba(26,92,58,.2);border:1px solid rgba(26,92,58,.4);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:4px">Guany</div><div style="font-family:var(--fm);font-size:16px;color:#4CAF82;font-weight:500">+8.120</div></div>
+              <div style="background:rgba(26,92,58,.2);border:1px solid rgba(26,92,58,.4);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:4px">Rendiment</div><div style="font-family:var(--fm);font-size:16px;color:#4CAF82;font-weight:500">+20,7%</div></div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:16px">
+              <svg viewBox="0 0 500 120" style="width:100%;height:80px">
+                <defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4CAF82" stop-opacity=".3"/><stop offset="100%" stop-color="#4CAF82" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0,100 L60,90 L120,80 L180,70 L240,60 L300,50 L360,38 L420,25 L480,15" fill="none" stroke="#4CAF82" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M0,100 L60,90 L120,80 L180,70 L240,60 L300,50 L360,38 L420,25 L480,15 L480,120 L0,120 Z" fill="url(#gg)"/>
+              </svg>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;font-family:var(--fm)"><span>Gen</span><span>Feb</span><span>Mar</span><span>Abr</span><span>Mai</span><span>Jun</span><span>Jul</span><span>Ago</span></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="get-item reveal">
-        <div class="get-icon">📈</div>
-        <div>
-          <div class="get-title">Projeccions Montecarlo</div>
-          <div class="get-txt">Simulació de 3 escenaris (pessimista, equilibrat, optimista) per saber on podries arribar amb la teva estratègia.</div>
+      <!-- EINES -->
+      <div class="screen-content" id="screen-eines" style="background:#0D0D0D">
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:0;min-height:340px">
+          <div style="background:#111;padding:16px;border-right:1px solid rgba(255,255,255,.06)">
+            <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Eines</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128165; Calculadora FIRE</div>
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128640; Turbo Estalvi</div>
+              <div style="padding:8px 10px;background:rgba(200,165,74,.15);border-radius:7px;font-size:12px;color:var(--gold);font-weight:500">&#128737; Fons d&apos;Emerg&egrave;ncia</div>
+            </div>
+          </div>
+          <div style="padding:20px">
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:16px">Fons d&apos;Emerg&egrave;ncia</div>
+            <div style="background:rgba(26,92,58,.15);border:1px solid rgba(26,92,58,.3);border-radius:12px;padding:16px;margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+                <div><div style="font-size:10px;color:rgba(255,255,255,.4)">Liquiditat actual</div><div style="font-family:var(--fm);font-size:22px;color:#fff;font-weight:500">8.500 &euro;</div></div>
+                <div style="text-align:right"><div style="font-size:10px;color:rgba(255,255,255,.4)">Objectiu (6 mesos)</div><div style="font-family:var(--fm);font-size:22px;color:rgba(255,255,255,.6);font-weight:500">12.000 &euro;</div></div>
+              </div>
+              <div style="height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden"><div style="height:100%;width:71%;background:#4CAF82;border-radius:99px"></div></div>
+              <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px">71% assolit &middot; Falten 3.500 &euro;</div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:14px">
+              <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px">On tinc la liquiditat</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#fff"><span>Compte Trade Republic</span><span style="font-family:var(--fm);color:#4CAF82">5.000 &euro;</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#fff"><span>Fons Monetari (Myinvestor)</span><span style="font-family:var(--fm);color:#4CAF82">3.500 &euro;</span></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="get-item reveal">
-        <div class="get-icon">🛡</div>
-        <div>
-          <div class="get-title">Anàlisi del fons d'emergència</div>
-          <div class="get-txt">Càlcul de l'objectiu mínim de liquiditat i recomanació de comptes optimitzats al tipus BCE actual.</div>
-        </div>
-      </div>
-      <div class="get-item reveal">
-        <div class="get-icon">🔄</div>
-        <div>
-          <div class="get-title">Seguiment periòdic</div>
-          <div class="get-txt">Revisió trimestral de la cartera, rebalanceig si cal i seguiment del motor DCA. Tu estàs sempre informat.</div>
-        </div>
-      </div>
-      <div class="get-item reveal">
-        <div class="get-icon">💬</div>
-        <div>
-          <div class="get-title">Accés al portal personal</div>
-          <div class="get-txt">Espai privat on veure el teu perfil, cartera i informes actualitzats en qualsevol moment.</div>
+      <!-- MISSATGES -->
+      <div class="screen-content" id="screen-missatges" style="background:#0D0D0D">
+        <div style="display:grid;grid-template-columns:200px 1fr;gap:0;min-height:340px">
+          <div style="background:#111;padding:16px;border-right:1px solid rgba(255,255,255,.06)">
+            <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Comunicaci&oacute;</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="padding:8px 10px;background:rgba(200,165,74,.15);border-radius:7px;font-size:12px;color:var(--gold);font-weight:500">&#128172; Missatges</div>
+              <div style="padding:8px 10px;border-radius:7px;font-size:12px;color:rgba(255,255,255,.4)">&#128202; An&agrave;lisi mercat</div>
+            </div>
+          </div>
+          <div style="padding:20px;display:flex;flex-direction:column;gap:12px">
+            <div style="align-self:flex-start;max-width:80%"><div style="background:rgba(200,165,74,.12);border:1px solid rgba(200,165,74,.2);border-radius:12px 12px 12px 4px;padding:12px 14px"><div style="font-size:11px;color:var(--gold);margin-bottom:4px;font-weight:500">Guillem &middot; Assessor</div><div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.6">He revisat la teva cartera. Veig que tens un d&egrave;ficit del 5% en RV Dividend. La propera aportaci&oacute; de 300&euro; hauria d&apos;anar tota aqui.</div></div><div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:4px;padding-left:4px">Ahir 10:32</div></div>
+            <div style="align-self:flex-end;max-width:80%"><div style="background:rgba(255,255,255,.07);border-radius:12px 12px 4px 12px;padding:12px 14px"><div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.6">Perfecte, gràcies! Haig d'esperar que el meu broker executi l'ordre. Quant triga normalment?</div></div><div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:4px;text-align:right;padding-right:4px">Ahir 11:15</div></div>
+            <div style="align-self:flex-start;max-width:80%"><div style="background:rgba(200,165,74,.12);border:1px solid rgba(200,165,74,.2);border-radius:12px 12px 12px 4px;padding:12px 14px"><div style="font-size:11px;color:var(--gold);margin-bottom:4px;font-weight:500">Guillem &middot; Assessor</div><div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.6">Normalment T+2 dies. Res urgent, el mercat est&agrave; tranquil ara mateix.</div></div><div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:4px;padding-left:4px">Ahir 11:48</div></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FEE-ONLY -->
-<section class="feeonly">
-  <div class="feeonly-inner">
-    <div>
-      <p class="section-eye" style="color:rgba(255,255,255,.35);margin-bottom:14px" class="reveal">El model</p>
-      <h2 class="feeonly-h2 reveal">Fee-only.<br><em>Sense excuses.</em></h2>
-      <p class="feeonly-txt reveal">
-        La majoria d'assessors financers cobren comissions dels productes que et venen.
-        Això crea un conflicte d'interessos fonamental: el que és millor per a ells,
-        no sempre és el millor per a tu.<br><br>
-        Jo cobro únicament pels meus serveis. Punt.
-      </p>
+
+<!-- CARTERES PREDEFINIDES -->
+<section style="padding:100px 28px;background:var(--black);" id="carteres">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center;color:var(--gold)">Carteres model</div>
+    <div class="section-title" style="color:#fff;text-align:center">10 carteres dissenyades per a cada perfil</div>
+    <p style="font-size:15px;color:rgba(255,255,255,.4);text-align:center;margin:0 auto 48px;line-height:1.75;max-width:580px">Cada cartera &eacute;s un punt de partida. L&apos;assessor l&apos;ajusta a la teva situaci&oacute; concreta fins a construir la teva cartera &uacute;nica.</p>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px">
+
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 14px">
+        <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">I &middot; Nova York</div>
+        <div style="font-family:var(--fd);font-size:16px;color:#fff;font-weight:500;margin-bottom:4px">L&apos;Est&ograve;ic</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:14px;line-height:1.5">M&agrave;xima RV global, horitz&oacute; &gt;15 anys</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:6px"><div style="height:5px;border-radius:99px;background:#1B3A6B" style="flex-shrink:0"></div><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:60%;background:#1B3A6B;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">60%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:25%;background:#4CAF82;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">25%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:15%;background:#FF6F00;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">15%</div></div>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:#E57373;background:rgba(139,26,26,.2);padding:3px 8px;border-radius:99px">Risc Alt</span>
+          <span style="font-size:10px;color:var(--gold);font-family:var(--fm)">8&ndash;10%</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 14px">
+        <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">III &middot; Roma</div>
+        <div style="font-family:var(--fd);font-size:16px;color:#fff;font-weight:500;margin-bottom:4px">El Navegant</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:14px;line-height:1.5">Equilibri creixement-estabilitat</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:45%;background:#1B3A6B;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">45%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:20%;background:#546E7A;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">20%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:15%;background:#2E5FA3;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">15%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:10%;background:#C0392B;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">10%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:10%;background:#0F6E56;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">10%</div></div>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:#4CAF82;background:rgba(26,92,58,.2);padding:3px 8px;border-radius:99px">Risc Mig</span>
+          <span style="font-size:10px;color:var(--gold);font-family:var(--fm)">5&ndash;7%</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(200,165,74,.25);border-radius:14px;padding:18px 14px;position:relative">
+        <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-size:9px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap">M&Eacute;S POPULAR</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">IV &middot; Amsterdam</div>
+        <div style="font-family:var(--fd);font-size:16px;color:#fff;font-weight:500;margin-bottom:4px">L&apos;Arquitecte</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:14px;line-height:1.5">7 blocs estructurats + alternatius</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:35%;background:#1B3A6B;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">35%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:15%;background:#90A4AE;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">15%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:15%;background:#8D6E63;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">15%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:10%;background:#D4943A;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">10%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:10%;background:#C0392B;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">10%</div></div>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:#FFC107;background:rgba(255,193,7,.15);padding:3px 8px;border-radius:99px">Risc Mig</span>
+          <span style="font-size:10px;color:var(--gold);font-family:var(--fm)">5&ndash;7%</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 14px">
+        <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">V &middot; Ginebra</div>
+        <div style="font-family:var(--fd);font-size:16px;color:#fff;font-weight:500;margin-bottom:4px">El Tresorer</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:14px;line-height:1.5">Preservaci&oacute; del capital. Refugi.</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:35%;background:#546E7A;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">35%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:25%;background:#C0392B;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">25%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:20%;background:#2E5FA3;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">20%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:10%;background:#90A4AE;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">10%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:10%;background:#0F6E56;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">10%</div></div>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:#4CAF82;background:rgba(26,92,58,.2);padding:3px 8px;border-radius:99px">Risc Baix</span>
+          <span style="font-size:10px;color:var(--gold);font-family:var(--fm)">3&ndash;5%</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 14px">
+        <div style="font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">X &middot; Ven&egrave;cia</div>
+        <div style="font-family:var(--fd);font-size:16px;color:#fff;font-weight:500;margin-bottom:4px">La Renda</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:14px;line-height:1.5">Dividend &gt;6%. Per viure dels rendiments.</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:35%;background:#2E5FA3;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">35%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:20%;background:#8D6E63;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">20%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:15%;background:#1B3A6B;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">15%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:15%;background:#C0392B;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">15%</div></div>
+          <div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;border-radius:99px;background:rgba(255,255,255,.06)"><div style="height:100%;width:10%;background:#0F6E56;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:var(--fm);width:28px;text-align:right">10%</div></div>
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:10px;color:#4CAF82;background:rgba(26,92,58,.2);padding:3px 8px;border-radius:99px">Risc Baix</span>
+          <span style="font-size:10px;color:var(--gold);font-family:var(--fm)">5&ndash;7%</span>
+        </div>
+      </div>
+
     </div>
-    <div class="feeonly-points">
-      <div class="feeonly-point reveal">
-        <div class="feeonly-point-icon">◎</div>
-        <div>
-          <div class="feeonly-point-title">Sense comissions de tercers</div>
-          <div class="feeonly-point-txt">Cap entitat financera em paga per recomanar-te els seus productes. Les meves recomanacions no depenen de qui em paga.</div>
-        </div>
+    <div style="text-align:center;padding:20px 24px;background:rgba(200,165,74,.07);border:1px solid rgba(200,165,74,.18);border-radius:14px;max-width:640px;margin:0 auto">
+      <div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:6px">+5 carteres m&eacute;s (Singapur, Atenes, Dubhai, Reykjavik, Shanghai)</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.65">Cada cartera es personalitza segons el teu arquetip, situaci&oacute; personal i objectius. Fes el test i descobreix quina t&apos;escau.</div>
+      <a href="client_onboarding_v3.html" style="display:inline-block;margin-top:14px;padding:10px 24px;background:var(--gold);color:var(--black);border-radius:9px;font-size:13px;font-weight:600">Descobreix la teva cartera &rarr;</a>
+    </div>
+    <div style="margin-top:16px;text-align:center;font-size:11px;color:rgba(255,255,255,.25);line-height:1.6">
+      @media(max-width:768px) les 5 carteres es mostren en scroll horitzontal.
+    </div>
+  </div>
+</section>
+
+
+<!-- COMPARATIVA PREUS -->
+<section style="padding:100px 28px;background:var(--cream)" id="comp-preus">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Per qu&egrave; som m&eacute;s econom ic?</div>
+    <div class="section-title" style="text-align:center">Assessorament real<br>a una fracci&oacute; del preu</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 48px">Combinant m&egrave;todes algor&iacute;tmics, simplicitat operativa, personalitzaci&oacute; real i esfor&ccedil; directe eliminem tot el que no aporta valor. El resultat &eacute;s un servei millor a un cost molt menor.</p>
+
+    <!-- TAULA COMPARATIVA -->
+    <div style="overflow-x:auto;margin-bottom:40px">
+      <table style="width:100%;border-collapse:separate;border-spacing:0;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.07)">
+        <thead>
+          <tr style="background:var(--black)">
+            <th style="padding:16px 20px;text-align:left;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;font-weight:500;min-width:180px">Servei</th>
+            <th style="padding:16px 14px;text-align:center;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;font-weight:500">Cost anual<br><span style="font-size:9px;opacity:.5">(20.000&euro; invertits)</span></th>
+            <th style="padding:16px 14px;text-align:center;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;font-weight:500">Assessor<br>hum&agrave;</th>
+            <th style="padding:16px 14px;text-align:center;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;font-weight:500">Cartera<br>personalitzada</th>
+            <th style="padding:16px 14px;text-align:center;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;font-weight:500">Sense<br>conflicte inter&egrave;s</th>
+            <th style="padding:16px 14px;text-align:center;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;font-weight:500">Plataforma<br>digital</th>
+            <th style="padding:16px 14px;text-align:center;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;font-weight:500">Accessibilitat</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- BANC TRADICIONAL -->
+          <tr style="border-bottom:1px solid var(--g100)">
+            <td style="padding:16px 20px">
+              <div style="font-size:13px;font-weight:600;color:var(--black)">&#127968; Banc tradicional</div>
+              <div style="font-size:11px;color:var(--g400);margin-top:2px">BBVA, CaixaBank, Santander</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center">
+              <div style="font-family:var(--fm);font-size:15px;font-weight:500;color:var(--red)">360&ndash;400&euro;</div>
+              <div style="font-size:10px;color:var(--g400);margin-top:2px">1,8&ndash;2% comissions ocultes</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px" title="Teoricament s&iacute;, pero amb conflicte d&apos;interes">&#9888;&#65039;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px" title="Productes propies">&#10060;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px" title="Cobren comissions de producte">&#10060;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9888;&#65039;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:10px;padding:4px 10px;border-radius:99px;background:var(--g100);color:var(--g500)">Tothom</span></td>
+          </tr>
+          <!-- INDEXA / FINIZENS -->
+          <tr style="border-bottom:1px solid var(--g100)">
+            <td style="padding:16px 20px">
+              <div style="font-size:13px;font-weight:600;color:var(--black)">&#129302; Roboadvisors</div>
+              <div style="font-size:11px;color:var(--g400);margin-top:2px">Indexa Capital, Finizens, MyInvestor</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center">
+              <div style="font-family:var(--fm);font-size:15px;font-weight:500;color:var(--g600)">84&ndash;130&euro;</div>
+              <div style="font-size:10px;color:var(--g400);margin-top:2px">0,42&ndash;0,65% anual</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#10060;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px" title="Carteres gen&egrave;riques per perfil">&#9888;&#65039;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:10px;padding:4px 10px;border-radius:99px;background:var(--g100);color:var(--g500)">Tothom</span></td>
+          </tr>
+          <!-- MICAPPITAL -->
+          <tr style="border-bottom:1px solid var(--g100)">
+            <td style="padding:16px 20px">
+              <div style="font-size:13px;font-weight:600;color:var(--black)">&#128200; Micappital</div>
+              <div style="font-size:11px;color:var(--g400);margin-top:2px">Assessorament automatitzat</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center">
+              <div style="font-family:var(--fm);font-size:15px;font-weight:500;color:var(--g600)">240&euro;</div>
+              <div style="font-size:10px;color:var(--g400);margin-top:2px">20&euro;/mes (m&agrave;x)</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9888;&#65039;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9888;&#65039;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:10px;padding:4px 10px;border-radius:99px;background:var(--g100);color:var(--g500)">Tothom</span></td>
+          </tr>
+          <!-- ASSESSOR INDEPENDENT CLASIC -->
+          <tr style="border-bottom:1px solid var(--g100)">
+            <td style="padding:16px 20px">
+              <div style="font-size:13px;font-weight:600;color:var(--black)">&#128084; Assessor independent cl&agrave;ssic</div>
+              <div style="font-size:11px;color:var(--g400);margin-top:2px">EAF, banquers privats, per hora</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center">
+              <div style="font-family:var(--fm);font-size:15px;font-weight:500;color:var(--red)">1.200&ndash;3.000&euro;</div>
+              <div style="font-size:10px;color:var(--g400);margin-top:2px">200&ndash;600&euro;/hora</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#10060;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:10px;padding:4px 10px;border-radius:99px;background:var(--g100);color:var(--g500)">Grans patrimonis</span></td>
+          </tr>
+          <!-- BANCA PRIVADA -->
+          <tr style="border-bottom:1px solid var(--g100)">
+            <td style="padding:16px 20px">
+              <div style="font-size:13px;font-weight:600;color:var(--black)">&#128081; Banca Privada</div>
+              <div style="font-size:11px;color:var(--g400);margin-top:2px">Andbank, Pictet, Rothschild</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center">
+              <div style="font-family:var(--fm);font-size:15px;font-weight:500;color:var(--red)">2.000&ndash;5.000&euro;</div>
+              <div style="font-size:10px;color:var(--g400);margin-top:2px">1&ndash;2,5% anual</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9888;&#65039;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9888;&#65039;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:10px;padding:4px 10px;border-radius:99px;background:#FDF0F0;color:var(--red)">&gt;300.000&euro;</span></td>
+          </tr>
+          <!-- TBI -->
+          <tr style="background:linear-gradient(135deg,#FEF9EC,#FEF3D0)">
+            <td style="padding:16px 20px;border-radius:0 0 0 16px">
+              <div style="font-size:13px;font-weight:700;color:var(--black);display:flex;align-items:center;gap:8px">&#11088; The Boring Investor <span style="font-size:10px;padding:3px 8px;background:var(--gold);color:var(--black);border-radius:99px;font-weight:600">TBI</span></div>
+              <div style="font-size:11px;color:var(--g500);margin-top:2px">Assessor hum&agrave; + plataforma digital</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center">
+              <div style="font-family:var(--fm);font-size:18px;font-weight:700;color:var(--green)">96&ndash;588&euro;</div>
+              <div style="font-size:10px;color:var(--g500);margin-top:2px">8&ndash;49&euro;/mes &middot; preu transparent</div>
+            </td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center"><span style="font-size:18px">&#9989;</span></td>
+            <td style="padding:16px 14px;text-align:center;border-radius:0 0 16px 0"><span style="font-size:10px;padding:4px 10px;border-radius:99px;background:var(--green-light);color:var(--green);font-weight:600">Tothom</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PER QUE MES BARAT -->
+    <div style="font-size:13px;color:var(--g400);text-align:center;margin-bottom:32px">
+      &#9989; = S&iacute; sempre &nbsp;|&nbsp; &#9888;&#65039; = Parcial o amb condicions &nbsp;|&nbsp; &#10060; = No
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <div style="padding:24px;background:#fff;border-radius:14px;border:1px solid var(--g100);border-top:3px solid var(--gold)">
+        <div style="font-size:28px;margin-bottom:12px">&#129302;</div>
+        <div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:8px">M&egrave;todes algor&iacute;tmics</div>
+        <div style="font-size:12px;color:var(--g500);line-height:1.7">Les tasques repetitives les fa la plataforma: c&agrave;lcul de matching, distribuci&oacute; d&apos;aportaci&oacute;, rebalanceig, FIRE. Aix&ograve; em permet dedicar el temps hum&agrave; on realment importa.</div>
       </div>
-      <div class="feeonly-point reveal">
-        <div class="feeonly-point-icon">◈</div>
-        <div>
-          <div class="feeonly-point-title">Skin in the game real</div>
-          <div class="feeonly-point-txt">Tinc els meus estalvis invertits amb la mateixa filosofia que recomano. No parlaria d'alguna cosa en la que jo mateix no invertiria.</div>
-        </div>
+      <div style="padding:24px;background:#fff;border-radius:14px;border:1px solid var(--g100);border-top:3px solid var(--gold)">
+        <div style="font-size:28px;margin-bottom:12px">&#127915;</div>
+        <div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:8px">Simplicitat operativa</div>
+        <div style="font-size:12px;color:var(--g500);line-height:1.7">Sense oficines f&iacute;siques, sense estructura de banc privat, sense intermediaris. Una sola persona qualificada amb les eines adequades substitueix un equip de 5 en una entitat tradicional.</div>
       </div>
-      <div class="feeonly-point reveal">
-        <div class="feeonly-point-icon">◉</div>
-        <div>
-          <div class="feeonly-point-title">Transparència total de costos</div>
-          <div class="feeonly-point-txt">Saps exactament quant et costa el servei i quant costen els productes que tens. Sense lletra petita ni sorpreses.</div>
-        </div>
+      <div style="padding:24px;background:#fff;border-radius:14px;border:1px solid var(--g100);border-top:3px solid var(--gold)">
+        <div style="font-size:28px;margin-bottom:12px">&#127919;</div>
+        <div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:8px">Personalitzaci&oacute; real</div>
+        <div style="font-size:12px;color:var(--g500);line-height:1.7">Cada cartera &eacute;s &uacute;nica. No venc productes est&agrave;ndard ni cobra comissions d&apos;emissors. La meva &uacute;nica motivaci&oacute; &eacute;s que tu guanyis, perqu&egrave; &eacute;s la &uacute;nica forma que jo guanyi.</div>
+      </div>
+      <div style="padding:24px;background:#fff;border-radius:14px;border:1px solid var(--g100);border-top:3px solid var(--gold)">
+        <div style="font-size:28px;margin-bottom:12px">&#128170;</div>
+        <div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:8px">Esfor&ccedil; directe</div>
+        <div style="font-size:12px;color:var(--g500);line-height:1.7">Treballo directament amb cada client, sense delegar a un gerent junior. El que pagaries per 1 hora a un assessor cl&agrave;ssic cobre&iacute;x 6 mesos del pla Essencial amb acc&eacute;s complet.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Plans i preus</div>
+    <div class="section-title" style="text-align:center">Tria el pla que s&apos;adapti a tu</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 20px">Comp rom&iacute;s m&iacute;nim: 3 mesos. Garantia de satisfacci&oacute; 30 dies. Cancel&middot;la quan vulguis.</p>
+    <div style="text-align:center;margin-bottom:40px"><span style="display:inline-block;padding:6px 16px;background:var(--gold);color:var(--black);border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.03em">PREU FUNDADOR &mdash; 30% dte. pels 50 primers</span></div>
+    <div class="pricing-grid">
+      <!-- ESSENCIAL -->
+      <div class="plan">
+        <div class="plan-name">Essencial</div>
+        <div class="plan-tagline">Plataforma i comunitat</div>
+        <div class="plan-price">8<span> &euro;/mes</span></div>
+        <div class="plan-annual">80&euro;/any (estalvi 2 mesos)</div>
+        <ul class="plan-features">
+          <li>Test d&apos;inversor + Arquetip</li>
+          <li>Plataforma completa</li>
+          <li>An&agrave;lisi d&apos;inversi&oacute; setmanal</li>
+          <li>1 missatge/setmana</li>
+          <li>Comunitat i comunicats</li>
+          <li>Eines: FIRE, Emerg&egrave;ncia, Estalvi</li>
+          <li>Materials de formaci&oacute; (biblioteca completa)</li>
+          <li class="no">Formaci&oacute; personalitzada</li>
+          <li class="no">Entrevista inicial</li>
+          <li class="no">Suport WhatsApp/tel&egrave;fon</li>
+        </ul>
+        <a href="platform.html"><button class="plan-btn plan-btn-outline">Subscriure&apos;s</button></a>
+        <div class="plan-pioneer">Fundador: 5&euro;/mes</div>
+      </div>
+      <!-- ESTRATEGIA -->
+      <div class="plan">
+        <div class="plan-name">Estrat&egrave;gia</div>
+        <div class="plan-tagline">Assessorament personalitzat</div>
+        <div class="plan-price">29<span> &euro;/mes</span></div>
+        <div class="plan-annual">290&euro;/any (estalvi 2 mesos)</div>
+        <ul class="plan-features">
+          <li>Tot d&apos;Essencial</li>
+          <li>Entrevista inicial (1,5h)</li>
+          <li>Cartera target base</li>
+          <li>Full de Ruta est&agrave;ndard</li>
+          <li>2 missatges/mes</li>
+          <li>Suport WhatsApp o telef&ograve;nic</li>
+          <li>Materials + 1 formaci&oacute; personalitzada/trim.</li>
+          <li class="no">Pla financer personalitzat</li>
+          <li class="no">Coaching mensual</li>
+        </ul>
+        <a href="platform.html"><button class="plan-btn plan-btn-primary">Triar Estrat&egrave;gia</button></a>
+        <div class="plan-setup">Setup: <s>99&euro;</s> 59&euro; (10 pioners)</div>
+        <div class="plan-pioneer">Fundador: 20&euro;/mes</div>
+      </div>
+      <!-- CREIXEMENT FEATURED -->
+      <div class="plan featured">
+        <div class="plan-badge">RECOMANAT</div>
+        <div class="plan-name">Creixement</div>
+        <div class="plan-tagline">El pla complet per cr&egrave;ixer</div>
+        <div class="plan-price">49<span> &euro;/mes</span></div>
+        <div class="plan-annual">490&euro;/any (estalvi 2 mesos)</div>
+        <ul class="plan-features">
+          <li>Tot d&apos;Estrat&egrave;gia</li>
+          <li>Pla financer personalitzat</li>
+          <li>Cartera target ajustada</li>
+          <li>Seguiment posicions reals</li>
+          <li>Aportaci&oacute; mensual guiada</li>
+          <li>Full de Ruta personalitzat</li>
+          <li>5 missatges/mes</li>
+          <li>Rebalanceig semestral</li>
+          <li>Suport WhatsApp o telef&ograve;nic</li>
+          <li>Materials + formaci&oacute; personalitzada mensual</li>
+        </ul>
+        <a href="platform.html"><button class="plan-btn plan-btn-gold">Triar Creixement</button></a>
+        <div class="plan-setup">Entrevista inicial inclosa</div>
+        <div class="plan-pioneer">Fundador: 34&euro;/mes</div>
+      </div>
+      <!-- PATRIMONI -->
+      <div class="plan">
+        <div class="plan-name">Patrimoni</div>
+        <div class="plan-tagline">Assessorament integral i coaching</div>
+        <div class="plan-price">99<span> &euro;/mes</span></div>
+        <div class="plan-annual">990&euro;/any (estalvi 2 mesos)</div>
+        <ul class="plan-features">
+          <li>Tot de Creixement</li>
+          <li>Missatges il&middot;limitats</li>
+          <li>Revisi&oacute; trimestral (v&iacute;deo 30min)</li>
+          <li>Coaching mensual (30min)</li>
+          <li>Rebalanceig trimestral</li>
+          <li>Suport WhatsApp o telef&ograve;nic prioritari</li>
+          <li>Optimitzaci&oacute; fiscal</li>
+          <li>Acc&eacute;s prioritari a novetats</li>
+          <li>Materials + formaci&oacute; personalitzada setmanal</li>
+        </ul>
+        <a href="platform.html"><button class="plan-btn plan-btn-primary">Triar Patrimoni</button></a>
+        <div class="plan-setup">Entrevista inicial inclosa</div>
+        <div class="plan-pioneer">Fundador: 69&euro;/mes</div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ABOUT -->
-<section class="about">
+<section class="about" id="about">
   <div class="section-inner">
-    <div class="about-inner">
-      <div>
-        <div class="about-avatar">
-          <span class="about-avatar-initials">GP</span>
-        </div>
-      </div>
-      <div>
-        <div class="about-name reveal">Guillem Puig</div>
-        <div class="about-role reveal">DENSO Barcelona · The Boring Investor · Barcelona</div>
-        <div class="about-tags reveal">
-          <span class="about-tag">EAE Business School · MBA</span>
-          <span class="about-tag">Candidat EFA juny 2026</span>
-          <span class="about-tag">Fee-only</span>
-          <span class="about-tag">@the_boringinvestor</span>
-        </div>
-        <p class="about-txt reveal">
-          Responsable a DENSO Barcelona, empresa del sector industrial automotive d'origen japonès.
-          Anys gestionant equips i operacions — molt lluny del món bancari tradicional. El 2018
-          vaig decidir aprendre a invertir els meus propis estalvis, des de zero.
-        </p>
-        <p class="about-txt reveal">
-          ETFs, fons indexats, fiscalitat, plans de pensions. Ho vaig estudiar, ho vaig provar amb
-          els meus propis diners i vaig descobrir que la majoria de professionals com jo perdem
-          milers d'euros cada any en comissions innecessàries sense saber-ho. Per això vaig crear
-          The Boring Investor.
-        </p>
-        <p class="about-txt reveal">
-          Candidat a la certificació EFA (European Financial Advisor) per juny 2026.
-          Model fee-only: cobro pels meus serveis, mai per la venda de productes.
-        </p>
-        <div class="about-quote reveal">
-          "El millor inversor no és el més intel·ligent, sinó el que té un pla i el segueix."
-        </div>
-        <div style="margin-top:16px" class="reveal">
-          <a href="https://www.linkedin.com/in/guillem-puig-6ab21649" target="_blank"
-            style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);text-decoration:none;font-weight:500;border:1px solid var(--g200);padding:6px 12px;border-radius:7px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-            Guillem Puig · LinkedIn
-          </a>
+    <div class="about-grid">
+      <div><img src="data:image/jpeg;base64,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" alt="Guillem Puig" class="about-photo fade-up"></div>
+      <div class="fade-up d1">
+        <div class="section-label">Qui s&oacute;c</div>
+        <div class="section-title">Guillem Puig</div>
+        <p style="font-size:15px;color:var(--g500);line-height:1.8;margin-bottom:16px">No s&oacute;c un banquer ni un gestor de fons. S&oacute;c un enginyer que va descobrir que els bancs ens estaven cobrant una barbaritat per gestionar malament els nostres diners.</p>
+        <p style="font-size:15px;color:var(--g500);line-height:1.8;margin-bottom:16px">Durant 6 anys he invertit personalment en pract icament tots els instruments del mercat: ETFs, fons actius, REITs, or, crowdlending, crypto i private equity. He provat, he errat i he apres. Aquesta experi&egrave;ncia real &mdash; no te&ograve;rica &mdash; &eacute;s el que et ofereixo com a assessor.</p>
+        <p style="font-size:15px;color:var(--g600);line-height:1.8;font-weight:500"><em style="color:var(--gold-dark)">&ldquo;Invertir hauria de ser avorrit. Els diners emocionants acostumen a acabar malament.&rdquo;</em></p>
+        <div class="about-creds">
+          <span class="about-cred">Candidat EFA (EFPA)</span>
+          <span class="about-cred">Enginyer</span>
+          <span class="about-cred">100% Fee-Only</span>
+          <span class="about-cred">6 anys d&apos;experi&egrave;ncia</span>
+          <span class="about-cred">Assessor independent</span>
         </div>
       </div>
     </div>
@@ -661,458 +871,198 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);-webkit-font-
 </section>
 
 
-<!-- PRICING -->
-<section class="pricing" id="serveis">
+<!-- FORMACIO -->
+<section style="padding:100px 28px;background:var(--cream)" id="formacio">
   <div class="section-inner">
-    <p class="section-eye reveal">Serveis i tarifes</p>
-    <h2 class="section-h2 reveal">
-      Comença pel que necessites.<br>Creix quan vulguis.
-    </h2>
-    <p class="pricing-sub reveal">
-      Una mala decisió financera pot costar-te centenars d'euros a l'any. 
-      El diagnòstic que canvia el rumb comença a <strong>47€</strong>.
-    </p>
+    <div class="section-label" style="text-align:center">Formaci&oacute; financera</div>
+    <div class="section-title" style="text-align:center">Apren a invertir,<br>no nom&eacute;s on invertir</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 48px">La millor inversi&oacute; &eacute;s entendre qu&egrave; fas i per qu&egrave;. Per aix&ograve; tots els plans inclouen acc&eacute;s a una biblioteca de formaci&oacute; en constant creixement, i els plans avanc&ccedil;ats permeten sessions formatives sobre els temes que m&eacute;s et preocupen.</p>
 
-    <div class="pricing-grid">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:40px">
 
-      <!-- PACK 00 -->
-      <div class="pack-card reveal">
-        <div class="pack-header">
-          <div class="pack-num">00</div>
-          <div class="pack-name">Senyal</div>
-          <div class="pack-tagline">Inverteix sense pensar-ho</div>
-        </div>
-        <div class="pack-price">
-          <span class="price-val">9,97€</span>
-          <span class="price-per">/mes</span>
-        </div>
-        <div class="pack-price-alt">o 79€/any <span class="price-save">— 2 mesos gratis</span></div>
-        <div class="pack-anchor">Menys que un cafè a la setmana. Sense reunions. Sense compromisos.</div>
-        <ul class="pack-features">
-          <li>✓ <strong>Senyal mensual</strong>: manté, rebalanceja o ajusta pes</li>
-          <li>✓ Seguiment de la cartera model TBI vs benchmark</li>
-          <li>✓ 1 consulta setmanal col·lectiva per email/newsletter</li>
-          <li>✓ Accés a l'arxiu de senyals anteriors</li>
-          <li class="muted">✗ Sense assessorament personalitzat</li>
-          <li class="muted">✗ Sense sessions individuals</li>
-        </ul>
-        <div class="pack-note">Per a qui vol orientació sense compromís</div>
-        <a class="pack-cta pack-cta-sec" href="/cdn-cgi/l/email-protection#aec9dbc7c2c2cbc3eedac6cbccc1dcc7c0c9c7c0d8cbdddac1dc80cdc1c391dddbccc4cbcdda93fecfcdc58efdcbc0d7cfc2">
-          Subscriure's →
-        </a>
-      </div>
-
-      <!-- PACK 01 -->
-      <div class="pack-card reveal">
-        <div class="pack-header">
-          <div class="pack-num">01</div>
-          <div class="pack-name">Brúixola</div>
-          <div class="pack-tagline">Saps on estàs</div>
-        </div>
-        <div class="pack-price">
-          <span class="price-val">47€</span>
-          <span class="price-per">pagament únic</span>
-        </div>
-        <div class="pack-anchor">Menys que un sopar. Més útil que deu.</div>
-        <ul class="pack-features">
-          <li>✓ Qüestionari de perfil inversor complet (7 dimensions)</li>
-          <li>✓ Informe de diagnòstic digital personalitzat</li>
-          <li>✓ Cartera model recomanada per al teu perfil</li>
-          <li>✓ Scoring de cartera actual (si en tens)</li>
-          <li>✓ Accés al portal personal 30 dies</li>
-          <li class="muted">✗ Sense sessió personal</li>
-          <li class="muted">✗ Sense seguiment</li>
-        </ul>
-        <div class="pack-note">100% digital · Entrega en 48h · Zero reunions</div>
-        <a class="pack-cta pack-cta-sec" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
-          Fer el diagnòstic →
-        </a>
-      </div>
-
-      <!-- PACK 02 -->
-      <div class="pack-card reveal">
-        <div class="pack-header">
-          <div class="pack-num">02</div>
-          <div class="pack-name">Mapa</div>
-          <div class="pack-tagline">Saps on anar</div>
-        </div>
-        <div class="pack-price">
-          <span class="price-val">147€</span>
-          <span class="price-per">pagament únic</span>
-        </div>
-        <div class="pack-anchor">Menys que una consulta d'especialista privat.</div>
-        <ul class="pack-features">
-          <li>✓ Tot el que inclou Brúixola</li>
-          <li>✓ <strong>1 sessió de 90 min</strong> (presencial o vídeo)</li>
-          <li>✓ Pla d'inversió personalitzat per objectiu</li>
-          <li>✓ Anàlisi del fons d'emergència i liquiditat</li>
-          <li>✓ Cartera detallada per broker i producte concret</li>
-          <li>✓ Accés al portal personal 90 dies</li>
-          <li class="muted">✗ Sense seguiment recurrent</li>
-        </ul>
-        <div class="pack-note">Ideal si mai has tingut un pla financer clar</div>
-        <a class="pack-cta pack-cta-sec" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
-          Reservar sessió →
-        </a>
-      </div>
-
-      <!-- PACK 03 STAR -->
-      <div class="pack-card pack-star reveal">
-        <div class="pack-badge">Més escollit</div>
-        <div class="pack-header">
-          <div class="pack-num" style="color:var(--accent)">03</div>
-          <div class="pack-name">Rumb</div>
-          <div class="pack-tagline">Quelqu'un al teu costat</div>
-        </div>
-        <div class="pack-price">
-          <span class="price-val">49€</span>
-          <span class="price-per">/mes</span>
-        </div>
-        <div class="pack-price-alt">o 397€/any <span class="price-save">— 2 mesos gratis</span></div>
-        <div class="pack-anchor">Menys d'1,60€ al dia. Menys que un cafè.</div>
-        <ul class="pack-features">
-          <li>✓ Tot el que inclou Mapa</li>
-          <li>✓ <strong>Revisió trimestral de cartera</strong></li>
-          <li>✓ Seguiment DCA mensual automatitzat</li>
-          <li>✓ Q&A per email/WhatsApp (resposta &lt;48h)</li>
-          <li>✓ Alertes si cal rebalancejar</li>
-          <li>✓ Pla d'actualització anual</li>
-          <li>✓ Accés al portal personal permanent</li>
-        </ul>
-        <div class="pack-note">La majoria de clients trien aquest pla</div>
-        <a class="pack-cta pack-cta-primary" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
-          Començar ara →
-        </a>
-      </div>
-
-      <!-- PACK 04 -->
-      <div class="pack-card reveal">
-        <div class="pack-header">
-          <div class="pack-num">04</div>
-          <div class="pack-name">Family Office</div>
-          <div class="pack-tagline">El teu CFO personal</div>
-        </div>
-        <div class="pack-price">
-          <span class="price-val">99€</span>
-          <span class="price-per">/mes</span>
-        </div>
-        <div class="pack-price-alt">o 997€/any <span class="price-save">— 2 mesos gratis</span></div>
-        <div class="pack-anchor">El teu director financer personal. Per menys del que creus.</div>
-        <ul class="pack-features">
-          <li>✓ Tot el que inclou Rumb</li>
-          <li>✓ <strong>Planificació financera familiar completa</strong></li>
-          <li>✓ Pla de jubilació i independència financera</li>
-          <li>✓ Consultoria fiscal: IRPF, plus-vàlues, optimització</li>
-          <li>✓ Qualsevol consulta financera 24/7 (resposta &lt;4h)</li>
-          <li>✓ Sessió mensual (vídeo o presencial)</li>
-          <li>✓ Cobertura familiar (fins 4 persones)</li>
-          <li>✓ Revisió per canvis vitals (feina, fills, herència, divorci)</li>
-        </ul>
-        <div class="pack-note">Places limitades · Màxim 5 famílies simultànies</div>
-        <a class="pack-cta pack-cta-sec" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
-          Parlem →
-        </a>
-      </div>
-
-    </div><!-- /pricing-grid -->
-
-    <!-- Anchor de decisió -->
-    <div class="pricing-footer reveal">
-      <div class="pricing-footer-left">
-        <div class="pricing-roi-title">El cost de no fer res</div>
-        <div class="pricing-roi-txt">
-          Un fons de gestió activa típic cobra entre 1,5% i 2% anual en comissions. 
-          Un ETF indexat equivalent: 0,12%. Sobre 30.000€ invertits, 
-          la diferència és <strong>+414€ a l'any</strong> — cada any, per sempre.
-          El Pack Brúixola és 47€. Fes els càlculs.
-        </div>
-      </div>
-      <div class="pricing-footer-right">
-        <div class="pricing-guarantee">
-          <div class="pricing-guarantee-icon">🤝</div>
+      <!-- BIBLIOTECA -->
+      <div style="background:#fff;border-radius:20px;padding:32px;border:1px solid var(--g100)">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--black);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">&#128218;</div>
           <div>
-            <div class="pricing-guarantee-title">Sense compromís inicial</div>
-            <div class="pricing-guarantee-txt">Primera sessió de 20 min gratuïta per a tots els packs. Si veig que no puc ajudar-te, te ho dic sense cobrar.</div>
+            <div style="font-size:16px;font-weight:700;color:var(--black)">Biblioteca de formaci&oacute;</div>
+            <div style="font-size:12px;color:var(--g400);margin-top:2px">Incl&ograve;s en tots els plans</div>
           </div>
         </div>
+        <p style="font-size:13px;color:var(--g500);line-height:1.75;margin-bottom:20px">Acc&eacute;s complet a tots els materials: gu&iacute;es, articles, an&agrave;lisis i exemples pr&agrave;ctics. Pensats per portar-te de zero a invertir amb criteri propi.</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:#EBF0FA;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#127968;</div>
+            <div><div style="font-size:12px;font-weight:600;color:var(--black)">Fonaments de la inversi&oacute; indexada</div><div style="font-size:11px;color:var(--g400);margin-top:1px">ETFs, MSCI World, diversificaci&oacute; global, cost &iacute;ndex</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:#EAF3DE;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#128201;</div>
+            <div><div style="font-size:12px;font-weight:600;color:var(--black)">Com llegir un cicle econ&ograve;mic</div><div style="font-size:11px;color:var(--g400);margin-top:1px">Expansi&oacute;, pic, recesssi&oacute; i recuperaci&oacute;: on col&middot;locar-se</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:#FEF9EC;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#127919;</div>
+            <div><div style="font-size:12px;font-weight:600;color:var(--black)">Rebalanceig: quan i com</div><div style="font-size:11px;color:var(--g400);margin-top:1px">Algorisme simple per mantenir el target sense emocions</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:#FEF3E0;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#128165;</div>
+            <div><div style="font-size:12px;font-weight:600;color:var(--black)">FIRE i independ&egrave;ncia financera</div><div style="font-size:11px;color:var(--g400);margin-top:1px">La regla del 4%, les 5 modalitats FIRE, c&agrave;lcul de l&apos;objectiu</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:#F0E6F9;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#128181;</div>
+            <div><div style="font-size:12px;font-weight:600;color:var(--black)">Fiscalitat de les inversions</div><div style="font-size:11px;color:var(--g400);margin-top:1px">IRPF, m&eacute;s-valu&egrave;s, ETFs vs fons, diferiment fiscal</div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">&#129309;</div>
+            <div><div style="font-size:12px;font-weight:600;color:var(--black)">Guia d&apos;Actius &mdash; 21 categories</div><div style="font-size:11px;color:var(--g400);margin-top:1px">Pros, contres, riscos i &uacute;s per cicle econ&ograve;mic</div></div>
+          </div>
+        </div>
+        <div style="margin-top:20px;padding:12px 14px;background:var(--cream);border-radius:10px;font-size:11px;color:var(--g500);line-height:1.6">
+          Contingut en constant creixement. Cada an&agrave;lisi de mercat setmanal s&apos;afegeix autom&agrave;ticament a la biblioteca.
+        </div>
+      </div>
+
+      <!-- FORMACIO PERSONALITZADA -->
+      <div style="background:#fff;border-radius:20px;padding:32px;border:1px solid var(--g100)">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">&#127891;</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--black)">Formaci&oacute; personalitzada</div>
+            <div style="font-size:12px;color:var(--g400);margin-top:2px">Plans Estrat&egrave;gia, Creixement i Patrimoni</div>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--g500);line-height:1.75;margin-bottom:24px">Sessions en viu (v&iacute;deo o tel&egrave;fon) sobre el tema que tu tries. No &eacute;s un webinar gen&egrave;ric &mdash; &eacute;s una sessi&oacute; dissenyada per a la teva situaci&oacute; concreta.</p>
+
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+          <div style="padding:14px;background:var(--cream);border-radius:10px;border-left:3px solid var(--gold)">
+            <div style="font-size:12px;font-weight:600;color:var(--black);margin-bottom:3px">&#128300; Com analitzar un ETF</div>
+            <div style="font-size:11px;color:var(--g500)">TER, &iacute;ndex replicat, m&egrave;tode, volatilitat, Sharpe ratio</div>
+          </div>
+          <div style="padding:14px;background:var(--cream);border-radius:10px;border-left:3px solid var(--gold)">
+            <div style="font-size:12px;font-weight:600;color:var(--black);margin-bottom:3px">&#128176; Optimitzaci&oacute; fiscal de la teva cartera</div>
+            <div style="font-size:11px;color:var(--g500)">Tax-loss harvesting, ordre de venda, vehicles &ograve;ptims per perfil</div>
+          </div>
+          <div style="padding:14px;background:var(--cream);border-radius:10px;border-left:3px solid var(--gold)">
+            <div style="font-size:12px;font-weight:600;color:var(--black);margin-bottom:3px">&#127968; Com invert ir en immobili ari sense comprar un pis</div>
+            <div style="font-size:11px;color:var(--g500)">REITs, SOCIMIs, crowdfunding immobiliari, comparativa</div>
+          </div>
+          <div style="padding:14px;background:var(--cream);border-radius:10px;border-left:3px solid var(--gold)">
+            <div style="font-size:12px;font-weight:600;color:var(--black);margin-bottom:3px">&#9749; Introducci&oacute; als alternatius</div>
+            <div style="font-size:11px;color:var(--g500)">Crowdlending, or, crypto, PE: riscos reals i quan t&eacute; sentit</div>
+          </div>
+          <div style="padding:14px;background:var(--cream);border-radius:10px;border-left:3px solid var(--gold)">
+            <div style="font-size:12px;font-weight:600;color:var(--black);margin-bottom:3px">&#128196; El teu tema &mdash; tu tries</div>
+            <div style="font-size:11px;color:var(--g500)">Proposa el tema que et preocupa i prepararem la sessi&oacute; espec&iacute;fica per a tu</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="padding:12px;background:var(--black);border-radius:10px;text-align:center">
+            <div style="font-family:var(--fm);font-size:16px;color:var(--gold);font-weight:500;margin-bottom:3px">1/trim</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.4">Pla<br>Estrat&egrave;gia</div>
+          </div>
+          <div style="padding:12px;background:var(--black);border-radius:10px;text-align:center">
+            <div style="font-family:var(--fm);font-size:16px;color:var(--gold);font-weight:500;margin-bottom:3px">1/mes</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.4">Pla<br>Creixement</div>
+          </div>
+          <div style="padding:12px;background:var(--black);border-radius:10px;text-align:center">
+            <div style="font-family:var(--fm);font-size:16px;color:var(--gold);font-weight:500;margin-bottom:3px">1/setm</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.4">Pla<br>Patrimoni</div>
+          </div>
+        </div>
+
+        <a href="#pricing" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;background:var(--gold);color:var(--black);border-radius:10px;font-size:13px;font-weight:600;text-decoration:none">Veure els plans &rarr;</a>
       </div>
     </div>
 
-  </div>
-</section>
-
-
-<!-- METODOLOGIA -->
-<section class="metodo" id="metodologia">
-  <div class="section-inner">
-    <p class="section-eye reveal">Com treballem</p>
-    <h2 class="section-h2 reveal">Una metodologia basada en dades,<br>no en intuïció.</h2>
-
-    <div class="metodo-grid">
-      <!-- Passos -->
-      <div class="metodo-steps">
-        <div class="metodo-step reveal">
-          <div class="metodo-step-num">1</div>
-          <div>
-            <div class="metodo-step-title">Anàlisi de les 7 dimensions</div>
-            <div class="metodo-step-txt">Avaluem el teu perfil en profunditat: objectius financers, situació actual, horitzó temporal, coneixement financer, tolerància al risc, comportament emocional i preferències d'inversió.</div>
-          </div>
-        </div>
-        <div class="metodo-step reveal">
-          <div class="metodo-step-num">2</div>
-          <div>
-            <div class="metodo-step-title">Scoring de cartera objectiu</div>
-            <div class="metodo-step-txt">Si ja tens una cartera, l'analitzem amb 7 mòduls de rúbriques precises: costos (TER), diversificació, concentració, coherència, robustesa, simplicitat i procés. Resultat: puntuació de 0 a 100 amb pla de millora.</div>
-          </div>
-        </div>
-        <div class="metodo-step reveal">
-          <div class="metodo-step-num">3</div>
-          <div>
-            <div class="metodo-step-title">Cartera model personalitzada</div>
-            <div class="metodo-step-txt">Proposta concreta d'actius indexats (ETFs, fons) amb nom de broker, ISIN i pes recomanat. No teoria — un pla que pots implementar el dia següent.</div>
-          </div>
-        </div>
-        <div class="metodo-step reveal">
-          <div class="metodo-step-num">4</div>
-          <div>
-            <div class="metodo-step-title">Projeccions i seguiment</div>
-            <div class="metodo-step-txt">Simulació Montecarlo amb 3 escenaris (P10/P50/P90), DCA automatitzat i revisió periòdica. El teu portal personal sempre actualitzat.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Visual mock del dashboard -->
-      <div class="metodo-visual reveal">
-        <div class="metodo-visual-badge">Eina d'anàlisi TBI</div>
-        <div class="metodo-visual-title">Scoring de cartera</div>
-
-        <!-- Radar SVG simplificat -->
-        <svg class="radar-mock" width="180" height="160" viewBox="0 0 180 160">
-          <defs>
-            <style>.rg{fill:none;stroke:#E8E6E1;stroke-width:1}.rl{fill:none;stroke:#E8E6E1;stroke-width:.8}.ra{fill:rgba(27,58,107,.12);stroke:#1B3A6B;stroke-width:1.5}</style>
-          </defs>
-          <!-- Graelles -->
-          <polygon class="rg" points="90,20 150,53 150,107 90,140 30,107 30,53"/>
-          <polygon class="rg" points="90,42 133,62 133,98 90,118 47,98 47,62"/>
-          <polygon class="rg" points="90,64 116,77 116,103 90,116 64,103 64,77" opacity=".5"/>
-          <!-- Línies radials -->
-          <line class="rl" x1="90" y1="20" x2="90" y2="140"/>
-          <line class="rl" x1="90" y1="80" x2="150" y2="53"/>
-          <line class="rl" x1="90" y1="80" x2="150" y2="107"/>
-          <line class="rl" x1="90" y1="80" x2="90" y2="140"/>
-          <line class="rl" x1="90" y1="80" x2="30" y2="107"/>
-          <line class="rl" x1="90" y1="80" x2="30" y2="53"/>
-          <!-- Àrea de dades -->
-          <polygon class="ra" points="90,30 143,57 140,102 90,130 40,105 38,60"/>
-          <!-- Punts -->
-          <circle cx="90" cy="30" r="3" fill="#1B3A6B"/>
-          <circle cx="143" cy="57" r="3" fill="#1B3A6B"/>
-          <circle cx="140" cy="102" r="3" fill="#1B3A6B"/>
-          <circle cx="90" cy="130" r="3" fill="#1B3A6B"/>
-          <circle cx="40" cy="105" r="3" fill="#1B3A6B"/>
-          <circle cx="38" cy="60" r="3" fill="#1B3A6B"/>
-          <!-- Labels -->
-          <text x="90" y="14" text-anchor="middle" font-size="8" fill="#6B6762">Costos</text>
-          <text x="156" y="53" text-anchor="start" font-size="8" fill="#6B6762">Divers.</text>
-          <text x="156" y="112" text-anchor="start" font-size="8" fill="#6B6762">Conc.</text>
-          <text x="90" y="152" text-anchor="middle" font-size="8" fill="#6B6762">Coherència</text>
-          <text x="22" y="112" text-anchor="end" font-size="8" fill="#6B6762">Rob.</text>
-          <text x="22" y="53" text-anchor="end" font-size="8" fill="#6B6762">Proc.</text>
-        </svg>
-
-        <!-- Barres de scoring -->
-        <div class="score-bars">
-          <div class="score-bar-row">
-            <div class="score-bar-lbl">S1 · Costos</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:90%"></div></div>
-            <div class="score-bar-val">9/10</div>
-          </div>
-          <div class="score-bar-row">
-            <div class="score-bar-lbl">S2 · Diversificació</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:80%"></div></div>
-            <div class="score-bar-val">8/10</div>
-          </div>
-          <div class="score-bar-row">
-            <div class="score-bar-lbl">S3 · Concentració</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:70%;background:#D4943A"></div></div>
-            <div class="score-bar-val">7/10</div>
-          </div>
-          <div class="score-bar-row">
-            <div class="score-bar-lbl">S4 · Coherència</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:90%"></div></div>
-            <div class="score-bar-val">9/10</div>
-          </div>
-          <div class="score-bar-row">
-            <div class="score-bar-lbl">S5 · Robustesa</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:50%;background:#C0392B"></div></div>
-            <div class="score-bar-val">5/10</div>
-          </div>
-          <div class="score-bar-row">
-            <div class="score-bar-lbl">S6 · Simplicitat</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:80%"></div></div>
-            <div class="score-bar-val">8/10</div>
-          </div>
-          <div class="score-bar-row">
-            <div class="score-bar-lbl">S7 · Procés</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:#D4943A"></div></div>
-            <div class="score-bar-val">6/10</div>
-          </div>
-        </div>
-
-        <div style="margin-top:16px;padding:10px 12px;background:var(--white);border-radius:8px;border-left:3px solid #C0392B">
-          <div style="font-size:10px;font-weight:500;color:#8B1A1A;margin-bottom:2px">⚑ Prioritat 1 — Robustesa</div>
-          <div style="font-size:11px;color:var(--g500)">Kit anti-pànic no documentat. Crear protocol per caigudes >20%.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- TECNOLOGIA -->
-<section class="tech-section">
-  <div class="section-inner">
-    <p class="section-eye reveal">Tecnologia i eines</p>
-    <h2 class="section-h2 reveal" style="margin-bottom:0">Eines professionals.<br>Tracte personal.</h2>
-    <div class="tech-grid" style="margin-top:36px">
-      <div class="tech-item reveal">
-        <div class="tech-item-icon">📊</div>
-        <div class="tech-item-name">Dashboard TBI</div>
-        <div class="tech-item-desc">Eina pròpia de gestió de clients amb scoring, cartera i projeccions Montecarlo</div>
-      </div>
-      <div class="tech-item reveal">
-        <div class="tech-item-icon">🌐</div>
-        <div class="tech-item-name">Portal personal</div>
-        <div class="tech-item-desc">Accés privat per a cada client. Veu la seva cartera, informe i recomanacions en temps real</div>
-      </div>
-      <div class="tech-item reveal">
-        <div class="tech-item-icon">🔒</div>
-        <div class="tech-item-name">Dades segures</div>
-        <div class="tech-item-desc">Base de dades encriptada (Supabase), autenticació sense contrasenya via magic link</div>
-      </div>
-      <div class="tech-item reveal">
-        <div class="tech-item-icon">📋</div>
-        <div class="tech-item-name">Informes PDF</div>
-        <div class="tech-item-desc">Informe professional generat automàticament amb cada revisió. Descarregable i compartible</div>
-      </div>
-      <div class="tech-item reveal">
-        <div class="tech-item-icon">📅</div>
-        <div class="tech-item-name">Google Calendar</div>
-        <div class="tech-item-desc">Reunions programades directament al calendari amb totes les dades pre-emplenades</div>
-      </div>
-      <div class="tech-item reveal">
-        <div class="tech-item-icon">📈</div>
-        <div class="tech-item-name">Mercats en temps real</div>
-        <div class="tech-item-desc">Dades de S&P 500, IBEX, Or, BCE, IPC i tipus de canvi actualitzades automàticament</div>
-      </div>
-      <div class="tech-item reveal">
-        <div class="tech-item-icon">🎓</div>
-        <div class="tech-item-name">Seminaris TBI</div>
-        <div class="tech-item-desc">8 seminaris d'educació financera basats en 83 diapositives de material propi</div>
-      </div>
-      <div class="tech-item reveal">
-        <div class="tech-item-icon">🤝</div>
-        <div class="tech-item-name">Tracte personal</div>
-        <div class="tech-item-desc">Cada client té un assessor real, no un algoritme. Accés directe per WhatsApp i email</div>
+    <!-- TOPICS CLOUD -->
+    <div style="text-align:center">
+      <div style="font-size:12px;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px">Alguns temes coberts a la biblioteca</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Com funciona un ETF</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Inflaci&oacute; i poder adquisitiu</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">La regla del 4%</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Renda fixa explicada</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Com diversificar de debò</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">REITs vs immoble f&iacute;sic</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Crypto: riscos reals</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Cicle econ&ograve;mic i on invertir</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">FIRE: les 5 modalitats</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Fiscalitat de la inversi&oacute;</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Ordre de vendes FIFO/LIFO</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Crowdlending: plataformes</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Psicologia inversora</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">Rebalanceig autom&agrave;tic</span>
+        <span style="padding:7px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)">+ 30 m&eacute;s en creixement continu</span>
       </div>
     </div>
   </div>
 </section>
 
 <!-- FAQ -->
-<section class="faq">
+<section style="padding:100px 28px">
   <div class="section-inner">
-    <p class="section-eye reveal">Preguntes freqüents</p>
-    <h2 class="section-h2 reveal">Tot el que et preguntes</h2>
+    <div class="section-label" style="text-align:center">Preguntes freq&uuml;ents</div>
+    <div class="section-title" style="text-align:center;margin-bottom:40px">Tot el que necessites saber</div>
     <div class="faq-list">
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          <span>Ets assessor regulat MiFID II?</span>
-          <span class="faq-q-icon">+</span>
-        </div>
-        <div class="faq-a">Estic en procés de certificació EFA (European Financial Advisor), examen juny 2026. Actualment l'activitat és d'educació i anàlisi financer independent, no assessorament regulat en els termes de MiFID II. Ho indico sempre amb total transparència.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          <span>Quant costa el servei?</span>
-          <span class="faq-q-icon">+</span>
-        </div>
-        <div class="faq-a">Les tarifes orientatives s'acorden en la primera sessió gratuïta de 20 minuts. El model és fee-only: cobro honoraris per servei, mai comissions de productes. IVA no inclòs.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          <span>Quins productes em recomanarés?</span>
-          <span class="faq-q-icon">+</span>
-        </div>
-        <div class="faq-a">Treballo principalment amb ETFs indexats de baix cost (Vanguard, iShares, Amundi) accessibles a través de brokers com MyInvestor, Interactive Brokers o DEGIRO. No recomano fons de gestió activa amb comissions elevades.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          <span>Haig de tenir molt capital per poder treballar junts?</span>
-          <span class="faq-q-icon">+</span>
-        </div>
-        <div class="faq-a">No. Treballo amb persones que volen posar ordre a les seves finances i invertir de forma coherent, independentment del capital inicial. L'important és la voluntat de tenir un pla i seguir-lo.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">
-          <span>Puc ser client si visc fora de Barcelona?</span>
-          <span class="faq-q-icon">+</span>
-        </div>
-        <div class="faq-a">Sí. Treballo en format presencial (Barcelona) o per videotrucada. La majoria del seguiment es fa de forma digital, per la qual cosa la ubicació geogràfica no és un impediment.</div>
-      </div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Quant necessito per comen&ccedil;ar a invertir?</div><div class="faq-a">No hi ha m&iacute;nim. Pots comen&ccedil;ar amb 50&euro; al mes. El que importa &eacute;s la const&agrave;ncia, no la quantitat. La majoria dels nostres clients comencen amb 200&ndash;500&euro;/mes.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">I si ja tinc inversions al banc?</div><div class="faq-a">Perfecte. No cal que canviis res el primer dia. Analitzem el que tens, identifiquem comissions ocultes i constru&iuml;m un pla de transici&oacute; progressiu. Tu decideixes el ritme.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">El 13,5% &eacute;s garantit?</div><div class="faq-a">No. Cap rendiment futur est&agrave; garantit. El 13,5% &eacute;s el rendiment obtingut amb la metodologia TBI durant els darrers 6 anys (2019&ndash;2025), un per&iacute;ode que va incloure la pandemia del COVID, la crisi energetica de 2022 i la pujada d&apos;inflaci&oacute;. Les condicions futures seran diferent s, per&ograve; la metodologia est&agrave; dissenyada per ser robusta en qualsevol cicle.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Qu&egrave; vol dir &ldquo;fee-only&rdquo;?</div><div class="faq-a">Vol dir que la nostra &uacute;nica font d&apos;ingressos &eacute;s la teva subscripci&oacute;. No cobrem comissions de cap producte financer. Quan et recomanem un ETF de Vanguard, no guanyem absolutament res per fer-ho.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Puc cancel&middot;lar quan vulgui?</div><div class="faq-a">S&iacute;. Despr&eacute;s dels 3 mesos inicials, cancel&middot;laci&oacute; lliure. I durant el primer mes, garantia de satisfacci&oacute; al 100%: si no est&agrave;s content, et tornem tots els diners.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Necessito coneixements previs?</div><div class="faq-a">Gens. La plataforma inclou una Guia d&apos;Actius completa amb 21 categories explicades de forma planera, i el teu assessor t&apos;acompanya pas a pas. La majoria dels clients comencen sense saber res de finances.</div></div>
     </div>
   </div>
 </section>
 
-<!-- FINAL CTA -->
-<section class="final-cta">
-  <p class="final-cta-eye">Primer pas</p>
-  <h2 class="final-cta-h2">5 minuts per entendre on estàs realment</h2>
-  <p class="final-cta-sub">Qüestionari gratuït · Resultats immediats · Sense compromís</p>
-  <a class="btn-final" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">
-    Fer el qüestionari ara →
-  </a>
-  <p class="final-note">O escriu a <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1275677b7e7e777f52667a77707d607b7c757b7c647761667d603c717d7f">[email&#160;protected]</a></p>
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <div class="section-inner">
+    <div style="font-size:48px;margin-bottom:20px">&#127919;</div>
+    <div class="section-title">El teu futur financer<br>comenc&gt;a avui</div>
+    <p class="section-sub">Fes el test gratuit, descobreix el teu perfil inversor i veurem junts qu&egrave; pots guanyar.</p>
+    <div class="cta-final-buttons">
+      <a href="client_onboarding_v3.html" class="btn-primary" style="font-size:17px;padding:16px 40px">Fes el test gratuit &rarr;</a>
+      <a href="https://wa.me/34629340892?text=Hola%20Guillem%2C%20m%27interessa%20TBI" class="btn-secondary" style="font-size:17px;padding:16px 40px;color:rgba(255,255,255,.7)">Parla amb mi per WhatsApp</a>
+    </div>
+  </div>
 </section>
 
-<!-- FOOTER -->
 <footer class="footer">
-  <span class="footer-brand">© 2026 The Boring Investor · Guillem Puig · Barcelona</span>
-  <div class="footer-links">
-    <a class="footer-link" href="https://theboringinvestor.github.io/assessoria/client_onboarding_v3.html">Qüestionari</a>
-    <a class="footer-link" href="https://assessoria-ten.vercel.app/portal.html">Portal client</a>
-    <a class="footer-link" href="https://twitter.com/the_boringinvestor">@the_boringinvestor</a>
-  </div>
+  <div>The Boring Investor &middot; Assessoria Financera Independent &middot; Barcelona</div>
+  <div style="margin-top:6px">&copy; 2026 Guillem Puig &middot; Fee-Only &middot; Candidat EFA (EFPA)</div>
+  <div style="margin-top:6px;font-family:var(--fm);opacity:.5">landing v2026-04-30.4</div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// FAQ toggle
-function toggleFaq(el) {
-  var item = el.parentElement;
-  var isOpen = item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(function(i){ i.classList.remove('open'); });
-  if (!isOpen) item.classList.add('open');
-}
+<a href="https://wa.me/34629340892?text=Hola%20Guillem" class="wa-fab" title="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
 
-// Scroll reveal — activar immediament si ja és visible al viewport
-var observer = new IntersectionObserver(function(entries) {
-  entries.forEach(function(e) {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      observer.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
-
-document.querySelectorAll('.reveal').forEach(function(el, i) {
-  el.style.transitionDelay = (i % 3 * 0.1) + 's';
-  var rect = el.getBoundingClientRect();
-  if (rect.top < window.innerHeight) {
-    setTimeout(function(){ el.classList.add('visible'); }, i * 60);
-  } else {
-    observer.observe(el);
-  }
-});
+<script>
+window.addEventListener("scroll",function(){document.getElementById("main-nav").classList.toggle("scrolled",window.scrollY>60)});
+function toggleFaq(el){var a=el.nextElementSibling;var w=el.classList.contains("open");document.querySelectorAll(".faq-q").forEach(function(q){q.classList.remove("open")});document.querySelectorAll(".faq-a").forEach(function(aa){aa.classList.remove("open")});if(!w){el.classList.add("open");a.classList.add("open")}}
+function fmt(n){return Math.round(n).toLocaleString("ca-ES")}
+function calcComp(){
+  var c=parseFloat(document.getElementById("c-cap").value)||20000;
+  var m=parseFloat(document.getElementById("c-men").value)||0;
+  var a=parseInt(document.getElementById("c-any").value)||20;
+  var ms=a*12;
+  var rB=(Math.pow(1.045,1/12)-1);
+  var rT=(Math.pow(1.135,1/12)-1);
+  var vB=c,vT=c;
+  for(var i=0;i<ms;i++){vB=vB*(1+rB)+m;vT=vT*(1+rT)+m}
+  var t=c+m*ms;var d=vT-vB;
+  document.getElementById("r-banc").textContent=fmt(vB)+" €";
+  document.getElementById("d-banc").textContent="Aportat: "+fmt(t)+" € · Guany net: "+fmt(vB-t)+" €";
+  document.getElementById("r-tbi").textContent=fmt(vT)+" €";
+  document.getElementById("d-tbi").textContent="Aportat: "+fmt(t)+" € · Guany net: "+fmt(vT-t)+" €";
+  document.getElementById("r-diff").textContent="+"+fmt(d)+" €";
+  document.getElementById("r-diff-sub").textContent="Diferencia en "+a+" anys entre el banc i la metodologia TBI."}
+calcComp();
+function showScreen(id,btn){
+  document.querySelectorAll(".screen-content").forEach(function(el){el.classList.remove("active")});
+  document.querySelectorAll(".screen-tab").forEach(function(el){el.classList.remove("active")});
+  document.getElementById("screen-"+id).classList.add("active");
+  btn.classList.add("active");}
+var obs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.style.animationPlayState="running"})},{threshold:.15});
+document.querySelectorAll(".fade-up").forEach(function(el){el.style.animationPlayState="paused";obs.observe(el)});
 </script>
-
 </body>
 </html>
