@@ -770,6 +770,146 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 .road-edit-area textarea{width:100%;min-height:60px;padding:8px 10px;border:1px solid var(--g200);border-radius:6px;font-size:12px;font-family:var(--fb);color:var(--black);background:var(--white);resize:vertical;outline:none}
 .road-edit-area textarea:focus{border-color:var(--accent)}
 .road-edit-btn{padding:6px 14px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);margin-top:6px}
+
+/* ══════════ DIAGNÒSTIC DE CLIENT ══════════ */
+.diag-root{--dblack:#0a0a0a;--dgreen:#1A5C3A;--dwarn:#8B1A1A}
+.diag-steps-bar{display:flex;align-items:center;gap:0;margin-bottom:32px}
+.diag-step-item{display:flex;align-items:center;flex:1}
+.diag-circle{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--g300);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--g400);background:var(--white);flex-shrink:0;transition:all .3s}
+.diag-circle.active{border-color:var(--dblack,#0a0a0a);color:var(--white);background:var(--dblack,#0a0a0a)}
+.diag-circle.done{border-color:var(--dgreen);color:var(--white);background:var(--dgreen)}
+.diag-step-lbl{font-size:11px;color:var(--g400);margin-left:8px;font-weight:500;white-space:nowrap}
+.diag-step-lbl.active{color:var(--black)}
+.diag-conn{flex:1;height:1px;background:var(--g200);margin:0 8px;min-width:16px}
+.diag-conn.done{background:var(--dgreen)}
+.diag-card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r);padding:28px 32px;margin-bottom:16px}
+.diag-card-title{font-family:var(--fd);font-size:20px;font-weight:400;margin-bottom:3px;letter-spacing:-.3px}
+.diag-card-sub{font-size:12px;color:var(--g400);margin-bottom:24px}
+.diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.diag-grid.s1{grid-template-columns:1fr}
+.diag-grid.s3{grid-template-columns:1fr 1fr 1fr}
+.diag-fg{display:flex;flex-direction:column;gap:4px}
+.diag-lbl{font-size:10px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.5px}
+.diag-input,.diag-select,.diag-textarea{border:1px solid var(--g200);border-radius:6px;padding:9px 11px;font-family:var(--fb);font-size:13px;color:var(--black);background:var(--white);outline:none;transition:border-color .2s;width:100%}
+.diag-input:focus,.diag-select:focus,.diag-textarea:focus{border-color:var(--black)}
+.diag-textarea{resize:vertical;min-height:72px}
+.diag-hint{font-size:11px;color:var(--g400)}
+.diag-divider{display:flex;align-items:center;gap:10px;margin:20px 0 16px}
+.diag-divider-line{flex:1;height:1px;background:var(--g100)}
+.diag-divider-label{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--g400)}
+.diag-slider-row{display:flex;align-items:center;gap:12px}
+.diag-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:linear-gradient(to right,var(--black) var(--dval,50%),var(--g200) var(--dval,50%));outline:none}
+.diag-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--black);cursor:pointer;border:2px solid var(--white);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.diag-slider-val{font-size:15px;font-weight:600;min-width:28px;text-align:right}
+.diag-slider-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--g400);margin-top:3px}
+.diag-obj-card{border:1px solid var(--g200);border-radius:8px;padding:18px;background:var(--g50);margin-bottom:12px}
+.diag-obj-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.diag-obj-num{width:22px;height:22px;border-radius:50%;background:var(--black);color:var(--white);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.diag-btn-rm{background:none;border:none;cursor:pointer;color:var(--g400);font-size:14px;padding:0}
+.diag-btn-add{background:none;border:1.5px dashed var(--g300);border-radius:8px;padding:11px;width:100%;cursor:pointer;font-family:var(--fb);font-size:12px;color:var(--g500);font-weight:500;transition:all .2s}
+.diag-btn-add:hover{border-color:var(--black);color:var(--black)}
+.diag-btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+.diag-btn{padding:10px 22px;border-radius:6px;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .2s}
+.diag-btn-sec{background:var(--g100);color:var(--black);border:1px solid var(--g200)}
+.diag-btn-sec:hover{background:var(--g200)}
+.diag-btn-pri{background:var(--black);color:var(--white)}
+.diag-btn-pri:hover{background:#333}
+.diag-btn-pri:disabled{background:var(--g300);cursor:not-allowed}
+.diag-btn-go{background:var(--dgreen);color:var(--white)}
+.diag-btn-go:hover{background:#103d27}
+.diag-ai-wrap{text-align:center;padding:48px 20px}
+.diag-spinner{width:40px;height:40px;border:2px solid var(--g200);border-top-color:var(--black);border-radius:50%;animation:diag-spin 1s linear infinite;margin:0 auto 16px}
+@keyframes diag-spin{to{transform:rotate(360deg)}}
+.diag-ai-steps{display:flex;flex-direction:column;gap:7px;margin-top:20px;text-align:left;max-width:300px;margin-left:auto;margin-right:auto}
+.diag-ai-step{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--g400)}
+.diag-ai-step.done{color:var(--dgreen)}
+.diag-ai-step .ddot{width:5px;height:5px;border-radius:50%;background:var(--g300);flex-shrink:0}
+.diag-ai-step.done .ddot{background:var(--dgreen)}
+.diag-ai-step.active .ddot{background:var(--black);box-shadow:0 0 0 3px rgba(10,10,10,.12)}
+.diag-summary{background:var(--g50);border-radius:8px;padding:18px;margin-bottom:18px;font-size:12px;line-height:1.9;color:var(--g500);border:1px solid var(--g200)}
+.diag-err{background:#fdf0f0;border:1px solid #f5c6c6;border-radius:8px;padding:14px;font-size:12px;color:var(--dwarn,#8B1A1A);margin-top:14px;display:none}
+.diag-prev-actions{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap}
+.diag-prev-actions-note{font-size:12px;color:var(--g500);margin-right:auto}
+/* Document preview */
+.diag-doc{background:var(--white);border:1px solid var(--g200);border-radius:var(--r);overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.07)}
+.diag-doc-hdr{background:#0a0a0a;color:#fff;padding:32px 36px;position:relative;overflow:hidden}
+.diag-doc-hdr::after{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.04)}
+.diag-doc-hdr-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.diag-doc-logo{font-family:var(--fd);font-size:14px;opacity:.85}
+.diag-doc-meta{font-size:10px;opacity:.45;text-align:right;line-height:1.9}
+.diag-doc-title{font-family:var(--fd);font-size:28px;font-weight:400;letter-spacing:-.4px;margin-bottom:6px;line-height:1.2}
+.diag-doc-client{font-size:13px;opacity:.65;font-weight:300}
+.diag-doc-body{padding:32px 36px}
+.diag-doc-sec{margin-bottom:32px}
+.diag-doc-sec-lbl{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--g400);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.diag-doc-sec-lbl::after{content:'';flex:1;height:1px;background:var(--g200)}
+.diag-doc-lead{font-family:var(--fd);font-size:16px;font-weight:400;line-height:1.65;font-style:italic;padding:18px 22px;background:var(--g50);border-radius:8px;border-left:3px solid #0a0a0a}
+.diag-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.diag-kpi{background:var(--g50);border-radius:8px;padding:14px;border:1px solid var(--g100)}
+.diag-kpi-val{font-size:18px;font-weight:600;font-family:var(--fd);margin-bottom:1px}
+.diag-kpi-val.pos{color:var(--dgreen)}
+.diag-kpi-val.neg{color:var(--dwarn)}
+.diag-kpi-lbl{font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.4px}
+.diag-perf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.diag-perf-dark{background:#0a0a0a;color:#fff;padding:14px 18px;border-radius:8px}
+.diag-perf-dark .diag-perf-lbl{font-size:9px;opacity:.55;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.diag-perf-dark .diag-perf-val{font-size:15px;font-weight:500}
+.diag-perf-light{background:var(--g50);padding:14px 18px;border-radius:8px;border:1px solid var(--g100)}
+.diag-perf-light .diag-perf-lbl{font-size:9px;color:var(--g500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.diag-perf-light .diag-perf-val{font-size:15px;font-weight:500}
+.diag-risk-bar{height:5px;border-radius:3px;background:var(--g200);position:relative;margin:8px 0 4px}
+.diag-risk-fill{height:100%;border-radius:3px;background:linear-gradient(to right,var(--dgreen),var(--dwarn))}
+.diag-risk-marker{position:absolute;top:-4px;width:11px;height:11px;border-radius:50%;background:#0a0a0a;border:2px solid var(--white);box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translateX(-50%)}
+.diag-risk-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--g400)}
+.diag-punts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.diag-punt{display:flex;align-items:flex-start;gap:7px;font-size:12px;line-height:1.5;margin-bottom:7px;color:var(--g500)}
+.diag-punt-ic{font-size:12px;flex-shrink:0;margin-top:1px}
+.diag-narr{font-size:12px;line-height:1.85;color:var(--g500);white-space:pre-line}
+.diag-estrategia-box{margin-top:14px;padding:14px 18px;border:1px solid var(--g200);border-radius:8px;font-size:12px;color:var(--g500)}
+.diag-obj-doc-list{display:flex;flex-direction:column;gap:8px}
+.diag-obj-doc{display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid var(--g200);border-radius:8px}
+.diag-obj-doc-ic{font-size:18px;flex-shrink:0}
+.diag-obj-doc-info{flex:1}
+.diag-obj-doc-name{font-size:13px;font-weight:500;margin-bottom:1px}
+.diag-obj-doc-detail{font-size:11px;color:var(--g400)}
+.diag-obj-doc-amt{font-size:15px;font-weight:600;font-family:var(--fd)}
+.diag-ruta{display:flex;flex-direction:column}
+.diag-ruta-phase{display:flex;gap:18px}
+.diag-ruta-line-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.diag-ruta-dot{width:11px;height:11px;border-radius:50%;background:#0a0a0a;flex-shrink:0;margin-top:4px}
+.diag-ruta-vline{flex:1;width:1px;background:var(--g200);margin:3px 0}
+.diag-ruta-phase:last-child .diag-ruta-vline{display:none}
+.diag-ruta-content{padding-bottom:22px;flex:1}
+.diag-ruta-head{display:flex;align-items:baseline;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.diag-ruta-num{font-size:9px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.5px}
+.diag-ruta-nom{font-size:13px;font-weight:500}
+.diag-ruta-dur{font-size:11px;color:var(--g400);margin-left:auto}
+.diag-ruta-desc{font-size:12px;color:var(--g500);line-height:1.6;margin-bottom:7px}
+.diag-ms-list{display:flex;flex-wrap:wrap;gap:5px}
+.diag-ms{font-size:10px;background:var(--g100);border:1px solid var(--g200);padding:2px 9px;border-radius:20px;color:var(--g500)}
+.diag-propera{background:#0a0a0a;color:#fff;border-radius:8px;padding:18px 22px;display:flex;align-items:center;gap:14px}
+.diag-propera-ic{font-size:20px;flex-shrink:0}
+.diag-propera-lbl{font-size:9px;opacity:.55;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.diag-propera-txt{font-size:13px;font-weight:500;line-height:1.4}
+.diag-nota-risc{border:1px solid var(--g200);border-radius:8px;padding:12px 16px;font-size:12px;color:var(--g500);font-style:italic;margin-top:10px}
+.diag-doc-footer{border-top:1px solid var(--g100);padding:16px 36px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--g400)}
+.diag-doc-footer-brand{font-family:var(--fd);font-size:11px;color:var(--g300)}
+@media(max-width:600px){
+  .diag-grid.s3{grid-template-columns:1fr 1fr}
+  .diag-doc-body{padding:20px 18px}
+  .diag-doc-hdr{padding:22px 18px}
+  .diag-kpi-grid{grid-template-columns:1fr 1fr}
+  .diag-punts-grid{grid-template-columns:1fr}
+  .diag-perf-row{grid-template-columns:1fr}
+}
+@media print{
+  .content,.topbar,.sidebar{display:none!important}
+  .diag-root{display:block!important;position:fixed;inset:0;overflow:auto;z-index:9999;background:white;padding:0}
+  .diag-steps-bar,.diag-card,.diag-prev-actions-note,.diag-btn,.diag-btn-sec,.diag-btn-go{display:none!important}
+  .diag-doc{border:none;box-shadow:none;border-radius:0}
+  .diag-doc-hdr,.diag-propera,.diag-doc-lead,.diag-kpi,.diag-perf-dark{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{margin:0;size:A4}
+}
 </style>
 </head>
 <body>
@@ -2850,6 +2990,7 @@ var ADMIN_NAV = [
   {section:'Principal'},
   {id:'hub', icon:'🏠', label:'Hub', desc:'Vista general'},
   {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
+  {id:'admin-diagnostic', icon:'🔍', label:'Diagn\u00f2stic'},
   {id:'admin-pendents', icon:'⏳', label:'Sol·licituds pendents'},
   {id:'portal-missatges', icon:'💬', label:'Missatges clients'},
   {id:'admin-broadcast', icon:'📣', label:'Missatge a la comunitat'},
@@ -2959,6 +3100,7 @@ function navigateTo(viewId) {
   var titles = {
     'hub': ['Hub de l\'assessor', 'Vista general de la plataforma'],
     'admin-clients': ['Clients', 'Llistat i gestió de clients'],
+    'admin-diagnostic': ['Diagn\u00f2stic de Client', 'Genera el pla financer personalitzat amb AI'],
     'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['Resum', 'Vista general del teu perfil inversor'],
     'portal-roadmap': APP.role === 'admin' ? ['Portal Client · Full de Ruta', '👁 Previsualització · Editable'] : ['Full de Ruta', 'El teu pla financer personalitzat'],
     'portal-cartera': APP.role === 'admin' ? ['Portal Client · Cartera', '👁 Previsualització'] : ['La meva cartera', 'Seguiment i moviments'],
@@ -3034,6 +3176,7 @@ function renderView(viewId) {
       }
       break;
     case 'admin-clients': renderClientsList(content); break;
+    case 'admin-diagnostic': renderAdminDiagnostic(content); break;
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
     case 'admin-preguntes': renderAdminPreguntes(content); break;
@@ -7670,6 +7813,563 @@ handleQuestionnaireReturn();
 checkSession().catch(function(e) {
   console.warn('Error a checkSession:', e);
 });
+
+/* ══════════════════════════════════════════
+   DIAGNÒSTIC DE CLIENT — BLOC INTEGRAT
+   ══════════════════════════════════════════ */
+var DIAG = { step:1, objs:[], result:null, client:null };
+
+var DIAG_CATS = [
+  {v:'Fons d\u2019emerg\u00e8ncia',icon:'\uD83D\uDEE1\uFE0F'},
+  {v:'FIRE / Independ\u00e8ncia financera',icon:'\uD83D\uDD25'},
+  {v:'Habitatge (compra / reforma)',icon:'\uD83C\uDFE0'},
+  {v:'Jubilaci\u00f3 complementaria',icon:'\uD83C\uDF05'},
+  {v:'Educaci\u00f3 fills',icon:'\uD83C\uDF93'},
+  {v:'Viatge o experi\u00e8ncia vital',icon:'\u2708\uFE0F'},
+  {v:'Negoci o projecte propi',icon:'\uD83D\uDE80'},
+  {v:'Altre objectiu',icon:'\u2B50'}
+];
+
+function renderAdminDiagnostic(el) {
+  var client = getClient();
+  DIAG.step = 1;
+  DIAG.objs = [];
+  DIAG.result = null;
+  DIAG.client = client;
+
+  el.innerHTML = '<div class="content-inner fade-in diag-root">'
+    + diagStepsBar()
+    + '<div id="diag-wizard">'
+    + diagStep1HTML(client)
+    + diagStep2HTML(client)
+    + diagStep3HTML()
+    + diagStep4HTML()
+    + '</div>'
+    + '<div id="diag-preview-wrap" style="display:none"></div>'
+    + '</div>';
+
+  // Init date
+  var dd = document.getElementById('diag-data');
+  if (dd) dd.value = new Date().toISOString().split('T')[0];
+  // Init first obj
+  diagAddObj();
+  // Init slider
+  var sl = document.getElementById('diag-risc');
+  if (sl) diagUpdateSlider(sl);
+}
+
+function diagStepsBar() {
+  var steps = ['Situaci\u00f3','Perfil','Objectius','Generar'];
+  var html = '<div class="diag-steps-bar" id="diag-steps-bar">';
+  steps.forEach(function(s,i){
+    var n = i+1;
+    var cls = n===1 ? ' active' : '';
+    html += '<div class="diag-step-item">'
+      + '<div class="diag-circle'+cls+'" id="diag-sc'+n+'">'+n+'</div>'
+      + '<div class="diag-step-lbl'+cls+'" id="diag-sl'+n+'">'+s+'</div>'
+      + '</div>';
+    if(n<4) html += '<div class="diag-conn" id="diag-con'+n+'"></div>';
+  });
+  return html + '</div>';
+}
+
+function diagStep1HTML(c) {
+  c = c || {};
+  return '<div id="diag-s1">'
+    + '<div class="diag-card">'
+    + '<div class="diag-card-title">Situaci\u00f3 Financera</div>'
+    + '<div class="diag-card-sub">Dades b\u00e0siques del client i el seu patrimoni actual</div>'
+    + '<div class="diag-grid">'
+    + diagFG('Nom complet','diag-nom','text','Ex: Maria Puig Ferrer',c.nom||c.name||'')
+    + diagFG('Email','diag-email','email','client@email.com',c.email||'')
+    + '</div>'
+    + '<div class="diag-grid s3" style="margin-top:12px">'
+    + diagFG('Edat','diag-edat','number','34',c.edat||'')
+    + diagFG('Professi\u00f3','diag-prof','text','Ex: Enginyer, Metge...',c.professio||'')
+    + diagFGInput('Data diagn\u00f2stic','diag-data','date','','')
+    + '</div>'
+    + diagDivider('Patrimoni actiu (\u20ac)')
+    + '<div class="diag-grid">'
+    + diagFGH('Estalvis (compte + dip\u00f2sits)','diag-estalvis','number','0','','')
+    + diagFGH('Inversions actuals (fons, ETFs...)','diag-inversions','number','0','','')
+    + diagFGH('Habitatge (valor estimat)','diag-habitatge','number','0','','')
+    + diagFGH('Pla de pensions / EPSV','diag-pensions','number','0','','')
+    + '</div>'
+    + diagDivider('Patrimoni passiu (\u20ac)')
+    + '<div class="diag-grid s3">'
+    + diagFGH('Hipoteca pendent','diag-hipoteca','number','0','','')
+    + diagFGH('Pr\u00e9stecs / cr\u00e8dits','diag-prestecs','number','0','','')
+    + diagFGH('Altres deutes','diag-deutes','number','0','','')
+    + '</div>'
+    + diagDivider('Fluxos mensuals (\u20ac)')
+    + '<div class="diag-grid s3">'
+    + diagFGH('Ingressos nets mensuals','diag-ingressos','number','2.500',c.ingressos||'','')
+    + diagFGH('Despeses fixes mensuals','diag-despeses','number','1.800',c.despeses||'','')
+    + diagFGH('Mesos fons emerg\u00e8ncia coberts','diag-emergencia','number','3',c.emergencia||'','M\u00ednim recomanat: 6 mesos')
+    + '</div>'
+    + '<div class="diag-btn-row"><button class="diag-btn diag-btn-pri" onclick="diagGoStep(2)">Continua \u2192 Perfil</button></div>'
+    + '</div>'
+    + '</div>';
+}
+
+function diagStep2HTML(c) {
+  c = c || {};
+  var arqOpts = ['El Conservador','El Prudent','L\u2019Equilibrat','El Din\u00e0mic','El Creixement','El Global','El Pionier','La Renda'];
+  var cartOpts = ['TBI \u2014 Cartera Base','I \u00b7 Molt Conservadora','II \u00b7 Conservadora','III \u00b7 Moderada-Conservadora','IV \u00b7 Moderada','V \u00b7 Equilibrada','VI \u00b7 Din\u00e0mica','VII \u00b7 Creixement','VIII \u00b7 Alta Convicci\u00f3','IX \u00b7 El Pionier (FIRE / Alternatives)','X \u00b7 La Renda (Dividend / Pre-jubilaci\u00f3)'];
+  var horOpts = ['Curt termini (< 3 anys)','Mig termini (3-7 anys)','Llarg termini (7-15 anys)','Molt llarg termini (> 15 anys)'];
+  var faseOpts = ['Acumulaci\u00f3 primerenca (< 35 anys)','Acumulaci\u00f3 activa (35-50 anys)','Consolidaci\u00f3 (50-60 anys)','Pre-jubilaci\u00f3 o Pre-FIRE','Desacumulaci\u00f3 / Renda'];
+  var curArq = c.arquetipId || '';
+  return '<div id="diag-s2" style="display:none">'
+    + '<div class="diag-card">'
+    + '<div class="diag-card-title">Perfil Inversor</div>'
+    + '<div class="diag-card-sub">Arquetip, toler\u00e0ncia al risc i cartera proposada</div>'
+    + '<div class="diag-grid">'
+    + '<div class="diag-fg"><label class="diag-lbl">Arquetip assignat</label>'
+    + '<select id="diag-arquetip" class="diag-select"><option value="">— Selecciona —</option>'
+    + arqOpts.map(function(a){ return '<option value="'+a+'"'+(curArq===a?' selected':'')+'>'+a+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="diag-fg"><label class="diag-lbl">Cartera model proposada</label>'
+    + '<select id="diag-cartera" class="diag-select"><option value="">— Selecciona —</option>'
+    + cartOpts.map(function(a){ return '<option value="'+a+'">'+a+'</option>'; }).join('')
+    + '</select></div>'
+    + '</div>'
+    + '<div class="diag-grid" style="margin-top:12px">'
+    + '<div class="diag-fg"><label class="diag-lbl">Horitz\u00f3 temporal</label>'
+    + '<select id="diag-horitz" class="diag-select"><option value="">— Selecciona —</option>'
+    + horOpts.map(function(a){ return '<option value="'+a+'">'+a+'</option>'; }).join('')
+    + '</select></div>'
+    + '<div class="diag-fg"><label class="diag-lbl">Fase vital</label>'
+    + '<select id="diag-fase" class="diag-select"><option value="">— Selecciona —</option>'
+    + faseOpts.map(function(a){ return '<option value="'+a+'">'+a+'</option>'; }).join('')
+    + '</select></div>'
+    + '</div>'
+    + diagDivider('Toler\u00e0ncia al risc')
+    + '<div class="diag-fg">'
+    + '<div class="diag-slider-row">'
+    + '<input type="range" id="diag-risc" class="diag-slider" min="0" max="100" value="50" oninput="diagUpdateSlider(this)">'
+    + '<div class="diag-slider-val" id="diag-risc-val">50</div>'
+    + '</div>'
+    + '<div class="diag-slider-labels"><span>0 · Molt baix</span><span>25 · Baix</span><span>50 · Mig</span><span>75 · Alt</span><span>100 · Molt alt</span></div>'
+    + '</div>'
+    + diagDivider('Context addicional')
+    + '<div class="diag-fg"><label class="diag-lbl">Notes de l\u2019assessor</label>'
+    + '<textarea id="diag-notes" class="diag-textarea" placeholder="Situaci\u00f3 familiar, context laboral, prefer\u00e8ncies..."></textarea></div>'
+    + '<div class="diag-btn-row">'
+    + '<button class="diag-btn diag-btn-sec" onclick="diagGoStep(1)">\u2190 Enrere</button>'
+    + '<button class="diag-btn diag-btn-pri" onclick="diagGoStep(3)">Continua \u2192 Objectius</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function diagStep3HTML() {
+  return '<div id="diag-s3" style="display:none">'
+    + '<div class="diag-card">'
+    + '<div class="diag-card-title">Objectius del Client</div>'
+    + '<div class="diag-card-sub">Fins a 4 objectius financers ordenats per prioritat</div>'
+    + '<div id="diag-obj-list"></div>'
+    + '<button class="diag-btn-add" id="diag-btn-add" onclick="diagAddObj()">+ Afegir objectiu</button>'
+    + '<div class="diag-btn-row">'
+    + '<button class="diag-btn diag-btn-sec" onclick="diagGoStep(2)">\u2190 Enrere</button>'
+    + '<button class="diag-btn diag-btn-pri" onclick="diagGoStep(4)">Continua \u2192 Generar</button>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function diagStep4HTML() {
+  return '<div id="diag-s4" style="display:none">'
+    + '<div class="diag-card" id="diag-s4-form">'
+    + '<div class="diag-card-title">Generar Diagn\u00f2stic</div>'
+    + '<div class="diag-card-sub">Revisa el resum i llença la generaci\u00f3 AI</div>'
+    + '<div class="diag-summary" id="diag-summary"></div>'
+    + '<div class="diag-btn-row">'
+    + '<button class="diag-btn diag-btn-sec" onclick="diagGoStep(3)">\u2190 Enrere</button>'
+    + '<button class="diag-btn diag-btn-go" id="diag-btn-gen" onclick="diagGenerar()">✦ Generar diagn\u00f2stic amb AI</button>'
+    + '</div>'
+    + '<div class="diag-err" id="diag-err"></div>'
+    + '</div>'
+    + '<div class="diag-ai-wrap" id="diag-s4-ai" style="display:none">'
+    + '<div class="diag-spinner"></div>'
+    + '<div style="font-size:14px;font-weight:500">Generant el diagn\u00f2stic...</div>'
+    + '<div style="font-size:12px;color:var(--g400);margin-top:4px" id="diag-ai-status">Analitzant la situaci\u00f3</div>'
+    + '<div class="diag-ai-steps" id="diag-ai-steps">'
+    + ['Analitzant situaci\u00f3 i patrimoni','Definint perfil i estrat\u00e8gia','Identificant fortaleses i millores','Construint el full de ruta','Redactant el diagn\u00f2stic narratiu']
+      .map(function(s,i){ return '<div class="diag-ai-step" id="diag-ais'+(i+1)+'"><div class="ddot"></div>'+s+'</div>'; }).join('')
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function diagFG(label, id, type, ph, val) {
+  return '<div class="diag-fg"><label class="diag-lbl">'+label+'</label>'
+    + '<input id="'+id+'" class="diag-input" type="'+type+'" placeholder="'+ph+'" value="'+dEsc(val)+'"></div>';
+}
+function diagFGInput(label, id, type, ph, val) {
+  return '<div class="diag-fg"><label class="diag-lbl">'+label+'</label>'
+    + '<input id="'+id+'" class="diag-input" type="'+type+'" placeholder="'+ph+'" value="'+dEsc(val)+'"></div>';
+}
+function diagFGH(label, id, type, ph, val, hint) {
+  return '<div class="diag-fg"><label class="diag-lbl">'+label+'</label>'
+    + '<input id="'+id+'" class="diag-input" type="'+type+'" placeholder="'+ph+'" value="'+dEsc(val)+'">'
+    + (hint ? '<span class="diag-hint">'+hint+'</span>' : '')
+    + '</div>';
+}
+function diagDivider(label) {
+  return '<div class="diag-divider"><div class="diag-divider-line"></div><div class="diag-divider-label">'+label+'</div><div class="diag-divider-line"></div></div>';
+}
+function dEsc(s){ return String(s||'').replace(/"/g,'&quot;'); }
+function dHesc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function dFmt(n){ return Math.round(n||0).toLocaleString('ca-ES'); }
+function dV(id){ return (document.getElementById(id)||{}).value||''; }
+
+function diagUpdateSlider(el) {
+  var v = el.value;
+  var vEl = document.getElementById('diag-risc-val');
+  if (vEl) vEl.textContent = v;
+  el.style.setProperty('--dval', v + '%');
+}
+
+function diagGoStep(n) {
+  [1,2,3,4].forEach(function(i){
+    var s = document.getElementById('diag-s'+i);
+    if (s) s.style.display = (i===n) ? 'block' : 'none';
+    var sc = document.getElementById('diag-sc'+i);
+    var sl = document.getElementById('diag-sl'+i);
+    if (sc) {
+      if (i < n) { sc.className='diag-circle done'; sc.textContent='\u2713'; }
+      else if (i===n) { sc.className='diag-circle active'; sc.textContent=i; }
+      else { sc.className='diag-circle'; sc.textContent=i; }
+    }
+    if (sl) sl.className = 'diag-step-lbl' + (i===n ? ' active' : '');
+    var con = document.getElementById('diag-con'+i);
+    if (con) con.className = 'diag-conn' + (i<n ? ' done' : '');
+  });
+  if (n===4) diagBuildSummary();
+}
+
+function diagAddObj() {
+  if (DIAG.objs.length >= 4) return;
+  DIAG.objs.push({ id: Date.now() });
+  diagRenderObjs();
+}
+function diagRemoveObj(id) {
+  DIAG.objs = DIAG.objs.filter(function(o){ return o.id !== id; });
+  diagRenderObjs();
+}
+function diagRenderObjs() {
+  var list = document.getElementById('diag-obj-list');
+  var btn = document.getElementById('diag-btn-add');
+  if (!list) return;
+  var html = '';
+  DIAG.objs.forEach(function(o, i){
+    var id = o.id;
+    html += '<div class="diag-obj-card">'
+      + '<div class="diag-obj-head"><div class="diag-obj-num">'+(i+1)+'</div>'
+      + '<button class="diag-btn-rm" onclick="diagRemoveObj('+id+')">\u2715</button></div>'
+      + '<div class="diag-grid">'
+      + '<div class="diag-fg"><label class="diag-lbl">Categoria</label>'
+      + '<select class="diag-select dobj-cat" data-id="'+id+'">'
+      + DIAG_CATS.map(function(c){ return '<option value="'+c.icon+' '+c.v+'">'+c.icon+' '+c.v+'</option>'; }).join('')
+      + '</select></div>'
+      + '<div class="diag-fg"><label class="diag-lbl">Descripci\u00f3 breu</label>'
+      + '<input class="diag-input dobj-desc" data-id="'+id+'" type="text" placeholder="Ex: Assolir independ\u00e8ncia als 50 anys"></div>'
+      + '</div>'
+      + '<div class="diag-grid s3" style="margin-top:10px">'
+      + '<div class="diag-fg"><label class="diag-lbl">Import objectiu (\u20ac)</label>'
+      + '<input class="diag-input dobj-imp" data-id="'+id+'" type="number" placeholder="300000"></div>'
+      + '<div class="diag-fg"><label class="diag-lbl">Data objectiu</label>'
+      + '<input class="diag-input dobj-data" data-id="'+id+'" type="date"></div>'
+      + '<div class="diag-fg"><label class="diag-lbl">Prioritat</label>'
+      + '<select class="diag-select dobj-prio" data-id="'+id+'">'
+      + '<option value="Alta">Alta</option><option value="Mitjana">Mitjana</option><option value="Baixa">Baixa</option>'
+      + '</select></div>'
+      + '</div></div>';
+  });
+  list.innerHTML = html;
+  if (btn) btn.style.display = DIAG.objs.length >= 4 ? 'none' : 'block';
+}
+
+function diagGetObjs() {
+  return DIAG.objs.map(function(o){
+    var id = o.id;
+    return {
+      categoria: (document.querySelector('.dobj-cat[data-id="'+id+'"]')||{}).value||'',
+      descripcio: (document.querySelector('.dobj-desc[data-id="'+id+'"]')||{}).value||'',
+      import: (document.querySelector('.dobj-imp[data-id="'+id+'"]')||{}).value||'',
+      data: (document.querySelector('.dobj-data[data-id="'+id+'"]')||{}).value||'',
+      prioritat: (document.querySelector('.dobj-prio[data-id="'+id+'"]')||{}).value||'Alta'
+    };
+  });
+}
+
+function diagBuildSummary() {
+  var actiu = (parseFloat(dV('diag-estalvis'))||0)+(parseFloat(dV('diag-inversions'))||0)+(parseFloat(dV('diag-habitatge'))||0)+(parseFloat(dV('diag-pensions'))||0);
+  var passiu = (parseFloat(dV('diag-hipoteca'))||0)+(parseFloat(dV('diag-prestecs'))||0)+(parseFloat(dV('diag-deutes'))||0);
+  var net = actiu - passiu;
+  var estalviMes = (parseFloat(dV('diag-ingressos'))||0) - (parseFloat(dV('diag-despeses'))||0);
+  var objs = diagGetObjs().filter(function(o){ return o.descripcio; });
+  var s = document.getElementById('diag-summary');
+  if (!s) return;
+  s.innerHTML = '<strong>Client:</strong> '+dV('diag-nom')+', '+dV('diag-edat')+' anys \u00b7 '+dV('diag-prof')
+    +'<br><strong>Patrimoni net:</strong> '+dFmt(net)+' \u20ac'
+    +'<br><strong>Capacitat estalvi mensual:</strong> '+dFmt(estalviMes)+' \u20ac/mes'
+    +'<br><strong>Fons emerg\u00e8ncia:</strong> '+dV('diag-emergencia')+' mesos'
+    +'<br><strong>Arquetip:</strong> '+dV('diag-arquetip')+' \u00b7 <strong>Cartera:</strong> '+dV('diag-cartera')
+    +'<br><strong>Horitz\u00f3:</strong> '+dV('diag-horitz')+' \u00b7 <strong>Risc:</strong> '+dV('diag-risc')+'/100'
+    +'<br><strong>Objectius:</strong> '+(objs.length ? objs.map(function(o){ return o.categoria.split(' ').slice(1).join(' '); }).join(', ') : 'Cap definit');
+}
+
+async function diagGenerar() {
+  var nom = dV('diag-nom');
+  if (!nom) { alert('Cal introduir el nom del client!'); return; }
+  document.getElementById('diag-s4-form').style.display = 'none';
+  document.getElementById('diag-s4-ai').style.display = 'block';
+
+  var aiIdx = 0;
+  var aiTimer = setInterval(function(){
+    if (aiIdx > 0) { var prev = document.getElementById('diag-ais'+aiIdx); if(prev) prev.className='diag-ai-step done'; }
+    aiIdx++;
+    if (aiIdx <= 5) { var cur = document.getElementById('diag-ais'+aiIdx); if(cur) cur.className='diag-ai-step active'; }
+    if (aiIdx >= 5) clearInterval(aiTimer);
+  }, 1100);
+
+  var actiu = (parseFloat(dV('diag-estalvis'))||0)+(parseFloat(dV('diag-inversions'))||0)+(parseFloat(dV('diag-habitatge'))||0)+(parseFloat(dV('diag-pensions'))||0);
+  var passiu = (parseFloat(dV('diag-hipoteca'))||0)+(parseFloat(dV('diag-prestecs'))||0)+(parseFloat(dV('diag-deutes'))||0);
+  var net = actiu - passiu;
+  var estalviMes = (parseFloat(dV('diag-ingressos'))||0) - (parseFloat(dV('diag-despeses'))||0);
+  var objs = diagGetObjs().filter(function(o){ return o.descripcio; });
+
+  var userMsg = 'CLIENT: '+nom+', '+dV('diag-edat')+' anys, '+dV('diag-prof')
+    +'\nPATRIMONI:\n  Actiu total: '+dFmt(actiu)+'\u20ac (estalvis: '+dFmt(dV('diag-estalvis'))+'\u20ac, inversions: '+dFmt(dV('diag-inversions'))+'\u20ac, habitatge: '+dFmt(dV('diag-habitatge'))+'\u20ac, pensions: '+dFmt(dV('diag-pensions'))+'\u20ac)'
+    +'\n  Passiu total: '+dFmt(passiu)+'\u20ac\n  PATRIMONI NET: '+dFmt(net)+'\u20ac'
+    +'\nFLUXOS MENSUALS:\n  Ingressos nets: '+dFmt(dV('diag-ingressos'))+'\u20ac/mes\n  Despeses fixes: '+dFmt(dV('diag-despeses'))+'\u20ac/mes\n  Capacitat estalvi: '+dFmt(estalviMes)+'\u20ac/mes\n  Fons emerg\u00e8ncia: '+dV('diag-emergencia')+' mesos'
+    +'\nPERFIL:\n  Arquetip: '+dV('diag-arquetip')+'\n  Risc: '+dV('diag-risc')+'/100\n  Horitz\u00f3: '+dV('diag-horitz')+'\n  Fase vital: '+dV('diag-fase')+'\n  Cartera proposada: '+dV('diag-cartera')
+    +'\nNOTES ASSESSOR: '+dV('diag-notes')
+    +'\nOBJECTIUS:\n'+objs.map(function(o,i){ return '  '+(i+1)+'. '+o.categoria+' \u2014 '+o.descripcio+(o.import?' ('+dFmt(o.import)+'\u20ac)':'')+(o.data?' \u00b7 '+o.data:'')+'  ['+o.prioritat+']'; }).join('\n');
+
+  var sys = 'Ets un assessor financer independent certificat EFA a Espanya treballant per The Boring Investor.\nParles en catal\u00e0 professional per\u00f2 accessible.\nRespon EXCLUSIVAMENT amb un objecte JSON v\u00e0lid (sense cap text addicional ni markdown ni ```json):\n{'
+    +'"resum_executiu":"2-3 frases sobre la situaci\u00f3 i les oportunitats clau",'
+    +'"punts_forts":["punt 1","punt 2","punt 3"],'
+    +'"punts_millora":["millora 1","millora 2"],'
+    +'"diagnostic_narratiu":"Dos par\u00e0grafs separats per \\n\\n explicant situaci\u00f3, riscos i enfocament recomanat",'
+    +'"estrategia":"Un par\u00e0graf sobre la cartera i estrat\u00e8gia proposada",'
+    +'"full_de_ruta":[{"fase":1,"nom":"nom fase","durada":"X mesos","descripcio":"qu\u00e8 s\u2019assoleix","milestones":["m1","m2","m3"]}],'
+    +'"propera_accio":"La primera cosa concreta que el client ha de fer aquesta setmana",'
+    +'"nota_risc":"Una frase sobre gesti\u00f3 del risc per aquest perfil"'
+    +'}\nGenera 3-5 fases al full_de_ruta, progressives i adaptades als objectius. Usa xifres reals del client.';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2000, system:sys, messages:[{role:'user',content:userMsg}] })
+    });
+    clearInterval(aiTimer);
+    [1,2,3,4,5].forEach(function(i){ var el=document.getElementById('diag-ais'+i); if(el) el.className='diag-ai-step done'; });
+    var data = await res.json();
+    var raw = data.content && data.content[0] && data.content[0].text;
+    if (!raw) throw new Error('Resposta buida del model');
+    DIAG.result = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    diagMostrarPreview();
+  } catch(err) {
+    clearInterval(aiTimer);
+    document.getElementById('diag-s4-ai').style.display = 'none';
+    document.getElementById('diag-s4-form').style.display = 'block';
+    var eb = document.getElementById('diag-err');
+    if (eb) { eb.style.display='block'; eb.textContent='Error: '+err.message+'. Revisa la connexi\u00f3 i torna a provar.'; }
+  }
+}
+
+function diagMostrarPreview() {
+  var wizard = document.getElementById('diag-wizard');
+  var stepsBar = document.getElementById('diag-steps-bar');
+  var prevWrap = document.getElementById('diag-preview-wrap');
+  if (wizard) wizard.style.display = 'none';
+  if (stepsBar) stepsBar.style.display = 'none';
+  if (!prevWrap) return;
+  prevWrap.style.display = 'block';
+  prevWrap.innerHTML = '<div class="diag-prev-actions">'
+    + '<div class="diag-prev-actions-note">Document generat \u00b7 Revisa i exporta</div>'
+    + '<button class="diag-btn diag-btn-sec" onclick="diagTornarEditar()">\u2190 Tornar a editar</button>'
+    + '<button class="diag-btn diag-btn-sec" onclick="window.print()">\uD83D\uDDB6 Imprimir / PDF</button>'
+    + '<button class="diag-btn diag-btn-go" onclick="diagDesarPortal()">Desar al portal del client \u2192</button>'
+    + '</div>'
+    + '<div class="diag-doc">' + diagBuildDoc() + '</div>';
+  prevWrap.scrollIntoView({ behavior:'smooth' });
+}
+
+function diagTornarEditar() {
+  var wizard = document.getElementById('diag-wizard');
+  var stepsBar = document.getElementById('diag-steps-bar');
+  var prevWrap = document.getElementById('diag-preview-wrap');
+  if (wizard) wizard.style.display = 'block';
+  if (stepsBar) stepsBar.style.display = 'flex';
+  if (prevWrap) prevWrap.style.display = 'none';
+  document.getElementById('diag-s4-ai').style.display = 'none';
+  document.getElementById('diag-s4-form').style.display = 'block';
+}
+
+function diagBuildDoc() {
+  var d = DIAG.result;
+  if (!d) return '';
+  var nom = dV('diag-nom');
+  var dataDiag = dV('diag-data') || new Date().toISOString().split('T')[0];
+  var dataFmt = '';
+  try { dataFmt = new Date(dataDiag).toLocaleDateString('ca-ES',{day:'2-digit',month:'long',year:'numeric'}); } catch(e){ dataFmt = dataDiag; }
+  var actiu = (parseFloat(dV('diag-estalvis'))||0)+(parseFloat(dV('diag-inversions'))||0)+(parseFloat(dV('diag-habitatge'))||0)+(parseFloat(dV('diag-pensions'))||0);
+  var passiu = (parseFloat(dV('diag-hipoteca'))||0)+(parseFloat(dV('diag-prestecs'))||0)+(parseFloat(dV('diag-deutes'))||0);
+  var net = actiu - passiu;
+  var estalviMes = (parseFloat(dV('diag-ingressos'))||0)-(parseFloat(dV('diag-despeses'))||0);
+  var risc = dV('diag-risc');
+  var objs = diagGetObjs().filter(function(o){ return o.descripcio; });
+
+  var h = '';
+  // Capçalera
+  h += '<div class="diag-doc-hdr">'
+    + '<div class="diag-doc-hdr-top"><div class="diag-doc-logo">The Boring Investor</div>'
+    + '<div class="diag-doc-meta">'+dataFmt+'<br>Assessoria fee-only \u00b7 EFA</div></div>'
+    + '<div class="diag-doc-title">Diagn\u00f2stic Financer<br>Personalitzat</div>'
+    + '<div class="diag-doc-client">'+dHesc(nom)+' \u00b7 '+dV('diag-edat')+' anys \u00b7 '+dHesc(dV('diag-arquetip'))+'</div>'
+    + '</div>';
+
+  h += '<div class="diag-doc-body">';
+
+  // Resum executiu
+  h += '<div class="diag-doc-sec"><div class="diag-doc-sec-lbl">Resum Executiu</div>'
+    + '<div class="diag-doc-lead">'+dHesc(d.resum_executiu)+'</div></div>';
+
+  // KPIs situació
+  h += '<div class="diag-doc-sec"><div class="diag-doc-sec-lbl">Situaci\u00f3 Financera Actual</div>'
+    + '<div class="diag-kpi-grid">'
+    + diagKpi(dFmt(net)+'\u20ac', net>=0?'pos':'neg', 'Patrimoni net')
+    + diagKpi(dFmt(estalviMes)+'\u20ac/mes', estalviMes>0?'pos':'neg', 'Capacitat d\u2019estalvi')
+    + diagKpi(dV('diag-emergencia')+' mesos', parseInt(dV('diag-emergencia'))>=6?'pos':'neg', 'Fons d\u2019emerg\u00e8ncia')
+    + diagKpi(dFmt(dV('diag-inversions'))+'\u20ac', 'pos', 'Inversions actuals')
+    + diagKpi(dFmt(passiu)+'\u20ac', passiu>0?'neg':'pos', 'Deutes totals')
+    + diagKpi(dFmt(dV('diag-ingressos'))+'\u20ac/mes', 'pos', 'Ingressos mensuals')
+    + '</div></div>';
+
+  // Perfil
+  h += '<div class="diag-doc-sec"><div class="diag-doc-sec-lbl">Perfil Inversor</div>'
+    + '<div class="diag-perf-row">'
+    + '<div class="diag-perf-dark"><div class="diag-perf-lbl">Arquetip assignat</div><div class="diag-perf-val">'+dHesc(dV('diag-arquetip'))+'</div></div>'
+    + '<div class="diag-perf-light"><div class="diag-perf-lbl">Horitz\u00f3 temporal</div><div class="diag-perf-val">'+dHesc(dV('diag-horitz'))+'</div></div>'
+    + '</div>'
+    + '<div style="margin:10px 0 6px;font-size:12px;color:var(--g500)"><strong style="color:var(--black)">Cartera proposada:</strong> '+dHesc(dV('diag-cartera'))+'</div>'
+    + '<div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--g400);margin-bottom:5px"><span>Toler\u00e0ncia al risc</span><span style="font-weight:600;color:var(--black)">'+risc+'/100</span></div>'
+    + '<div class="diag-risk-bar"><div class="diag-risk-fill" style="width:'+risc+'%"></div><div class="diag-risk-marker" style="left:'+risc+'%"></div></div>'
+    + '<div class="diag-risk-labels"><span>Molt baix</span><span>Mig</span><span>Molt alt</span></div>'
+    + '</div></div>';
+
+  // Punts forts i millora
+  h += '<div class="diag-doc-sec"><div class="diag-doc-sec-lbl">An\u00e0lisi</div>'
+    + '<div class="diag-punts-grid">'
+    + '<div><div style="font-size:11px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px">\u2705 Punts forts</div>'
+    + (d.punts_forts||[]).map(function(p){ return '<div class="diag-punt"><span class="diag-punt-ic">\u2713</span>'+dHesc(p)+'</div>'; }).join('')
+    + '</div>'
+    + '<div><div style="font-size:11px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px">\uD83C\uDFAF Punts de millora</div>'
+    + (d.punts_millora||[]).map(function(p){ return '<div class="diag-punt"><span class="diag-punt-ic">\u2192</span>'+dHesc(p)+'</div>'; }).join('')
+    + '</div></div></div>';
+
+  // Diagnòstic narratiu
+  h += '<div class="diag-doc-sec"><div class="diag-doc-sec-lbl">Diagn\u00f2stic</div>'
+    + '<div class="diag-narr">'+dHesc(d.diagnostic_narratiu)+'</div>'
+    + '<div class="diag-estrategia-box"><strong style="color:var(--black);display:block;margin-bottom:5px">Estrat\u00e8gia proposada</strong>'+dHesc(d.estrategia)+'</div>'
+    + '</div>';
+
+  // Objectius
+  if (objs.length) {
+    h += '<div class="diag-doc-sec"><div class="diag-doc-sec-lbl">Objectius Financers</div>'
+      + '<div class="diag-obj-doc-list">'
+      + objs.map(function(o){
+          var parts = o.categoria.split(' ');
+          var icon = parts[0]; var label = parts.slice(1).join(' ');
+          var dataFmtO = '';
+          try { if(o.data) dataFmtO = new Date(o.data).toLocaleDateString('ca-ES',{month:'short',year:'numeric'}); } catch(e){}
+          return '<div class="diag-obj-doc">'
+            + '<div class="diag-obj-doc-ic">'+icon+'</div>'
+            + '<div class="diag-obj-doc-info"><div class="diag-obj-doc-name">'+dHesc(label)+'<span style="font-size:10px;color:var(--g400);font-weight:400"> \u00b7 '+o.prioritat+'</span></div>'
+            + '<div class="diag-obj-doc-detail">'+dHesc(o.descripcio)+(dataFmtO?' \u00b7 '+dataFmtO:'')+'</div></div>'
+            + (o.import ? '<div class="diag-obj-doc-amt">'+dFmt(o.import)+'\u20ac</div>' : '')
+            + '</div>';
+        }).join('')
+      + '</div></div>';
+  }
+
+  // Full de ruta
+  h += '<div class="diag-doc-sec"><div class="diag-doc-sec-lbl">Full de Ruta</div>'
+    + '<div class="diag-ruta">'
+    + (d.full_de_ruta||[]).map(function(f){
+        return '<div class="diag-ruta-phase">'
+          + '<div class="diag-ruta-line-col"><div class="diag-ruta-dot"></div><div class="diag-ruta-vline"></div></div>'
+          + '<div class="diag-ruta-content">'
+          + '<div class="diag-ruta-head">'
+          + '<div class="diag-ruta-num">Fase '+f.fase+'</div>'
+          + '<div class="diag-ruta-nom">'+dHesc(f.nom)+'</div>'
+          + '<div class="diag-ruta-dur">'+dHesc(f.durada)+'</div>'
+          + '</div>'
+          + '<div class="diag-ruta-desc">'+dHesc(f.descripcio)+'</div>'
+          + '<div class="diag-ms-list">'+(f.milestones||[]).map(function(m){ return '<span class="diag-ms">'+dHesc(m)+'</span>'; }).join('')+'</div>'
+          + '</div></div>';
+      }).join('')
+    + '</div></div>';
+
+  // Propera acció
+  h += '<div class="diag-doc-sec"><div class="diag-doc-sec-lbl">Propera Acci\u00f3</div>'
+    + '<div class="diag-propera"><div class="diag-propera-ic">\u25BA</div>'
+    + '<div><div class="diag-propera-lbl">Primer pas concret</div>'
+    + '<div class="diag-propera-txt">'+dHesc(d.propera_accio)+'</div></div></div>'
+    + '<div class="diag-nota-risc">\u26A0\uFE0F '+dHesc(d.nota_risc)+'</div>'
+    + '</div>';
+
+  h += '</div>'; // /diag-doc-body
+
+  h += '<div class="diag-doc-footer">'
+    + '<div>The Boring Investor \u00b7 Assessoria fee-only independent \u00b7 '+dataFmt+'</div>'
+    + '<div class="diag-doc-footer-brand">The Boring Investor</div>'
+    + '</div>';
+
+  return h;
+}
+
+function diagKpi(val, cls, label) {
+  return '<div class="diag-kpi"><div class="diag-kpi-val '+(cls||'')+'">'+(val||'\u2014')+'</div><div class="diag-kpi-lbl">'+label+'</div></div>';
+}
+
+async function diagDesarPortal() {
+  if (!DIAG.result) return;
+  var client = DIAG.client;
+  if (!client || !client.id) {
+    alert('No hi ha cap client seleccionat. Obre el diagn\u00f2stic des de la fitxa d\u2019un client.');
+    return;
+  }
+  try {
+    var payload = {
+      diagnostic: JSON.stringify(DIAG.result),
+      diagnostic_data: JSON.stringify({
+        nom: dV('diag-nom'), edat: dV('diag-edat'), professio: dV('diag-prof'),
+        estalvis: dV('diag-estalvis'), inversions: dV('diag-inversions'),
+        hipoteca: dV('diag-hipoteca'), ingressos: dV('diag-ingressos'),
+        despeses: dV('diag-despeses'), emergencia: dV('diag-emergencia'),
+        arquetip: dV('diag-arquetip'), cartera: dV('diag-cartera'),
+        horitz: dV('diag-horitz'), risc: dV('diag-risc'),
+        objectius: diagGetObjs(), data_diag: dV('diag-data')
+      })
+    };
+    var r = await sb.from('clients').update(payload).eq('id', client.id);
+    if (r.error) throw r.error;
+    showToast('\u2713 Diagn\u00f2stic desat al portal del client!', 'success');
+    // Actualitzar APP.clientData localment
+    if (APP.clientData) {
+      APP.clientData.diagnostic = payload.diagnostic;
+      APP.clientData.diagnostic_data = payload.diagnostic_data;
+    }
+  } catch(err) {
+    showToast('Error desant: '+err.message, 'error');
+  }
+}
+
 </script>
 </body>
 </html>
