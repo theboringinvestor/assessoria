@@ -1074,9 +1074,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
 // Format: YYYY-MM-DD.N — incrementar N cada deploy
-var TBI_VERSION = '2026-04-30.3';
+var TBI_VERSION = '2026-05-09.1';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
+
+// ── ANTHROPIC API KEY ────────────────────────────────
+// Per activar el diagn\u00f2stic AI: posa la teva clau de console.anthropic.com
+// Format: 'sk-ant-...'  |  Deixa buit per usar mode template (sense IA)
+var ANTHROPIC_KEY = '';
 
 var sb = null;
 try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.log('Supabase no disponible, mode demo only'); }
@@ -2633,7 +2638,11 @@ async function loadAllClientsFromSupabase() {
         email: c.email,
         arquetipId: deriveArquetipId(c.arquetip),
         arquetip: c.arquetip ? c.arquetip.split('—')[0].trim() : '—',
-        cartera: c.cartera || '—',
+        cartera: (function(){
+          var aid = deriveArquetipId(c.arquetip);
+          var arq = getArquetip(aid);
+          return (arq && arq.cartRoma) ? arq.cartRoma : (c.cartera || '—');
+        })(),
         scoring: c.scoring || 0,
         pla: (c.perfil && c.perfil.pla) ? c.perfil.pla : (c.pla || 'senyal'),
         status: statusMap[rawStatus] || rawStatus,
@@ -2960,36 +2969,30 @@ async function checkSession() {
 // ══════════════════════════════════════════════════
 var ADMIN_NAV = [
   {section:'Principal'},
-  {id:'hub', icon:'🏠', label:'Hub', desc:'Vista general'},
-  {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
-  {id:'admin-diagnostic', icon:'🔍', label:'Diagn\u00f2stic'},
-  {id:'admin-pendents', icon:'⏳', label:'Sol·licituds pendents'},
-  {id:'portal-missatges', icon:'💬', label:'Missatges clients'},
-  {id:'admin-broadcast', icon:'📣', label:'Missatge a la comunitat'},
-  {id:'portal-questionnaire', icon:'📋', label:'Qüestionari client'},
-  {id:'admin-plans', icon:'💎', label:'Plans i subscripcions'},
-  {id:'admin-preguntes', icon:'❓', label:'Preguntes dels clients', badge:'•'},
-  {section:'Portal Client · Preview'},
-  {id:'portal-perfil', icon:'📊', label:'Resum'},
-  {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
-  {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
-  {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
-  {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
-  {id:'portal-informes', icon:'📋', label:'Informes'},
-  {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
-  {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
-  {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
-  {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
-  {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
-  {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
-  {section:'Eines externes'},
-  {id:'link-dashboard', icon:'⚙️', label:'Dashboard Complet', external:'index.html'},
-  {id:'link-onboarding', icon:'📝', label:'Onboarding', external:'client_onboarding_v3.html'},
-  {id:'link-landing', icon:'🌐', label:'Landing Page', external:'landing.html'},
-  {id:'link-arquetips', icon:'🎭', label:'Carteres Arquetips', external:'carteres_arquetips.html'},
-  {id:'link-legal', icon:'📄', label:'Pack Legal', external:'pack_legal_pre_efa.html'},
+  {id:'hub',               icon:'🏠', label:'Hub'},
+  {id:'admin-clients',     icon:'👥', label:'Clients'},
+  {id:'admin-informe',     icon:'📄', label:'Generar Informe'},
+  {id:'admin-diagnostic',  icon:'🔍', label:'Diagn\u00f2stic'},
+  {id:'admin-plans',       icon:'&#128142;', label:'Plans'},
+  {section:'Clients'},
+  {id:'admin-pendents',    icon:'⏳', label:'Sol\u00b7licituds pendents'},
+  {id:'portal-missatges',  icon:'💬', label:'Missatges clients'},
+  {id:'admin-preguntes',   icon:'❓', label:'Preguntes', badge:'\u2022'},
+  {id:'admin-broadcast',   icon:'📣', label:'Comunicat comunitat'},
+  {id:'portal-questionnaire', icon:'📋', label:'Q\u00fcestionari client'},
+  {section:'Portal Client \u00b7 Preview'},
+  {id:'portal-perfil',     icon:'📊', label:'Resum'},
+  {id:'portal-roadmap',    icon:'🗺️', label:'Full de Ruta'},
+  {id:'portal-cartera',    icon:'💼', label:'La meva cartera'},
+  {id:'portal-aportacions',icon:'📅', label:"Pla d'aportacions"},
+  {id:'portal-assessoria', icon:'📈', label:'An\u00e0lisi de mercat'},
+  {id:'portal-informes',   icon:'📋', label:'Informes'},
+  {id:'portal-carteres',   icon:'🗂', label:'Carteres Model'},
+  {id:'portal-fire',       icon:'🔥', label:'Calculadora FIRE'},
+  {id:'portal-turbo',      icon:'🚀', label:'Turbo Estalvi'},
+  {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emerg\u00e8ncia"},
   {section:'Sistema'},
-  {id:'settings', icon:'⚙️', label:'Configuració'},
+  {id:'settings',          icon:'⚙️', label:'Configuraci\u00f3'},
 ];
 
 var CLIENT_NAV = [
@@ -3016,20 +3019,29 @@ var CLIENT_NAV = [
 function setupSidebar() {
   var nav = document.getElementById('sidebar-nav');
   var items = APP.role === 'admin' ? ADMIN_NAV : CLIENT_NAV;
-  var roleLabel = APP.role === 'admin' ? 'Assessor · Administrador' : 'Client';
-  if (APP.isDemo) roleLabel += ' · Demo';
+  var roleLabel = APP.role === 'admin' ? 'Assessor \u00b7 Administrador' : 'Client';
 
   document.getElementById('sidebar-role').textContent = roleLabel;
   document.getElementById('sidebar-avatar').textContent = APP.user.initials;
   document.getElementById('sidebar-user-name').textContent = APP.user.name;
   document.getElementById('sidebar-user-email').textContent = APP.user.email;
 
+  // Distinció visual: admin = fosc (negre), client = blau fosc (accent)
+  var sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    if (APP.role === 'client') {
+      sidebar.style.background = 'linear-gradient(180deg,#0F2847 0%,#0A1E35 100%)';
+    } else {
+      sidebar.style.background = ''; // defecte (negre del CSS)
+    }
+  }
+
   // Badge del pla (només clients, no admins)
   var planBadge = document.getElementById('sidebar-plan-badge');
   if (planBadge) {
-    if (APP.role === 'client' && !APP.isDemo) {
-      var plaId = (APP.clientData && APP.clientData.pla) || 'essencial';
-      var plaInfo = PLANS[plaId] || PLANS.essencial;
+    if (APP.role === 'client') {
+      var plaId = (APP.clientData && APP.clientData.pla) || 'senyal';
+      var plaInfo = getPla(plaId);
       planBadge.style.display = 'block';
       planBadge.innerHTML = '<span style="display:inline-block;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:500;font-family:var(--fm);background:' + plaInfo.color + '33;color:' + plaInfo.color + '">'
         + plaInfo.nom + '</span>'
@@ -3350,6 +3362,63 @@ function renderClientsList(el) {
 // ══════════════════════════════════════════════════
 // VIEW: PORTAL PERFIL
 // ══════════════════════════════════════════════════
+// ── DONUT REUTILITZABLE (Resum + Cartera) ──────────────────────────────────
+function renderCarteraDonut(actius, opts) {
+  opts = opts || {};
+  var size    = opts.donutSize || 180;
+  var cx = size/2, cy = size/2;
+  var outerR  = size * 0.41;
+  var innerR  = size * 0.26;
+  var gapRad  = 0.04;
+  var centerLabel    = opts.centerLabel    || '';
+  var centerSublabel = opts.centerSublabel || '';
+  var total = (actius||[]).reduce(function(s,a){ return s+(a.pct||0); }, 0);
+  if (!actius || !actius.length || total <= 0) return '';
+
+  var paths = [], startAngle = -Math.PI / 2;
+  actius.forEach(function(a) {
+    var angle = (a.pct / total) * 2 * Math.PI;
+    if (angle < 0.01) { startAngle += angle; return; }
+    var s1 = startAngle + gapRad / 2;
+    var e1 = startAngle + angle - gapRad / 2;
+    var large = angle > Math.PI ? 1 : 0;
+    var x1o = cx + outerR * Math.cos(s1), y1o = cy + outerR * Math.sin(s1);
+    var x2o = cx + outerR * Math.cos(e1), y2o = cy + outerR * Math.sin(e1);
+    var x1i = cx + innerR * Math.cos(e1), y1i = cy + innerR * Math.sin(e1);
+    var x2i = cx + innerR * Math.cos(s1), y2i = cy + innerR * Math.sin(s1);
+    var d = 'M'+x1o.toFixed(1)+' '+y1o.toFixed(1)
+          + ' A'+outerR+' '+outerR+' 0 '+large+' 1 '+x2o.toFixed(1)+' '+y2o.toFixed(1)
+          + ' L'+x1i.toFixed(1)+' '+y1i.toFixed(1)
+          + ' A'+innerR+' '+innerR+' 0 '+large+' 0 '+x2i.toFixed(1)+' '+y2i.toFixed(1)+'Z';
+    paths.push('<path d="'+d+'" fill="'+a.color+'"/>');
+    startAngle += angle;
+  });
+
+  var svgH = '<svg viewBox="0 0 '+size+' '+size+'" width="'+size+'" height="'+size+'" style="display:block;flex-shrink:0">'
+    + paths.join('')
+    + '<circle cx="'+cx+'" cy="'+cy+'" r="'+(innerR*0.92)+'" fill="white"/>';
+  if (centerLabel) {
+    svgH += '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="'+(size*0.07)+'" fill="#0A0A0A" font-weight="500">'+centerLabel+'</text>';
+    if (centerSublabel) {
+      svgH += '<text x="'+cx+'" y="'+(cy+size*0.08)+'" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="'+(size*0.055)+'" fill="#9A9690">'+centerSublabel+'</text>';
+    }
+  }
+  svgH += '</svg>';
+
+  // Llegenda
+  var legend = '<div style="flex:1;min-width:140px">';
+  actius.forEach(function(a) {
+    legend += '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--g100)">'
+      + '<div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:'+a.color+'"></div>'
+      + '<div style="font-size:11px;flex:1;color:var(--black)">'+a.nom+'</div>'
+      + '<div style="font-family:var(--fm);font-size:11px;color:'+a.color+'">'+a.pct+'%</div>'
+    + '</div>';
+  });
+  legend += '</div>';
+
+  return '<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">'+svgH+legend+'</div>';
+}
+
 function renderPortalPerfil(el) {
   var c = getClient();
   if (!c) {
@@ -3886,6 +3955,17 @@ function toggleCartera(id) {
 function renderPortalCartera(el) {
   var c = getClient();
   if (!c) { el.innerHTML = '<div class="content-inner"><p style="color:var(--g400);font-size:13px;padding:40px 0">Carregant dades...</p></div>'; return; }
+
+  // ── TABS de navegació ──
+  var tabParam = (window._carteraTab || 'target');
+  var tabHtml = '<div style="display:flex;gap:4px;padding:4px;background:var(--g100);border-radius:10px;margin-bottom:24px;width:fit-content">';
+  [['target','Cartera target'],['posicions','Les meves posicions'],['seguiment','Seguiment']]
+  .forEach(function(t){
+    var isActive = tabParam === t[0];
+    tabHtml += '<button onclick="window._carteraTab=\''+t[0]+'\';renderPortalCartera(document.getElementById(\'content\'))" style="padding:8px 16px;border-radius:7px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);background:'+(isActive?'var(--white)':'transparent')+';color:'+(isActive?'var(--black)':'var(--g400)')+';box-shadow:'+(isActive?'0 1px 4px rgba(0,0,0,.1)':'none')+'">'+t[1]+'</button>';
+  });
+  tabHtml += '</div>';
+
   var arq = getArquetip(c.arquetipId);
 
   // Posicions reals guardades
@@ -3965,11 +4045,11 @@ function renderPortalCartera(el) {
     + '</style>';
 
   // ── HTML ──
-  var html = css + '<div class="content-inner fade-in">';
+  var html = css + '<div class="content-inner fade-in">' + tabHtml;
 
   // ── 1. CARTERA TARGET ──
-  html += '<div class="cartera-section cartera-card" style="margin-bottom:20px">'
-    + '<div class="cartera-section-title">🎯 Cartera Target — ' + arq.cartRoma + ' · ' + arq.nom + '</div>'
+  html += '<div class="cartera-section cartera-card" style="margin-bottom:20px;' + (tabParam === 'posicions' || tabParam === 'seguiment' ? 'display:none' : '') + '">'
+    + '<div class="cartera-section-title">&#127919; Cartera Target \u2014 ' + arq.cartRoma + ' \u00b7 ' + arq.nom + '</div>'
     + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.5">'
       + arq.cartSub
       + '<span style="margin-left:10px;font-size:10px;background:var(--g100);padding:2px 8px;border-radius:99px;color:var(--g500)">TER ' + arq.ter + '</span>'
@@ -4012,8 +4092,8 @@ function renderPortalCartera(el) {
   + '</div>';
 
   // ── 2. LES MEVES POSICIONS ──
-  html += '<div class="cartera-section cartera-card" style="margin-bottom:20px">'
-    + '<div class="cartera-section-title">💼 Les meves posicions actuals</div>';
+  html += '<div class="cartera-section cartera-card" style="margin-bottom:20px;' + (tabParam === 'target' ? 'display:none' : '') + '" id="cartera-sec-posicions">'
+    + '<div class="cartera-section-title">&#128188; Les meves posicions actuals</div>';
 
   if (posicions.length === 0) {
     // Zero-portfolio: CTA per començar
@@ -5884,7 +5964,7 @@ async function crearMissatgeBenvinguda(email, pla) {
   } catch(e) {}
   
   // Contingut adaptat al pla
-  var planInfo = PLANS[pla] || PLANS.essencial;
+  var planInfo = PLANS[pla] || PLANS.senyal;
   var nom = (APP.user && APP.user.name) || 'inversor';
   var firstName = nom.split(' ')[0];
   
@@ -8215,14 +8295,35 @@ async function diagGenerar() {
     +'"nota_risc":"Una frase sobre gesti\u00f3 del risc per aquest perfil"'
     +'}\nGenera 3-5 fases al full_de_ruta, progressives i adaptades als objectius. Usa xifres reals del client.';
 
+  // Si no hi ha clau Anthropic, generar diagnòstic en mode template (sense IA)
+  if (!ANTHROPIC_KEY || ANTHROPIC_KEY.length < 10) {
+    clearInterval(aiTimer);
+    [1,2,3,4,5].forEach(function(i){ var el=document.getElementById('diag-ais'+i); if(el) el.className='diag-ai-step done'; });
+    DIAG.result = diagGenerarTemplate(userMsg);
+    diagMostrarPreview();
+    return;
+  }
+
   try {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:2000, system:sys, messages:[{role:'user',content:userMsg}] })
     });
     clearInterval(aiTimer);
     [1,2,3,4,5].forEach(function(i){ var el=document.getElementById('diag-ais'+i); if(el) el.className='diag-ai-step done'; });
+    if (!res.ok) {
+      // Si l'API falla (401, CORS, etc.) → usar mode template
+      console.warn('Anthropic API error ' + res.status + ' → mode template');
+      DIAG.result = diagGenerarTemplate(userMsg);
+      diagMostrarPreview();
+      return;
+    }
     var data = await res.json();
     var raw = data.content && data.content[0] && data.content[0].text;
     if (!raw) throw new Error('Resposta buida del model');
@@ -8230,11 +8331,66 @@ async function diagGenerar() {
     diagMostrarPreview();
   } catch(err) {
     clearInterval(aiTimer);
-    document.getElementById('diag-s4-ai').style.display = 'none';
-    document.getElementById('diag-s4-form').style.display = 'block';
-    var eb = document.getElementById('diag-err');
-    if (eb) { eb.style.display='block'; eb.textContent='Error: '+err.message+'. Revisa la connexi\u00f3 i torna a provar.'; }
+    // Fallback template en lloc de mostrar error
+    console.warn('Diagnostic AI error, usant template:', err.message);
+    DIAG.result = diagGenerarTemplate(userMsg);
+    diagMostrarPreview();
   }
+}
+
+// Genera un diagnòstic professional sense IA, basat en les dades del client
+function diagGenerarTemplate(userMsg) {
+  var nom = dV('diag-nom') || 'Client';
+  var ingressos = parseFloat(dV('diag-ingressos')) || 0;
+  var despeses  = parseFloat(dV('diag-despeses'))  || 0;
+  var estalviMes = Math.max(0, ingressos - despeses);
+  var estalvis  = parseFloat(dV('diag-estalvis'))  || 0;
+  var inversions= parseFloat(dV('diag-inversions'))|| 0;
+  var hipoteca  = parseFloat(dV('diag-hipoteca'))  || 0;
+  var prestecs  = parseFloat(dV('diag-prestecs'))  || 0;
+  var net = (estalvis + inversions) - (hipoteca + prestecs);
+  var risc = dV('diag-risc') || 'moderat';
+  var horitzo = dV('diag-horitzo') || '10';
+  var arqId = DIAG.arquetip || 'navegant';
+  var arq = getArquetip(arqId);
+  var objs = (DIAG.objs || []).filter(function(o){ return o.descripcio; });
+
+  var riscLabel = risc === 'baix' ? 'conservador' : risc === 'alt' || risc === 'molt_alt' ? 'dinàmic' : 'equilibrat';
+  var horit = parseInt(horitzo) || 10;
+  var anyObj = new Date().getFullYear() + horit;
+
+  // Calcular projecció simple (retorn esperat de l'arquetip)
+  var retornMig = arq ? (parseFloat((arq.retorn||'6%').split('–')[0])/100 + parseFloat((arq.retorn||'8%').split('–')[1]||'8')/100) / 2 : 0.07;
+  var capitalFinal = Math.round((net + estalviMes * 12 * horit) * Math.pow(1 + retornMig, horit));
+
+  var narratiu = nom + ' presenta un perfil ' + riscLabel + ' amb un horitzó de ' + horit + ' anys (objectiu: ' + anyObj + '). '
+    + 'El patrimoni net actual de ' + net.toLocaleString('ca-ES') + '\u20ac, combinat amb una capacitat d\u2019estalvi mensual de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac, permet plantejar una estratègia d\u2019acumulació progressiva.'
+    + '\n\nEl perfil ' + (arq ? arq.nom : 'assignat') + ' determina una cartera ' + (arq ? arq.cartRoma : '') + ' centrada en ' + (arq ? arq.cartSub : 'la indexació diversificada') + '. '
+    + 'Amb un retorn esperat del ' + (arq ? arq.retorn : '6-8%') + ' anual i un TER estimat de ' + (arq ? arq.ter : '~0,20%') + ', la projecció a ' + horit + ' anys situaria el patrimoni al voltant dels ' + capitalFinal.toLocaleString('ca-ES') + '\u20ac (escenari equilibrat, sense garantia).';
+
+  var estrategia = 'La cartera ' + (arq ? arq.cartRoma : '') + ' del perfil ' + (arq ? arq.nom : '') + ' és la base de partida. '
+    + 'L\u2019estratègia es basa en aportació periòdica (DCA) de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac/mes distribuïda proporcionalment als pesos target, rebalanceig anual automàtic, i minimització de costos (TER ' + (arq ? arq.ter : '~0,20%') + '). '
+    + 'Els actius seleccionats segueixen la filosofia fee-only de TBI: cap producte amb comissions ocultes.';
+
+  // Fases del full de ruta adaptades al context
+  var fases = [
+    { fase:1, nom:'Fonaments i liquiditat', durada:'1-2 mesos', descripcio:'Establir el fons d\u2019emergència (3-6 mesos de despeses: ' + Math.round(despeses*4.5).toLocaleString('ca-ES') + '\u20ac objectiu), tancar deutes cars i configurar el compte de broker.', milestones:['Obrir compte broker (Trade Republic o similar)','Verificar fons emergència','Eliminar deutes >5% TAE si n\u2019hi ha'] },
+    { fase:2, nom:'Primera inversió i DCA', durada:'Mes 2-3', descripcio:'Realitzar la primera aportació real seguint els pesos de la cartera ' + (arq ? arq.cartRoma : '') + '. Configurar aportació automàtica mensual de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac.', milestones:['Primera compra d\u2019ETFs segons cartera target','Configurar DCA automàtic ' + estalviMes.toLocaleString('ca-ES') + '\u20ac/mes','Confirmar accés al portal TBI'] },
+    { fase:3, nom:'Seguiment trimestral', durada:'Q1-Q4', descripcio:'Revisar desviacions respecte als pesos target. Rebalancejar si alguna posició se\u2019n desvia >5%. No canviar estratègia per volatilitat de mercat.', milestones:['Revisió Q1: desviacoes > 5%?','Rebalanceig si cal (vendre l\u2019excés, comprar el dèficit)','Actualitzar projeccions al portal'] },
+    { fase:4, nom:'Optimitzaci\u00f3 fiscal', durada:'Q4 cada any', descripcio:'Revisar l\u2019impacte fiscal de les plusvàlues latents, planificar vendes estratègiques i valorar l\u2019ús de productes fiscalment eficients.', milestones:['Calcular plusvàlues latents','Valorar vendes amb pèrdues per compensar','Planificació IRPF inversions'] },
+    { fase:5, nom:'Revisi\u00f3 anual i ajust', durada:'Anual', descripcio:'Sessió anual completa per revisar si els objectius han canviat, si la cartera segueix essent adequada i actualitzar el pla a ' + anyObj + '.', milestones:['Sessió anual 1h amb assessor','Actualitzar cartera si canvia el perfil','Revisar projecció FIRE'] }
+  ];
+
+  var obertsLabels = { 'habitatge':'Comprar habitatge', 'retir':'Retir/FIRE', 'educacio':'Educació fills', 'negoci':'Crear negoci', 'fons_emergencia':'Fons emergència', 'renda_passiva':'Renda passiva' };
+  var primerObj = objs.length > 0 ? (objs[0].descripcio || '') : 'Constituir la cartera i activar el DCA mensual';
+
+  return {
+    diagnostic_narratiu: narratiu,
+    estrategia: estrategia,
+    full_de_ruta: fases,
+    propera_accio: primerObj ? 'Primer pas concret: ' + primerObj + '. Aquesta setmana: obrir el compte broker si no el tens, i fer la primera transferència de ' + Math.min(estalviMes, 500).toLocaleString('ca-ES') + '\u20ac.' : 'Obrir compte broker i fer la primera aportació de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac aquesta setmana.',
+    nota_risc: 'Perfil ' + riscLabel + ' (' + risc + '). Drawdown màxim esperat en escenari advers: ' + (risc === 'baix' ? '-10 a -15%' : risc === 'alt' || risc === 'molt_alt' ? '-30 a -45%' : '-20 a -30%') + '. La cartera ' + (arq ? arq.cartRoma : '') + ' est\u00e0 dimensionada per assumir aquesta volatilitat sense necessitat de canviar estratègia.'
+  };
 }
 
 function diagMostrarPreview() {
