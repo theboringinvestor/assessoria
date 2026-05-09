@@ -7575,6 +7575,27 @@ function renderPlatformTickers(data, el, updEl) {
 handleCheckoutReturn();
 handlePasswordReset();
 handleQuestionnaireReturn();
+
+// ── LISTENER GLOBAL AUTH: gestiona magic links i sessions actives ──
+// Quan Supabase detecta SIGNED_IN (magic link, confirmació email, etc.)
+// i el login screen és visible, entrem a l'app automàticament.
+if (sb) {
+  sb.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_IN' && session && session.user) {
+      var loginVisible = !document.getElementById('login-screen').classList.contains('hidden');
+      if (loginVisible) {
+        var email = session.user.email.toLowerCase();
+        var role  = ADMIN_EMAILS.indexOf(email) >= 0 ? 'admin' : 'client';
+        // Netejar hash de la URL (el token no ha d'aparèixer a la barra)
+        if (window.location.hash && window.location.hash.indexOf('access_token') >= 0) {
+          history.replaceState({}, '', window.location.pathname);
+        }
+        enterApp(role, email);
+      }
+    }
+  });
+}
+
 // Injectar versió als badges
 (function() {
   var els = ['login-version-badge', 'sidebar-version-badge'];
