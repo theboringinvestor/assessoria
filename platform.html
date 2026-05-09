@@ -29,148 +29,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 /* ══════════ UTILITIES ══════════ */
 .hidden{display:none!important}
 
-/* ══════════ INFORME EDITOR ══════════ */
-.inf-shell{display:flex;height:calc(100vh - var(--topbar-h));overflow:hidden}
-.inf-panel{width:380px;min-width:320px;flex-shrink:0;overflow-y:auto;background:var(--white);border-right:1px solid var(--g200);display:flex;flex-direction:column}
-.inf-panel-hdr{padding:18px 18px 14px;border-bottom:1px solid var(--g200);flex-shrink:0}
-.inf-panel-title{font-family:var(--fd);font-size:17px;font-weight:400;letter-spacing:-.2px;margin-bottom:3px}
-.inf-panel-sub{font-size:11px;color:var(--g400)}
-.inf-panel-body{flex:1;overflow-y:auto;padding:0 16px 20px}
-.inf-ps{border-bottom:1px solid var(--g100);padding:14px 0}
-.inf-ps:last-child{border-bottom:none}
-.inf-ps-title{font-size:9px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
-.inf-lbl{font-size:10px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px;margin-top:8px}
-.inf-lbl:first-of-type{margin-top:0}
-.inf-input,.inf-select,.inf-textarea{width:100%;padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fb);background:var(--white);color:var(--black);outline:none;transition:border-color .15s}
-.inf-input:focus,.inf-select:focus,.inf-textarea:focus{border-color:var(--accent)}
-.inf-textarea{resize:vertical;min-height:64px;line-height:1.6}
-.inf-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.inf-score-mod{margin-bottom:8px}
-.inf-score-row{display:flex;align-items:center;gap:8px}
-.inf-score-lbl{font-size:11px;color:var(--g600);flex:1;min-width:0}
-.inf-score-val{font-family:var(--fm);font-size:11px;color:var(--accent);min-width:28px;text-align:right}
-.inf-slider{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:var(--g200);outline:none;cursor:pointer}
-.inf-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
-.inf-fase{background:var(--g50);border:1px solid var(--g200);border-radius:8px;padding:10px;margin-bottom:6px}
-.inf-fase-hdr{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.inf-fase-num{font-family:var(--fm);font-size:10px;color:var(--g400);width:18px;flex-shrink:0}
-.inf-fase-titol{flex:1;padding:4px 7px;border:1.5px solid var(--g200);border-radius:5px;font-size:12px;font-family:var(--fb);background:var(--white);color:var(--black);outline:none}
-.inf-fase-titol:focus{border-color:var(--accent)}
-.inf-estat-sel{font-size:10px;padding:3px 7px;border-radius:99px;border:none;font-family:var(--fb);cursor:pointer;outline:none}
-.inf-estat-sel.pendent{background:var(--g100);color:var(--g500)}
-.inf-estat-sel.actiu{background:var(--accent-l);color:var(--accent)}
-.inf-estat-sel.fet{background:var(--green-l);color:var(--green)}
-.inf-fita-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
-.inf-fita-input{flex:1;padding:4px 7px;border:1px solid var(--g200);border-radius:5px;font-size:11px;font-family:var(--fb);background:var(--white);color:var(--black);outline:none}
-.inf-fita-input:focus{border-color:var(--accent)}
-.inf-fita-del{background:none;border:none;cursor:pointer;color:var(--g400);font-size:13px;padding:0 3px}
-.inf-add-fita{font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;padding:2px 0;font-family:var(--fb)}
-.inf-panel-actions{padding:12px 16px;border-top:1px solid var(--g200);display:flex;flex-direction:column;gap:7px;flex-shrink:0}
-.inf-btn-pub{width:100%;padding:10px;background:var(--black);color:var(--white);border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:6px}
-.inf-btn-pub:hover{opacity:.85}
-.inf-btn-pub:disabled{opacity:.4;cursor:default}
-.inf-btn-sec{width:100%;padding:9px;background:transparent;color:var(--g600);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
-.inf-btn-sec:hover{border-color:var(--g300);color:var(--black)}
-.inf-btn-list{display:flex;gap:6px;flex-wrap:wrap}
-.inf-btn-item{padding:4px 10px;border:1.5px solid var(--g200);border-radius:6px;font-size:11px;color:var(--g600);background:transparent;cursor:pointer;font-family:var(--fb);transition:all .15s}
-.inf-btn-item.active,.inf-btn-item:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
-/* Preview */
-.inf-preview-wrap{flex:1;overflow-y:auto;background:var(--bg);padding:24px 20px;display:flex;flex-direction:column;align-items:center}
-.inf-pdf{width:100%;max-width:720px;background:var(--white);border-radius:10px;box-shadow:0 4px 32px rgba(0,0,0,.1);overflow:hidden;font-family:var(--fb)}
-.inf-pdf-cover{background:var(--black);padding:44px 48px 36px;position:relative;overflow:hidden}
-.inf-pdf-cover::before{content:'';position:absolute;top:-80px;right:-60px;width:280px;height:280px;border-radius:50%;background:rgba(27,58,107,.2)}
-.inf-pdf-eyebrow{font-size:8px;font-weight:500;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.12em;margin-bottom:24px;position:relative}
-.inf-pdf-nom{font-family:var(--fd);font-size:34px;font-weight:400;color:var(--white);letter-spacing:-.4px;line-height:1.1;margin-bottom:4px;position:relative}
-.inf-pdf-email{font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.35);margin-bottom:22px;position:relative}
-.inf-pdf-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:28px;position:relative}
-.inf-pdf-tag{padding:3px 10px;border-radius:99px;font-size:9px;font-weight:500;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7)}
-.inf-pdf-tag.arq{background:rgba(27,58,107,.4);border-color:rgba(27,58,107,.6);color:#A8C4F0}
-.inf-pdf-footer-row{display:flex;justify-content:space-between;align-items:flex-end;position:relative}
-.inf-pdf-assessor{font-size:10px;color:rgba(255,255,255,.3)}
-.inf-pdf-score-num{font-family:var(--fm);font-size:44px;font-weight:500;line-height:1;color:var(--white);text-align:right}
-.inf-pdf-score-denom{font-size:13px;color:rgba(255,255,255,.3)}
-.inf-pdf-score-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.25);margin-top:2px;text-align:right}
-.inf-pdf-body{padding:32px 48px 40px}
-.inf-pdf-section{margin-bottom:26px}
-.inf-pdf-sec-title{font-size:8px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.12em;border-bottom:1px solid var(--g200);padding-bottom:7px;margin-bottom:14px}
-.inf-pdf-2col{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
-.inf-arq-card{background:var(--accent);border-radius:9px;padding:16px 18px;color:var(--white)}
-.inf-arq-ep{font-size:8px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
-.inf-arq-nom{font-family:var(--fd);font-size:20px;font-weight:400;margin-bottom:3px}
-.inf-arq-cartera{font-size:10px;color:rgba(255,255,255,.5);margin-bottom:9px}
-.inf-arq-rationale{font-size:10px;color:rgba(255,255,255,.6);line-height:1.6;border-left:2px solid rgba(255,255,255,.2);padding-left:9px;font-style:italic}
-.inf-dims-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:10px}
-.inf-dim{text-align:center;background:rgba(255,255,255,.1);border-radius:5px;padding:5px 2px}
-.inf-dim-val{font-family:var(--fm);font-size:11px;color:var(--white)}
-.inf-dim-lbl{font-size:7px;color:rgba(255,255,255,.35);margin-top:1px}
-.inf-alloc-row{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--g100)}
-.inf-alloc-row:last-child{border-bottom:none}
-.inf-alloc-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
-.inf-alloc-nom{font-size:11px;flex:1}
-.inf-alloc-bar-wrap{width:90px;height:3px;background:var(--g200);border-radius:99px;overflow:hidden}
-.inf-alloc-bar{height:100%;border-radius:99px}
-.inf-alloc-pct{font-family:var(--fm);font-size:10px;min-width:28px;text-align:right}
-.inf-score-card{background:var(--g100);border-radius:8px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:16px}
-.inf-score-big{font-family:var(--fm);font-size:38px;font-weight:500;line-height:1}
-.inf-score-verdict{font-size:13px;font-weight:500;margin-bottom:2px}
-.inf-score-sub{font-size:11px;color:var(--g500);line-height:1.5}
-.inf-mod-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--g100)}
-.inf-mod-row:last-child{border-bottom:none}
-.inf-mod-lbl{font-size:10px;color:var(--black);flex:1}
-.inf-mod-bar-wrap{width:70px;height:3px;background:var(--g200);border-radius:99px;overflow:hidden}
-.inf-mod-bar{height:100%;border-radius:99px}
-.inf-mod-val{font-family:var(--fm);font-size:9px;min-width:24px;text-align:right}
-.inf-accio{display:flex;gap:9px;padding:9px 11px;border-radius:7px;margin-bottom:5px}
-.inf-accio-num{width:20px;height:20px;border-radius:50%;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:var(--white)}
-.inf-accio-title{font-size:11px;font-weight:500;margin-bottom:2px}
-.inf-accio-desc{font-size:10px;color:var(--g600);line-height:1.5}
-.inf-road-progress{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.inf-road-bar-wrap{flex:1;height:4px;background:var(--g200);border-radius:99px;overflow:hidden}
-.inf-road-bar{height:100%;background:linear-gradient(90deg,var(--green),#4CAF82);border-radius:99px;transition:width .3s}
-.inf-road-pct{font-family:var(--fm);font-size:10px;color:var(--g500);white-space:nowrap}
-.inf-fase-pdf{border-left:3px solid var(--g200);padding:0 0 16px 14px;position:relative}
-.inf-fase-pdf.actiu{border-left-color:var(--accent)}
-.inf-fase-pdf.fet{border-left-color:var(--green)}
-.inf-fase-pdf:last-child{padding-bottom:0}
-.inf-fase-dot{width:10px;height:10px;border-radius:50%;position:absolute;left:-6.5px;top:2px;background:var(--g300);border:2px solid var(--white)}
-.inf-fase-pdf.actiu .inf-fase-dot{background:var(--accent)}
-.inf-fase-pdf.fet .inf-fase-dot{background:var(--green)}
-.inf-fase-titol-pdf{font-size:12px;font-weight:500;flex:1}
-.inf-fase-badge{font-size:8px;padding:2px 8px;border-radius:99px;font-weight:500}
-.inf-fase-badge.pendent{background:var(--g100);color:var(--g500)}
-.inf-fase-badge.actiu{background:var(--accent-l);color:var(--accent)}
-.inf-fase-badge.fet{background:var(--green-l);color:var(--green)}
-.inf-fita-pdf{display:flex;align-items:flex-start;gap:6px;padding:2px 0}
-.inf-fita-pdf-dot{width:4px;height:4px;border-radius:50%;background:var(--g300);flex-shrink:0;margin-top:5px}
-.inf-fase-pdf.actiu .inf-fita-pdf-dot{background:var(--accent)}
-.inf-fase-pdf.fet .inf-fita-pdf-dot{background:var(--green)}
-.inf-fita-pdf-text{font-size:10px;color:var(--g600);line-height:1.5}
-.inf-nota{background:var(--g50);border-radius:8px;padding:12px 16px;border-left:3px solid var(--g300);font-size:11px;color:var(--g600);line-height:1.7;font-style:italic;white-space:pre-line}
-.inf-sessio{background:var(--black);border-radius:9px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px}
-.inf-sessio-data{font-family:var(--fm);font-size:16px;color:var(--white);margin-bottom:6px}
-.inf-sessio-ordre{font-size:10px;color:rgba(255,255,255,.45);line-height:1.7;white-space:pre-line}
-.inf-sessio-assessor{font-size:12px;font-weight:500;color:var(--white);text-align:right}
-.inf-sessio-assessor-sub{font-size:9px;color:rgba(255,255,255,.35);text-align:right;margin-top:2px}
-.inf-pdf-footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--g200);display:flex;justify-content:space-between}
-.inf-pdf-footer-l,.inf-pdf-footer-r{font-size:8px;color:var(--g400)}
-/* Historial d'informes (client portal) */
-.inf-hist-card{background:var(--white);border:1px solid var(--g200);border-radius:11px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;display:flex;align-items:center;gap:14px}
-.inf-hist-card:hover{border-color:var(--g300)}
-.inf-hist-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.inf-hist-body{flex:1;min-width:0}
-.inf-hist-titol{font-size:14px;font-weight:500;color:var(--black);margin-bottom:2px}
-.inf-hist-sub{font-size:11px;color:var(--g500)}
-.inf-hist-action{font-size:10px;color:var(--accent);padding:4px 10px;border:1px solid var(--accent);border-radius:6px;white-space:nowrap;cursor:pointer;flex-shrink:0}
-/* Modal informe */
-.inf-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px}
-.inf-modal-inner{background:var(--white);border-radius:14px;width:100%;max-width:740px;overflow:hidden;position:relative;margin:auto}
-.inf-modal-close{position:absolute;top:14px;right:16px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--white);z-index:2}
-@media print{
-  .inf-shell .inf-panel,.inf-shell .inf-panel-actions,.topbar,.sidebar{display:none!important}
-  .inf-shell,.inf-preview-wrap{display:block!important;height:auto!important;overflow:visible!important}
-  .inf-pdf{box-shadow:none!important;border-radius:0!important;max-width:100%!important}
-}
-
 /* ══════════ LOGIN ══════════ */
 #login-screen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -1136,7 +994,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
       </div>
     </div>
 
-    <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,.25);font-family:'DM Mono',monospace;letter-spacing:.05em" id="login-version-badge">v…</div>
+    <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;letter-spacing:.05em;background:rgba(255,255,255,.06);padding:5px 12px;border-radius:6px;display:inline-block;width:auto" id="login-version-badge">v…</div>
   </div>
 </div>
 
@@ -1241,6 +1099,46 @@ var ADMIN_EMAILS = ['guillem@theboringinvestor.com', 'guillem.puig@gmail.com', '
 // ══════════════════════════════════════════════════
 // DEMO DATA
 // ══════════════════════════════════════════════════
+var DEMO_CLIENT = {
+  nom: 'Maria García López',
+  email: 'maria.garcia@example.com',
+  arquetipId: 'arquitecte',
+  arquetip: "L'Arquitecte — Brunelleschi",
+  cartera: 'IV · Amsterdam',
+  scoring: 67,
+  perfil: {
+    capitalInicial: '5.000 €',
+    aportacioMensual: '400 €/mes',
+    horitzo: '12–15 anys',
+    objectiu: 'Creixement patrimonial',
+    riscFinancer: 'Moderat',
+    riscEmocional: 'Moderat-alt'
+  },
+  scoring_mods: [8, 7, 8, 8, 7, 7, 8],
+  projeccions: {p10:'68.300 €', p50:'112.400 €', p90:'178.600 €'},
+  nota: "Maria té un perfil d'Arquitecte: meticulosa, amb alt coneixement i tendència a sobrecomplicar. La seva cartera Estructura Mestra està limitada a 7 blocs màxim — cada un amb funció estructural clara. Recomanem mantenir la disciplina de no afegir blocs sense eliminar-ne un altre primer.",
+  historial: [
+    {titol:'Revisió trimestral', data:'15 mar 2026', tipus:'info', desc:'Rebalanceig automàtic executat. +2,3% vs benchmark.'},
+    {titol:'Augment aportació', data:'1 feb 2026', tipus:'info', desc:"Aportació mensual augmentada de 300€ a 400€."},
+    {titol:'Alerta concentració', data:'10 gen 2026', tipus:'alerta', desc:'Maria va proposar afegir un 8è bloc (crypto). Recordat que la regla de 7 blocs és innegociable.'}
+  ],
+  pla: 'bruxola'
+};
+
+var DEMO_CLIENTS_LIST = [
+  {nom:'Maria García López', email:'maria.garcia@example.com', arquetipId:'arquitecte', arquetip:"L'Arquitecte", cartera:'IV · Amsterdam', scoring:67, pla:'bruxola'},
+  {nom:'Joan Martí Valls', email:'joan.marti@example.com', arquetipId:'estoic', arquetip:"L'Estoic", cartera:'I · Nova York', scoring:78, pla:'rumb'},
+  {nom:'Laia Pujol Serra', email:'laia.pujol@example.com', arquetipId:'explorador', arquetip:"L'Exploradora", cartera:'II · Singapur', scoring:52, pla:'senyal'},
+  {nom:'Pere Font Solé', email:'pere.font@example.com', arquetipId:'tresorer', arquetip:"El Tresorer", cartera:'V · Ginebra', scoring:41, pla:'bruxola'},
+  {nom:'Anna Rovira Costa', email:'anna.rovira@example.com', arquetipId:'navegant', arquetip:"La Navegant", cartera:'III · Roma', scoring:85, pla:'mapa'},
+];
+
+var DEMO_ANALISIS = [
+  {id:'1', titol:'Setmana 15 — Mercat en mode wait-and-see', subtitol:'S&P flat, Europa lidera +1,2%', categoria:'setmanal', data_pub:'2026-04-11', resum:'Setmana sense grans moviments. Rotació cap a value europeu. BCE manté tipus.', tags:['mercat','setmanal','Europa'], destacat:true},
+  {id:'2', titol:'Anàlisi: Impacte dels aranzels Trump 2.0 en carteres europees', subtitol:'Com protegir-se sense sobrereaccionar', categoria:'macro', data_pub:'2026-04-08', resum:'Els nous aranzels afecten el 12% del comerç UE-US. Impacte moderat en carteres diversificades.', tags:['macro','aranzels','protecció']},
+  {id:'3', titol:'Oportunitat Value: Sector energia renovable', subtitol:'Valuacions atractives després de correcció del 25%', categoria:'value', data_pub:'2026-04-02', resum:'El sector renovable cotitza a múltiples de 2019. Selecció de 3 ETFs amb exposició.', tags:['value','energia','oportunitat']},
+];
+
 // ══════════════════════════════════════════════════
 // TAXONOMIA D'ACTIUS — 21 categories definitives
 // Font única de veritat per a carteres, qüestionari,
@@ -1650,50 +1548,413 @@ function getArquetip(id) {
 }
 
 // ══════════════════════════════════════════════════
-// SCORING MODS — compartit per informe i diagnòstic
-// ══════════════════════════════════════════════════
-var SCORING_MODS = [
-  {id:'s1',label:'Costos',pes:20,desc:['Substituir fons >0,5% TER per indexats equivalents.','Revisar productes de major cost.','Cost eficient. Mantenir.']},
-  {id:'s2',label:'Diversificaci\u00f3',pes:20,desc:['Ampliar diversificaci\u00f3 geogr\u00e0fica i sectorial.','Ampliar sectorial gradualment.','Bona diversificaci\u00f3.']},
-  {id:'s3',label:'Concentraci\u00f3',pes:15,desc:['Cap posici\u00f3 >10%. Diversificar ara.','Revisar concentracions per sobre del 15%.','Distribuci\u00f3 equilibrada.']},
-  {id:'s4',label:'Coher\u00e8ncia',pes:20,desc:['Revisi\u00f3 urgent: risc real no s\u2019alinea amb perfil.','Ajustar algunes posicions al perfil.','Bona coher\u00e8ncia.']},
-  {id:'s5',label:'Robustesa',pes:10,desc:['Simplificar i preparar kit anti-p\u00e0nic.','Preparar protocol de crisi.','Robustesa bona.']},
-  {id:'s6',label:'Simplicitat',pes:5,desc:['Reduir a m\u00e0xim 5-7 productes.','Valorar consolidar posicions.','Bona simplicitat.']},
-  {id:'s7',label:'Proc\u00e9s',pes:10,desc:['Aportaci\u00f3 autom\u00e0tica + rebalanceig anual.','Formalitzar protocol de rebalanceig.','Bon proc\u00e9s.']}
-];
-
-// ══════════════════════════════════════════════════
 // DEMO DATA — CLIENT INTEGRAL
 // ══════════════════════════════════════════════════
-// ── DADES BUIT (fallback quan Supabase no té dades) ──
-var DEMO_CLIENT = null; // sense client per defecte — sempre Supabase
-var DEMO_CLIENTS_LIST = [];
-var DEMO_MOVIMENTS = [];
-var DEMO_CARTERA_ACTUAL = [];
-var DEMO_EVOLUCIO = [];
-var DEMO_PLA_APORTACIONS = null;
-var DEMO_MISSATGES = [];
-var DEMO_INFORMES = [];
-var DEMO_FIRE = null;
-var DEMO_EMERGENCIA = null;
-var DEMO_SAVINGS_PLAN = null;
-var DEMO_ROADMAP = { fases: [], fites: [], metodologia: '', ultimaRevisio: '—', properaRevisio: '—' };
+var DEMO_MOVIMENTS = [
+  {data:'2026-04-01', tipus:'aportacio', actiu:'RV Global Core', import:160, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'RV Factor (Value+Quality)', import:60, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'RF Corporativa IG', import:60, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'REITs Global', import:40, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'Or físic ETP', import:40, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'Private Equity/Crowd', import:20, notes:'Aportació mensual abril'},
+  {data:'2026-04-01', tipus:'aportacio', actiu:'Liquiditat estratègica', import:20, notes:'Aportació mensual abril'},
+  {data:'2026-03-15', tipus:'rebalanceig', actiu:'RV Factor → RF Corp.', import:850, notes:'Rebalanceig trimestral Q1. RV Factor sobreponderat +3,2%.'},
+  {data:'2026-03-01', tipus:'aportacio', actiu:'Diversos', import:400, notes:'Aportació mensual març'},
+  {data:'2026-02-01', tipus:'aportacio', actiu:'Diversos', import:400, notes:'Aportació mensual febrer'},
+  {data:'2026-01-15', tipus:'aportacio_extra', actiu:'RV Global Core', import:2000, notes:'Aportació extra de gener (paga extra)'},
+  {data:'2026-01-01', tipus:'aportacio', actiu:'Diversos', import:300, notes:'Aportació mensual gener (antiga)'},
+];
 
-// ── CONTINGUT ASSESSORIA (real, publicat per l'assessor) ──
-var DEMO_ANALISIS = [];  // s'omplirà des de Supabase via loadAnalisisFromSupabase()
+var DEMO_CARTERA_ACTUAL = [
+  {nom:'RV Global Core', target:35, actual:36.8, valor:8538, color:'#1B3A6B'},
+  {nom:'RF Corporativa IG', target:15, actual:13.9, valor:3225, color:'#8A8680'},
+  {nom:'Liquiditat estratègica', target:15, actual:14.2, valor:3294, color:'#C8C5BE'},
+  {nom:'REITs Global', target:10, actual:10.5, valor:2436, color:'#0F6E56'},
+  {nom:'Or físic (ETC)', target:10, actual:11.1, valor:2575, color:'#C0392B'},
+  {nom:'Crowdlending P2B', target:10, actual:9.3, valor:2158, color:'#D4943A'},
+  {nom:'Private Equity (seed)', target:5, actual:4.2, valor:974, color:'#7A4A00'},
+];
 
-// ── CONTINGUT EDUCATIU (permanent, no és "demo") ──
+// Historical evolution — monthly snapshots (aportat cumulat, valor real)
+var DEMO_EVOLUCIO = [
+  {mes:'gen 25', aportat:5000,  valor:5000},
+  {mes:'feb 25', aportat:5300,  valor:5280},
+  {mes:'mar 25', aportat:5600,  valor:5420},
+  {mes:'abr 25', aportat:5900,  valor:5850},
+  {mes:'mai 25', aportat:6200,  valor:6350},
+  {mes:'jun 25', aportat:6500,  valor:6580},
+  {mes:'jul 25', aportat:6800,  valor:7120},
+  {mes:'ago 25', aportat:7100,  valor:6980},
+  {mes:'set 25', aportat:7400,  valor:7550},
+  {mes:'oct 25', aportat:17700, valor:18200},  // +10K aportació extra oct
+  {mes:'nov 25', aportat:18000, valor:18950},
+  {mes:'des 25', aportat:18300, valor:19400},
+  {mes:'gen 26', aportat:20600, valor:21800},  // +2K extra paga
+  {mes:'feb 26', aportat:21000, valor:22400},
+  {mes:'mar 26', aportat:21400, valor:22100},  // petita correcció
+  {mes:'abr 26', aportat:21800, valor:23200},
+];
+
+var DEMO_PLA_APORTACIONS = {
+  mensual: 400,
+  frequencia: 'Mensual (dia 1)',
+  propera: '1 maig 2026',
+  distribucio: [
+    {actiu:'RV Global Core', pct:35, import:140},
+    {actiu:'RF Corporativa IG', pct:15, import:60},
+    {actiu:'Liquiditat estratègica', pct:15, import:60},
+    {actiu:'REITs Global', pct:10, import:40},
+    {actiu:'Or físic (ETC)', pct:10, import:40},
+    {actiu:'Crowdlending P2B', pct:10, import:40},
+    {actiu:'Private Equity (seed)', pct:5, import:20},
+  ],
+  ajustos: [
+    {actiu:'RF Corporativa IG', accio:'Sobreponderar +1,1%', motiu:'Actual 13,9% vs target 15%. Aportació extra recomanada per reequilibrar.'},
+    {actiu:'Or físic (ETC)', accio:'Reduir -1,1%', motiu:'Actual 11,1% vs target 10%. No aportar fins que es reequilibri.'},
+  ]
+};
+
+var DEMO_MISSATGES = [
+  {id:'m1', de:'assessor', nom:'Guillem Puig', data:'2026-04-10 14:30', text:"Hola Maria, he revisat la teva cartera aquest trimestre. El rebalanceig automàtic del 15 de març ha funcionat bé. La desviació màxima és de +1,1% a Or físic — res que requereixi acció immediata. A la propera aportació de maig, recomanaria sobreponderar lleugerament RF Corporativa per tornar al target. Quan vulguis en parlem."},
+  {id:'m2', de:'client', nom:'Maria García', data:'2026-04-10 16:45', text:"Gràcies Guillem! Tinc una pregunta: he rebut una paga extra de l'empresa (3.000€). Voldria fer una aportació extraordinària. On recomanaries posar-los?"},
+  {id:'m3', de:'assessor', nom:'Guillem Puig', data:'2026-04-11 09:15', text:"Bona notícia! Amb 3.000€ extra, la recomanació és:\n\n• 1.200€ a RF Corporativa IG (per cobrir el dèficit de -1,5%)\n• 1.200€ a RV Global Core (mantenir el nucli fort)\n• 600€ a Liquiditat estratègica (augmentar el coixí)\n\nAixò reequilibraria la cartera pràcticament al target. Vols que et prepari l'ordre concreta amb els ISINs?"},
+  {id:'m4', de:'client', nom:'Maria García', data:'2026-04-11 10:00', text:"Perfecte, sí, prepara'm l'ordre amb els ISINs si us plau. La faré aquesta setmana."},
+];
+
+var DEMO_INFORMES = [
+  {id:'r1', titol:'Informe trimestral Q1 2026', data:'2026-04-01', tipus:'trimestral', desc:'Revisió completa de cartera, rendiment vs benchmark, i recomanacions pel Q2.', estat:'disponible'},
+  {id:'r2', titol:'Informe perfil inversor', data:'2026-01-15', tipus:'perfil', desc:'Resultat del qüestionari de perfil. Arquetip: L\'Arquitecte. Cartera: Amsterdam.', estat:'disponible'},
+  {id:'r3', titol:'Pla financer personalitzat', data:'2026-01-20', tipus:'pla', desc:'Pla a 15 anys amb projeccions Montecarlo, objectius i estratègia d\'aportacions.', estat:'disponible'},
+  {id:'r4', titol:'Informe trimestral Q2 2026', data:'2026-07-01', tipus:'trimestral', desc:'Pendent de generació.', estat:'pendent'},
+];
+
+var DEMO_FIRE = {
+  objectiuAnual: 30000,
+  taxaRetir: 4,
+  objectiuFIRE: 750000,
+  capitalActual: 23200,
+  aportacioMensual: 400,
+  retornEsperat: 6,
+  anysEstimats: 26,
+  anyObjectiu: 2052,
+  progresPct: 3,
+};
+
+var DEMO_EMERGENCIA = {
+  despesesMensuals: 2200,
+  mesesObjectiu: 6,           // target months (configurable per profile)
+  objectiu: 13200,            // = despeses × mesos
+  onEsta: 'Compte estalvi ING al 2,5% TAE',
+  // Liquidity breakdown
+  liquiditat: [
+    {nom:'Compte corrent BBVA', import:3200, tipus:'corrent', rendiment:'0%'},
+    {nom:'Compte estalvi ING', import:8500, tipus:'estalvi', rendiment:'2,5% TAE'},
+    {nom:'Fons monetari MyInvestor', import:4800, tipus:'monetari', rendiment:'3,2% TAE'},
+    {nom:'Dipòsit CaixaBank 12m', import:5000, tipus:'diposit', rendiment:'2,8% TAE'},
+  ],
+  aportacioMensualFE: 200,    // monthly contribution to emergency fund
+};
+
 var DEMO_EDUCACIO = [
-  {id:'e1', titol:'Què és la indexació i per què funciona', categoria:'fonaments', temps:'5 min', completat:false},
-  {id:'e2', titol:'DCA: la força de l\'aportació periòdica', categoria:'fonaments', temps:'4 min', completat:false},
+  {id:'e1', titol:'Què és la indexació i per què funciona', categoria:'fonaments', temps:'5 min', completat:true},
+  {id:'e2', titol:'DCA: la força de l\'aportació periòdica', categoria:'fonaments', temps:'4 min', completat:true},
   {id:'e3', titol:'Com interpretar el teu scoring de cartera', categoria:'cartera', temps:'6 min', completat:false},
   {id:'e4', titol:'Rebalanceig: quan i per què', categoria:'cartera', temps:'5 min', completat:false},
-  {id:'e5', titol:'L\'efecte compost i la paciència', categoria:'psicologia', temps:'4 min', completat:false},
+  {id:'e5', titol:'L\'efecte compost i la paciència', categoria:'psicologia', temps:'4 min', completat:true},
   {id:'e6', titol:'Per què no has de mirar la cartera cada dia', categoria:'psicologia', temps:'3 min', completat:false},
   {id:'e7', titol:'Entendre la inflació i el teu poder adquisitiu', categoria:'macro', temps:'5 min', completat:false},
   {id:'e8', titol:'ETFs vs fons indexats: diferències clau', categoria:'productes', temps:'6 min', completat:false},
 ];
 
+// ══════════════════════════════════════════════════
+// DEMO DATA — FULL DE RUTA
+// ══════════════════════════════════════════════════
+var DEMO_ROADMAP = {
+  titol: 'Full de Ruta Financer — Maria García',
+  metodologia: 'Assessoria fee-only basada en indexació global amb DCA mensual. La cartera "Estructura Mestra" (Arquetip Arquitecte) combina 7 blocs amb funció estructural clara. El procés segueix 4 fases: fonaments, construcció, consolidació i manteniment. Revisió trimestral obligatòria.',
+  objectius: [
+    {
+      id:'o1', titol:'Construir fons d\'emergència de 6 mesos',
+      smart:{
+        s:'Acumular 13.200€ en un compte separat d\'alta liquiditat (compte estalvi o monetari)',
+        m:'Import actual: 8.500€ → Objectiu: 13.200€ (6 mesos × 2.200€/mes despeses)',
+        a:'Falten 4.700€. Amb 200€/mes addicionals → assolible en 24 mesos',
+        r:'Base de seguretat imprescindible abans d\'augmentar risc en cartera',
+        t:'Objectiu: desembre 2027'
+      },
+      progres: 64, estat:'actiu', prioritat:'alta'
+    },
+    {
+      id:'o2', titol:'Assolir 50.000€ en cartera d\'inversió',
+      smart:{
+        s:'Acumular 50.000€ invertits en la cartera Estructura Mestra (7 blocs)',
+        m:'Capital actual: 23.200€ → Objectiu: 50.000€. Falten 26.800€',
+        a:'Amb 400€/mes + rendiment esperat 5-7% → assolible en ~4 anys',
+        r:'Massa crítica per a l\'efecte compost. A partir de 50K el creixement s\'accelera',
+        t:'Objectiu: abril 2030'
+      },
+      progres: 46, estat:'actiu', prioritat:'alta'
+    },
+    {
+      id:'o3', titol:'Augmentar aportació mensual a 600€',
+      smart:{
+        s:'Incrementar l\'aportació de 400€ a 600€/mes mitjançant optimització de despeses o augment d\'ingressos',
+        m:'Aportació actual: 400€/mes → Objectiu: 600€/mes (+50%)',
+        a:'Requereix revisió del pressupost mensual. Identificar 200€ d\'estalvi addicional',
+        r:'Cada 100€ extra/mes avancen la independència financera ~3 anys',
+        t:'Objectiu: gener 2027'
+      },
+      progres: 0, estat:'pendent', prioritat:'mitja'
+    },
+    {
+      id:'o4', titol:'Completar formació financera bàsica',
+      smart:{
+        s:'Completar els 8 mòduls d\'educació financera de la plataforma TBI',
+        m:'Completats: 3/8 mòduls (37,5%)',
+        a:'Cada mòdul requereix 3-6 minuts. Total estimat: 40 minuts',
+        r:'La comprensió dels fonaments redueix el risc de decisions impulsives',
+        t:'Objectiu: juny 2026'
+      },
+      progres: 37, estat:'actiu', prioritat:'mitja'
+    },
+  ],
+  fases: [
+    {
+      id:'f1', nom:'Fase 1 · Fonaments', periode:'gen 2025 – jun 2026', estat:'actiu',
+      desc:'Establir les bases: fons d\'emergència, primeres aportacions, formació financera.',
+      milestones: [
+        {id:'m1', titol:'Qüestionari de perfil completat', data:'gen 2025', estat:'completat', notes:'Arquetip: L\'Arquitecte. Score: 67/100.'},
+        {id:'m2', titol:'Primera aportació a cartera', data:'gen 2025', estat:'completat', notes:'5.000€ capital inicial + 300€/mes DCA.'},
+        {id:'m3', titol:'Fons emergència al 50%', data:'oct 2025', estat:'completat', notes:'6.600€ acumulats. Aportació extra octubre.'},
+        {id:'m4', titol:'Augment aportació a 400€/mes', data:'feb 2026', estat:'completat', notes:'Revisió pressupost. +100€/mes.'},
+        {id:'m5', titol:'Fons emergència al 75%', data:'jun 2026', estat:'actiu', notes:'Objectiu: 9.900€. Actual: 8.500€.'},
+        {id:'m6', titol:'Formació bàsica completada', data:'jun 2026', estat:'pendent', notes:'3/8 mòduls completats.'},
+      ]
+    },
+    {
+      id:'f2', nom:'Fase 2 · Construcció', periode:'jul 2026 – des 2028', estat:'pendent',
+      desc:'Creixement de cartera, fons d\'emergència complet, optimització fiscal.',
+      milestones: [
+        {id:'m7', titol:'Fons emergència 100% completat', data:'des 2027', estat:'pendent', notes:'Objectiu: 13.200€.'},
+        {id:'m8', titol:'Cartera arriba a 30.000€', data:'mar 2027', estat:'pendent', notes:''},
+        {id:'m9', titol:'Augment aportació a 600€/mes', data:'gen 2027', estat:'pendent', notes:''},
+        {id:'m10', titol:'Primer rebalanceig manual amb assessor', data:'jul 2026', estat:'pendent', notes:''},
+        {id:'m11', titol:'Cartera arriba a 50.000€', data:'des 2028', estat:'pendent', notes:'Massa crítica per efecte compost.'},
+      ]
+    },
+    {
+      id:'f3', nom:'Fase 3 · Consolidació', periode:'2029 – 2035', estat:'pendent',
+      desc:'Automatització total, creixement accelerat, planificació fiscal avançada.',
+      milestones: [
+        {id:'m12', titol:'Cartera arriba a 100.000€', data:'2031', estat:'pendent', notes:''},
+        {id:'m13', titol:'Revisió d\'objectiu FIRE', data:'2030', estat:'pendent', notes:'Actualitzar projeccions amb dades reals.'},
+        {id:'m14', titol:'Planificació fiscal (IRPF, plusvàlues)', data:'2029', estat:'pendent', notes:''},
+      ]
+    },
+    {
+      id:'f4', nom:'Fase 4 · Manteniment', periode:'2035+', estat:'pendent',
+      desc:'Preservació de patrimoni, preparació per a distribució, herència.',
+      milestones: [
+        {id:'m15', titol:'Objectiu FIRE assolit o revisat', data:'2052', estat:'pendent', notes:''},
+        {id:'m16', titol:'Transició cartera a fase distribució', data:'TBD', estat:'pendent', notes:''},
+      ]
+    },
+  ],
+  ultimaRevisio: '15 mar 2026',
+  properaRevisio: '15 jun 2026',
+  notesAssessor: 'Maria avança bé a la Fase 1. Prioritat immediata: completar fons d\'emergència abans de juny. Revisió pressupost pendent per avaluar si pot arribar als 600€/mes. Bona adherència al pla — cap desviació impulsiva fins ara.',
+};
+
+// ══════════════════════════════════════════════════
+// TURBO ESTALVI — BIBLIOTECA DE 30 TIPS
+// ══════════════════════════════════════════════════
+var TBI_TIPS = [
+  // AUTOMATITZACIÓ (6)
+  {id:'t01',cat:'automatitzacio',tbi:'disciplina',dificultat:'baixa',impacteMin:50,impacteMax:200,
+   titol:'Automatitza l\'aportació el dia de la nòmina',
+   perque:'L\'automatització elimina la decisió. El que no veus, no el gastes. Evidència: l\'auto-enrollment augmenta la taxa d\'estalvi un 40% de mitjana.',
+   accio:'Configura una transferència automàtica el dia 1 o 2 del mes al teu compte d\'inversió.',
+   regla:function(c){return !c._autoAportacio;}},
+  {id:'t02',cat:'automatitzacio',tbi:'simplificacio',dificultat:'baixa',impacteMin:25,impacteMax:100,
+   titol:'Arrodoneix cada compra i estalvia la diferència',
+   perque:'Microestalvi invisible. Cada compra genera 0,20-0,80€ extra. Acumula 25-80€/mes sense notar-ho.',
+   accio:'Activa la funció d\'arrodoniment al teu banc (la majoria ho ofereixen gratuïtament).',
+   regla:function(c){return true;}},
+  {id:'t03',cat:'automatitzacio',tbi:'disciplina',dificultat:'baixa',impacteMin:0,impacteMax:50,
+   titol:'Programa una revisió mensual de 15 minuts',
+   perque:'El seguiment regular evita desviacions. 15 minuts al mes és menys que un cafè amb amics.',
+   accio:'Posa una alarma recurrent al calendari: "Revisió TBI" el dia 5 de cada mes.',
+   regla:function(c){return true;}},
+  {id:'t04',cat:'automatitzacio',tbi:'disciplina',dificultat:'mitjana',impacteMin:20,impacteMax:100,
+   titol:'Augmenta l\'aportació 25€ cada gener automàticament',
+   perque:'Increments petits i regulars s\'absorbeixen amb les pujades salarials. En 5 anys són +125€/mes extres.',
+   accio:'Configura un recordatori anual al gener per augmentar l\'aportació 25€.',
+   regla:function(c){return true;}},
+  {id:'t05',cat:'automatitzacio',tbi:'proteccio',dificultat:'baixa',impacteMin:0,impacteMax:50,
+   titol:'Separa els diners en 3 comptes: gastar, estalviar, invertir',
+   perque:'La separació física de diners (mental accounting) redueix la temptació de gastar l\'estalvi.',
+   accio:'Obre un compte gratuït exclusiu per al fons d\'emergència, un altre per inversió.',
+   regla:function(c){return true;}},
+  {id:'t06',cat:'automatitzacio',tbi:'simplificacio',dificultat:'mitjana',impacteMin:50,impacteMax:300,
+   titol:'Aporta el 50% de qualsevol ingres extra',
+   perque:'Pagues extres, devolucions de renda, bonus... la meitat va a inversió, la meitat a gaudir. Sense culpa.',
+   accio:'La propera paga extra: transfereix la meitat a la cartera el mateix dia que la reps.',
+   regla:function(c){return true;}},
+
+  // DESPESA FIXA (6)
+  {id:'t07',cat:'despesa_fixa',tbi:'simplificacio',dificultat:'mitjana',impacteMin:30,impacteMax:150,
+   titol:'Renegocia assegurances un cop l\'any',
+   perque:'El 70% de les persones mai compara assegurances. La inèrcia et costa 300-1.500€/any de més.',
+   accio:'Aquesta setmana: demana 2 pressupostos alternatius per la teva assegurança principal.',
+   regla:function(c){return true;}},
+  {id:'t08',cat:'despesa_fixa',tbi:'simplificacio',dificultat:'alta',impacteMin:100,impacteMax:400,
+   titol:'Renegocia o canvia la hipoteca',
+   perque:'Amb tipus d\'interès fluctuants, un 0,3% de diferència en una hipoteca de 150K€ són 450€/any.',
+   accio:'Consulta el teu tipus actual i compara amb 3 ofertes de bancs online.',
+   regla:function(c){return (c.perfil && c.perfil.horitzo && c.perfil.horitzo.indexOf('any')>=0);}},
+  {id:'t09',cat:'despesa_fixa',tbi:'simplificacio',dificultat:'baixa',impacteMin:15,impacteMax:60,
+   titol:'Audita subscripcions: cancel·la les que no uses',
+   perque:'La persona mitjana té 4 subscripcions "zombi" que no usa. Són 15-60€/mes invisibles.',
+   accio:'Avui: revisa els últims 3 mesos d\'extracte i identifica càrrecs recurrents que no recordes.',
+   regla:function(c){return true;}},
+  {id:'t10',cat:'despesa_fixa',tbi:'simplificacio',dificultat:'baixa',impacteMin:10,impacteMax:40,
+   titol:'Canvia a tarifes de llum amb discriminació horària',
+   perque:'Si pots concentrar rentadora, forn i carregador elèctric a hores vall, estalvies un 15-25%.',
+   accio:'Truca al teu proveïdor i pregunta per la tarifa PVPC amb discriminació horària.',
+   regla:function(c){return true;}},
+  {id:'t11',cat:'despesa_fixa',tbi:'simplificacio',dificultat:'mitjana',impacteMin:20,impacteMax:80,
+   titol:'Revisa la tarifa de mòbil i internet cada 12 mesos',
+   perque:'Les tarifes antigues solen ser més cares que les noves dels mateixos operadors.',
+   accio:'Compara la teva tarifa actual amb les ofertes vigents del teu operador i 2 alternatives.',
+   regla:function(c){return true;}},
+  {id:'t12',cat:'despesa_fixa',tbi:'proteccio',dificultat:'baixa',impacteMin:5,impacteMax:30,
+   titol:'Elimina les comissions bancàries',
+   perque:'Comptes amb comissions de manteniment, targetes amb quota anual... Tot evitable amb bancs online.',
+   accio:'Comprova si el teu banc et cobra manteniment. Si sí, obre un compte gratuït online.',
+   regla:function(c){return true;}},
+
+  // DESPESA VARIABLE (6)
+  {id:'t13',cat:'despesa_variable',tbi:'disciplina',dificultat:'baixa',impacteMin:40,impacteMax:150,
+   titol:'La regla de les 48 hores per compres >50€',
+   perque:'El 60% de les compres impulsives no es farien després de 48h de reflexió. Fricció positiva.',
+   accio:'A partir d\'ara: qualsevol compra no essencial >50€, espera 48h abans de comprar.',
+   regla:function(c){return true;}},
+  {id:'t14',cat:'despesa_variable',tbi:'simplificacio',dificultat:'baixa',impacteMin:50,impacteMax:200,
+   titol:'Porta menjar de casa 2 dies més per setmana',
+   perque:'Un menú fora costa 10-15€. A casa, 3-5€. 2 dies × 4 setmanes × 8€ = 64€/mes.',
+   accio:'Diumenge: prepara tuppers per dilluns i dimarts. Comença amb 2 dies.',
+   regla:function(c){return true;}},
+  {id:'t15',cat:'despesa_variable',tbi:'disciplina',dificultat:'mitjana',impacteMin:30,impacteMax:120,
+   titol:'Estableix un pressupost setmanal d\'oci en efectiu',
+   perque:'Pagar en efectiu activa el "dolor de pagar" — gastes un 12-18% menys que amb targeta.',
+   accio:'Retira cada dilluns el teu pressupost setmanal d\'oci en efectiu. Quan s\'acaba, s\'acaba.',
+   regla:function(c){return true;}},
+  {id:'t16',cat:'despesa_variable',tbi:'simplificacio',dificultat:'baixa',impacteMin:20,impacteMax:80,
+   titol:'Compra a granel i amb llista',
+   perque:'Anar al supermercat amb llista redueix la compra impulsiva un 20%. Comprar a granel estalvia un 10-15%.',
+   accio:'Abans de la propera compra: fes llista al mòbil i no compris res que no hi sigui.',
+   regla:function(c){return true;}},
+  {id:'t17',cat:'despesa_variable',tbi:'simplificacio',dificultat:'baixa',impacteMin:10,impacteMax:60,
+   titol:'1 mes sense comprar roba nova',
+   perque:'Un "no-buy month" crea consciència. La majoria descobreix que no necessitava res del que hauria comprat.',
+   accio:'Compromís: aquest mes, zero compres de roba. Anota el que "hauries comprat" i el total.',
+   regla:function(c){return true;}},
+  {id:'t18',cat:'despesa_variable',tbi:'disciplina',dificultat:'mitjana',impacteMin:40,impacteMax:150,
+   titol:'Redueix els àpats fora a 1 cop per setmana',
+   perque:'Menjar fora és un dels majors "fuites" del pressupost. Limitar-ho no és sacrificar — és triar millor.',
+   accio:'Aquesta setmana: tria UN àpat fora que realment t\'entusiasmi. La resta, a casa.',
+   regla:function(c){return true;}},
+
+  // DEUTE (3)
+  {id:'t19',cat:'deute',tbi:'proteccio',dificultat:'alta',impacteMin:50,impacteMax:500,
+   titol:'Elimina el deute de targeta de crèdit primer',
+   perque:'El deute revolving costa un 18-24% TAE. Cap inversió compensa aquest cost. Prioritat absoluta.',
+   accio:'Si tens deute de targeta: destina tot l\'estalvi extra a eliminar-lo abans d\'invertir.',
+   regla:function(c){return true;}},
+  {id:'t20',cat:'deute',tbi:'proteccio',dificultat:'mitjana',impacteMin:20,impacteMax:100,
+   titol:'Consolida deutes petits en un de sol',
+   perque:'Múltiples deutes generen fatiga de decisió. Un sol deute amb tipus fix és més fàcil de gestionar.',
+   accio:'Fes llista de tots els deutes: import, tipus, quota. Consulta si pots consolidar-los.',
+   regla:function(c){return true;}},
+  {id:'t21',cat:'deute',tbi:'simplificacio',dificultat:'baixa',impacteMin:0,impacteMax:50,
+   titol:'No financis res a terminis que no necessitis finançar',
+   perque:'El "12 mesos sense interessos" és una trampa de liquiditat. Si no el tens, no el compris.',
+   accio:'Revisió: tens algun finançament actiu per una compra que podries haver pagat al comptat?',
+   regla:function(c){return true;}},
+
+  // INGRESSOS (4)
+  {id:'t22',cat:'ingressos',tbi:'disciplina',dificultat:'alta',impacteMin:100,impacteMax:500,
+   titol:'Negocia una pujada salarial amb dades',
+   perque:'La persona mitjana que negocia activament el seu salari cobra un 7-15% més. Les dades són la clau.',
+   accio:'Prepara un document amb: resultats, mercat salarial (Glassdoor/LinkedIn), i demana reunió.',
+   regla:function(c){return true;}},
+  {id:'t23',cat:'ingressos',tbi:'disciplina',dificultat:'mitjana',impacteMin:50,impacteMax:300,
+   titol:'Monetitza una habilitat com a freelance 5h/mes',
+   perque:'5 hores al mes a 15-30€/h = 75-150€ extres. Tot a inversió. No cal escalar — és un complement.',
+   accio:'Identifica una habilitat vendible (idiomes, disseny, consultoria). Registra\'t a una plataforma.',
+   regla:function(c){return true;}},
+  {id:'t24',cat:'ingressos',tbi:'simplificacio',dificultat:'baixa',impacteMin:20,impacteMax:200,
+   titol:'Ven 10 objectes que no uses aquest mes',
+   perque:'Tothom té 500-2.000€ en objectes que no usa. Wallapop/Vinted són diners dormint a l\'armari.',
+   accio:'Avui: fotografia 3 objectes que no has usat en 12 mesos i publica\'ls.',
+   regla:function(c){return true;}},
+  {id:'t25',cat:'ingressos',tbi:'proteccio',dificultat:'mitjana',impacteMin:50,impacteMax:400,
+   titol:'Optimitza la declaració de renda',
+   perque:'Plans de pensions, deduccions per habitatge, donatius... La majoria perd 200-500€/any per desconeixement.',
+   accio:'Reserva 1h per revisar les deduccions disponibles. Considera un assessor fiscal si mai n\'has tingut.',
+   regla:function(c){return true;}},
+
+  // MENTAL MODEL (5)
+  {id:'t26',cat:'mental',tbi:'disciplina',dificultat:'baixa',impacteMin:0,impacteMax:100,
+   titol:'Calcula el "cost en hores de feina" de cada compra',
+   perque:'Un objecte de 60€ amb un salari net de 12€/h = 5 hores de la teva vida. Perspectiva.',
+   accio:'La propera compra >30€: divideix el preu pel teu salari net/hora. Val tantes hores?',
+   regla:function(c){return true;}},
+  {id:'t27',cat:'mental',tbi:'simplificacio',dificultat:'baixa',impacteMin:0,impacteMax:50,
+   titol:'Defineix 3 valors personals i alinea la despesa',
+   perque:'Quan saps què valores de veritat, és fàcil dir no a la resta. No és restricció — és claredat.',
+   accio:'Escriu 3 coses que realment et fan feliç. Compara amb les teves 5 despeses més grans del mes.',
+   regla:function(c){return true;}},
+  {id:'t28',cat:'mental',tbi:'disciplina',dificultat:'baixa',impacteMin:0,impacteMax:50,
+   titol:'Visualitza el teu "jo futur" un cop per setmana',
+   perque:'La recerca mostra que connectar emocionalment amb el teu "jo del futur" augmenta l\'estalvi un 30%.',
+   accio:'Cada diumenge: mira la calculadora FIRE de TBI i visualitza com et sentiràs quan l\'assoleixis.',
+   regla:function(c){return true;}},
+  {id:'t29',cat:'mental',tbi:'proteccio',dificultat:'baixa',impacteMin:0,impacteMax:30,
+   titol:'Desactiva les notificacions de botigues i ofertes',
+   perque:'Cada notificació de "50% de descompte" és un trigger de compra impulsiva. Elimina el trigger.',
+   accio:'Ara: desinstal·la 2 apps de botigues i desactiva emails de promocions.',
+   regla:function(c){return true;}},
+  {id:'t30',cat:'mental',tbi:'simplificacio',dificultat:'baixa',impacteMin:0,impacteMax:50,
+   titol:'Celebra cada milestone del Full de Ruta (sense gastar)',
+   perque:'El reforç positiu no requereix diners. Compartir l\'èxit amb algú proper és més satisfactori.',
+   accio:'El proper milestone completat: explica-ho a algú important per tu. Sense comprar res.',
+   regla:function(c){return true;}},
+];
+
+// Client savings plan (demo)
+var DEMO_SAVINGS_PLAN = {
+  ingressosMensuals: 2800,
+  despesesMensuals: 2200,
+  aportacioActual: 400,
+  taxaEstalviActual: 21.4,  // (2800-2200)/2800 * 100
+  taxaEstalviObjectiu: 30,
+  despesesDetall: [
+    {cat:'Habitatge (lloguer/hipoteca)', import:750},
+    {cat:'Transport', import:180},
+    {cat:'Alimentació', import:380},
+    {cat:'Subscripcions', import:65},
+    {cat:'Oci i restauració', import:280},
+    {cat:'Altres (roba, salut, etc.)', import:545},
+  ],
+  accionsActives: [
+    {tipId:'t01', estat:'completat', dataInici:'2026-01-15', impacteReal:400},
+    {tipId:'t09', estat:'completat', dataInici:'2026-02-01', impacteReal:35},
+    {tipId:'t13', estat:'actiu', dataInici:'2026-03-01', impacteReal:null},
+    {tipId:'t14', estat:'actiu', dataInici:'2026-03-15', impacteReal:null},
+    {tipId:'t04', estat:'pendent', dataInici:null, impacteReal:null},
+  ],
+};
 
 // ══════════════════════════════════════════════════
 // TURBO ESTALVI — MOTOR DE RECOMANACIONS
@@ -1770,62 +2031,48 @@ function generarRecomanacions(client, savingsPlan) {
 // ══════════════════════════════════════════════════
 
 var PLANS = {
-  essencial: {
-    nom: 'Essencial',
-    preu: 7,
-    periode: 'mes',
-    color: '#6B6762',
-    bg: '#F4F3F0',
-    descripcio: 'Plataforma automàtica amb arquetip, mercat real i 1 pregunta/setmana',
-    inclou: ['Arquetip + cartera recomanada', 'Mercat en temps real', 'Glossari complet', '1 pregunta/setmana (acumulable fins 4)', 'Calculadora FIRE', 'Fons d\'emergència'],
-    restricted: ['portal-assessoria', 'portal-informes', 'portal-missatges', 'portal-turbo']
+  senyal: {
+    nom: 'Senyal', preu: 8, periode: 'mes', color: '#6B6762', bg: '#F4F3F0',
+    descripcio: 'Plataforma, perfil inversor i eines financeres bàsiques',
+    inclou: ['Arquetip + cartera recomanada','Anàlisi setmanal de mercat','Calculadora FIRE + Emergència','1 pregunta/setmana (acumulable fins 4)','Glossàri complet','Accés a la comunitat'],
+    restricted: ['portal-assessoria','portal-informes','portal-missatges','portal-turbo']
   },
   bruxola: {
-    nom: 'Brúixola',
-    preu: 29,
-    periode: 'mes',
-    color: '#1B3A6B',
-    bg: '#EBF0FA',
-    descripcio: 'Seguiment actiu amb anàlisis i missatgeria il·limitada',
-    inclou: ['Tot l\'Essencial', 'Anàlisis mensuals de mercat', 'Missatgeria amb assessor', 'Informes PDF trimestrals', 'Turbo estalvi personalitzat'],
+    nom: 'Brúíxola', preu: 29, periode: 'mes', color: '#1B3A6B', bg: '#EBF0FA',
+    descripcio: 'Assessorament actiu amb cartera personalitzada i missatgeria directa',
+    inclou: ['Tot el Senyal','Entrevista inicial (1h)','Cartera target personalitzada','Full de Ruta financer','Anàlisi mensual aprofundida','Missatgeria directa il·limitada','Informes PDF trimestrals'],
     restricted: []
   },
-  rumb: {
-    nom: 'Rumb',
-    preu: 59,
-    periode: 'mes',
-    color: '#534AB7',
-    bg: '#EDEAF9',
-    descripcio: 'Assessorament trimestral amb revisió de cartera',
-    inclou: ['Tot la Brúixola', 'Sessió 1h cada 3 mesos', 'Revisió completa de cartera', 'Suport per decisions importants'],
+  nord: {
+    nom: 'Nord', preu: 49, periode: 'mes', color: '#534AB7', bg: '#EDEAF9',
+    descripcio: 'Seguiment complet amb sessions mensuals i planificació fiscal',
+    inclou: ['Tot la Brúíxola','Sessió mensual 1h (víde)','Seguiment posicions reals','Rebalanceig semestral','Turbo estalvi personalitzat','Planificació fiscal bàsica','Suport WhatsApp prioritari'],
     restricted: []
   },
-  mapa: {
-    nom: 'Mapa',
-    preu: 99,
-    periode: 'mes',
-    color: '#1A5C3A',
-    bg: '#EAF3DE',
-    descripcio: 'Assessorament integral amb pla FIRE i fiscalitat',
-    inclou: ['Tot el Rumb', 'Sessió mensual 1h', 'Planificació fiscal anual', 'Pla FIRE personalitzat', 'Acompanyament 1-a-1'],
+  partner: {
+    nom: 'Partner', preu: 0, performanceFee: 2.5, minPatrimoni: 100000, periode: 'any',
+    color: '#8B6914', bg: '#FEF7E8',
+    descripcio: 'Patrimonis >100.000€. 0€ fix + 2,5% del benefici net anual.',
+    inclou: ['Tot el Nord','Dedicació 100%','Sessió quinzenal (víde)','Seguiment diari de posicions','Rebalanceig sota demanda','Planificació fiscal completa','Optimització tributària','Accés directe (WhatsApp/telèfon)','Informe mensual complet'],
     restricted: []
   }
 };
 
 function getPla(clientOrId) {
-  var id = typeof clientOrId === 'string' ? clientOrId : (clientOrId && clientOrId.pla) || 'essencial';
-  if (id === 'senyal') id = 'essencial'; // compat antics
-  if (id === 'family') id = 'mapa';
-  return PLANS[id] || PLANS.essencial;
+  var id = typeof clientOrId === 'string' ? clientOrId : (clientOrId && clientOrId.pla) || 'senyal';
+  if (id === 'essencial') id = 'senyal';
+  if (id === 'rumb')      id = 'nord';
+  if (id === 'mapa')      id = 'nord';
+  if (id === 'family')    id = 'partner';
+  return PLANS[id] || PLANS.senyal;
 }
 
 function hasAccess(screenId, pla) {
-  pla = pla || (APP.clientData && APP.clientData.pla) || 'essencial';
+  pla = pla || (APP.clientData && APP.clientData.pla) || 'senyal';
   var p = getPla(pla);
   return p.restricted.indexOf(screenId) === -1;
 }
 
-// ══════════════════════════════════════════════════
 // PREGUNTA SETMANAL ACUMULABLE (Essencial)
 // ══════════════════════════════════════════════════
 // Dilluns a les 00:00 s'acumula +1 pregunta, màx 4. 
@@ -2143,31 +2390,49 @@ async function doForgotPassword() {
   }
 }
 
-async function enterApp(role, email) {
+function demoLogin(role) {
+  enterApp(role, role === 'admin' ? 'guillem@theboringinvestor.com' : 'maria.garcia@example.com', true);
+}
+
+async function enterApp(role, email, isDemo) {
   APP.role = role;
-  APP.isDemo = false;
+  APP.isDemo = isDemo;
   APP.clientData = null;
   APP.clientsList = null;
   APP.analisis = null;
 
   // Store session
-  localStorage.setItem('tbi_session', JSON.stringify({ role: role, email: email, isDemo: false }));
+  localStorage.setItem('tbi_session', JSON.stringify({ role: role, email: email, isDemo: isDemo }));
 
   // Hide login, show app
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
 
-  // Inicialitzar user bàsic
-  APP.user = { email: email, name: email.split('@')[0], initials: email[0].toUpperCase() };
+  if (isDemo) {
+    // Demo mode: use hardcoded data
+    APP.user = {
+      email: email,
+      name: role === 'admin' ? 'Guillem Puig' : DEMO_CLIENT.nom,
+      initials: role === 'admin' ? 'GP' : getInitials(DEMO_CLIENT.nom),
+    };
+    APP.clientData = DEMO_CLIENT;
+    APP.clientsList = DEMO_CLIENTS_LIST;
+    APP.analisis = DEMO_ANALISIS;
+  } else {
+    // Real mode: set temp user, then load from Supabase
+    APP.user = { email: email, name: email.split('@')[0], initials: email[0].toUpperCase() };
 
-  if (role === 'client') {
+    if (role === 'client') {
       var cd = await loadClientFromSupabase(email);
       if (cd && cd.scoring && cd.scoring > 0 && cd.status === 'active') {
+        // Client actiu amb dades — carregar portal complet
         APP.clientData = cd;
         APP.user.name = cd.nom || email;
         APP.user.initials = getInitials(cd.nom || email);
+        // Refresc periòdic del pla (cada 90s) per detectar canvis fets per l'admin
         iniciarRefrescPla(email);
       } else if (cd && cd.scoring && cd.scoring > 0 && (cd.status === 'pending' || cd.status === 'review' || cd.status === 'rejected')) {
+        // Client en espera de validació — mostra pantalla específica
         APP.clientData = cd;
         APP.user.name = cd.nom || email;
         APP.user.initials = getInitials(cd.nom || email);
@@ -2178,9 +2443,10 @@ async function enterApp(role, email) {
         APP.user.initials = (APP.user.name || email)[0].toUpperCase();
       }
     } else {
-      // Admin: load all clients from Supabase
+      // Admin: load own profile + all clients
       var allClients = await loadAllClientsFromSupabase();
       APP.clientsList = allClients;
+      // Load first client as preview, or self
       if (allClients && allClients.length > 0) {
         APP.clientData = await loadClientFromSupabase(allClients[0].email);
       }
@@ -2188,12 +2454,13 @@ async function enterApp(role, email) {
       APP.user.initials = 'GP';
     }
 
-  // Load analyses from Supabase
-  APP.analisis = await loadAnalisisFromSupabase();
-
-  // Load weekly questions (clients only)
-  if (role === 'client') {
-    loadQuestionsFromSupabase().catch(function(e){ console.warn(e); });
+    // Load analyses
+    APP.analisis = await loadAnalisisFromSupabase();
+    
+    // Load weekly questions history (per al widget)
+    if (role === 'client') {
+      loadQuestionsFromSupabase().catch(function(e){ console.warn(e); });
+    }
   }
 
   setupSidebar();
@@ -2253,8 +2520,19 @@ async function enterApp(role, email) {
 
 // ── DETECCIÓ DE CLIENT NOU ──
 function esClientNou(clientData) {
+  // Mode demo: NO redirigir mai al qüestionari (es vol veure el portal complet)
+  if (APP.isDemo) return false;
+
+  // Si clientData és null → client nou sense dades
   if (!clientData) return true;
+
+  // PRIORITAT: si l'admin ha aprovat el client (status='active'), MAI l'enviem
+  // al qüestionari. L'aprovació admin és l'autoritat final, sigui quina sigui
+  // la qualitat de les dades guardades del qüestionari.
   if (clientData.status === 'active') return false;
+
+  // Si està en validació (pending/review/rejected), tampoc és "client nou":
+  // la fila existeix, té dades, només cal esperar/refer.
   if (clientData.status === 'pending' || clientData.status === 'review' || clientData.status === 'rejected') {
     return false;
   }
@@ -2386,19 +2664,41 @@ async function previewClient(email) {
   var content = document.getElementById('content');
   content.innerHTML = '<div class="content-inner" style="display:flex;align-items:center;justify-content:center;min-height:300px;color:var(--g400)">Carregant dades del client...</div>';
 
-  var cd = await loadClientFromSupabase(email);
-  if (!cd) {
-    APP.clientData = null;
-    content.innerHTML = '<div class="content-inner" style="padding:40px;text-align:center">'
-      + '<div style="font-family:var(--fd);font-size:22px;margin-bottom:8px;color:var(--black)">No s\'ha pogut carregar el client</div>'
-      + '<div style="font-size:13px;color:var(--g500);margin-bottom:6px">No s\'han trobat dades a Supabase per a:</div>'
-      + '<div style="font-size:13px;color:var(--black);font-weight:500;margin-bottom:18px">' + email + '</div>'
-      + '<div style="font-size:11px;color:var(--g400);max-width:480px;margin:0 auto 18px;line-height:1.6">Comprova que l\'email existeix a la taula clients i que el RLS permet llegir aquesta fila.</div>'
-      + '<button onclick="navigateTo(\'admin-clients\')" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--fb)">← Tornar a clients</button>'
-    + '</div>';
-    return;
+  if (APP.isDemo) {
+    // In demo mode, build a synthetic client from the list
+    var listItem = DEMO_CLIENTS_LIST.find(function(c){return c.email===email;});
+    if (listItem) {
+      var arq = getArquetip(listItem.arquetipId);
+      APP.clientData = {
+        nom: listItem.nom, email: listItem.email,
+        arquetipId: listItem.arquetipId,
+        arquetip: arq.nom + ' — ' + arq.ep.split('·')[0].trim(),
+        cartera: arq.cartNom, scoring: listItem.scoring,
+        perfil: DEMO_CLIENT.perfil, scoring_mods: arq.dims,
+        projeccions: DEMO_CLIENT.projeccions,
+        nota: 'Client de demostració — ' + arq.nom,
+        historial: DEMO_CLIENT.historial, pla: listItem.pla,
+      };
+    } else {
+      APP.clientData = DEMO_CLIENT;
+    }
+  } else {
+    var cd = await loadClientFromSupabase(email);
+    if (!cd) {
+      // No usem DEMO_CLIENT com a fallback: si no podem llegir el client,
+      // mostrem un error explícit en lloc de mostrar dades de Maria.
+      APP.clientData = null;
+      content.innerHTML = '<div class="content-inner" style="padding:40px;text-align:center">'
+        + '<div style="font-family:var(--fd);font-size:22px;margin-bottom:8px;color:var(--black)">No s\'ha pogut carregar el client</div>'
+        + '<div style="font-size:13px;color:var(--g500);margin-bottom:6px">No s\'han trobat dades a Supabase per a:</div>'
+        + '<div style="font-size:13px;color:var(--black);font-weight:500;margin-bottom:18px">' + email + '</div>'
+        + '<div style="font-size:11px;color:var(--g400);max-width:480px;margin:0 auto 18px;line-height:1.6">Possibles causes: l\'email no coincideix exactament (majúscules/minúscules), la fila s\'ha esborrat, o RLS no permet llegir aquesta fila des de la sessió actual.</div>'
+        + '<button onclick="navigateTo(\'admin-pendents\')" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--fb)">← Tornar a sol·licituds</button>'
+      + '</div>';
+      return;
+    }
+    APP.clientData = cd;
   }
-  APP.clientData = cd;
 
   APP.user.name = APP.clientData.nom || 'Client';
   document.getElementById('preview-banner').classList.remove('hidden');
@@ -2482,57 +2782,62 @@ function getInitials(name) {
   return name.split(' ').map(function(w){return w[0]}).slice(0,2).join('').toUpperCase();
 }
 
-// ── DATA ACCESSORS (sempre Supabase — sense demo fallback) ──
+// ── DATA ACCESSORS (real or demo fallback) ──
 
 function getClient() {
+  // En mode demo retornem DEMO_CLIENT com a fallback. En mode real, NO:
+  // si APP.clientData és null és perquè el client encara no està validat
+  // (no té fila a Supabase amb scoring), i el codi que ho cridi ha de
+  // tractar el cas null abans de renderitzar res.
+  if (APP.isDemo) return APP.clientData || DEMO_CLIENT;
   return APP.clientData || null;
 }
 
 function getClientsList() {
-  return APP.clientsList || [];
+  return APP.clientsList || DEMO_CLIENTS_LIST;
 }
 
 function getAnalisis() {
-  return APP.analisis || [];
+  return APP.analisis || DEMO_ANALISIS;
 }
 
 function getMoviments() {
   var c = getClient();
-  if (!c) return [];
-  return (c.moviments && c.moviments.length > 0) ? c.moviments : [];
+  if (!c) return APP.isDemo ? DEMO_MOVIMENTS : [];
+  return (c.moviments && c.moviments.length > 0) ? c.moviments : (APP.isDemo ? DEMO_MOVIMENTS : []);
 }
 
 function getCarteraActual() {
   var c = getClient();
-  if (!c) return [];
+  if (!c) return APP.isDemo ? DEMO_CARTERA_ACTUAL : [];
   if (c.cartera_composicio && c.cartera_composicio.length > 0 && c.cartera_composicio[0].valor) {
     return c.cartera_composicio;
   }
-  return [];
+  return APP.isDemo ? DEMO_CARTERA_ACTUAL : [];
 }
 
 function getEvolucio() {
   var c = getClient();
-  if (!c) return [];
-  return (c.evolucio && c.evolucio.length > 0) ? c.evolucio : [];
+  if (!c) return APP.isDemo ? DEMO_EVOLUCIO : [];
+  return (c.evolucio && c.evolucio.length > 0) ? c.evolucio : (APP.isDemo ? DEMO_EVOLUCIO : []);
 }
 
 function getPlaAportacions() {
   var c = getClient();
-  if (!c) return null;
-  return c.pla_aportacions || null;
+  if (!c) return APP.isDemo ? DEMO_PLA_APORTACIONS : null;
+  return c.pla_aportacions || (APP.isDemo ? DEMO_PLA_APORTACIONS : null);
 }
 
 function getEmergencia() {
   var c = getClient();
-  if (!c) return null;
-  return c.fons_emergencia || null;
+  if (!c) return APP.isDemo ? DEMO_EMERGENCIA : null;
+  return c.fons_emergencia || (APP.isDemo ? DEMO_EMERGENCIA : null);
 }
 
 function getFire() {
   var c = getClient();
-  if (!c) return null;
-  return c.fire || null;
+  if (!c) return APP.isDemo ? DEMO_FIRE : null;
+  return c.fire || (APP.isDemo ? DEMO_FIRE : null);
 }
 
 // ── ROADMAP ESTÀNDARD PER ARQUETIP ──────────────────
@@ -2604,8 +2909,24 @@ async function checkSession() {
     return false; // → es mostra el login screen
   }
 
+  // Mode demo: les sessions demo no toquen Supabase, llegim directament de localStorage
+  try {
+    var raw = localStorage.getItem('tbi_session');
+    if (raw) {
+      var s = JSON.parse(raw);
+      if (s && s.isDemo && s.role && s.email) {
+        enterApp(s.role, s.email, true);
+        return true;
+      }
+    }
+  } catch(e) {}
+
   // Sessions reals: Supabase és la font de veritat.
+  // Això permet que el magic link funcioni: després de fer click a l'email,
+  // Supabase auto-crea la sessió i nosaltres la detectem aquí, encara que
+  // localStorage no tingui res.
   if (!sb) {
+    // Sense Supabase no podem fer res — mostrem login
     localStorage.removeItem('tbi_session');
     return false;
   }
@@ -2640,9 +2961,8 @@ async function checkSession() {
 var ADMIN_NAV = [
   {section:'Principal'},
   {id:'hub', icon:'🏠', label:'Hub', desc:'Vista general'},
-  {id:'admin-clients', icon:'👥', label:'Clients'},
+  {id:'admin-clients', icon:'👥', label:'Clients', badge:'5'},
   {id:'admin-diagnostic', icon:'🔍', label:'Diagn\u00f2stic'},
-  {id:'admin-informe', icon:'📄', label:'Generar Informe'},
   {id:'admin-pendents', icon:'⏳', label:'Sol·licituds pendents'},
   {id:'portal-missatges', icon:'💬', label:'Missatges clients'},
   {id:'admin-broadcast', icon:'📣', label:'Missatge a la comunitat'},
@@ -2753,7 +3073,6 @@ function navigateTo(viewId) {
     'hub': ['Hub de l\'assessor', 'Vista general de la plataforma'],
     'admin-clients': ['Clients', 'Llistat i gestió de clients'],
     'admin-diagnostic': ['Diagn\u00f2stic de Client', 'Genera el pla financer personalitzat amb AI'],
-    'admin-informe': ['Generar Informe', 'Crea i publica l\u2019informe del client al portal'],
     'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['Resum', 'Vista general del teu perfil inversor'],
     'portal-roadmap': APP.role === 'admin' ? ['Portal Client · Full de Ruta', '👁 Previsualització · Editable'] : ['Full de Ruta', 'El teu pla financer personalitzat'],
     'portal-cartera': APP.role === 'admin' ? ['Portal Client · Cartera', '👁 Previsualització'] : ['La meva cartera', 'Seguiment i moviments'],
@@ -2830,7 +3149,6 @@ function renderView(viewId) {
       break;
     case 'admin-clients': renderClientsList(content); break;
     case 'admin-diagnostic': renderAdminDiagnostic(content); break;
-    case 'admin-informe': renderAdminInforme(content); break;
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
     case 'admin-preguntes': renderAdminPreguntes(content); break;
@@ -2861,9 +3179,7 @@ function openExternal(file) {
 }
 
 function exitPreview() {
-  // Tornar al primer client de la llista (o null si no n'hi ha)
-  var llista = getClientsList();
-  APP.clientData = (llista && llista.length > 0) ? llista[0] : null;
+  APP.clientData = DEMO_CLIENT;
   APP.user.name = 'Guillem Puig';
   document.getElementById('preview-banner').classList.add('hidden');
   navigateTo('hub');
@@ -2900,18 +3216,13 @@ function renderHub(el) {
     // Banner d'alerta sol·licituds pendents (només si n'hi ha urgents)
     + renderHubAlertaPendents()
 
-    // Stats dinàmiques des de Supabase
-    + (function(){
-        var llista = getClientsList() || [];
-        var actius = llista.filter(function(c){return c.status==='active'||c.estat==='active';}).length;
-        var totalClients = llista.length;
-        var scoringMig = actius > 0 ? Math.round(llista.filter(function(c){return c.status==='active'||c.estat==='active';}).reduce(function(s,c){return s+(c.scoring||0);},0)/actius) : 0;
-        return '<div class="hub-stats">'
-          + '<div class="hub-stat"><div class="hub-stat-val">'+totalClients+'</div><div class="hub-stat-lbl">Clients totals</div></div>'
-          + '<div class="hub-stat"><div class="hub-stat-val">'+actius+'</div><div class="hub-stat-lbl">Clients actius</div></div>'
-          + (scoringMig>0?'<div class="hub-stat"><div class="hub-stat-val">'+scoringMig+'</div><div class="hub-stat-lbl">Scoring mig</div></div>':'')
-        + '</div>';
-      })()
+    // Stats
+    + '<div class="hub-stats">'
+      + '<div class="hub-stat"><div class="hub-stat-val">5</div><div class="hub-stat-lbl">Clients actius</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val">67</div><div class="hub-stat-lbl">Scoring mig</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:var(--accent)">' + totalValor.toLocaleString('ca-ES') + '€</div><div class="hub-stat-lbl">AUM total (demo)</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:#7A4A00">2</div><div class="hub-stat-lbl">Missatges pendents</div></div>'
+    + '</div>'
 
     // Quick actions
     + '<div style="font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px">Accions ràpides</div>'
@@ -2928,9 +3239,9 @@ function renderHub(el) {
         + '<div class="hub-card-desc">Consulta i gestiona els expedients dels clients.</div>'
         + '<div class="hub-card-arrow">→</div>'
       + '</div>'
-      + '<div class="hub-card" onclick="navigateTo(\'portal-missatges\')">'
+      + '<div class="hub-card" onclick="navigateTo(\'portal-missatges\')" style="border-color:var(--amber)">'
         + '<div class="hub-card-icon">💬</div>'
-        + '<div class="hub-card-title">Missatges dels clients</div>'
+        + '<div class="hub-card-title">Missatges <span style="font-size:11px;color:var(--amber);font-weight:600">(2)</span></div>'
         + '<div class="hub-card-desc">Revisa i respon els missatges dels clients.</div>'
         + '<div class="hub-card-arrow">→</div>'
       + '</div>'
@@ -3004,7 +3315,7 @@ function renderClientsList(el) {
     var scoreColor = c.scoring>=70?'#1A5C3A':c.scoring>=50?'#1B3A6B':c.scoring>=30?'#7A4A00':'#8B1A1A';
     var scoreBg    = c.scoring>=70?'#EAF3DE':c.scoring>=50?'#EBF0FA':c.scoring>=30?'#FEF5E7':'#FDF0F0';
     var initials = c.nom.split(' ').map(function(w){return w[0]}).slice(0,2).join('');
-    var plaColors = {senyal:'var(--g400)',bruxola:'var(--accent)',mapa:'#1A5C3A',rumb:'#534AB7',family:'#7A4A00'};
+    var p_cl = getPla(c.pla);
 
     html += '<div class="card" style="cursor:pointer;transition:all .12s;padding:14px 24px" onmouseover="this.style.borderColor=\'var(--g300)\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.borderColor=\'var(--g200)\';this.style.transform=\'none\'" onclick="previewClient(\'' + c.email + '\')">'
       + '<div style="display:flex;align-items:center;gap:14px">'
@@ -3021,9 +3332,13 @@ function renderClientsList(el) {
           + '<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:' + scoreColor + '">' + c.scoring + '</div>'
         + '</div>'
         + '<div style="width:70px;text-align:center">'
-          + '<div style="display:inline-block;font-size:10px;padding:3px 10px;border-radius:99px;background:' + scoreBg + ';color:' + (plaColors[c.pla]||'var(--g400)') + ';font-weight:500;text-transform:capitalize">' + c.pla + '</div>'
+          + '<div style="display:inline-block;font-size:10px;padding:3px 10px;border-radius:99px;background:' + p_cl.bg + ';color:' + p_cl.color + ';font-weight:500">' + p_cl.nom + '</div>'
         + '</div>'
-        + '<div style="color:var(--g300);font-size:14px;width:20px;text-align:center">→</div>'
+        + '<div style="display:flex;gap:5px;align-items:center">'
+          + '<button onclick="canviarPlaClient(\'' + c.email + '\')" style="padding:4px 9px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g500)" title="Canviar pla">&#128179;</button>'
+          + '<button onclick="confirmarEsborrarClientDirect(\'' + c.email + '\')" style="padding:4px 7px;background:transparent;border:1px solid #FCA5A5;border-radius:6px;font-size:11px;cursor:pointer;color:#DC2626" title="Esborrar">&#128465;</button>'
+          + '<span style="color:var(--g300);font-size:14px">&#8594;</span>'
+        + '</div>'
       + '</div>'
     + '</div>';
   });
@@ -3661,18 +3976,37 @@ function renderPortalCartera(el) {
       + '<span style="margin-left:6px;font-size:10px;background:var(--g100);padding:2px 8px;border-radius:99px;color:var(--g500)">Retorn est. ' + arq.retorn + '</span>'
     + '</div>';
 
+  function donutSVG(actius) {
+    var W=200,H=200,cx=100,cy=100,outerR=82,innerR=52,gapRad=0.04;
+    var total=actius.reduce(function(s,a){return s+(a.pct||0);},0);
+    if(total<=0)return '';
+    var paths=[],startAngle=-Math.PI/2;
+    actius.forEach(function(a){
+      var angle=(a.pct/total)*2*Math.PI;
+      if(angle<0.01){startAngle+=angle;return;}
+      var s1=startAngle+gapRad/2,e1=startAngle+angle-gapRad/2;
+      var large=angle>Math.PI?1:0;
+      var x1o=cx+outerR*Math.cos(s1),y1o=cy+outerR*Math.sin(s1);
+      var x2o=cx+outerR*Math.cos(e1),y2o=cy+outerR*Math.sin(e1);
+      var x1i=cx+innerR*Math.cos(e1),y1i=cy+innerR*Math.sin(e1);
+      var x2i=cx+innerR*Math.cos(s1),y2i=cy+innerR*Math.sin(s1);
+      var d='M'+x1o.toFixed(1)+' '+y1o.toFixed(1)+' A'+outerR+' '+outerR+' 0 '+large+' 1 '+x2o.toFixed(1)+' '+y2o.toFixed(1)+' L'+x1i.toFixed(1)+' '+y1i.toFixed(1)+' A'+innerR+' '+innerR+' 0 '+large+' 0 '+x2i.toFixed(1)+' '+y2i.toFixed(1)+'Z';
+      paths.push('<path d="'+d+'" fill="'+a.color+'"/>');
+      startAngle+=angle;
+    });
+    return '<svg viewBox="0 0 200 200" width="160" height="160" style="display:block;flex-shrink:0">'+paths.join('')+'<circle cx="100" cy="100" r="50" fill="white"/><text x="100" y="97" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#0A0A0A" font-weight="500">'+arq.ter+'</text><text x="100" y="113" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#9A9690">TER mig</text></svg>';
+  }
+  html += '<div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">'+donutSVG(targetActius)+'<div style="flex:1;min-width:180px">';
   targetActius.forEach(function(a) {
     var actiu = getActiu(a.id) || {};
     html += '<div class="target-bar-row">'
-      + '<div class="target-bar-label">' + (actiu.emoji||'') + ' ' + a.nom + '</div>'
-      + '<div class="target-bar-track">'
-        + '<div class="target-bar-fill" style="width:' + a.pct + '%;background:' + a.color + '"></div>'
-      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;width:165px;flex-shrink:0"><div style="width:8px;height:8px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></div><span style="font-size:12px">' + (actiu.emoji||'') + ' ' + a.nom + '</span></div>'
+      + '<div class="target-bar-track"><div class="target-bar-fill" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
       + '<div class="target-bar-pct">' + a.pct + '%</div>'
     + '</div>';
   });
-
-  html += '<div style="margin-top:14px;font-size:11px;color:var(--g400)">'
+  html += '</div></div>';
+    html += '<div style="margin-top:14px;font-size:11px;color:var(--g400)">'
     + '💬 Vols modificar els pesos? <a href="#" onclick="event.preventDefault();navigateTo(\'portal-missatges\')" style="color:var(--black);font-weight:500">Demana-ho al teu assessor</a>'
   + '</div>'
   + '</div>';
@@ -4287,144 +4621,32 @@ function subscribeToMessages(email) {
 // VIEW: INFORMES
 // ══════════════════════════════════════════════════
 function renderPortalInformes(el) {
-  var c = getClient();
-  var informes = (c && c.informes) || [];
-  var isAdmin = APP.role === 'admin';
-  var tipusMap = {
-    trimestral:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Trimestral',icon:'📊'},
-    perfil:{bg:'#EDEAF9',tc:'#534AB7',lbl:'Perfil inicial',icon:'📋'},
-    pla:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Pla financer',icon:'🗺️'}
-  };
-  var html = '<div class="content-inner fade-in">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">'
-      + '<div>'
-        + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px">Els teus informes</div>'
-        + '<div style="font-size:12px;color:var(--g400);margin-top:3px">'+(informes.length?informes.length+' informe'+(informes.length!==1?'s':'')+ ' disponible'+(informes.length!==1?'s':''):'Cap informe publicat encara')+'</div>'
-      + '</div>'
-      + (isAdmin ? '<button onclick="navigateTo(\'admin-informe\')" style="padding:9px 18px;background:var(--black);color:var(--white);border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);">+ Nou informe</button>' : '')
-    + '</div>';
+  var html = '<div class="content-inner fade-in">';
+  html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:20px">Els teus informes</div>';
 
-  if (!informes.length) {
-    html += '<div style="text-align:center;padding:48px 24px;background:var(--white);border-radius:12px;border:1px solid var(--g200)">'
-      + '<div style="font-size:32px;margin-bottom:12px">📋</div>'
-      + '<div style="font-family:var(--fd);font-size:18px;font-weight:400;margin-bottom:6px">Cap informe publicat</div>'
-      + '<div style="font-size:13px;color:var(--g500)">L\'assessor publicarà el teu primer informe un cop realitzada la primera sessió.</div>'
-    + '</div>';
-  } else {
-    informes.forEach(function(r, idx) {
-      var t = tipusMap[r.tipus] || tipusMap.perfil;
-      var dataFmt = r.data ? infFmtData(r.data) : '—';
-      var score = r.scores ? (function(){var tot=0;SCORING_MODS.forEach(function(m,i){tot+=(r.scores[i]/10)*m.pes;});return Math.round(tot);})() : null;
-      html += '<div class="inf-hist-card" onclick="obrirInformeModal('+idx+')">'
-        + '<div class="inf-hist-icon" style="background:'+t.bg+'">'+t.icon+'</div>'
-        + '<div class="inf-hist-body">'
-          + '<div class="inf-hist-titol">'+escInf(r.titol||'Informe')+'</div>'
-          + '<div class="inf-hist-sub" style="display:flex;gap:10px;align-items:center">'
-            + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.tc+'">'+t.lbl+'</span>'
-            + '<span>'+dataFmt+'</span>'
-            + (score!==null?'<span style="font-family:var(--fm);font-weight:500;color:var(--accent)">'+score+'/100</span>':'')
+  DEMO_INFORMES.forEach(function(r){
+    var tipusMap = {trimestral:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Trimestral'},perfil:{bg:'#EDEAF9',tc:'#534AB7',lbl:'Perfil'},pla:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Pla financer'}};
+    var t = tipusMap[r.tipus] || tipusMap.trimestral;
+    var isPendent = r.estat === 'pendent';
+    html += '<div class="card" style="' + (isPendent?'opacity:.5':'cursor:pointer') + '">'
+      + '<div style="display:flex;align-items:center;gap:12px">'
+        + '<div style="width:40px;height:40px;border-radius:10px;background:' + t.bg + ';display:flex;align-items:center;justify-content:center;font-size:18px">' + (isPendent?'🕐':'📄') + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="display:flex;gap:6px;align-items:center;margin-bottom:3px">'
+            + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:' + t.bg + ';color:' + t.tc + '">' + t.lbl + '</span>'
+            + '<span style="font-size:10px;color:var(--g400)">' + r.data + '</span>'
           + '</div>'
+          + '<div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:2px">' + r.titol + '</div>'
+          + '<div style="font-size:12px;color:var(--g500)">' + r.desc + '</div>'
         + '</div>'
-        + '<div class="inf-hist-action">\ud83d\udcc4 Veure informe</div>'
-      + '</div>';
-    });
-  }
+        + (isPendent ? '<div style="font-size:10px;color:var(--g400);padding:4px 10px;border:1px solid var(--g200);border-radius:6px">Pendent</div>'
+          : '<div style="font-size:10px;color:var(--accent);padding:4px 10px;border:1px solid var(--accent);border-radius:6px;cursor:pointer">📥 Descarregar</div>')
+      + '</div>'
+    + '</div>';
+  });
+
   html += '</div>';
   el.innerHTML = html;
-}
-
-function obrirInformeModal(idx) {
-  var c = getClient();
-  var informes = (c && c.informes) || [];
-  var r = informes[idx];
-  if (!r) return;
-  // Restaurar estat INF temporalment per renderitzar
-  var savedScores = INF.scores.slice();
-  var savedFases = JSON.parse(JSON.stringify(INF.fases));
-  var savedNota = INF.nota;
-  var savedSessioData = INF.sessioData;
-  var savedSessioOrdre = INF.sessioOrdre;
-  INF.scores = r.scores || [5,5,5,5,5,5,5];
-  INF.fases = r.fases || [];
-  INF.nota = r.nota || '';
-  INF.sessioData = r.sessioData || '';
-  INF.sessioOrdre = r.sessioOrdre || '';
-  // Override input getters — usar valors directes de l'informe
-  var tempClient = JSON.parse(JSON.stringify(c));
-  var arq = getArquetip(r.arquetipId || (c&&c.arquetipId) || 'navegant');
-  // Generar HTML sense dependre dels inputs del formulari
-  var nom = (c&&(c.nom||c.name))||'—';
-  var email = (c&&c.email)||'';
-  var score = r.scores ? (function(){var t=0;SCORING_MODS.forEach(function(m,i){t+=(r.scores[i]/10)*m.pes;});return Math.round(t);})() : 50;
-  var dataFmt = r.data ? infFmtData(r.data) : '—';
-  var sv = score>=75?{v:'Excel\u00b7lent',s:'La base financera \u00e9s s\u00f2lida.'}:score>=55?{v:'Bona base',s:'Fonaments clars.'}:score>=35?{v:'Millorable',s:'Punts cr\u00edtics identificats.'}:{v:'Feble',s:'Reorientaci\u00f3 necess\u00e0ria.'};
-  var fases = r.fases || [];
-  var fetes = fases.filter(function(f){return f.estat==='fet';}).length;
-  var pct = fases.length ? Math.round(fetes/fases.length*100) : 0;
-
-  var pdfH = '<div class="inf-pdf"><div class="inf-pdf-cover">'
-    + '<div class="inf-pdf-eyebrow">The Boring Investor \u00b7 Assessoria Financera Independent</div>'
-    + '<div class="inf-pdf-nom">'+escInf(nom)+'</div>'
-    + '<div class="inf-pdf-email">'+escInf(email)+'</div>'
-    + '<div class="inf-pdf-tags"><span class="inf-pdf-tag arq">'+arq.nom+' \u00b7 '+arq.cartera+'</span><span class="inf-pdf-tag">'+arq.risc+'</span>'+(c&&c.pla?'<span class="inf-pdf-tag">'+c.pla+'</span>':'')+'<span class="inf-pdf-tag">'+escInf(r.titol||'Informe')+'</span></div>'
-    + '<div class="inf-pdf-footer-row"><div class="inf-pdf-assessor">Guillem Puig \u00b7 '+dataFmt+'</div><div><div class="inf-pdf-score-num">'+score+'<span class="inf-pdf-score-denom">/100</span></div><div class="inf-pdf-score-lbl">Scoring</div></div></div>'
-    + '</div><div class="inf-pdf-body">';
-  pdfH += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">1 \u00b7 Perfil Inversor</div><div class="inf-pdf-2col">'
-    + '<div class="inf-arq-card"><div class="inf-arq-ep">'+arq.ep+'</div><div class="inf-arq-nom">'+arq.nom+'</div><div class="inf-arq-cartera">'+arq.cartera+'</div><div class="inf-arq-rationale">'+arq.rationale+'</div><div class="inf-dims-grid">'+arq.dims.map(function(d,i){return '<div class="inf-dim"><div class="inf-dim-val">'+d+'</div><div class="inf-dim-lbl">'+['Obj.','Sit.','Hor.','Con.','R.F.','R.E.','Pref.'][i]+'</div></div>';}).join('')+'</div></div>'
-    + '<div><div style="font-size:9px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Cartera recomanada</div>'+arq.actius.map(function(a){var bw=Math.min(100,Math.round(a.pct*1.4));return '<div class="inf-alloc-row"><div class="inf-alloc-dot" style="background:'+a.color+'"></div><div class="inf-alloc-nom">'+a.nom+'</div><div class="inf-alloc-bar-wrap"><div class="inf-alloc-bar" style="width:'+bw+'%;background:'+a.color+'"></div></div><div class="inf-alloc-pct" style="color:'+a.color+'">'+a.pct+'%</div></div>';}).join('')+'<div style="margin-top:8px;font-size:9px;color:var(--g400)">TER: <strong>'+arq.ter+'</strong> \u00b7 Retorn: <strong>'+arq.retorn+'</strong></div><div style="margin-top:8px;padding:8px 10px;background:var(--g50);border-radius:7px;font-size:10px;color:var(--g600)">\u26a0\ufe0f '+arq.diff+'</div></div></div></div>';
-  var sortedR = SCORING_MODS.map(function(m,i){return {m:m,s:(r.scores||[])[i]||5};}).sort(function(a,b){return a.s-b.s;});
-  pdfH += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">2 \u00b7 Diagn\u00f2stic Financer</div>'
-    + '<div class="inf-score-card"><div><div class="inf-score-big">'+score+'</div><div style="font-family:var(--fm);font-size:10px;color:var(--g400)">/100 punts</div></div><div><div class="inf-score-verdict">'+score+'/100 \u2014 '+sv.v+'</div><div class="inf-score-sub">'+sv.s+'</div></div></div>'
-    + '<div class="inf-pdf-2col"><div>'+SCORING_MODS.map(function(m,i){var s=(r.scores||[])[i]||5;var col=s>=7?'var(--green)':s>=5?'var(--accent)':s>=3?'var(--amber)':'var(--red)';return '<div class="inf-mod-row"><div class="inf-mod-lbl">'+m.label+'</div><div style="font-size:8px;color:var(--g400)">'+m.pes+'%</div><div class="inf-mod-bar-wrap"><div class="inf-mod-bar" style="width:'+(s*10)+'%;background:'+col+'"></div></div><div class="inf-mod-val" style="color:'+col+'">'+s+'/10</div></div>';}).join('')+'</div>'
-    + '<div><div style="font-size:9px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Top 3 accions</div>'+sortedR.slice(0,3).map(function(x,i2){var bgs=['#FDF0F0','#FEF5E7','#EBF0FA'];var cols=['#C0392B','#D4700A','#1B3A6B'];var di=x.s<=3?0:x.s<=6?1:2;return '<div class="inf-accio" style="background:'+bgs[i2]+'"><div class="inf-accio-num" style="background:'+cols[i2]+'">'+(i2+1)+'</div><div><div class="inf-accio-title" style="color:'+cols[i2]+'">'+x.m.label+' \u2014 '+x.s+'/10</div><div class="inf-accio-desc">'+x.m.desc[di]+'</div></div></div>';}).join('')+'</div></div></div>';
-  pdfH += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">3 \u00b7 Pla de Ruta</div><div class="inf-road-progress"><div class="inf-road-bar-wrap"><div class="inf-road-bar" style="width:'+pct+'%"></div></div><div class="inf-road-pct">'+fetes+' de '+fases.length+' fases</div></div>'
-    + fases.map(function(f){var cl=f.estat==='fet'?'fet':f.estat==='actiu'?'actiu':'pendent';var bl=f.estat==='fet'?'\u2713 Completat':f.estat==='actiu'?'\u25cf En curs':'Pendent';var fitesArr=f.fites||[];return '<div class="inf-fase-pdf '+cl+'"><div class="inf-fase-dot"></div><div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><div class="inf-fase-titol-pdf">'+escInf(f.titol||'')+'</div><span class="inf-fase-badge '+cl+'">'+bl+'</span></div>'+fitesArr.filter(function(ft){return String(ft).trim();}).map(function(ft){return '<div class="inf-fita-pdf"><div class="inf-fita-pdf-dot"></div><div class="inf-fita-pdf-text">'+escInf(String(ft))+'</div></div>';}).join('')+'</div>';}).join('')+'</div>';
-  if (r.nota) pdfH += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">4 \u00b7 Nota de l\u2019assessor</div><div class="inf-nota">'+escInf(r.nota)+'</div></div>';
-  if (r.sessioData) pdfH += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">5 \u00b7 Propera sessi\u00f3</div><div class="inf-sessio"><div><div style="font-size:8px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:4px">Data confirmada</div><div class="inf-sessio-data">'+infFmtData(r.sessioData)+'</div>'+(r.sessioOrdre?'<div class="inf-sessio-ordre">'+escInf(r.sessioOrdre)+'</div>':'')+'</div><div style="text-align:right"><div class="inf-sessio-assessor">Guillem Puig</div><div class="inf-sessio-assessor-sub">EFA Candidate \u00b7 TBI</div></div></div></div>';
-  pdfH += '<div class="inf-pdf-footer"><div class="inf-pdf-footer-l">The Boring Investor \u00b7 guillem@theboringinvestor.com</div><div class="inf-pdf-footer-r">No constitueix assessorament MiFID II. \u00b7 '+dataFmt+'</div></div>';
-  pdfH += '</div></div>';
-
-  // Restaurar INF
-  INF.scores = savedScores;
-  INF.fases = savedFases;
-  INF.nota = savedNota;
-  INF.sessioData = savedSessioData;
-  INF.sessioOrdre = savedSessioOrdre;
-
-  // Crear modal
-  var modal = document.createElement('div');
-  modal.className = 'inf-modal';
-  modal.id = 'inf-modal';
-  modal.innerHTML = '<div class="inf-modal-inner">'
-    + '<button class="inf-modal-close" onclick="document.getElementById(\'inf-modal\').remove()">&#215;</button>'
-    + pdfH
-    + '<div style="padding:16px 24px;border-top:1px solid var(--g200);display:flex;gap:8px;justify-content:flex-end">'
-      + '<button onclick="document.getElementById(\'inf-modal\').remove()" style="padding:9px 18px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;cursor:pointer;font-family:var(--fb);background:transparent;color:var(--g600)">Tancar</button>'
-      + '<button onclick="imprimirModal()" style="padding:9px 18px;background:var(--black);color:var(--white);border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);">\ud83d\uddb6 Imprimir / PDF</button>'
-    + '</div>'
-  + '</div>';
-  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
-  document.body.appendChild(modal);
-}
-
-function imprimirModal() {
-  var modal = document.getElementById('inf-modal');
-  if (!modal) return;
-  var inner = modal.querySelector('.inf-modal-inner');
-  if (!inner) { window.print(); return; }
-  var clone = inner.cloneNode(true);
-  // Treure botons del clon
-  var btns = clone.querySelector('[style*="padding:16px"]');
-  if (btns) btns.remove();
-  var closeBtn = clone.querySelector('.inf-modal-close');
-  if (closeBtn) closeBtn.remove();
-  var win = window.open('','_blank','width=800,height=900');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe TBI</title>'
-    + '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">'
-    + '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'DM Sans\',sans-serif;background:#fff;-webkit-font-smoothing:antialiased}@page{margin:0;size:A4}@media print{body{background:white}}</style>'
-    + '<style>' + Array.from(document.styleSheets).map(function(ss){try{return Array.from(ss.cssRules).map(function(r){return r.cssText;}).join('\n');}catch(e){return '';}}).join('\n') + '</style>'
-    + '</head><body>' + clone.outerHTML + '<script>window.onload=function(){window.print();window.close();}<\/script></body></html>');
-  win.document.close();
 }
 
 // ══════════════════════════════════════════════════
@@ -5226,8 +5448,8 @@ async function guardarDadesTurbo() {
 
 function getSavingsPlan() {
   var c = getClient();
-  if (!c) return null;
-  return c.savings_plan || null;
+  if (!c || APP.isDemo) return DEMO_SAVINGS_PLAN;
+  return c.savings_plan || DEMO_SAVINGS_PLAN;
 }
 
 function renderPortalTurbo(el) {
@@ -5239,7 +5461,7 @@ function renderPortalTurbo(el) {
 
   // Per a clients reals sense dades d'estalvi, mostrar un setup mínim
   // en lloc de les dades fictícies del DEMO
-  var isRealClientNoData = !APP.isPreview && c && (!c.savings_plan || !c.savings_plan.ingressosMensuals);
+  var isRealClientNoData = !APP.isDemo && !APP.isPreview && c && (!c.savings_plan || !c.savings_plan.ingressosMensuals);
   if (isRealClientNoData) {
     el.innerHTML = '<div class="content-inner fade-in">'
       + '<div style="font-family:var(--fd);font-size:24px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">🚀 Turbo Estalvi</div>'
@@ -6891,75 +7113,71 @@ async function respondrePregunta(id) {
 // ══════════════════════════════════════════════════
 function renderAdminPlans(el) {
   var clients = APP.clientsList || [];
-  var stats = {
-    total: clients.length,
-    essencial: clients.filter(function(c){ var p = c.pla || 'essencial'; return p==='essencial'||p==='senyal'; }).length,
-    bruxola: clients.filter(function(c){ return c.pla === 'bruxola'; }).length,
-    rumb: clients.filter(function(c){ return c.pla === 'rumb'; }).length,
-    mapa: clients.filter(function(c){ var p = c.pla; return p==='mapa'||p==='family'; }).length
-  };
-  var mrr = stats.essencial*7 + stats.bruxola*29 + stats.rumb*59 + stats.mapa*99;
-  var arr = mrr * 12;
-
-  var html = '<div class="content-inner fade-in" style="max-width:1100px;margin:0 auto">';
-  
-  // Hero amb MRR
-  html += '<div style="background:var(--black);color:#fff;border-radius:14px;padding:28px 32px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px">'
-    + '<div>'
-    + '<div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Ingressos recurrents</div>'
-    + '<div style="font-family:var(--fm);font-size:36px;font-weight:500;line-height:1">' + mrr.toLocaleString('ca-ES') + '€<span style="font-size:14px;opacity:.5;margin-left:4px">/mes</span></div>'
-    + '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">ARR estimat: ' + arr.toLocaleString('ca-ES') + '€</div>'
-    + '</div>'
-    + '<div style="text-align:right">'
-    + '<div style="font-family:var(--fm);font-size:22px;color:#fff">' + stats.total + '</div>'
-    + '<div style="font-size:11px;color:rgba(255,255,255,.5)">clients actius</div>'
-    + '</div>'
-    + '</div>';
-  
-  // Distribució per pla
-  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">';
-  var ordre = ['essencial','bruxola','rumb','mapa'];
-  ordre.forEach(function(pid) {
-    var p = PLANS[pid];
-    var count = stats[pid] || 0;
-    var pct = stats.total > 0 ? Math.round(count/stats.total*100) : 0;
-    var revenue = count * p.preu;
-    html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px;border-top:3px solid ' + p.color + '">'
-      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">' + p.nom + '</div>'
-      + '<div style="font-family:var(--fm);font-size:24px;font-weight:500;color:' + p.color + '">' + count + '</div>'
-      + '<div style="font-size:11px;color:var(--g400);margin-top:2px">' + pct + '% · ' + revenue + '€/mes</div>'
-      + '</div>';
+  var stats = {total:clients.length,senyal:0,bruxola:0,nord:0,partner:0};
+  clients.forEach(function(c){
+    var p=getPla(c.pla);
+    if(p===PLANS.bruxola)stats.bruxola++;
+    else if(p===PLANS.nord)stats.nord++;
+    else if(p===PLANS.partner)stats.partner++;
+    else stats.senyal++;
   });
-  html += '</div>';
-  
-  // Taula de clients per pla
-  html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden">';
-  html += '<div style="padding:16px 20px;border-bottom:1px solid var(--g200);font-size:11px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em">Clients i plans actuals</div>';
-  html += '<table style="width:100%;border-collapse:collapse">';
-  html += '<thead><tr style="background:#F7F6F4"><th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:500">Client</th><th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:500">Email</th><th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:500">Pla</th><th style="text-align:right;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:500">MRR</th><th style="padding:10px 16px"></th></tr></thead>';
-  html += '<tbody>';
-  clients.forEach(function(c) {
-    var p = getPla(c.pla);
-    html += '<tr style="border-top:1px solid var(--g100)">'
-      + '<td style="padding:12px 16px;font-size:13px;font-weight:500">' + c.nom + '</td>'
-      + '<td style="padding:12px 16px;font-size:12px;color:var(--g500)">' + c.email + '</td>'
-      + '<td style="padding:12px 16px"><span style="display:inline-block;padding:4px 10px;background:' + p.bg + ';color:' + p.color + ';border-radius:6px;font-size:11px;font-weight:500">' + p.nom + '</span></td>'
-      + '<td style="padding:12px 16px;text-align:right;font-family:var(--fm);font-size:12px;color:var(--black)">' + p.preu + '€</td>'
-      + '<td style="padding:12px 16px;text-align:right"><button onclick="canviarPlaClient(\'' + c.email + '\')" style="padding:6px 12px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g500)">Canviar →</button></td>'
-      + '</tr>';
+  var mrr=stats.senyal*8+stats.bruxola*29+stats.nord*49;
+  var arr=mrr*12;
+  var html='<div class="content-inner fade-in" style="max-width:1100px;margin:0 auto">';
+  html+='<div style="background:var(--black);color:#fff;border-radius:14px;padding:28px 32px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px">'
+    +'<div><div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">MRR subscripcions fixes</div>'
+    +'<div style="font-family:var(--fm);font-size:36px;font-weight:500;line-height:1">'+mrr.toLocaleString('ca-ES')+'€<span style="font-size:14px;opacity:.5;margin-left:4px">/mes</span></div>'
+    +'<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px">ARR: '+arr.toLocaleString('ca-ES')+'€ + fees Partner per rendiment</div></div>'
+    +'<div style="text-align:right"><div style="font-family:var(--fm);font-size:22px;color:#fff">'+stats.total+'</div><div style="font-size:11px;color:rgba(255,255,255,.5)">clients totals</div></div>'
+  +'</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">';
+  ['senyal','bruxola','nord','partner'].forEach(function(pid){
+    var p=PLANS[pid];var count=stats[pid]||0;var pct=stats.total>0?Math.round(count/stats.total*100):0;
+    var feeStr=pid==='partner'?'2,5% benefici':(count*p.preu)+'€/mes';
+    html+='<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px;border-top:3px solid '+p.color+'">'
+      +'<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">'+p.nom+'</div>'
+      +'<div style="font-family:var(--fm);font-size:24px;font-weight:500;color:'+p.color+'">'+count+'</div>'
+      +'<div style="font-size:11px;color:var(--g400);margin-top:2px">'+pct+'% · '+feeStr+'</div>'
+    +'</div>';
   });
-  html += '</tbody></table></div>';
-  
-  // Info sobre mode beta
-  html += '<div style="margin-top:24px;padding:20px 22px;background:#EBF0FA;border-left:3px solid #1B3A6B;border-radius:8px">'
-    + '<div style="font-size:12px;font-weight:500;color:#1B3A6B;margin-bottom:6px">🚀 Mode beta — Assignació manual de plans</div>'
-    + '<div style="font-size:11px;color:#1B3A6B;line-height:1.6;margin-bottom:8px">Actualment la plataforma està en mode beta. Pots assignar qualsevol pla als teus clients de forma gratuïta per poder-los testar. Quan estiguis donat d\'alta com a autònom, activarem Stripe per a pagaments automàtics.</div>'
-    + '<div style="font-size:11px;color:#1B3A6B;line-height:1.6"><strong>Recomanació:</strong> Ofereix 3 mesos gratuïts als primers 5-10 clients beta. Després passaran a ser els teus primers clients de pagament amb descompte.</div>'
-    + '</div>';
-  
-  html += '</div>';
-  el.innerHTML = html;
+  html+='</div>';
+  html+='<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden">'
+    +'<div style="padding:16px 20px;border-bottom:1px solid var(--g200);font-size:11px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.08em">Clients i plans actuals</div>'
+    +'<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#F7F6F4">'
+      +'<th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;font-weight:500">Client</th>'
+      +'<th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;font-weight:500">Email</th>'
+      +'<th style="text-align:left;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;font-weight:500">Pla</th>'
+      +'<th style="text-align:right;padding:10px 16px;font-size:10px;color:var(--g400);text-transform:uppercase;font-weight:500">Fee</th>'
+      +'<th style="padding:10px 16px"></th>'
+    +'</tr></thead><tbody>';
+  clients.forEach(function(c){
+    var p=getPla(c.pla);
+    var pid=p===PLANS.partner?'partner':p===PLANS.nord?'nord':p===PLANS.bruxola?'bruxola':'senyal';
+    var feeLabel=pid==='partner'?'2,5% benefici':p.preu+'€';
+    html+='<tr style="border-top:1px solid var(--g100)">'
+      +'<td style="padding:12px 16px;font-size:13px;font-weight:500">'+(c.nom||'—')+'</td>'
+      +'<td style="padding:12px 16px;font-size:12px;color:var(--g500)">'+c.email+'</td>'
+      +'<td style="padding:12px 16px"><span style="display:inline-block;padding:4px 10px;background:'+p.bg+';color:'+p.color+';border-radius:6px;font-size:11px;font-weight:500">'+p.nom+'</span></td>'
+      +'<td style="padding:12px 16px;text-align:right;font-family:var(--fm);font-size:12px">'+feeLabel+'</td>'
+      +'<td style="padding:12px 8px;text-align:right;white-space:nowrap">'
+        +'<button onclick="canviarPlaClient(\'' + c.email + '\')" style="padding:5px 10px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g500);margin-right:4px">Canviar pla</button>'
+        +'<button onclick="confirmarEsborrarClientDirect(\'' + c.email + '\')" style="padding:5px 8px;background:transparent;border:1px solid #FCA5A5;border-radius:6px;font-size:11px;cursor:pointer;color:#DC2626">&#128465;</button>'
+      +'</td>'
+    +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  html+='<div style="margin-top:20px;padding:22px 24px;background:#FEF7E8;border-left:3px solid #8B6914;border-radius:8px">'
+    +'<div style="font-size:13px;font-weight:600;color:#8B6914;margin-bottom:6px">&#11088; Pla Partner — Patrimonis >100.000€</div>'
+    +'<div style="font-size:12px;color:#92400E;line-height:1.7">0€ fix mensual + <strong>2,5% del benefici net anual</strong>. Si el client no guanya, l’assessor tampoc cobra. Interessos 100% alineats.<br>Dedicació màxima: sessió quinzenal, seguiment diari, rebalanceig sota demanda, planificació fiscal completa.</div>'
+  +'</div>';
+  html+='<div style="margin-top:16px;padding:20px 22px;background:#EBF0FA;border-left:3px solid #1B3A6B;border-radius:8px">'
+    +'<div style="font-size:12px;font-weight:500;color:#1B3A6B;margin-bottom:6px">&#128640; Mode beta</div>'
+    +'<div style="font-size:11px;color:#1B3A6B;line-height:1.6">Quan estiguis donat d’alta com a autònom, activarem Stripe per a pagaments automàtics.</div>'
+  +'</div>';
+  html+='</div>';
+  el.innerHTML=html;
 }
+
 
 async function canviarPlaClient(email) {
   // Modal personalitzat en lloc d'un prompt feo
@@ -6978,13 +7196,14 @@ async function canviarPlaClient(email) {
     + '<div style="font-size:13px;color:#6B6762;margin-bottom:22px">Client: <strong>' + c.nom + '</strong> · ' + email + '</div>'
     + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px">';
   
-  ['essencial','bruxola','rumb','mapa'].forEach(function(pid) {
+  var currentPla = getPla(c.pla);
+  Object.keys(PLANS).forEach(function(pid) {
     var p = PLANS[pid];
-    var isCurrent = pid === current;
+    var isCurrent = PLANS[pid] === currentPla;
     html += '<label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:' + (isCurrent ? p.bg : '#fff') + ';border:' + (isCurrent ? '2px solid '+p.color : '1.5px solid #E8E6E1') + ';border-radius:10px;cursor:pointer;transition:all .15s">'
       + '<input type="radio" name="new-pla" value="' + pid + '" ' + (isCurrent ? 'checked' : '') + ' style="margin:0;cursor:pointer">'
       + '<div style="flex:1">'
-      + '<div style="font-size:13px;font-weight:500;color:' + p.color + '">' + p.nom + ' · ' + p.preu + '€/mes</div>'
+      + '<div style="font-size:13px;font-weight:500;color:' + p.color + '">' + p.nom + ' · ' + (pid==='partner'?'0€ + 2,5% benefici':p.preu+'€/mes') + '</div>'
       + '<div style="font-size:11px;color:#6B6762;margin-top:2px">' + p.descripcio + '</div>'
       + '</div>'
       + (isCurrent ? '<span style="font-size:10px;color:' + p.color + ';font-weight:500;text-transform:uppercase">Actual</span>' : '')
@@ -7006,6 +7225,54 @@ async function canviarPlaClient(email) {
 function tancarModalPla() {
   var m = document.getElementById('tbi-modal-plans');
   if (m) m.remove();
+}
+
+function confirmarEsborrarClientDirect(email, nom) {
+  if (!email) return;
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:420px;width:100%;padding:28px 32px';
+  var t1 = document.createElement('div');
+  t1.style.cssText = 'font-size:18px;font-weight:500;margin-bottom:8px';
+  t1.textContent = 'Esborrar client';
+  var t2 = document.createElement('div');
+  t2.style.cssText = 'font-size:14px;font-weight:500;margin-bottom:6px';
+  t2.textContent = nom || email;
+  var t3 = document.createElement('div');
+  t3.style.cssText = 'font-size:12px;color:#6B6762;line-height:1.6;margin-bottom:22px';
+  t3.innerHTML = 'Esborrarà la fila de la taula <strong>clients</strong>. <strong>Acció irreversible.</strong><br>L’usuari d’Auth de Supabase cal esborrar-lo manualment des del panell Supabase.';
+  var btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:10px;justify-content:flex-end';
+  var bc = document.createElement('button');
+  bc.style.cssText = 'padding:10px 18px;background:transparent;border:1.5px solid #E8E6E1;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:#6B6762';
+  bc.textContent = 'Cancel·lar';
+  bc.onclick = function() { modal.remove(); };
+  var bd = document.createElement('button');
+  bd.style.cssText = 'padding:10px 18px;background:#DC2626;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)';
+  bd.textContent = 'Esborrar definitivament';
+  bd.onclick = function() { esborrarClientDirect(email, modal); };
+  btns.appendChild(bc); btns.appendChild(bd);
+  inner.appendChild(t1); inner.appendChild(t2); inner.appendChild(t3); inner.appendChild(btns);
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if (e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+async function esborrarClientDirect(email, modalEl) {
+  if (!email || !sb) return;
+  try {
+    var res = await sb.from('clients').delete().eq('email', email.toLowerCase());
+    if (res.error) throw res.error;
+    if (modalEl) modalEl.remove();
+    if (APP.clientsList) APP.clientsList = APP.clientsList.filter(function(c){ return c.email !== email; });
+    toast('✓ Client esborrat: ' + email);
+    setTimeout(function(){
+      var content = document.getElementById('content');
+      if (content && APP.view) renderView(APP.view, content);
+      try { actualitzarBadgePendents(); } catch(e){}
+    }, 300);
+  } catch(e) { toast('Error: ' + (e.message||e)); }
 }
 
 async function confirmarCanviPla(email) {
@@ -7576,26 +7843,21 @@ handleCheckoutReturn();
 handlePasswordReset();
 handleQuestionnaireReturn();
 
-// ── LISTENER GLOBAL AUTH: gestiona magic links i sessions actives ──
-// Quan Supabase detecta SIGNED_IN (magic link, confirmació email, etc.)
-// i el login screen és visible, entrem a l'app automàticament.
 if (sb) {
   sb.auth.onAuthStateChange(function(event, session) {
     if (event === 'SIGNED_IN' && session && session.user) {
-      var loginVisible = !document.getElementById('login-screen').classList.contains('hidden');
-      if (loginVisible) {
+      var loginEl = document.getElementById('login-screen');
+      if (loginEl && !loginEl.classList.contains('hidden')) {
         var email = session.user.email.toLowerCase();
         var role  = ADMIN_EMAILS.indexOf(email) >= 0 ? 'admin' : 'client';
-        // Netejar hash de la URL (el token no ha d'aparèixer a la barra)
         if (window.location.hash && window.location.hash.indexOf('access_token') >= 0) {
           history.replaceState({}, '', window.location.pathname);
         }
-        enterApp(role, email);
+        enterApp(role, email, false);
       }
     }
   });
 }
-
 // Injectar versió als badges
 (function() {
   var els = ['login-version-badge', 'sidebar-version-badge'];
@@ -7623,215 +7885,6 @@ var DIAG_CATS = [
   {v:'Negoci o projecte propi',icon:'\uD83D\uDE80'},
   {v:'Altre objectiu',icon:'\u2B50'}
 ];
-
-// ══════════════════════════════════════════════════
-// VIEW: GENERADOR D'INFORMES (Admin)
-// ══════════════════════════════════════════════════
-var INF = {
-  scores: [5,5,5,5,5,5,5],
-  nota: '',
-  sessioData: '',
-  sessioOrdre: '',
-  titol: '',
-  tipus: 'perfil',
-  fases: [
-    {titol:'Constituci\u00f3 del perfil', estat:'fet', fites:['Q\u00fcestionari inversor completat','Arquetip i cartera target definits']},
-    {titol:'Implementaci\u00f3 inicial', estat:'actiu', fites:['Obrir compte broker','Primera aportaci\u00f3 real','Configurar aportaci\u00f3 autom\u00e0tica']},
-    {titol:'Seguiment trimestral', estat:'pendent', fites:['Revisi\u00f3 desviacions vs target','Rebalanceig si difer\u00e8ncia >5%']},
-    {titol:'Optimitzaci\u00f3 fiscal', estat:'pendent', fites:['Revisi\u00f3 fiscalitat de productes','Planificaci\u00f3 plusv\u00e0lies latents']},
-    {titol:'Consolidaci\u00f3 anual', estat:'pendent', fites:['Informe anual complet','Revisi\u00f3 objectius FIRE / retir']}
-  ]
-};
-
-function renderAdminInforme(el) {
-  var c = getClient();
-  var arq = getArquetip((c && c.arquetipId) || 'navegant');
-  if (c && c.roadmap && c.roadmap.fases && c.roadmap.fases.length) {
-    INF.fases = c.roadmap.fases.map(function(f){
-      return {titol:f.titol||'', estat:f.estat||'pendent', fites:(f.fites||[]).map(function(ft){return typeof ft==='string'?ft:(ft.titol||'');})};
-    });
-  }
-  if (!INF.titol) INF.titol = 'Informe Inicial \u2014 ' + new Date().toLocaleDateString('ca-ES',{month:'long',year:'numeric'});
-  el.innerHTML = '<div class="inf-shell">' + infPanelHTML(c, arq) + '<div class="inf-preview-wrap" id="inf-preview-wrap">' + infPDFHTML(c, arq) + '</div></div>';
-  SCORING_MODS.forEach(function(m, i) {
-    var sl = document.getElementById('inf-sl-' + i);
-    if (sl) sl.value = INF.scores[i];
-    var sv = document.getElementById('inf-sv-' + i);
-    if (sv) sv.textContent = INF.scores[i] + '/10';
-  });
-}
-
-function infPanelHTML(c, arq) {
-  var avui = new Date().toISOString().split('T')[0];
-  var h = '<div class="inf-panel"><div class="inf-panel-hdr">'
-    + '<div class="inf-panel-title">Generador d\u2019Informe</div>'
-    + '<div class="inf-panel-sub">' + escInf((c&&(c.nom||c.name))||'Cap client seleccionat') + ' \u00b7 ' + arq.cartera + '</div>'
-    + '</div><div class="inf-panel-body">';
-  h += '<div class="inf-ps"><div class="inf-ps-title">\ud83d\udcc4 Informe</div>'
-    + '<label class="inf-lbl">T\u00edtol</label><input class="inf-input" id="inf-titol" value="' + escInf(INF.titol||'Informe Inicial') + '" oninput="INF.titol=this.value;infUpdate()">'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="inf-lbl">Data</label><input class="inf-input" id="inf-data" type="date" value="' + avui + '" oninput="infUpdate()"></div>'
-    + '<div><label class="inf-lbl">Tipus</label><select class="inf-select" id="inf-tipus" onchange="INF.tipus=this.value;infUpdate()"><option value="perfil">Perfil inicial</option><option value="trimestral">Trimestral</option><option value="pla">Pla financer</option></select></div></div></div>';
-  h += '<div class="inf-ps"><div class="inf-ps-title">\ud83d\udcca Scoring</div>';
-  SCORING_MODS.forEach(function(m,i){
-    h += '<div class="inf-score-mod"><div style="font-size:10px;color:var(--g500);margin-bottom:2px">'+m.label+' <span style="color:var(--g300)">('+m.pes+'%)</span></div>'
-      +'<div class="inf-score-row"><input type="range" class="inf-slider" id="inf-sl-'+i+'" min="1" max="10" value="'+INF.scores[i]+'" oninput="infOnScore('+i+',this.value)">'
-      +'<span class="inf-score-val" id="inf-sv-'+i+'">'+INF.scores[i]+'/10</span></div></div>';
-  });
-  h += '</div>';
-  h += '<div class="inf-ps"><div class="inf-ps-title">\ud83d\uddfa\ufe0f Pla de Ruta</div><div id="inf-fases-edit">'+infFasesEditHTML()+'</div></div>';
-  h += '<div class="inf-ps"><div class="inf-ps-title">\u270d\ufe0f Nota assessor</div>'
-    + '<textarea class="inf-textarea" id="inf-nota" rows="4" placeholder="Observacions personalitzades..." oninput="INF.nota=this.value;infUpdate()">'+escInf(INF.nota)+'</textarea></div>';
-  h += '<div class="inf-ps"><div class="inf-ps-title">\ud83d\udcc5 Propera sessi\u00f3</div>'
-    + '<label class="inf-lbl">Data</label><input class="inf-input" id="inf-sessio-data" type="date" value="'+(INF.sessioData||'')+'" oninput="INF.sessioData=this.value;infUpdate()">'
-    + '<label class="inf-lbl">Ordre del dia</label><textarea class="inf-textarea" id="inf-sessio-ordre" rows="3" placeholder="Revisi\u00f3 cartera inicial\nConfiguraci\u00f3 aportaci\u00f3 mensual" oninput="INF.sessioOrdre=this.value;infUpdate()">'+escInf(INF.sessioOrdre)+'</textarea></div>';
-  h += '</div><div class="inf-panel-actions">'
-    + '<button class="inf-btn-pub" onclick="publicarInforme()">\ud83d\udce4 Publicar al portal del client</button>'
-    + '<button class="inf-btn-sec" onclick="window.print()">\ud83d\uddb6 Imprimir / PDF</button>'
-    + '</div></div>';
-  return h;
-}
-
-function infFasesEditHTML() {
-  var h = '';
-  INF.fases.forEach(function(f,fi){
-    h += '<div class="inf-fase"><div class="inf-fase-hdr">'
-      + '<span class="inf-fase-num">0'+(fi+1)+'</span>'
-      + '<input class="inf-fase-titol" value="'+escInf(f.titol)+'" oninput="INF.fases['+fi+'].titol=this.value;infUpdate()">'
-      + '<select class="inf-estat-sel '+f.estat+'" onchange="infOnFaseEstat('+fi+',this.value)">'
-        + '<option value="pendent"'+(f.estat==='pendent'?' selected':'')+'>Pendent</option>'
-        + '<option value="actiu"'+(f.estat==='actiu'?' selected':'')+'>Actiu</option>'
-        + '<option value="fet"'+(f.estat==='fet'?' selected':'')+'>Fet</option>'
-      + '</select></div><div id="inf-fites-'+fi+'">';
-    f.fites.forEach(function(fita,fii){
-      h += '<div class="inf-fita-row"><input class="inf-fita-input" value="'+escInf(fita)+'" oninput="INF.fases['+fi+'].fites['+fii+']=this.value;infUpdate()" placeholder="Fita...">'
-        + '<button class="inf-fita-del" onclick="infDelFita('+fi+','+fii+')">\u00d7</button></div>';
-    });
-    h += '</div><button class="inf-add-fita" onclick="infAddFita('+fi+')">+ Afegir fita</button></div>';
-  });
-  return h;
-}
-
-function infOnScore(idx, val) {
-  INF.scores[idx] = parseInt(val);
-  var sv = document.getElementById('inf-sv-' + idx);
-  if (sv) sv.textContent = val + '/10';
-  infUpdate();
-}
-function infOnFaseEstat(fi, v) {
-  INF.fases[fi].estat = v;
-  document.getElementById('inf-fases-edit').innerHTML = infFasesEditHTML();
-  infUpdate();
-}
-function infAddFita(fi) { INF.fases[fi].fites.push(''); document.getElementById('inf-fases-edit').innerHTML = infFasesEditHTML(); infUpdate(); }
-function infDelFita(fi, fii) { INF.fases[fi].fites.splice(fii,1); document.getElementById('inf-fases-edit').innerHTML = infFasesEditHTML(); infUpdate(); }
-
-function infCalcScore() {
-  var t = 0;
-  SCORING_MODS.forEach(function(m,i){ t += (INF.scores[i]/10)*m.pes; });
-  return Math.round(t);
-}
-
-function infUpdate() {
-  var w = document.getElementById('inf-preview-wrap');
-  if (!w) return;
-  var c = getClient();
-  var arq = getArquetip((c&&c.arquetipId)||'navegant');
-  w.innerHTML = infPDFHTML(c, arq);
-}
-
-function infPDFHTML(c, arq) {
-  var nom = (c&&(c.nom||c.name))||'\u2014';
-  var email = (c&&c.email)||'';
-  var di = document.getElementById('inf-data');
-  var dataInf = di ? di.value : new Date().toISOString().split('T')[0];
-  var dataFmt = infFmtData(dataInf);
-  var score = infCalcScore();
-  var titol = (document.getElementById('inf-titol')||{}).value || INF.titol;
-  var nota  = (document.getElementById('inf-nota')||{}).value || '';
-  var sdata = (document.getElementById('inf-sessio-data')||{}).value || '';
-  var sordre= (document.getElementById('inf-sessio-ordre')||{}).value || '';
-  var sv = score>=75?{v:'Excel\u00b7lent',s:'La base financera \u00e9s s\u00f2lida.'}
-          :score>=55?{v:'Bona base',s:'Fonaments clars amb algunes \u00e0rees a millorar.'}
-          :score>=35?{v:'Millorable',s:'Punts cr\u00edtics identificats. Pla d\u2019acci\u00f3 immediat.'}
-          :{v:'Feble',s:'Reorientaci\u00f3 completa necess\u00e0ria.'};
-  var h = '<div class="inf-pdf"><div class="inf-pdf-cover">'
-    + '<div class="inf-pdf-eyebrow">The Boring Investor \u00b7 Assessoria Financera Independent</div>'
-    + '<div class="inf-pdf-nom">'+escInf(nom)+'</div>'
-    + '<div class="inf-pdf-email">'+escInf(email)+'</div>'
-    + '<div class="inf-pdf-tags"><span class="inf-pdf-tag arq">'+arq.nom+' \u00b7 '+arq.cartera+'</span><span class="inf-pdf-tag">'+arq.risc+'</span>'+(c&&c.pla?'<span class="inf-pdf-tag">'+c.pla+'</span>':'')+' <span class="inf-pdf-tag">'+escInf(titol)+'</span></div>'
-    + '<div class="inf-pdf-footer-row"><div class="inf-pdf-assessor">Guillem Puig \u00b7 '+dataFmt+'</div><div><div class="inf-pdf-score-num">'+score+'<span class="inf-pdf-score-denom">/100</span></div><div class="inf-pdf-score-lbl">Scoring</div></div></div>'
-    + '</div><div class="inf-pdf-body">';
-  // Perfil
-  h += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">1 \u00b7 Perfil Inversor</div><div class="inf-pdf-2col">'
-    + '<div class="inf-arq-card"><div class="inf-arq-ep">'+arq.ep+'</div><div class="inf-arq-nom">'+arq.nom+'</div><div class="inf-arq-cartera">'+arq.cartera+'</div><div class="inf-arq-rationale">'+arq.rationale+'</div>'
-    + '<div class="inf-dims-grid">'+arq.dims.map(function(d,i){return '<div class="inf-dim"><div class="inf-dim-val">'+d+'</div><div class="inf-dim-lbl">'+['Obj.','Sit.','Hor.','Con.','R.F.','R.E.','Pref.'][i]+'</div></div>';}).join('')+'</div></div>'
-    + '<div><div style="font-size:9px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Cartera recomanada</div>'
-    + arq.actius.map(function(a){var bw=Math.min(100,Math.round(a.pct*1.4));return '<div class="inf-alloc-row"><div class="inf-alloc-dot" style="background:'+a.color+'"></div><div class="inf-alloc-nom">'+a.nom+'</div><div class="inf-alloc-bar-wrap"><div class="inf-alloc-bar" style="width:'+bw+'%;background:'+a.color+'"></div></div><div class="inf-alloc-pct" style="color:'+a.color+'">'+a.pct+'%</div></div>';}).join('')
-    + '<div style="margin-top:8px;font-size:9px;color:var(--g400)">TER: <strong>'+arq.ter+'</strong> \u00b7 Retorn: <strong>'+arq.retorn+'</strong></div>'
-    + '<div style="margin-top:8px;padding:8px 10px;background:var(--g50);border-radius:7px;font-size:10px;color:var(--g600);">\u26a0\ufe0f '+arq.diff+'</div></div></div></div>';
-  // Diagnòstic
-  var sorted = SCORING_MODS.map(function(m,i){return {m:m,s:INF.scores[i]};}).sort(function(a,b){return a.s-b.s;});
-  h += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">2 \u00b7 Diagn\u00f2stic Financer</div>'
-    + '<div class="inf-score-card"><div><div class="inf-score-big">'+score+'</div><div style="font-family:var(--fm);font-size:10px;color:var(--g400)">/100 punts</div></div><div><div class="inf-score-verdict">'+score+'/100 \u2014 '+sv.v+'</div><div class="inf-score-sub">'+sv.s+'</div></div></div>'
-    + '<div class="inf-pdf-2col"><div>'+SCORING_MODS.map(function(m,i){var s=INF.scores[i];var col=s>=7?'var(--green)':s>=5?'var(--accent)':s>=3?'var(--amber)':'var(--red)';return '<div class="inf-mod-row"><div class="inf-mod-lbl">'+m.label+'</div><div style="font-size:8px;color:var(--g400)">'+m.pes+'%</div><div class="inf-mod-bar-wrap"><div class="inf-mod-bar" style="width:'+(s*10)+'%;background:'+col+'"></div></div><div class="inf-mod-val" style="color:'+col+'">'+s+'/10</div></div>';}).join('')+'</div>'
-    + '<div><div style="font-size:9px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Top 3 accions</div>'
-    + sorted.slice(0,3).map(function(x,idx){var bgs=['#FDF0F0','#FEF5E7','#EBF0FA'];var cols=['#C0392B','#D4700A','#1B3A6B'];var di=x.s<=3?0:x.s<=6?1:2;return '<div class="inf-accio" style="background:'+bgs[idx]+'"><div class="inf-accio-num" style="background:'+cols[idx]+'">'+(idx+1)+'</div><div><div class="inf-accio-title" style="color:'+cols[idx]+'">'+x.m.label+' \u2014 '+x.s+'/10</div><div class="inf-accio-desc">'+x.m.desc[di]+'</div></div></div>';}).join('')
-    + '</div></div></div>';
-  // Pla de Ruta
-  var fetes=INF.fases.filter(function(f){return f.estat==='fet';}).length;
-  var pct=Math.round(fetes/INF.fases.length*100);
-  h += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">3 \u00b7 Pla de Ruta</div>'
-    + '<div class="inf-road-progress"><div class="inf-road-bar-wrap"><div class="inf-road-bar" style="width:'+pct+'%"></div></div><div class="inf-road-pct">'+fetes+' de '+INF.fases.length+' fases</div></div>'
-    + INF.fases.map(function(f){var cl=f.estat==='fet'?'fet':f.estat==='actiu'?'actiu':'pendent';var bl=f.estat==='fet'?'\u2713 Completat':f.estat==='actiu'?'\u25cf En curs':'Pendent';return '<div class="inf-fase-pdf '+cl+'"><div class="inf-fase-dot"></div><div style="display:flex;align-items:center;gap:7px;margin-bottom:3px"><div class="inf-fase-titol-pdf">'+escInf(f.titol)+'</div><span class="inf-fase-badge '+cl+'">'+bl+'</span></div>'+f.fites.filter(function(ft){return ft.trim();}).map(function(ft){return '<div class="inf-fita-pdf"><div class="inf-fita-pdf-dot"></div><div class="inf-fita-pdf-text">'+escInf(ft)+'</div></div>';}).join('')+'</div>';}).join('')
-    + '</div>';
-  if (nota) h += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">4 \u00b7 Nota de l\u2019assessor</div><div class="inf-nota">'+escInf(nota)+'</div></div>';
-  if (sdata) h += '<div class="inf-pdf-section"><div class="inf-pdf-sec-title">5 \u00b7 Propera sessi\u00f3</div><div class="inf-sessio"><div><div style="font-size:8px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Data confirmada</div><div class="inf-sessio-data">'+infFmtData(sdata)+'</div>'+(sordre?'<div class="inf-sessio-ordre">'+escInf(sordre)+'</div>':'')+'</div><div style="text-align:right"><div class="inf-sessio-assessor">Guillem Puig</div><div class="inf-sessio-assessor-sub">EFA Candidate \u00b7 TBI</div></div></div></div>';
-  h += '<div class="inf-pdf-footer"><div class="inf-pdf-footer-l">The Boring Investor \u00b7 guillem@theboringinvestor.com</div><div class="inf-pdf-footer-r">No constitueix assessorament MiFID II. \u00b7 '+dataFmt+'</div></div>';
-  h += '</div></div>';
-  return h;
-}
-
-function infFmtData(ds) {
-  if (!ds) return '\u2014';
-  var d = new Date(ds + 'T12:00:00');
-  return d.toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
-}
-
-function escInf(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-async function publicarInforme() {
-  var c = getClient();
-  if (!c||!c.email) { toast('\u274c Selecciona un client per publicar'); return; }
-  var di=document.getElementById('inf-data'), ti=document.getElementById('inf-titol'), ni=document.getElementById('inf-nota');
-  var sti=document.getElementById('inf-sessio-data'), soi=document.getElementById('inf-sessio-ordre'), tpi=document.getElementById('inf-tipus');
-  var nouInf = {
-    id:'inf_'+Date.now(),
-    data: di?di.value:new Date().toISOString().split('T')[0],
-    titol: ti?ti.value.trim():'Informe',
-    tipus: tpi?tpi.value:'perfil',
-    estat:'publicat',
-    scores: INF.scores.slice(),
-    nota: ni?ni.value.trim():'',
-    sessioData: sti?sti.value:'',
-    sessioOrdre: soi?soi.value.trim():'',
-    fases: JSON.parse(JSON.stringify(INF.fases)),
-    arquetipId: c.arquetipId||'navegant',
-    publicatAt: new Date().toISOString()
-  };
-  var informes = ((c.informes)||[]).slice();
-  informes.unshift(nouInf);
-  var road = getRoadmap();
-  road.fases = INF.fases.map(function(f,i){return {id:'f'+(i+1),titol:f.titol,desc:'',estat:f.estat,icon:f.estat==='fet'?'\u2705':f.estat==='actiu'?'\ud83d\udd35':'\u2b1c',fites:[]};});
-  try {
-    if (sb&&!APP.isDemo) {
-      await sb.from('clients').update({informes:informes,roadmap:road}).eq('email',c.email.toLowerCase());
-    }
-    if (APP.clientData) { APP.clientData.informes=informes; APP.clientData.roadmap=road; }
-    toast('\u2713 Informe publicat al portal de '+(c.nom||c.name));
-  } catch(e) { toast('\u26a0\ufe0f Error: '+(e.message||e)); }
-}
 
 function renderAdminDiagnostic(el) {
   var client = getClient();
