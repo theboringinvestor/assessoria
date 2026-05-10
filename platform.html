@@ -4099,7 +4099,7 @@ function obrirModalRegistrarMes() {
     + '<div style="font-size:11px;color:var(--g400);padding:10px 12px;background:var(--g50);border-radius:8px">La cartera target és <strong>'+arq.cartNom+'</strong>. Distribueix l’import proporcionalment als pesos target si no tens import per actiu.</div>'
     + '</div>'
     + '<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
-    + '<button onclick="document.getElementById('modal-registrar-mes').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
+    + '<button onclick="document.getElementById(\'modal-registrar-mes\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
     + '<button onclick="registrarAportacioMes()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Registrar →</button>'
     + '</div>';
   modal.appendChild(inner);
@@ -4137,8 +4137,8 @@ function obrirEditarTargetAdmin(email) {
     html += '</div>';
     html += '<div style="margin-top:10px;padding:10px 12px;background:'+(Math.abs(totalPct-100)<1?'#EAF3DE':'#FEF5E7')+';border-radius:8px;font-size:12px;font-weight:500;color:'+(Math.abs(totalPct-100)<1?'#1A5C3A':'#7A4A00')+'" id="et-total">Total: '+totalPct.toFixed(0)+'% '+(Math.abs(totalPct-100)<1?'✓ OK':'⚠️ Ha de sumar 100%')+'</div>';
     html += '<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
-      + '<button onclick="document.getElementById('modal-edit-target').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
-      + '<button onclick="guardarTargetAdmin(''+email+'')" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar target →</button>'
+      + '<button onclick="document.getElementById(\'modal-edit-target\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
+      + '<button onclick="guardarTargetAdmin()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar target →</button>'
     + '</div>';
     return html;
   }
