@@ -3663,6 +3663,18 @@ function renderCarteraDonut(actius, opts) {
 }
 
 function renderPortalPerfil(el) {
+  try {
+    _renderPortalPerfilImpl(el);
+  } catch(e) {
+    el.innerHTML = '<div class="content-inner"><div style="padding:24px;background:#FDF0F0;border-radius:12px;border-left:4px solid #C0392B;margin:20px">'
+      + '<div style="font-size:13px;font-weight:600;color:#8B1A1A;margin-bottom:8px">⚠️ Error a renderPortalPerfil</div>'
+      + '<div style="font-family:monospace;font-size:12px;color:#C0392B;word-break:break-all">' + (e && e.message ? e.message : String(e)) + '</div>'
+      + '<div style="font-size:10px;color:var(--g400);margin-top:8px">Stack: ' + (e && e.stack ? e.stack.split('\n').slice(0,4).join(' | ') : 'N/A') + '</div>'
+    + '</div></div>';
+  }
+}
+
+function _renderPortalPerfilImpl(el) {
   var c = getClient();
   if (!c) {
     el.innerHTML = '<div class="content-inner"><div style="padding:60px;text-align:center;color:var(--g400);font-size:13px">Carregant el teu perfil...</div></div>';
@@ -3711,7 +3723,10 @@ function renderPortalPerfil(el) {
   // però l'admin encara no li ha generat la cartera), tot això són zeros
   // i s'amaga la fila d'snapshot.
   // ── Sistema v2: usem els KPIs calculats des de posicions + moviments_posicions
-  var kpis_v2 = calcKPIsCartera();
+  // Crida defensiva per si calcKPIsCartera no és accessible (versió parcial del fitxer)
+  var kpis_v2 = (typeof calcKPIsCartera === 'function')
+    ? calcKPIsCartera()
+    : {valor_total:0,cost_total:0,pnl_eur:0,pnl_pct:0,cagr:0,anys_actiu:0,num_posicions:0,num_moviments:0,data_inici:null};
   var totalValor = kpis_v2.valor_total;
   var totalAportat = kpis_v2.cost_total;
   var rendEur = kpis_v2.pnl_eur;
