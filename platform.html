@@ -2769,6 +2769,12 @@ function normalizeClient(raw) {
     fire: raw.fire || null,
     roadmap: raw.roadmap || null,
     savings_plan: raw.savings_plan || null,
+    // ── Sistema de cartera v2 (F1) ──
+    // posicions: llista de posicions individuals amb {id,cat,nom,isin,broker,valor_actual,valor_data,nota}
+    // moviments_posicions: llista de transaccions {id,posicio_id,data,tipus,import,unitats,preu_unitat,nota}
+    // tipus pot ser: 'compra', 'venda', 'dividend', 'comissio'
+    posicions: Array.isArray(raw.posicions) ? raw.posicions : [],
+    moviments_posicions: Array.isArray(raw.moviments_posicions) ? raw.moviments_posicions : [],
   };
 }
 
@@ -2848,6 +2854,238 @@ function getFire() {
   if (!c) return APP.isDemo ? DEMO_FIRE : null;
   return c.fire || (APP.isDemo ? DEMO_FIRE : null);
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// SISTEMA DE CARTERA v2 (F1)
+// Model: posicions + moviments_posicions (separats)
+// Filosofia: el cost base i les unitats acumulades es CALCULEN dels moviments
+//            (no s'introdueixen manualment). El valor actual és l'únic camp manual.
+// ════════════════════════════════════════════════════════════════════════════
+
+function getPosicionsV2() {
+  var c = getClient();
+  if (!c) return [];
+  return Array.isArray(c.posicions) ? c.posicions : [];
+}
+
+function getMovimentsV2() {
+  var c = getClient();
+  if (!c) return [];
+  return Array.isArray(c.moviments_posicions) ? c.moviments_posicions : [];
+}
+
+// Genera un id local nou (per posicions i moviments)
+function novaIdLocal(prefix) {
+  return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+}
+
+// Calcula per cada posicio els seus agregats a partir dels moviments
+// Retorna [{...posicio, cost_base, unitats_total, dividends_total, comissions_total, pnl_eur, pnl_pct}]
+function calcPosicionsAmbAgregats() {
+  var posicions = getPosicionsV2();
+  var moviments = getMovimentsV2();
+  return posicions.map(function(p) {
+    var movs = moviments.filter(function(m){ return m.posicio_id === p.id; });
+    var cost_base = 0;       // compres - vendes (€ net invertit)
+    var unitats = 0;
+    var dividends = 0;
+    var comissions = 0;
+    movs.forEach(function(m){
+      var imp = parseFloat(m.import) || 0;
+      var u = parseFloat(m.unitats) || 0;
+      if (m.tipus === 'compra')   { cost_base += imp; unitats += u; }
+      if (m.tipus === 'venda')    { cost_base -= imp; unitats -= u; }
+      if (m.tipus === 'dividend') { dividends += imp; }
+      if (m.tipus === 'comissio') { comissions += imp; }
+    });
+    var valor = parseFloat(p.valor_actual) || 0;
+    var pnl_eur = valor - cost_base;
+    var pnl_pct = cost_base > 0 ? (pnl_eur / cost_base * 100) : 0;
+    return Object.assign({}, p, {
+      cost_base: cost_base,
+      unitats_total: unitats,
+      dividends_total: dividends,
+      comissions_total: comissions,
+      pnl_eur: pnl_eur,
+      pnl_pct: pnl_pct,
+      num_moviments: movs.length
+    });
+  });
+}
+
+// KPIs globals de cartera
+function calcKPIsCartera() {
+  var posAgg = calcPosicionsAmbAgregats();
+  var moviments = getMovimentsV2();
+  var valor_total = 0, cost_total = 0, dividends_total = 0, comissions_total = 0;
+  posAgg.forEach(function(p){
+    valor_total += (parseFloat(p.valor_actual) || 0);
+    cost_total += p.cost_base;
+    dividends_total += p.dividends_total;
+    comissions_total += p.comissions_total;
+  });
+  var pnl_eur = valor_total - cost_total;
+  var pnl_pct = cost_total > 0 ? (pnl_eur / cost_total * 100) : 0;
+
+  // CAGR/TWR aproximat basat en la data del primer moviment de compra
+  var dataInici = null;
+  moviments.forEach(function(m){
+    if (m.tipus === 'compra' && m.data && (!dataInici || m.data < dataInici)) {
+      dataInici = m.data;
+    }
+  });
+  var anys = 0;
+  if (dataInici) {
+    var avui = new Date();
+    var d0 = new Date(dataInici);
+    anys = Math.max(0.083, (avui - d0) / (1000*60*60*24*365.25)); // mínim 1 mes
+  }
+  var cagr = (anys > 0 && cost_total > 0) ? (Math.pow(valor_total/cost_total, 1/anys) - 1) * 100 : 0;
+
+  return {
+    valor_total: valor_total,
+    cost_total: cost_total,
+    pnl_eur: pnl_eur,
+    pnl_pct: pnl_pct,
+    dividends_total: dividends_total,
+    comissions_total: comissions_total,
+    cagr: cagr,
+    anys_actiu: anys,
+    num_posicions: posAgg.length,
+    num_moviments: moviments.length,
+    data_inici: dataInici
+  };
+}
+
+// Sèrie d'evolució temporal de la cartera (per al gràfic)
+// Retorna [{data, invertit_acum, valor_estimat}] ordenat cronològicament
+// Nota: el valor_estimat entre snapshots és el cost_acum + plusvalua interpolada al final
+function calcEvolucioCartera() {
+  var moviments = getMovimentsV2().slice().sort(function(a,b){
+    return (a.data || '').localeCompare(b.data || '');
+  });
+  if (moviments.length === 0) return [];
+  var serie = [];
+  var cum = 0;
+  moviments.forEach(function(m){
+    var imp = parseFloat(m.import) || 0;
+    if (m.tipus === 'compra')   cum += imp;
+    if (m.tipus === 'venda')    cum -= imp;
+    // dividends i comissions no afecten el cost base
+    serie.push({ data: m.data, invertit_acum: cum, tipus: m.tipus });
+  });
+  // Afegir punt final amb el valor actual real
+  var kpis = calcKPIsCartera();
+  var avui = new Date().toISOString().slice(0,10);
+  serie.push({ data: avui, invertit_acum: kpis.cost_total, valor_actual: kpis.valor_total, tipus: 'snapshot' });
+  return serie;
+}
+
+// Distribució real per categoria (amb noms i colors de la taxonomia)
+function calcDistribucioReal() {
+  var posAgg = calcPosicionsAmbAgregats();
+  var perCat = {};
+  posAgg.forEach(function(p){
+    var v = parseFloat(p.valor_actual) || 0;
+    if (!perCat[p.cat]) perCat[p.cat] = 0;
+    perCat[p.cat] += v;
+  });
+  var total = Object.values(perCat).reduce(function(s,v){return s+v;}, 0);
+  return Object.keys(perCat).map(function(catId){
+    var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === catId; });
+    return {
+      id: catId,
+      nom: taxon ? taxon.ca : catId,
+      emoji: taxon ? taxon.emoji : '•',
+      color: taxon ? taxon.color : '#888',
+      valor: perCat[catId],
+      pct: total > 0 ? (perCat[catId] / total * 100) : 0
+    };
+  }).sort(function(a,b){ return b.valor - a.valor; });
+}
+
+// Càlcul de gaps (matching real vs target) i recomanació d'aportació
+// Algoritme: top 2 categories més infraponderades, repartiment proporcional al gap
+function calcMatchingITactic(aportacio) {
+  var c = getClient();
+  if (!c) return null;
+  var arq = getArquetip(c.arquetipId || 'navegant');
+  // Cartera target: pot ser custom de l'admin o la de l'arquetip
+  var target = (c.cartera_target_custom && c.cartera_target_custom.length > 0)
+    ? c.cartera_target_custom
+    : (arq.actius || []);
+  if (!target || target.length === 0) return null;
+
+  var real = calcDistribucioReal();
+  var valor_actual = real.reduce(function(s,r){return s+r.valor;}, 0);
+  var aport = parseFloat(aportacio) || 0;
+  var valor_post = valor_actual + aport;
+
+  // Construir mapa cat → {target_pct, target_eur, real_eur, real_pct, gap_eur}
+  // El cat del target pot venir per 'id' o per 'nom' (taxonomia)
+  var rows = target.map(function(t){
+    // Resoldre id de categoria
+    var catId = t.id || (function(){
+      var found = ACTIUS_TAXONOMY.find(function(a){ return a.ca === t.nom || a.id === t.nom; });
+      return found ? found.id : t.nom;
+    })();
+    var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === catId; });
+    var realRow = real.find(function(r){ return r.id === catId; });
+    var target_pct = parseFloat(t.pct) || 0;
+    var target_eur = target_pct / 100 * valor_post;
+    var real_eur = realRow ? realRow.valor : 0;
+    var gap_eur = target_eur - real_eur; // positiu = infraponderat
+    return {
+      id: catId,
+      nom: taxon ? taxon.ca : (t.nom || catId),
+      emoji: taxon ? taxon.emoji : '•',
+      color: t.color || (taxon ? taxon.color : '#888'),
+      target_pct: target_pct,
+      target_eur: target_eur,
+      real_eur: real_eur,
+      real_pct: valor_post > 0 ? (real_eur / valor_post * 100) : 0,
+      gap_eur: gap_eur,
+      gap_pct: target_pct - (valor_post > 0 ? (real_eur / valor_post * 100) : 0)
+    };
+  });
+
+  // Ordenar per gap_eur DESC (els més infraponderats primer)
+  var ordenat = rows.slice().sort(function(a,b){ return b.gap_eur - a.gap_eur; });
+
+  // Algoritme aportació: top 2 amb gap positiu, repartiment proporcional al gap
+  var recomanacio = [];
+  if (aport > 0) {
+    var top2 = ordenat.filter(function(r){ return r.gap_eur > 0; }).slice(0, 2);
+    if (top2.length === 0) {
+      // Cas extrem: cartera equilibrada → DCA als 2 pesos més grans del target
+      var top2Target = rows.slice().sort(function(a,b){ return b.target_pct - a.target_pct; }).slice(0, 2);
+      var sumPct = top2Target.reduce(function(s,r){return s+r.target_pct;}, 0);
+      recomanacio = top2Target.map(function(r){
+        var pct = sumPct > 0 ? r.target_pct / sumPct : 0.5;
+        return { cat: r.id, nom: r.nom, emoji: r.emoji, import: Math.round(aport * pct), motiu: 'DCA equilibrat' };
+      });
+    } else {
+      var sumGap = top2.reduce(function(s,r){return s+r.gap_eur;}, 0);
+      recomanacio = top2.map(function(r){
+        var pct = sumGap > 0 ? r.gap_eur / sumGap : 1/top2.length;
+        return { cat: r.id, nom: r.nom, emoji: r.emoji, import: Math.round(aport * pct), motiu: 'Infraponderat' };
+      });
+    }
+  }
+
+  return {
+    rows: rows,
+    valor_actual: valor_actual,
+    valor_post: valor_post,
+    aportacio: aport,
+    recomanacio: recomanacio
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FI Sistema de cartera v2
+// ════════════════════════════════════════════════════════════════════════════
+
 
 // ── ROADMAP ESTÀNDARD PER ARQUETIP ──────────────────
 // 5 fases fixes per a tots els arquetips. La fase actual depèn de l'estat del client.
@@ -3469,16 +3707,12 @@ function renderPortalPerfil(el) {
   // Defensa: si el client encara no té cartera real (acaba de ser validat
   // però l'admin encara no li ha generat la cartera), tot això són zeros
   // i s'amaga la fila d'snapshot.
-  var carteraActual = getCarteraActual();
-  var evolucio = getEvolucio();
-  var totalValor = (carteraActual && carteraActual.length > 0)
-    ? carteraActual.reduce(function(s,a){return s + (a.valor||0);}, 0)
-    : 0;
-  var totalAportat = (evolucio && evolucio.length > 0 && evolucio[evolucio.length-1])
-    ? (evolucio[evolucio.length-1].aportat || 0)
-    : 0;
-  var rendEur = totalValor - totalAportat;
-  var rendPct = totalAportat>0 ? ((totalValor/totalAportat-1)*100) : 0;
+  // ── Sistema v2: usem els KPIs calculats des de posicions + moviments_posicions
+  var kpis_v2 = calcKPIsCartera();
+  var totalValor = kpis_v2.valor_total;
+  var totalAportat = kpis_v2.cost_total;
+  var rendEur = kpis_v2.pnl_eur;
+  var rendPct = kpis_v2.pnl_pct;
   var hasPortfolio = totalValor > 0 || totalAportat > 0;
 
   // Roadmap defensiu
@@ -3505,7 +3739,7 @@ function renderPortalPerfil(el) {
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-cartera\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">💼 Cartera</div>'
       + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black)">' + totalValor.toLocaleString('ca-ES') + '€</div>'
-      + '<div style="font-size:10px;color:#1A5C3A;margin-top:2px;font-weight:500">+' + rendEur.toLocaleString('ca-ES') + '€ (+' + rendPct.toFixed(1) + '%)</div>'
+      + '<div style="font-size:10px;color:' + (rendEur>=0?'#1A5C3A':'#C0392B') + ';margin-top:2px;font-weight:500">' + (rendEur>=0?'+':'') + rendEur.toLocaleString('ca-ES') + '€ (' + (rendPct>=0?'+':'') + rendPct.toFixed(1) + '%)</div>'
     + '</div>'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--accent);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-roadmap\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🗺️ Full de Ruta</div>'
@@ -3946,166 +4180,15 @@ function toggleCartera(id) {
   if (card) card.classList.toggle('open');
 }
 
-// ══════════════════════════════════════════════════
-// VIEW: LA MEVA CARTERA (tracking + moviments)
-// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════
+// SISTEMA DE CARTERA v2 — vistes i CRUD
+// Substitueix el sistema antic de moviments globals (seguimentSVG, calcRatios,
+// registrarAportacioMes, obrirModalRegistrarMes). Ara els moviments són per
+// posició individual i les sèries es deriven dels moviments.
+// Funcions principals: renderPortalCartera (3 pestanyes: Resum | Moviments |
+// Matching), obrirWizardCartera, obrirModalMoviment, obrirModalActualitzarValors.
+// ══════════════════════════════════════════════════════════════════════════
 
-// ══════════════════════════════════════════════════
-// VIEW: LA MEVA CARTERA (Fase 3B)
-// Cartera target (arquetip) + Posicions reals + Matching + Aportació
-// ══════════════════════════════════════════════════
-// ── SEGUIMENT MENSUAL ─────────────────────────────────────────────────────
-// Genera gràfic SVG d'evolució de cartera (valor vs cost)
-function seguimentSVG(moviments, width) {
-  width = width || 680;
-  var H = 180;
-  var pad = {t:16,r:20,b:36,l:52};
-  var W = width - pad.l - pad.r;
-  var HH = H - pad.t - pad.b;
-  if (!moviments || moviments.length === 0) return '';
-
-  // Acumular cost i valor per mes
-  var mesos = [];
-  var cumCost = 0, cumValor = 0;
-  moviments.forEach(function(m) {
-    cumCost  += parseFloat(m.cost||0);
-    cumValor  = parseFloat(m.valor||cumCost); // si no hi ha valor de mercat, igual que cost
-    mesos.push({ label: m.mes, cost: cumCost, valor: cumValor });
-  });
-  if (mesos.length < 2) {
-    mesos.unshift({ label: 'Inici', cost:0, valor:0 });
-  }
-
-  var maxVal = Math.max.apply(null, mesos.map(function(m){ return Math.max(m.cost,m.valor); }));
-  var minVal = Math.min(0, Math.min.apply(null, mesos.map(function(m){ return Math.min(m.cost,m.valor); })));
-  var range  = maxVal - minVal || 1;
-
-  function scaleX(i) { return pad.l + (i / (mesos.length-1)) * W; }
-  function scaleY(v) { return pad.t + HH - ((v - minVal) / range * HH); }
-
-  // Polígon àrea valor (guany)
-  var areaPoints = mesos.map(function(m,i){ return scaleX(i).toFixed(1)+','+scaleY(m.valor).toFixed(1); }).join(' ');
-  var areaFill = [
-    'M'+scaleX(0).toFixed(1)+','+scaleY(0).toFixed(1),
-    mesos.map(function(m,i){ return 'L'+scaleX(i).toFixed(1)+','+scaleY(m.valor).toFixed(1); }).join(' '),
-    'L'+scaleX(mesos.length-1).toFixed(1)+','+(pad.t+HH).toFixed(1),
-    'L'+pad.l.toFixed(1)+','+(pad.t+HH).toFixed(1),'Z'
-  ].join(' ');
-
-  // Línia cost (invertit acumulat)
-  var costLine = mesos.map(function(m,i){
-    return (i===0?'M':'L')+scaleX(i).toFixed(1)+','+scaleY(m.cost).toFixed(1);
-  }).join(' ');
-  // Línia valor
-  var valorLine = mesos.map(function(m,i){
-    return (i===0?'M':'L')+scaleX(i).toFixed(1)+','+scaleY(m.valor).toFixed(1);
-  }).join(' ');
-
-  // Etiquetes eix X (cada 2 mesos si n>6)
-  var xLabels = '';
-  mesos.forEach(function(m,i){
-    if (mesos.length <= 6 || i % Math.ceil(mesos.length/6) === 0 || i === mesos.length-1) {
-      xLabels += '<text x="'+scaleX(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#9A9690">'+m.label+'</text>';
-    }
-  });
-  // Etiquetes eix Y
-  var yLabels = '';
-  [0,0.25,0.5,0.75,1].forEach(function(f){
-    var v = minVal + range*f;
-    var y = scaleY(v);
-    yLabels += '<line x1="'+pad.l+'" y1="'+y.toFixed(1)+'" x2="'+(pad.l+W)+'" y2="'+y.toFixed(1)+'" stroke="#E8E6E1" stroke-width="1"/>';
-    yLabels += '<text x="'+(pad.l-6)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#9A9690">'+Math.round(v).toLocaleString('ca-ES')+'</text>';
-  });
-
-  return '<svg viewBox="0 0 '+width+' '+H+'" style="width:100%;height:'+H+'px">'
-    + yLabels
-    + '<path d="'+areaFill+'" fill="rgba(27,58,107,0.07)"/>'
-    + '<path d="'+costLine+'" fill="none" stroke="#C8C5BE" stroke-width="2" stroke-dasharray="5,3"/>'
-    + '<path d="'+valorLine+'" fill="none" stroke="#1B3A6B" stroke-width="2.5"/>'
-    + mesos.map(function(m,i){
-        var isGain = m.valor >= m.cost;
-        return '<circle cx="'+scaleX(i).toFixed(1)+'" cy="'+scaleY(m.valor).toFixed(1)+'" r="4" fill="'+(isGain?'#1B3A6B':'#C0392B')+'" stroke="white" stroke-width="1.5"/>';
-      }).join('')
-    + xLabels
-    + '<rect x="'+(pad.l+W-130)+'" y="'+pad.t+'" width="125" height="36" rx="5" fill="white" stroke="#E8E6E1" stroke-width="1"/>'
-    + '<line x1="'+(pad.l+W-126)+'" y1="'+(pad.t+10)+'" x2="'+(pad.l+W-114)+'" y2="'+(pad.t+10)+'" stroke="#1B3A6B" stroke-width="2"/>'
-    + '<text x="'+(pad.l+W-110)+'" y="'+(pad.t+13)+'" font-size="9" fill="#6B6762">Valor cartera</text>'
-    + '<line x1="'+(pad.l+W-126)+'" y1="'+(pad.t+26)+'" x2="'+(pad.l+W-114)+'" y2="'+(pad.t+26)+'" stroke="#C8C5BE" stroke-width="2" stroke-dasharray="4,2"/>'
-    + '<text x="'+(pad.l+W-110)+'" y="'+(pad.t+29)+'" font-size="9" fill="#6B6762">Capital invertit</text>'
-    + '</svg>';
-}
-
-// Ratios financers
-function calcRatios(moviments) {
-  if (!moviments || moviments.length === 0) return null;
-  var cumCost = 0, cumValor = 0;
-  moviments.forEach(function(m){ cumCost += parseFloat(m.cost||0); cumValor = parseFloat(m.valor||cumCost); });
-  var guanyAbs = cumValor - cumCost;
-  var rendAcum = cumCost > 0 ? (cumValor/cumCost-1)*100 : 0;
-  // CAGR aproximat
-  var anys = moviments.length / 12;
-  var cagr = (anys > 0 && cumCost > 0) ? (Math.pow(cumValor/cumCost, 1/anys)-1)*100 : 0;
-  return { cumCost:cumCost, cumValor:cumValor, guanyAbs:guanyAbs, rendAcum:rendAcum, cagr:cagr, nmesos:moviments.length };
-}
-
-async function registrarAportacioMes() {
-  var mes     = document.getElementById('seg-mes') ? document.getElementById('seg-mes').value : '';
-  var cost    = parseFloat(document.getElementById('seg-cost') ? document.getElementById('seg-cost').value : 0) || 0;
-  var valor   = parseFloat(document.getElementById('seg-valor') ? document.getElementById('seg-valor').value : 0) || cost;
-  if (!mes || cost === 0) { toast('Cal indicar el mes i el cost de la compra'); return; }
-
-  var c = getClient();
-  if (!c || !APP.user || !APP.user.email) return;
-  var moviments = (c.moviments || []).slice();
-  // Actualitzar si ja existeix el mes, sinó afegir
-  var idx = moviments.findIndex(function(m){ return m.mes === mes; });
-  if (idx >= 0) {
-    moviments[idx].cost  += cost;
-    moviments[idx].valor  = valor;
-  } else {
-    moviments.push({ mes:mes, cost:cost, valor:valor });
-    // ordenar per data
-    moviments.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
-  }
-
-  try {
-    if (sb) await sb.from('clients').update({ moviments:moviments }).eq('email', APP.user.email.toLowerCase());
-    if (APP.clientData) APP.clientData.moviments = moviments;
-    toast('✓ Aportació registrada per ' + mes);
-    // Tancar modal i refrescar
-    var m = document.getElementById('modal-registrar-mes');
-    if (m) m.remove();
-    renderView('portal-cartera');
-  } catch(e) { toast('Error: ' + (e.message||e)); }
-}
-
-function obrirModalRegistrarMes() {
-  var avui = new Date();
-  var mesDefecte = avui.getFullYear() + '-' + String(avui.getMonth()+1).padStart(2,'0');
-  var modal = document.createElement('div');
-  modal.id = 'modal-registrar-mes';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-  var c = getClient();
-  var arq = getArquetip((c&&c.arquetipId)||'navegant');
-  var aportDef = c && c.perfil && c.perfil.aportacioMensual ? parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.]/g,'')) || 0 : 0;
-
-  var inner = document.createElement('div');
-  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:460px;width:100%;padding:28px 32px';
-  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:16px">Registrar compra del mes</div>'
-    + '<div style="display:flex;flex-direction:column;gap:12px">'
-    + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Mes (YYYY-MM)</label><input id="seg-mes" type="month" value="'+mesDefecte+'" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)"></div>'
-    + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Cost de la compra (€ invertits)</label><input id="seg-cost" type="number" placeholder="'+aportDef+'" min="0" step="10" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)"></div>'
-    + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Valor actual total de cartera (€) <span style="color:var(--g400);font-weight:400">— opcional</span></label><input id="seg-valor" type="number" placeholder="Deixa buit si no ho saps" min="0" step="10" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)"></div>'
-    + '<div style="font-size:11px;color:var(--g400);padding:10px 12px;background:var(--g50);border-radius:8px">La cartera target és <strong>'+arq.cartNom+'</strong>. Distribueix l’import proporcionalment als pesos target si no tens import per actiu.</div>'
-    + '</div>'
-    + '<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
-    + '<button onclick="document.getElementById(\'modal-registrar-mes\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
-    + '<button onclick="registrarAportacioMes()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Registrar →</button>'
-    + '</div>';
-  modal.appendChild(inner);
-  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
-  document.body.appendChild(modal);
-}
 
 // Modificació cartera target per admin
 function obrirEditarTargetAdmin(email) {
@@ -4191,466 +4274,880 @@ async function desbloquarRetest(email) {
   } catch(e) { toast('Error: '+(e.message||e)); }
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// VISTA: LA MEVA CARTERA (sistema v2)
+// 3 pestanyes: Resum cartera real | Moviments | Matching vs target
+// ──────────────────────────────────────────────────────────────────────────
 function renderPortalCartera(el) {
   var c = getClient();
-  if (!c) { el.innerHTML = '<div class="content-inner"><p style="color:var(--g400);font-size:13px;padding:40px 0">Carregant dades...</p></div>'; return; }
+  if (!c) { el.innerHTML = '<div style="padding:24px;color:var(--g400)">Carregant…</div>'; return; }
 
-  // ── TABS de navegació ──
-  var tabParam = (window._carteraTab || 'target');
-  var tabHtml = '<div style="display:flex;gap:4px;padding:4px;background:var(--g100);border-radius:10px;margin-bottom:24px;width:fit-content">';
-  [['target','Cartera target'],['posicions','Les meves posicions'],['seguiment','Seguiment']]
-  .forEach(function(t){
-    var isActive = tabParam === t[0];
-    tabHtml += '<button onclick="window._carteraTab=\''+t[0]+'\';renderPortalCartera(document.getElementById(\'content\'))" style="padding:8px 16px;border-radius:7px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);background:'+(isActive?'var(--white)':'transparent')+';color:'+(isActive?'var(--black)':'var(--g400)')+';box-shadow:'+(isActive?'0 1px 4px rgba(0,0,0,.1)':'none')+'">'+t[1]+'</button>';
-  });
-  tabHtml += '</div>';
+  var posicions = getPosicionsV2();
+  var moviments = getMovimentsV2();
 
-  var arq = getArquetip(c.arquetipId);
-
-  // Posicions reals guardades
-  var posicions = (c.cartera_actual_usuari && c.cartera_actual_usuari.length > 0)
-    ? c.cartera_actual_usuari : [];
-  var totalReal = posicions.reduce(function(s,p){ return s + (parseFloat(p.valor)||0); }, 0);
-
-  // Aportació mensual (de perfil o 0)
-  var aportacioMensual = parseFloat((c.perfil && c.perfil.aportacioMensual) || 0) || 0;
-  // Netejar "€/mes", "€", espais
-  if (c.perfil && c.perfil.aportacioMensual) {
-    aportacioMensual = parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
-  }
-
-  // Target: cartera de l'arquetip (ajustable per admin)
-  var targetActius = arq.actius || [];
-
-  // Calcular matching: per a cada actiu del target, buscar real
-  function getPctReal(targetId) {
-    if (totalReal <= 0) return 0;
-    var total = 0;
-    posicions.forEach(function(p){
-      if (p.cat === targetId) total += parseFloat(p.valor)||0;
-    });
-    return total / totalReal * 100;
-  }
-
-  // Calcular on cal aportar (dèficits normalitzats)
-  function calcAportacioPerActiu() {
-    if (aportacioMensual <= 0) return [];
-    var deficits = targetActius.map(function(a) {
-      var realPct = getPctReal(a.id || 'altres');
-      var gap = (a.pct || 0) - realPct;
-      return { id: a.id, nom: a.nom, color: a.color, gap: Math.max(0, gap) };
-    }).filter(function(a){ return a.gap > 0; });
-    var totalGap = deficits.reduce(function(s,d){ return s+d.gap; }, 0);
-    if (totalGap === 0) return [];
-    return deficits.map(function(d){
-      return {
-        id: d.id, nom: d.nom, color: d.color,
-        import: Math.round(aportacioMensual * d.gap / totalGap)
-      };
-    }).sort(function(a,b){ return b.import - a.import; });
-  }
-  var aportacioDistrib = calcAportacioPerActiu();
-
-  // ── CSS ──
-  var css = '<style>'
-    + '.cartera-section{margin-bottom:28px}'
-    + '.cartera-section-title{font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px;display:flex;align-items:center;gap:8px}'
-    + '.target-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}'
-    + '.target-bar-label{font-size:12px;color:var(--black);width:160px;flex-shrink:0;font-weight:500}'
-    + '.target-bar-track{flex:1;height:8px;background:var(--g100);border-radius:99px;position:relative;overflow:visible}'
-    + '.target-bar-fill{height:100%;border-radius:99px;position:absolute;left:0;top:0;transition:width .4s ease}'
-    + '.target-bar-pct{font-size:11px;color:var(--g500);width:34px;text-align:right;font-family:var(--fm);flex-shrink:0}'
-    + '.posicions-table{width:100%;border-collapse:collapse;font-size:12px}'
-    + '.posicions-table th{font-size:10px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;padding:0 8px 10px;text-align:left;border-bottom:1px solid var(--g100)}'
-    + '.posicions-table td{padding:10px 8px;border-bottom:1px solid var(--g50);vertical-align:middle}'
-    + '.posicions-table tr:last-child td{border-bottom:none}'
-    + '.posicions-table td:last-child{text-align:right;font-family:var(--fm)}'
-    + '.posicions-table select{border:1px solid var(--g200);border-radius:6px;padding:4px 8px;font-size:11px;font-family:var(--fb);color:var(--black);background:#fff;cursor:pointer}'
-    + '.posicions-table input[type=number]{border:1px solid var(--g200);border-radius:6px;padding:4px 8px;font-size:12px;font-family:var(--fm);color:var(--black);background:#fff;width:90px;text-align:right}'
-    + '.posicions-table input[type=text]{border:1px solid var(--g200);border-radius:6px;padding:4px 8px;font-size:11px;font-family:var(--fb);color:var(--black);background:#fff;width:120px}'
-    + '.posicions-table input:focus,.posicions-table select:focus{outline:none;border-color:var(--black)}'
-    + '.matching-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}'
-    + '.matching-label{font-size:12px;width:160px;flex-shrink:0}'
-    + '.matching-bars{flex:1;position:relative;height:22px}'
-    + '.matching-real-bar{height:10px;border-radius:3px 0 0 3px;position:absolute;top:0;left:0;transition:width .4s}'
-    + '.matching-target-line{position:absolute;top:-3px;width:2px;height:16px;background:rgba(0,0,0,.5);border-radius:1px;transition:left .4s}'
-    + '.matching-badge{font-size:10px;font-family:var(--fm);padding:2px 7px;border-radius:99px;font-weight:500;flex-shrink:0;min-width:50px;text-align:center}'
-    + '.aportacio-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#F9F9F7;border-radius:8px;margin-bottom:8px}'
-    + '.aportacio-actiu{font-size:13px;font-weight:500;color:var(--black);display:flex;align-items:center;gap:8px}'
-    + '.aportacio-import{font-size:15px;font-weight:500;font-family:var(--fm);color:var(--black)}'
-    + '.aportacio-barra{flex:1;height:4px;background:var(--g100);border-radius:99px;margin:0 14px;overflow:hidden}'
-    + '.aportacio-barra-fill{height:100%;border-radius:99px;}'
-    + '.cartera-card{background:#fff;border:1px solid var(--g100);border-radius:14px;padding:22px 24px}'
-    + '</style>';
-
-  // ── HTML ──
-  var html = css + '<div class="content-inner fade-in">' + tabHtml;
-
-  // ── 1. CARTERA TARGET ──
-  html += '<div class="cartera-section cartera-card" style="margin-bottom:20px;' + (tabParam === 'posicions' || tabParam === 'seguiment' ? 'display:none' : '') + '">'
-    + '<div class="cartera-section-title">&#127919; Cartera Target \u2014 ' + arq.cartRoma + ' \u00b7 ' + arq.nom + '</div>'
-    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.5">'
-      + arq.cartSub
-      + '<span style="margin-left:10px;font-size:10px;background:var(--g100);padding:2px 8px;border-radius:99px;color:var(--g500)">TER ' + arq.ter + '</span>'
-      + '<span style="margin-left:6px;font-size:10px;background:var(--g100);padding:2px 8px;border-radius:99px;color:var(--g500)">Retorn est. ' + arq.retorn + '</span>'
-    + '</div>';
-
-  function donutSVG(actius) {
-    var W=200,H=200,cx=100,cy=100,outerR=82,innerR=52,gapRad=0.04;
-    var total=actius.reduce(function(s,a){return s+(a.pct||0);},0);
-    if(total<=0)return '';
-    var paths=[],startAngle=-Math.PI/2;
-    actius.forEach(function(a){
-      var angle=(a.pct/total)*2*Math.PI;
-      if(angle<0.01){startAngle+=angle;return;}
-      var s1=startAngle+gapRad/2,e1=startAngle+angle-gapRad/2;
-      var large=angle>Math.PI?1:0;
-      var x1o=cx+outerR*Math.cos(s1),y1o=cy+outerR*Math.sin(s1);
-      var x2o=cx+outerR*Math.cos(e1),y2o=cy+outerR*Math.sin(e1);
-      var x1i=cx+innerR*Math.cos(e1),y1i=cy+innerR*Math.sin(e1);
-      var x2i=cx+innerR*Math.cos(s1),y2i=cy+innerR*Math.sin(s1);
-      var d='M'+x1o.toFixed(1)+' '+y1o.toFixed(1)+' A'+outerR+' '+outerR+' 0 '+large+' 1 '+x2o.toFixed(1)+' '+y2o.toFixed(1)+' L'+x1i.toFixed(1)+' '+y1i.toFixed(1)+' A'+innerR+' '+innerR+' 0 '+large+' 0 '+x2i.toFixed(1)+' '+y2i.toFixed(1)+'Z';
-      paths.push('<path d="'+d+'" fill="'+a.color+'"/>');
-      startAngle+=angle;
-    });
-    return '<svg viewBox="0 0 200 200" width="160" height="160" style="display:block;flex-shrink:0">'+paths.join('')+'<circle cx="100" cy="100" r="50" fill="white"/><text x="100" y="97" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" fill="#0A0A0A" font-weight="500">'+arq.ter+'</text><text x="100" y="113" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#9A9690">TER mig</text></svg>';
-  }
-  html += '<div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">'+donutSVG(targetActius)+'<div style="flex:1;min-width:180px">';
-  targetActius.forEach(function(a) {
-    var actiu = getActiu(a.id) || {};
-    html += '<div class="target-bar-row">'
-      + '<div style="display:flex;align-items:center;gap:6px;width:165px;flex-shrink:0"><div style="width:8px;height:8px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></div><span style="font-size:12px">' + (actiu.emoji||'') + ' ' + a.nom + '</span></div>'
-      + '<div class="target-bar-track"><div class="target-bar-fill" style="width:' + a.pct + '%;background:' + a.color + '"></div></div>'
-      + '<div class="target-bar-pct">' + a.pct + '%</div>'
-    + '</div>';
-  });
-  html += '</div></div>';
-    html += '<div style="margin-top:14px;font-size:11px;color:var(--g400)">'
-    + '💬 Vols modificar els pesos? <a href="#" onclick="event.preventDefault();navigateTo(\'portal-missatges\')" style="color:var(--black);font-weight:500">Demana-ho al teu assessor</a>'
-  + '</div>'
-  + '</div>';
-
-  // ── 2. LES MEVES POSICIONS ──
-  html += '<div class="cartera-section cartera-card" style="margin-bottom:20px;' + (tabParam === 'target' ? 'display:none' : '') + '" id="cartera-sec-posicions">'
-    + '<div class="cartera-section-title">&#128188; Les meves posicions actuals</div>';
-
-  if (posicions.length === 0) {
-    // Zero-portfolio: CTA per començar
-    html += '<div style="padding:20px;background:#F4F3F0;border-radius:10px;margin-bottom:16px;text-align:center">'
-      + '<div style="font-size:22px;margin-bottom:8px">📊</div>'
-      + '<div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:6px">Afegeix la teva primera posició</div>'
-      + '<div style="font-size:12px;color:var(--g500);margin-bottom:14px;line-height:1.6">Si acabes de començar i fas la teva primera aportació, entra-la aquí. Si ja tens posicions, afegeix-les totes per veure el matching real amb la teva cartera target.</div>'
-      + '<button onclick="afegirPosicio()" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Afegir primera posició</button>'
-    + '</div>';
-  }
-
-  html += '<div style="overflow-x:auto">'
-    + '<table class="posicions-table" id="posicions-table">'
-    + '<thead><tr>'
-      + '<th>Grup d\'actiu</th>'
-      + '<th>Producte</th>'
-      + '<th>Broker</th>'
-      + '<th style="text-align:right" title="Import total comprat / invertit">Cost (€)</th>'
-      + '<th style="text-align:right" title="Valor actual de mercat">Valor actual (€)</th>'
-      + '<th style="text-align:right">Rendiment</th>'
-      + '<th></th>'
-    + '</tr></thead>'
-    + '<tbody id="posicions-tbody">';
-
-  // Files existents
-  posicions.forEach(function(p, i) { html += renderPosicioRow(p, i); });
-  // Fila buida si n'hi ha posicions
-  if (posicions.length > 0) html += renderPosicioRow({}, posicions.length);
-
-  // Totals
-  var totalCost = posicions.reduce(function(s,p){ return s+(parseFloat(p.cost)||0); }, 0);
-  var totalPnl = totalReal - totalCost;
-  var totalPnlPct = totalCost > 0 ? Math.round(totalPnl/totalCost*1000)/10 : 0;
-
-  html += '</tbody>'
-    + (posicions.length > 0 ? '<tfoot><tr style="border-top:2px solid var(--g100)">'
-      + '<td colspan="3" style="padding:10px 8px;font-size:11px;color:var(--g500)">TOTAL</td>'
-      + '<td style="padding:10px 8px;text-align:right;font-family:var(--fm);font-size:12px;font-weight:500">' + (totalCost>0?totalCost.toLocaleString('ca-ES')+'€':'—') + '</td>'
-      + '<td style="padding:10px 8px;text-align:right;font-family:var(--fm);font-size:13px;font-weight:500" class="posicions-total-valor">' + (totalReal>0?totalReal.toLocaleString('ca-ES')+'€':'—') + '</td>'
-      + '<td style="padding:10px 8px;text-align:right;font-size:12px;font-weight:500" id="posicions-total-pnl">' + (totalCost>0?((totalPnl>=0?'+':'')+totalPnl.toLocaleString('ca-ES')+'€ ('+(totalPnlPct>=0?'+':'')+totalPnlPct+'%)'):'—') + '</td>'
-      + '<td></td></tr></tfoot>' : '')
-    + '</table></div>'
-    + '<div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
-      + '<button onclick="afegirPosicio()" style="padding:8px 14px;background:transparent;border:1.5px dashed var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g500)">+ Afegir posició</button>'
-    + '</div>'
-    + '<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">'
-      + '<button onclick="guardarPosicions()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">💾 Guardar</button>'
-      + '<div id="posicions-msg" style="font-size:12px;color:var(--g400);padding:10px 0;display:none"></div>'
-    + '</div>'
-    + '<div style="margin-top:10px;font-size:10px;color:var(--g400);line-height:1.6">Cost = import total comprat. Valor actual = preu actual de mercat. Actualitza el valor actual mensualment per veure el rendiment real.</div>'
-  + '</div>';
-
-  // ── 3. MATCHING REAL vs TARGET ──
-  if (totalReal > 0) {
-    html += '<div class="cartera-section cartera-card" style="margin-bottom:20px">'
-      + '<div class="cartera-section-title">📊 Matching — Real vs. Target</div>';
-    
-    targetActius.forEach(function(a) {
-      var targetPct = a.pct || 0;
-      var realPct   = Math.round(getPctReal(a.id || 'altres'));
-      var gap       = realPct - targetPct;
-      var barMax    = Math.max(targetPct, realPct, 10);
-      var realW     = Math.min(100, realPct / barMax * 100);
-      var targetX   = Math.min(98, targetPct / barMax * 100);
-      var gapLabel  = gap > 0 ? '+' + gap + '%' : (gap < 0 ? gap + '%' : '=');
-      var gapColor  = gap > 3 ? '#D4943A' : (gap < -3 ? '#1B3A6B' : '#1A5C3A');
-      var gapBg     = gap > 3 ? '#FEF3E0' : (gap < -3 ? '#EBF0FA' : '#EAF3DE');
-      html += '<div class="matching-row">'
-        + '<div class="matching-label" style="color:' + a.color + '">' + (getActiu(a.id)||{}).emoji + ' ' + a.nom + '</div>'
-        + '<div class="matching-bars">'
-          + '<div class="matching-real-bar" style="width:' + realW + '%;background:' + a.color + '88"></div>'
-          + '<div class="matching-target-line" style="left:' + targetX + '%"></div>'
-        + '</div>'
-        + '<div style="font-size:11px;color:var(--g400);width:56px;text-align:center;font-family:var(--fm)">' + realPct + '% / ' + targetPct + '%</div>'
-        + '<div class="matching-badge" style="background:' + gapBg + ';color:' + gapColor + '">' + gapLabel + '</div>'
-      + '</div>';
-    });
-
-    html += '<div style="margin-top:12px;font-size:10px;color:var(--g400);line-height:1.6">'
-      + '▲ Barra = real · Línia vertical = target · <span style="color:#1B3A6B;font-weight:500">Blau = per sota del target</span> · <span style="color:#D4943A;font-weight:500">Taronja = per sobre</span>'
-    + '</div>'
-    + '</div>';
-  }
-
-  // ── 4. APORTACIÓ MENSUAL ──
-  html += '<div class="cartera-section cartera-card">'
-    + '<div class="cartera-section-title">📅 Aportació mensual</div>';
-
-  if (aportacioMensual <= 0) {
-    html += '<div style="padding:20px;background:#FEF3E0;border-radius:10px;border:1px solid #E8C285;text-align:center">'
-      + '<div style="font-size:22px;margin-bottom:8px">💡</div>'
-      + '<div style="font-size:13px;font-weight:500;color:#7A4A00;margin-bottom:6px">Defineix la teva capacitat d\'estalvi mensual</div>'
-      + '<div style="font-size:12px;color:#9A6B1F;margin-bottom:16px;line-height:1.6">Indica quant pots aportar cada mes. Calcularem automàticament on ha d\'anar cada euro per maximitzar el matching amb la teva cartera target.</div>'
-      + '<div style="display:flex;align-items:center;gap:10px;justify-content:center">'
-        + '<input type="number" id="inp-aportacio-mensual" min="0" step="10" placeholder="300" style="padding:10px 14px;border:1.5px solid var(--g300);border-radius:9px;font-size:16px;font-family:var(--fm);width:120px;text-align:center">'
-        + '<span style="font-size:14px;color:var(--g500)">€ / mes</span>'
-        + '<button onclick="guardarAportacioMensual()" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Guardar</button>'
-      + '</div>'
-    + '</div>';
-  } else {
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">'
-      + '<div>'
-        + '<div style="font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Capacitat mensual</div>'
-        + '<div style="font-size:32px;font-family:var(--fm);font-weight:500;color:var(--black)">' + aportacioMensual.toLocaleString('ca-ES') + ' €</div>'
-      + '</div>'
-      + '<button onclick="editarAportacioMensual()" style="padding:8px 16px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g500)">✏️ Modificar</button>'
-    + '</div>';
-
-    if (aportacioDistrib.length > 0 && totalReal > 0) {
-      html += '<div style="font-size:11px;color:var(--g500);margin-bottom:12px">On cal aportar per apropar-se al target:</div>';
-      aportacioDistrib.forEach(function(d) {
-        var actiu = getActiu(d.id) || {};
-        var barW = Math.round(d.import / aportacioMensual * 100);
-        html += '<div class="aportacio-row">'
-          + '<div class="aportacio-actiu">'
-            + '<span style="font-size:18px">' + (actiu.emoji||'') + '</span>'
-            + '<span>' + d.nom + '</span>'
-          + '</div>'
-          + '<div class="aportacio-barra"><div class="aportacio-barra-fill" style="width:' + barW + '%;background:' + d.color + '"></div></div>'
-          + '<div class="aportacio-import">' + d.import.toLocaleString('ca-ES') + ' €</div>'
-        + '</div>';
-      });
-    } else if (totalReal <= 0) {
-      html += '<div style="font-size:12px;color:var(--g400);padding:14px;background:var(--g50);border-radius:8px">'
-        + 'Afegeix les teves posicions actuals (bloc superior) per veure on cal aportar cada mes.'
-      + '</div>';
-    } else {
-      html += '<div style="font-size:12px;color:#1A5C3A;padding:14px;background:#EAF3DE;border-radius:8px">'
-        + '✅ Cartera equilibrada — la teva distribució real s\'apropa als objectius. Segueix aportant regularment.'
-      + '</div>';
-    }
-  }
-
-  // ── TAB SEGUIMENT ───────────────────────────────────────────────────────
-  var moviments_seg = (c.moviments || []);
-  var ratios_seg = calcRatios(moviments_seg);
-  var showSeg = window._carteraTab === 'seguiment';
-
-  html += '<div class="cartera-section cartera-card" style="margin-bottom:20px;' + (showSeg ? '' : 'display:none') + '">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
-      + '<div class="cartera-section-title" style="margin:0">&#128200; Seguiment i evolució</div>'
-      + '<button onclick="obrirModalRegistrarMes()" style="padding:7px 14px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Registrar mes</button>'
-    + '</div>';
-
-  if (ratios_seg) {
-    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">'
-      + '<div style="padding:12px;background:var(--g50);border-radius:9px;text-align:center"><div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Capital invertit</div><div style="font-family:var(--fm);font-size:16px;font-weight:500">' + ratios_seg.cumCost.toLocaleString('ca-ES') + '€</div></div>'
-      + '<div style="padding:12px;background:var(--g50);border-radius:9px;text-align:center"><div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Valor actual</div><div style="font-family:var(--fm);font-size:16px;font-weight:500;color:var(--accent)">' + ratios_seg.cumValor.toLocaleString('ca-ES') + '€</div></div>'
-      + '<div style="padding:12px;background:'+(ratios_seg.guanyAbs>=0?'#EAF3DE':'#FDF0F0')+';border-radius:9px;text-align:center"><div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Guany acumulat</div><div style="font-family:var(--fm);font-size:16px;font-weight:500;color:'+(ratios_seg.guanyAbs>=0?'#1A5C3A':'#C0392B')+'">'+(ratios_seg.guanyAbs>=0?'+':'')+ratios_seg.guanyAbs.toLocaleString('ca-ES')+'€</div></div>'
-      + '<div style="padding:12px;background:'+(ratios_seg.cagr>=0?'#EAF3DE':'#FDF0F0')+';border-radius:9px;text-align:center"><div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Rendiment anual</div><div style="font-family:var(--fm);font-size:16px;font-weight:500;color:'+(ratios_seg.cagr>=0?'#1A5C3A':'#C0392B')+'">'+(ratios_seg.cagr>=0?'+':'')+ratios_seg.cagr.toFixed(1)+'%</div></div>'
-    + '</div>';
-    html += seguimentSVG(moviments_seg);
-    html += '<div style="margin-top:18px"><div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Historial de compres</div>'
-      + '<table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--g50)">'
-        + '<th style="text-align:left;padding:8px 10px;font-size:10px;color:var(--g400);font-weight:500">Mes</th>'
-        + '<th style="text-align:right;padding:8px 10px;font-size:10px;color:var(--g400);font-weight:500">Cost (\u20ac)</th>'
-        + '<th style="text-align:right;padding:8px 10px;font-size:10px;color:var(--g400);font-weight:500">Valor (\u20ac)</th>'
-        + '<th style="text-align:right;padding:8px 10px;font-size:10px;color:var(--g400);font-weight:500">Rendiment</th>'
-        + '<th style="padding:8px 4px"></th>'
-      + '</tr></thead><tbody>';
-    var cumC3=0;
-    moviments_seg.forEach(function(m){
-      cumC3+=parseFloat(m.cost||0);
-      var val3=parseFloat(m.valor||cumC3);
-      var rend3=cumC3>0?((val3/cumC3-1)*100):0;
-      var rc3=rend3>=0?'#1A5C3A':'#C0392B';
-      html+='<tr style="border-top:1px solid var(--g100)">'
-        +'<td style="padding:8px 10px;font-size:12px;font-family:var(--fm)">'+m.mes+'</td>'
-        +'<td style="padding:8px 10px;text-align:right;font-family:var(--fm);font-size:12px">'+parseFloat(m.cost||0).toLocaleString('ca-ES')+'</td>'
-        +'<td style="padding:8px 10px;text-align:right;font-family:var(--fm);font-size:12px;color:var(--accent)">'+val3.toLocaleString('ca-ES')+'</td>'
-        +'<td style="padding:8px 10px;text-align:right;font-family:var(--fm);font-size:12px;color:'+rc3+'">'+(rend3>=0?'+':'')+rend3.toFixed(1)+'%</td>'
-        +'<td style="padding:8px 4px;text-align:right"><button onclick="esborrarMoviment(\''+m.mes+'\',\'portal-cartera\')" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:13px">&#215;</button></td>'
-      +'</tr>';
-    });
-    html += '</tbody></table></div>';
-  } else {
-    html += '<div style="padding:28px;text-align:center;color:var(--g400)">'
-      + '<div style="font-size:32px;margin-bottom:10px">&#128200;</div>'
-      + '<div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:6px">Comenca el seguiment</div>'
-      + '<div style="font-size:12px;margin-bottom:16px;line-height:1.6">Registra cada compra mensual per veure l’evolució.</div>'
-      + '<button onclick="obrirModalRegistrarMes()" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Registrar primera compra →</button>'
-    + '</div>';
-  }
-  html += '<div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">'
-    + '<button onclick="exportarSeguimentCSV()" style="padding:6px 12px;background:transparent;border:1.5px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">&#128196; CSV</button>'
-    + '<button onclick="window.print()" style="padding:6px 12px;background:transparent;border:1.5px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">&#128438; PDF</button>'
-  + '</div>';
-  html += '</div>';
-
-
-  html += '</div></div>';
-  el.innerHTML = html;
-
-  // Calcular total en temps real quan l'usuari escriu valors
-  setTimeout(function() { bindPosicionsLive(); }, 50);
-}
-
-// Render d'una fila de posició (per a la taula)
-function renderPosicioRow(p, idx) {
-  var opcionsActius = ACTIUS_TAXONOMY.map(function(a) {
-    var sel = p.cat === a.id ? ' selected' : '';
-    return '<option value="' + a.id + '"' + sel + '>' + a.emoji + ' ' + a.ca + '</option>';
-  }).join('');
-  return '<tr id="posicio-row-' + idx + '">'
-    + '<td><select onchange="recalcTotal()" style="width:100%;min-width:160px"><option value="">— Grup —</option>' + opcionsActius + '</select></td>'
-    + '<td><input type="text" placeholder="iShares MSCI World..." value="' + (p.desc||p.nom||'') + '" style="min-width:110px"></td>'
-    + '<td><input type="text" placeholder="Degiro..." value="' + (p.broker||'') + '" style="width:90px"></td>'
-    + '<td><input type="number" min="0" step="100" placeholder="Cost" value="' + (p.cost||'') + '" title="Import total invertit (cost base)" style="width:85px" onchange="recalcTotal()"></td>'
-    + '<td><input type="number" min="0" step="100" placeholder="Valor" value="' + (p.valor||'') + '" title="Valor actual de mercat" onchange="recalcTotal()" style="width:85px"></td>'
-    + '<td id="posicio-rd-' + idx + '" style="font-family:var(--fm);font-size:11px;white-space:nowrap">—</td>'
-    + '<td><button onclick="esborrarPosicio(' + idx + ')" style="background:none;border:none;cursor:pointer;font-size:14px;color:var(--g400);padding:4px">×</button></td>'
-  + '</tr>';
-}
-
-// Recalcula el total visible en temps real + P&L per fila
-function recalcTotal() {
-  var rows = document.querySelectorAll('#posicions-tbody tr');
-  var totalValor = 0, totalCost = 0;
-  rows.forEach(function(row, i) {
-    var inps = row.querySelectorAll('input[type=number]');
-    var cost  = parseFloat(inps[0] ? inps[0].value : 0) || 0;
-    var valor = parseFloat(inps[1] ? inps[1].value : 0) || 0;
-    totalCost  += cost;
-    totalValor += valor;
-    // P&L per fila
-    var rdEl = row.querySelector('[id^="posicio-rd-"]');
-    if (rdEl) {
-      if (cost > 0 && valor > 0) {
-        var rd = valor - cost;
-        var rdPct = Math.round(rd / cost * 1000) / 10;
-        rdEl.textContent = (rd >= 0 ? '+' : '') + rd.toLocaleString('ca-ES') + '€ (' + (rdPct >= 0 ? '+' : '') + rdPct + '%)';
-        rdEl.style.color = rd >= 0 ? '#1A5C3A' : '#C0392B';
-      } else {
-        rdEl.textContent = '—';
-        rdEl.style.color = 'var(--g400)';
-      }
-    }
-  });
-  // Totals
-  var pnl = totalValor - totalCost;
-  var pnlPct = totalCost > 0 ? Math.round(pnl / totalCost * 1000) / 10 : 0;
-  document.querySelectorAll('.posicions-total-valor').forEach(function(el){ el.textContent = totalValor > 0 ? totalValor.toLocaleString('ca-ES') + ' €' : '—'; });
-  var pnlEl = document.getElementById('posicions-total-pnl');
-  if (pnlEl && totalCost > 0) {
-    pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toLocaleString('ca-ES') + '€ (' + (pnlPct >= 0 ? '+' : '') + pnlPct + '%)';
-    pnlEl.style.color = pnl >= 0 ? '#1A5C3A' : '#C0392B';
-  }
-}
-
-// Afegir fila nova
-function afegirPosicio() {
-  var tbody = document.getElementById('posicions-tbody');
-  if (!tbody) return;
-  var rows = tbody.querySelectorAll('tr').length;
-  var tr = document.createElement('tr');
-  tr.id = 'posicio-row-' + rows;
-  tr.innerHTML = renderPosicioRow({}, rows).replace(/<tr[^>]*>|<\/tr>/g,'');
-  tbody.appendChild(tr);
-}
-
-// Esborrar fila
-function esborrarPosicio(idx) {
-  var row = document.getElementById('posicio-row-' + idx);
-  if (row) { row.remove(); recalcTotal(); }
-}
-
-// Binds per a recàlcul en viu
-function bindPosicionsLive() {
-  var tbody = document.getElementById('posicions-tbody');
-  if (!tbody) return;
-  tbody.addEventListener('input', function(e){
-    if (e.target.type === 'number' || e.target.tagName === 'SELECT') recalcTotal();
-  });
-}
-
-// Guardar posicions a Supabase
-async function guardarPosicions() {
-  var tbody = document.getElementById('posicions-tbody');
-  if (!tbody) return;
-  var rows = tbody.querySelectorAll('tr');
-  var posicions = [];
-  rows.forEach(function(row) {
-    var sel = row.querySelector('select');
-    var inputs = row.querySelectorAll('input');
-    var cat    = sel ? sel.value : '';
-    var desc   = inputs[0] ? inputs[0].value.trim() : '';
-    var broker = inputs[1] ? inputs[1].value.trim() : '';
-    var cost   = parseFloat(inputs[2] ? inputs[2].value : 0) || 0;
-    var valor  = parseFloat(inputs[3] ? inputs[3].value : 0) || 0;
-    if (cat && (cost > 0 || valor > 0)) {
-      posicions.push({ cat:cat, desc:desc, broker:broker, cost:cost, valor:valor });
-    }
-  });
-
-  var msg = document.getElementById('posicions-msg');
-  if (msg) { msg.style.display = 'block'; msg.textContent = 'Guardant...'; msg.style.color = 'var(--g400)'; }
-
-  if (!sb || !APP.user || !APP.user.email) {
-    if (msg) { msg.textContent = 'Error: sense connexió'; msg.style.color = '#C0392B'; }
+  // Si no hi ha cap posició, mostrar pantalla d'alta (Wizard)
+  if (posicions.length === 0 && moviments.length === 0) {
+    renderCarteraOnboarding(el);
     return;
   }
 
+  // Hi ha cartera → renderitzar amb pestanyes
+  var tabParam = window._carteraTab || 'resum';
+  var arq = getArquetip(c.arquetipId || 'navegant');
+  var kpis = calcKPIsCartera();
+  var posAgg = calcPosicionsAmbAgregats();
+  var distReal = calcDistribucioReal();
+
+  // Pestanyes
+  var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:24px;background:var(--g50);padding:4px;border-radius:9px;width:fit-content">';
+  [['resum','📊 Resum'],['moviments','📋 Moviments'],['matching','🎯 Matching']].forEach(function(t){
+    var isActive = tabParam === t[0];
+    tabHtml += '<button onclick="window._carteraTab=\''+t[0]+'\';renderPortalCartera(document.getElementById(\'content\'))" '
+      + 'style="padding:8px 16px;border-radius:7px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);'
+      + 'background:'+(isActive?'var(--white)':'transparent')+';color:'+(isActive?'var(--black)':'var(--g400)')+';'
+      + 'box-shadow:'+(isActive?'0 1px 4px rgba(0,0,0,.1)':'none')+'">'+t[1]+'</button>';
+  });
+  tabHtml += '</div>';
+
+  // Botons d'acció globals (apareixen a totes les pestanyes)
+  var accionsBtns = '<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">'
+    + '<button onclick="obrirModalMoviment()" style="padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Registrar moviment</button>'
+    + '<button onclick="obrirModalActualitzarValors()" style="padding:9px 16px;background:var(--white);color:var(--black);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">💱 Actualitzar valors</button>'
+    + '<button onclick="obrirModalAfegirPosicio()" style="padding:9px 16px;background:var(--white);color:var(--g600);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Afegir posició</button>'
+    + '<div style="flex:1"></div>'
+    + '<button onclick="exportarCarteraCSV()" style="padding:9px 14px;background:transparent;color:var(--g500);border:1.5px solid var(--g200);border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb)">📄 CSV</button>'
+  + '</div>';
+
+  var html = tabHtml + accionsBtns;
+
+  // ── PESTANYA 1: RESUM ─────────────────────────────────────────────
+  if (tabParam === 'resum') {
+    var bgPnl = kpis.pnl_eur >= 0 ? '#EAF3DE' : '#FDF0F0';
+    var colPnl = kpis.pnl_eur >= 0 ? '#1A5C3A' : '#C0392B';
+    var bgCagr = kpis.cagr >= 0 ? '#EAF3DE' : '#FDF0F0';
+    var colCagr = kpis.cagr >= 0 ? '#1A5C3A' : '#C0392B';
+
+    // KPIs hero (4 cards)
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px" class="mob-grid">'
+      + '<div style="padding:16px;background:var(--white);border:1px solid var(--g200);border-radius:11px">'
+        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">💼 Valor cartera</div>'
+        + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:var(--black)">'+kpis.valor_total.toLocaleString('ca-ES')+'€</div>'
+        + '<div style="font-size:10px;color:var(--g400);margin-top:4px">'+kpis.num_posicions+' posicions actives</div>'
+      + '</div>'
+      + '<div style="padding:16px;background:var(--white);border:1px solid var(--g200);border-radius:11px">'
+        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">💰 Capital invertit</div>'
+        + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:var(--black)">'+kpis.cost_total.toLocaleString('ca-ES')+'€</div>'
+        + '<div style="font-size:10px;color:var(--g400);margin-top:4px">'+kpis.num_moviments+' moviments registrats</div>'
+      + '</div>'
+      + '<div style="padding:16px;background:'+bgPnl+';border-radius:11px">'
+        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">📈 Guany absolut</div>'
+        + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:'+colPnl+'">'+(kpis.pnl_eur>=0?'+':'')+kpis.pnl_eur.toLocaleString('ca-ES')+'€</div>'
+        + '<div style="font-size:10px;color:'+colPnl+';margin-top:4px;font-weight:500">'+(kpis.pnl_pct>=0?'+':'')+kpis.pnl_pct.toFixed(1)+'%</div>'
+      + '</div>'
+      + '<div style="padding:16px;background:'+bgCagr+';border-radius:11px">'
+        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">⚡ Rendiment anual</div>'
+        + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:'+colCagr+'">'+(kpis.cagr>=0?'+':'')+kpis.cagr.toFixed(1)+'%</div>'
+        + '<div style="font-size:10px;color:var(--g400);margin-top:4px">'+kpis.anys_actiu.toFixed(1)+' anys actiu</div>'
+      + '</div>'
+    + '</div>';
+
+    // KPIs secundaris: dividends i comissions (si n'hi ha)
+    if (kpis.dividends_total > 0 || kpis.comissions_total > 0) {
+      html += '<div style="display:flex;gap:14px;margin-bottom:24px;padding:12px 16px;background:var(--g50);border-radius:9px;font-size:12px">'
+        + (kpis.dividends_total > 0 ? '<div>💵 Dividends cobrats: <strong style="font-family:var(--fm)">'+kpis.dividends_total.toLocaleString('ca-ES')+'€</strong></div>' : '')
+        + (kpis.comissions_total > 0 ? '<div style="color:var(--g500)">📤 Comissions pagades: <strong style="font-family:var(--fm)">'+kpis.comissions_total.toLocaleString('ca-ES')+'€</strong></div>' : '')
+      + '</div>';
+    }
+
+    // Composició real (donut) + Top posicions
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px" class="cartera-split">';
+
+    // Donut composició real
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px">'
+      + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">📊 Composició real per categoria</div>';
+    if (distReal.length > 0) {
+      var totalReal = distReal.reduce(function(s,d){return s+d.valor;},0);
+      var donutData = distReal.map(function(d){ return {nom:d.nom, pct:d.pct, color:d.color}; });
+      html += renderCarteraDonut(donutData, {donutSize:170, centerLabel:totalReal.toLocaleString('ca-ES')+'€', centerSublabel:'Total real'});
+    } else {
+      html += '<div style="padding:20px;text-align:center;color:var(--g400);font-size:12px">Sense posicions amb valor</div>';
+    }
+    html += '</div>';
+
+    // Top posicions
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px">'
+      + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">🏆 Top posicions</div>';
+    var topPos = posAgg.slice().sort(function(a,b){return (b.valor_actual||0)-(a.valor_actual||0);}).slice(0,5);
+    if (topPos.length > 0) {
+      html += '<div style="display:flex;flex-direction:column;gap:10px">';
+      topPos.forEach(function(p){
+        var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; });
+        var emoji = taxon ? taxon.emoji : '•';
+        var pct = kpis.valor_total > 0 ? (p.valor_actual/kpis.valor_total*100) : 0;
+        var colPnlP = p.pnl_eur >= 0 ? '#1A5C3A' : '#C0392B';
+        html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--g50);border-radius:8px">'
+          + '<div style="font-size:16px">'+emoji+'</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:12px;font-weight:500;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(p.nom||taxon&&taxon.ca||p.cat)+'</div>'
+            + '<div style="font-size:10px;color:var(--g400);margin-top:1px">'+(taxon?taxon.ca:'')+'</div>'
+          + '</div>'
+          + '<div style="text-align:right">'
+            + '<div style="font-family:var(--fm);font-size:13px;font-weight:500">'+(p.valor_actual||0).toLocaleString('ca-ES')+'€</div>'
+            + '<div style="font-size:10px;color:'+colPnlP+';font-weight:500;margin-top:1px">'+(p.pnl_eur>=0?'+':'')+p.pnl_pct.toFixed(1)+'% · '+pct.toFixed(0)+'%</div>'
+          + '</div>'
+        + '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div style="padding:20px;text-align:center;color:var(--g400);font-size:12px">Sense posicions</div>';
+    }
+    html += '</div>';
+    html += '</div>';  // end split
+
+    // Gràfic d'evolució
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px;margin-bottom:24px">'
+      + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">📈 Evolució de la cartera</div>'
+      + renderEvolucioSVG()
+    + '</div>';
+
+    // Taula de posicions detallada
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px">'
+      + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">💼 Totes les posicions</div>';
+    html += renderTaulaPosicions(posAgg);
+    html += '</div>';
+  }
+
+  // ── PESTANYA 2: MOVIMENTS ─────────────────────────────────────────
+  if (tabParam === 'moviments') {
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+        + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em">📋 Historial complet de moviments ('+moviments.length+')</div>'
+      + '</div>';
+    if (moviments.length === 0) {
+      html += '<div style="padding:32px;text-align:center;color:var(--g400)">'
+        + '<div style="font-size:32px;margin-bottom:10px">📋</div>'
+        + '<div style="font-size:13px;color:var(--black);margin-bottom:6px">Cap moviment registrat encara</div>'
+        + '<div style="font-size:12px;color:var(--g500)">Quan facis una compra, venda, o rebis un dividend, registra-ho aquí.</div>'
+      + '</div>';
+    } else {
+      html += renderTaulaMoviments();
+    }
+    html += '</div>';
+  }
+
+  // ── PESTANYA 3: MATCHING ─────────────────────────────────────────
+  if (tabParam === 'matching') {
+    var aportMensual = (c.perfil && c.perfil.aportacioMensual) ? parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) || 0 : 0;
+    var match = calcMatchingITactic(aportMensual);
+
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px;margin-bottom:20px">'
+      + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">🎯 Cartera target — '+arq.cartRoma+' · '+arq.nom+'</div>'
+      + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.6">Comparativa de la teva cartera real amb la cartera ideal per al teu arquetip. '
+      + (APP.role === 'admin' ? '<button onclick="obrirEditarTargetAdmin(\''+c.email+'\')" style="margin-left:8px;padding:3px 9px;background:transparent;border:1px solid var(--g200);border-radius:5px;font-size:10px;cursor:pointer;color:var(--accent);font-family:var(--fb)">✏️ Editar target</button>' : '')
+      + '</div>';
+
+    if (!match || match.rows.length === 0) {
+      html += '<div style="padding:24px;text-align:center;color:var(--g400)">No es pot calcular el matching</div>';
+    } else {
+      html += renderMatchingTable(match);
+    }
+    html += '</div>';
+
+    // Recomanació d'aportació (algoritme nou)
+    if (aportMensual > 0 && match && match.recomanacio.length > 0) {
+      html += '<div style="background:linear-gradient(135deg,#FAF7F0 0%,#F4ECE0 100%);border:1px solid #E8C285;border-radius:13px;padding:20px 24px;margin-bottom:20px">'
+        + '<div style="font-size:10px;font-weight:600;color:#7A4A00;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">💡 Recomanació per a la propera aportació de '+aportMensual.toLocaleString('ca-ES')+'€</div>'
+        + '<div style="font-size:12px;color:#9A6B1F;margin-bottom:16px;line-height:1.6">Per maximitzar el matching amb la teva cartera target, aportar només a les 2 categories més infraponderades (estalvies comissions i accelera el rebalanceig):</div>'
+        + '<div style="display:flex;gap:14px;flex-wrap:wrap">';
+      match.recomanacio.forEach(function(r){
+        var pct = aportMensual > 0 ? Math.round(r.import/aportMensual*100) : 0;
+        html += '<div style="flex:1;min-width:220px;padding:16px;background:#fff;border-radius:10px;border:1px solid #E8C285">'
+          + '<div style="font-size:11px;color:var(--g500);margin-bottom:4px">'+r.emoji+' '+r.nom+'</div>'
+          + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:#7A4A00;margin-bottom:2px">'+r.import.toLocaleString('ca-ES')+'€</div>'
+          + '<div style="font-size:10px;color:var(--g400)">'+pct+'% de l\'aportació · '+r.motiu+'</div>'
+        + '</div>';
+      });
+      html += '</div>'
+        + '<div style="margin-top:14px;font-size:11px;color:var(--g500);font-style:italic">L\'actiu concret dins de cada categoria el determinarà el teu assessor.</div>'
+      + '</div>';
+    } else if (aportMensual > 0) {
+      html += '<div style="padding:18px;background:#EAF3DE;border:1px solid #B5D192;border-radius:11px;font-size:12px;color:#1A5C3A;margin-bottom:20px">'
+        + '✅ Cartera equilibrada — Cap categoria infraponderada.'
+      + '</div>';
+    } else {
+      html += '<div style="padding:18px;background:var(--g50);border:1px solid var(--g100);border-radius:11px;font-size:12px;color:var(--g500);margin-bottom:20px">'
+        + 'Defineix la teva aportació mensual al portal d\'aportacions per veure la recomanació tàctica.'
+      + '</div>';
+    }
+  }
+
+  el.innerHTML = html;
+}
+
+// ── Onboarding: pantalla d'alta inicial ──────────────────────────────────
+function renderCarteraOnboarding(el) {
+  var c = getClient();
+  var arq = getArquetip((c && c.arquetipId) || 'navegant');
+
+  el.innerHTML = '<div style="padding:24px;background:linear-gradient(135deg,#FAF7F0 0%,#F4ECE0 100%);border:1px solid #E8C285;border-radius:14px;margin-bottom:24px;text-align:center">'
+    + '<div style="font-size:32px;margin-bottom:10px">💼</div>'
+    + '<div style="font-family:var(--fd);font-size:24px;font-weight:400;color:#7A4A00;margin-bottom:8px">Comencem la teva cartera</div>'
+    + '<div style="font-size:13px;color:#9A6B1F;line-height:1.7;max-width:520px;margin:0 auto 24px">La teva cartera target és <strong>'+arq.cartNom+'</strong>. Com vols començar a registrar les teves posicions reals?</div>'
+    + '<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">'
+      + '<button onclick="obrirWizardCartera()" style="padding:14px 24px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);min-width:240px">'
+        + '<div style="font-size:14px;margin-bottom:4px">📥 Tinc posicions actuals</div>'
+        + '<div style="font-size:10px;color:rgba(255,255,255,.7);font-weight:400">Importar la cartera que ja tinc</div>'
+      + '</button>'
+      + '<button onclick="comencarCarteraZero()" style="padding:14px 24px;background:#fff;color:var(--black);border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);min-width:240px">'
+        + '<div style="font-size:14px;margin-bottom:4px">🌱 Començo de zero</div>'
+        + '<div style="font-size:10px;color:var(--g500);font-weight:400">Registrar la primera compra més endavant</div>'
+      + '</button>'
+    + '</div>'
+  + '</div>';
+}
+
+function comencarCarteraZero() {
+  obrirModalMoviment();  // l'usuari pot registrar el primer moviment directament
+}
+
+// ── Wizard d'alta de cartera (punt zero) ─────────────────────────────────
+function obrirWizardCartera() {
+  var modal = document.createElement('div');
+  modal.id = 'modal-wizard-cartera';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:760px;width:100%;padding:30px 36px;max-height:92vh;overflow-y:auto';
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:24px;font-weight:400;margin-bottom:6px">📥 Importar cartera actual</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:20px;line-height:1.6">Afegeix cada posició que tens actualment. Es generarà un moviment de compra <strong>en data d\'avui</strong> amb el cost que indiquis (punt zero). Més endavant podràs registrar moviments amb dates reals.</div>'
+    + '<div style="margin-bottom:14px">'
+      + '<label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Data del punt zero</label>'
+      + '<input id="wiz-data" type="date" value="'+new Date().toISOString().slice(0,10)+'" style="width:200px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb)">'
+    + '</div>'
+    + '<div id="wiz-posicions" style="margin-bottom:14px"></div>'
+    + '<button onclick="wizAfegirFila()" style="padding:8px 16px;background:transparent;border:1.5px dashed var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g500);width:100%;margin-bottom:18px">+ Afegir una altra posició</button>'
+    + '<div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--g100);padding-top:16px">'
+      + '<button onclick="document.getElementById(\'modal-wizard-cartera\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
+      + '<button onclick="wizGuardar()" style="padding:10px 24px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Crear cartera →</button>'
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+
+  // Afegir 1a fila per defecte
+  setTimeout(wizAfegirFila, 50);
+}
+
+function wizAfegirFila() {
+  var cont = document.getElementById('wiz-posicions');
+  if (!cont) return;
+  var idx = cont.children.length;
+  var div = document.createElement('div');
+  div.className = 'wiz-fila';
+  div.style.cssText = 'display:grid;grid-template-columns:1.4fr 1.4fr 1fr 1fr 30px;gap:8px;margin-bottom:8px;align-items:center';
+  var optsCat = ACTIUS_TAXONOMY.map(function(a){ return '<option value="'+a.id+'">'+a.emoji+' '+a.ca+'</option>'; }).join('');
+  div.innerHTML = '<select class="wiz-cat" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fb)"><option value="">— Categoria —</option>'+optsCat+'</select>'
+    + '<input class="wiz-nom" type="text" placeholder="Ex: iShares MSCI World" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fb)">'
+    + '<input class="wiz-cost" type="number" min="0" step="100" placeholder="Cost (€)" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fm);text-align:right">'
+    + '<input class="wiz-valor" type="number" min="0" step="100" placeholder="Valor actual (€)" style="padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fm);text-align:right">'
+    + '<button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--g400);font-size:16px">×</button>';
+  cont.appendChild(div);
+}
+
+async function wizGuardar() {
+  var data = document.getElementById('wiz-data').value || new Date().toISOString().slice(0,10);
+  var filas = document.querySelectorAll('#wiz-posicions .wiz-fila');
+  var posicions = [];
+  var moviments = [];
+  filas.forEach(function(row){
+    var cat = row.querySelector('.wiz-cat').value;
+    var nom = row.querySelector('.wiz-nom').value.trim();
+    var cost = parseFloat(row.querySelector('.wiz-cost').value) || 0;
+    var valor = parseFloat(row.querySelector('.wiz-valor').value) || 0;
+    if (!cat || (cost === 0 && valor === 0)) return;
+    var posId = novaIdLocal('pos');
+    posicions.push({
+      id: posId,
+      cat: cat,
+      nom: nom || '',
+      isin: '',
+      broker: '',
+      valor_actual: valor || cost,
+      valor_data: data,
+      nota: ''
+    });
+    if (cost > 0) {
+      moviments.push({
+        id: novaIdLocal('mov'),
+        posicio_id: posId,
+        data: data,
+        tipus: 'compra',
+        import: cost,
+        unitats: null,
+        preu_unitat: null,
+        nota: 'Punt zero'
+      });
+    }
+  });
+
+  if (posicions.length === 0) { toast('Afegeix almenys una posició amb cost o valor'); return; }
+
   try {
-    var res = await sb.from('clients')
-      .update({ cartera_actual_usuari: posicions })
-      .eq('email', APP.user.email.toLowerCase())
-      .select('email');
-    if (res.error) throw res.error;
-    if (!res.data || res.data.length === 0) throw new Error('Cap fila actualitzada');
-    // Actualitzar cache local
-    if (APP.clientData) APP.clientData.cartera_actual_usuari = posicions;
-    if (msg) { msg.textContent = '✓ Guardat correctament'; msg.style.color = '#1A5C3A'; }
-    // Refrescar la vista (matching i aportació es recalculen amb les dades noves)
-    setTimeout(function(){ renderView('portal-cartera'); }, 1200);
+    if (sb && APP.user && APP.user.email) {
+      var res = await sb.from('clients')
+        .update({ posicions: posicions, moviments_posicions: moviments })
+        .eq('email', APP.user.email.toLowerCase())
+        .select('email');
+      if (res.error) throw res.error;
+    }
+    if (APP.clientData) {
+      APP.clientData.posicions = posicions;
+      APP.clientData.moviments_posicions = moviments;
+    }
+    document.getElementById('modal-wizard-cartera').remove();
+    toast('✓ Cartera creada amb '+posicions.length+' posicions');
+    renderView('portal-cartera');
   } catch(e) {
-    if (msg) { msg.textContent = 'Error: ' + (e.message||e); msg.style.color = '#C0392B'; }
+    toast('Error: '+(e.message||e));
   }
 }
+
+// ── Modal: Registrar moviment ────────────────────────────────────────────
+function obrirModalMoviment(posicioIdPreseleccionada) {
+  var c = getClient();
+  var posicions = getPosicionsV2();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-moviment';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:480px;width:100%;padding:28px 32px';
+
+  var optsPos = posicions.map(function(p){
+    var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; });
+    var label = (taxon ? taxon.emoji+' ' : '') + (p.nom || (taxon ? taxon.ca : p.cat));
+    var sel = (posicioIdPreseleccionada === p.id) ? ' selected' : '';
+    return '<option value="'+p.id+'"'+sel+'>'+label+'</option>';
+  }).join('');
+
+  var avui = new Date().toISOString().slice(0,10);
+
+  var posSelectorHtml;
+  if (posicions.length === 0) {
+    posSelectorHtml = '<div style="padding:10px 12px;background:#FEF5E7;border:1px solid #F0C674;border-radius:8px;font-size:11px;color:#7A4A00;line-height:1.5">⚠️ Encara no tens cap posició creada. Primer afegeix una posició amb el botó "+ Afegir posició".</div>';
+  } else {
+    posSelectorHtml = '<select id="mov-posicio" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsPos+'</select>';
+  }
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:18px">📋 Registrar moviment</div>'
+    + '<div style="display:flex;flex-direction:column;gap:14px">'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Posició</label>'+posSelectorHtml+'</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+        + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Tipus</label>'
+          + '<select id="mov-tipus" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+            + '<option value="compra">🟢 Compra</option>'
+            + '<option value="venda">🔴 Venda</option>'
+            + '<option value="dividend">💵 Dividend</option>'
+            + '<option value="comissio">📤 Comissió</option>'
+          + '</select>'
+        + '</div>'
+        + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Data</label>'
+          + '<input id="mov-data" type="date" value="'+avui+'" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+        + '</div>'
+      + '</div>'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Import (€)</label>'
+        + '<input id="mov-import" type="number" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)">'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+        + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Unitats <span style="color:var(--g400);font-weight:400">(opcional)</span></label>'
+          + '<input id="mov-unitats" type="number" min="0" step="0.0001" placeholder="—" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)">'
+        + '</div>'
+        + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Preu/unitat <span style="color:var(--g400);font-weight:400">(opcional)</span></label>'
+          + '<input id="mov-preu" type="number" min="0" step="0.01" placeholder="—" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)">'
+        + '</div>'
+      + '</div>'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Nota <span style="color:var(--g400);font-weight:400">(opcional)</span></label>'
+        + '<input id="mov-nota" type="text" placeholder="..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb)">'
+      + '</div>'
+    + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end">'
+      + '<button onclick="document.getElementById(\'modal-moviment\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
+      + (posicions.length > 0 ? '<button onclick="guardarMoviment()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Registrar →</button>' : '')
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+async function guardarMoviment() {
+  var posicio_id = document.getElementById('mov-posicio').value;
+  var tipus = document.getElementById('mov-tipus').value;
+  var data = document.getElementById('mov-data').value;
+  var imp = parseFloat(document.getElementById('mov-import').value) || 0;
+  var unitats = parseFloat(document.getElementById('mov-unitats').value) || null;
+  var preu = parseFloat(document.getElementById('mov-preu').value) || null;
+  var nota = document.getElementById('mov-nota').value.trim();
+
+  if (!posicio_id) { toast('Selecciona una posició'); return; }
+  if (!data) { toast('Indica una data'); return; }
+  if (imp <= 0) { toast('L\'import ha de ser > 0'); return; }
+
+  var moviment = {
+    id: novaIdLocal('mov'),
+    posicio_id: posicio_id,
+    data: data,
+    tipus: tipus,
+    import: imp,
+    unitats: unitats,
+    preu_unitat: preu,
+    nota: nota
+  };
+
+  var moviments = getMovimentsV2().slice();
+  moviments.push(moviment);
+
+  try {
+    if (sb && APP.user && APP.user.email) {
+      var res = await sb.from('clients')
+        .update({ moviments_posicions: moviments })
+        .eq('email', APP.user.email.toLowerCase())
+        .select('email');
+      if (res.error) throw res.error;
+    }
+    if (APP.clientData) APP.clientData.moviments_posicions = moviments;
+    document.getElementById('modal-moviment').remove();
+    toast('✓ Moviment registrat');
+    renderView('portal-cartera');
+  } catch(e) {
+    toast('Error: '+(e.message||e));
+  }
+}
+
+async function esborrarMovimentV2(movId) {
+  if (!confirm('Esborrar aquest moviment?')) return;
+  var moviments = getMovimentsV2().filter(function(m){ return m.id !== movId; });
+  try {
+    if (sb && APP.user && APP.user.email) {
+      await sb.from('clients').update({ moviments_posicions: moviments }).eq('email', APP.user.email.toLowerCase());
+    }
+    if (APP.clientData) APP.clientData.moviments_posicions = moviments;
+    toast('✓ Moviment esborrat');
+    renderView('portal-cartera');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+// ── Modal: Afegir posició ────────────────────────────────────────────────
+function obrirModalAfegirPosicio() {
+  var modal = document.createElement('div');
+  modal.id = 'modal-posicio';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:480px;width:100%;padding:28px 32px';
+
+  var optsCat = ACTIUS_TAXONOMY.map(function(a){ return '<option value="'+a.id+'">'+a.emoji+' '+a.ca+'</option>'; }).join('');
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:6px">+ Nova posició</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.6">Crea una nova posició buida. Després pots registrar els moviments de compra associats.</div>'
+    + '<div style="display:flex;flex-direction:column;gap:14px">'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Categoria</label>'
+        + '<select id="pos-cat" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)"><option value="">— Selecciona —</option>'+optsCat+'</select>'
+      + '</div>'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Nom del producte</label>'
+        + '<input id="pos-nom" type="text" placeholder="Ex: iShares Core MSCI World" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+        + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">ISIN <span style="color:var(--g400);font-weight:400">(opcional)</span></label>'
+          + '<input id="pos-isin" type="text" placeholder="IE00B4L5Y983" maxlength="12" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fm);text-transform:uppercase">'
+        + '</div>'
+        + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Broker <span style="color:var(--g400);font-weight:400">(opcional)</span></label>'
+          + '<input id="pos-broker" type="text" placeholder="Degiro" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb)">'
+        + '</div>'
+      + '</div>'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Valor actual de mercat (€) <span style="color:var(--g400);font-weight:400">(opcional, si en saps)</span></label>'
+        + '<input id="pos-valor" type="number" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)">'
+      + '</div>'
+    + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end">'
+      + '<button onclick="document.getElementById(\'modal-posicio\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel\u00b7lar</button>'
+      + '<button onclick="guardarPosicioNova()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Crear posició →</button>'
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+async function guardarPosicioNova() {
+  var cat = document.getElementById('pos-cat').value;
+  var nom = document.getElementById('pos-nom').value.trim();
+  var isin = document.getElementById('pos-isin').value.trim().toUpperCase();
+  var broker = document.getElementById('pos-broker').value.trim();
+  var valor = parseFloat(document.getElementById('pos-valor').value) || 0;
+
+  if (!cat) { toast('Selecciona una categoria'); return; }
+  if (!nom) { toast('Indica el nom del producte'); return; }
+
+  var posicio = {
+    id: novaIdLocal('pos'),
+    cat: cat,
+    nom: nom,
+    isin: isin,
+    broker: broker,
+    valor_actual: valor,
+    valor_data: new Date().toISOString().slice(0,10),
+    nota: ''
+  };
+
+  var posicions = getPosicionsV2().slice();
+  posicions.push(posicio);
+
+  try {
+    if (sb && APP.user && APP.user.email) {
+      var res = await sb.from('clients')
+        .update({ posicions: posicions })
+        .eq('email', APP.user.email.toLowerCase())
+        .select('email');
+      if (res.error) throw res.error;
+    }
+    if (APP.clientData) APP.clientData.posicions = posicions;
+    document.getElementById('modal-posicio').remove();
+    toast('✓ Posició creada — registra ara els moviments');
+    renderView('portal-cartera');
+  } catch(e) {
+    toast('Error: '+(e.message||e));
+  }
+}
+
+async function esborrarPosicioV2(posId) {
+  var posicions = getPosicionsV2();
+  var moviments = getMovimentsV2();
+  var pos = posicions.find(function(p){return p.id===posId;});
+  var movsAssoc = moviments.filter(function(m){return m.posicio_id===posId;}).length;
+  var nom = pos ? (pos.nom||pos.cat) : posId;
+  var avis = 'Esborrar la posició "'+nom+'"?';
+  if (movsAssoc > 0) avis += '\n\nAixò també esborrarà '+movsAssoc+' moviment(s) associat(s).';
+  if (!confirm(avis)) return;
+  var noves_pos = posicions.filter(function(p){return p.id!==posId;});
+  var nous_mov = moviments.filter(function(m){return m.posicio_id!==posId;});
+  try {
+    if (sb && APP.user && APP.user.email) {
+      await sb.from('clients').update({ posicions: noves_pos, moviments_posicions: nous_mov }).eq('email', APP.user.email.toLowerCase());
+    }
+    if (APP.clientData) {
+      APP.clientData.posicions = noves_pos;
+      APP.clientData.moviments_posicions = nous_mov;
+    }
+    toast('✓ Posició esborrada');
+    renderView('portal-cartera');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+// ── Modal: Actualitzar valors de mercat ──────────────────────────────────
+function obrirModalActualitzarValors() {
+  var posicions = getPosicionsV2();
+  if (posicions.length === 0) { toast('Encara no hi ha posicions'); return; }
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-valors';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:560px;width:100%;padding:28px 32px;max-height:90vh;overflow-y:auto';
+
+  var rows = posicions.map(function(p, i){
+    var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; });
+    var emoji = taxon ? taxon.emoji : '•';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--g50)">'
+      + '<div style="font-size:18px">'+emoji+'</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:12px;font-weight:500;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(p.nom||(taxon?taxon.ca:p.cat))+'</div>'
+        + '<div style="font-size:10px;color:var(--g400);margin-top:1px">'+(taxon?taxon.ca:'')+' · actual: '+(p.valor_actual||0).toLocaleString('ca-ES')+'€</div>'
+      + '</div>'
+      + '<input type="number" class="val-input" data-pos-id="'+p.id+'" min="0" step="0.01" value="'+(p.valor_actual||0)+'" style="width:110px;padding:7px 10px;border:1.5px solid var(--g200);border-radius:6px;font-size:12px;font-family:var(--fm);text-align:right">'
+      + '<span style="font-size:11px;color:var(--g400)">€</span>'
+    + '</div>';
+  }).join('');
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:6px">💱 Actualitzar valors de mercat</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.6">Posa el valor de mercat actual de cada posició. La data es guardarà automàticament.</div>'
+    + '<div style="margin-bottom:18px">'+rows+'</div>'
+    + '<div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--g100);padding-top:16px">'
+      + '<button onclick="document.getElementById(\'modal-valors\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
+      + '<button onclick="guardarValorsActualitzats()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar valors →</button>'
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+async function guardarValorsActualitzats() {
+  var data = new Date().toISOString().slice(0,10);
+  var posicions = getPosicionsV2().slice();
+  var inputs = document.querySelectorAll('.val-input');
+  inputs.forEach(function(inp){
+    var posId = inp.getAttribute('data-pos-id');
+    var v = parseFloat(inp.value) || 0;
+    var p = posicions.find(function(x){ return x.id === posId; });
+    if (p) { p.valor_actual = v; p.valor_data = data; }
+  });
+  try {
+    if (sb && APP.user && APP.user.email) {
+      await sb.from('clients').update({ posicions: posicions }).eq('email', APP.user.email.toLowerCase());
+    }
+    if (APP.clientData) APP.clientData.posicions = posicions;
+    document.getElementById('modal-valors').remove();
+    toast('✓ Valors actualitzats');
+    renderView('portal-cartera');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+// ── Render auxiliars: taules i gràfic d'evolució ────────────────────────
+function renderTaulaPosicions(posAgg) {
+  if (posAgg.length === 0) return '<div style="padding:20px;text-align:center;color:var(--g400);font-size:12px">Sense posicions</div>';
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    + '<thead><tr>'
+      + '<th style="text-align:left;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Posició</th>'
+      + '<th style="text-align:left;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Broker</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Cost</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Valor</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">P&amp;L</th>'
+      + '<th style="padding:8px 6px;border-bottom:1px solid var(--g100)"></th>'
+    + '</tr></thead><tbody>';
+  posAgg.forEach(function(p){
+    var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; });
+    var emoji = taxon ? taxon.emoji : '•';
+    var colPnl = p.pnl_eur >= 0 ? '#1A5C3A' : '#C0392B';
+    html += '<tr style="border-bottom:1px solid var(--g50)">'
+      + '<td style="padding:10px 6px">'
+        + '<div style="display:flex;align-items:center;gap:8px">'
+          + '<span style="font-size:14px">'+emoji+'</span>'
+          + '<div><div style="font-weight:500;color:var(--black)">'+(p.nom||(taxon?taxon.ca:p.cat))+'</div>'
+          + '<div style="font-size:10px;color:var(--g400)">'+(taxon?taxon.ca:'')+(p.isin?' · '+p.isin:'')+'</div></div>'
+        + '</div>'
+      + '</td>'
+      + '<td style="padding:10px 6px;color:var(--g500);font-size:11px">'+(p.broker||'—')+'</td>'
+      + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm)">'+p.cost_base.toLocaleString('ca-ES')+'€</td>'
+      + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm);font-weight:500">'+(p.valor_actual||0).toLocaleString('ca-ES')+'€</td>'
+      + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm);font-weight:500;color:'+colPnl+'">'+(p.pnl_eur>=0?'+':'')+p.pnl_eur.toLocaleString('ca-ES')+'€<div style="font-size:10px;font-weight:400">'+(p.pnl_pct>=0?'+':'')+p.pnl_pct.toFixed(1)+'%</div></td>'
+      + '<td style="padding:10px 6px;text-align:right">'
+        + '<button onclick="obrirModalMoviment(\''+p.id+'\')" title="Registrar moviment" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:14px;padding:2px 4px">+</button>'
+        + '<button onclick="esborrarPosicioV2(\''+p.id+'\')" title="Esborrar posició" style="background:none;border:none;cursor:pointer;color:var(--g400);font-size:14px;padding:2px 4px">×</button>'
+      + '</td>'
+    + '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderTaulaMoviments() {
+  var moviments = getMovimentsV2().slice().sort(function(a,b){
+    return (b.data||'').localeCompare(a.data||'');
+  });
+  var posicions = getPosicionsV2();
+  var emojiTipus = { compra:'🟢', venda:'🔴', dividend:'💵', comissio:'📤' };
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    + '<thead><tr>'
+      + '<th style="text-align:left;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Data</th>'
+      + '<th style="text-align:left;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Tipus</th>'
+      + '<th style="text-align:left;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Posició</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Import</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Unitats</th>'
+      + '<th style="padding:8px 6px;border-bottom:1px solid var(--g100)"></th>'
+    + '</tr></thead><tbody>';
+  moviments.forEach(function(m){
+    var p = posicions.find(function(x){ return x.id === m.posicio_id; });
+    var taxon = p ? ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; }) : null;
+    var nomPos = p ? (p.nom||(taxon?taxon.ca:p.cat)) : '(posició eliminada)';
+    var emt = emojiTipus[m.tipus] || '•';
+    html += '<tr style="border-bottom:1px solid var(--g50)">'
+      + '<td style="padding:9px 6px;font-family:var(--fm);font-size:11px">'+(m.data||'—')+'</td>'
+      + '<td style="padding:9px 6px;font-size:11px">'+emt+' '+m.tipus+'</td>'
+      + '<td style="padding:9px 6px">'+nomPos+(m.nota?'<div style="font-size:10px;color:var(--g400)">'+m.nota+'</div>':'')+'</td>'
+      + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm);font-weight:500">'+m.import.toLocaleString('ca-ES')+'€</td>'
+      + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm);font-size:11px;color:var(--g500)">'+(m.unitats!=null?parseFloat(m.unitats).toLocaleString('ca-ES'):'—')+'</td>'
+      + '<td style="padding:9px 6px;text-align:right"><button onclick="esborrarMovimentV2(\''+m.id+'\')" style="background:none;border:none;cursor:pointer;color:var(--g400);font-size:14px;padding:2px 4px">×</button></td>'
+    + '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderMatchingTable(match) {
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+    + '<thead><tr>'
+      + '<th style="text-align:left;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Categoria</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Target</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Real</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Desv.</th>'
+      + '<th style="text-align:right;padding:8px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">Gap €</th>'
+    + '</tr></thead><tbody>';
+  match.rows.forEach(function(r){
+    var gapCol = Math.abs(r.gap_pct) < 1 ? '#1A5C3A' : (r.gap_pct > 0 ? '#7A4A00' : '#5b5b5b');
+    var bg = r.gap_eur > 0 ? '#FEF5E7' : 'transparent';
+    html += '<tr style="border-bottom:1px solid var(--g50);background:'+bg+'">'
+      + '<td style="padding:10px 6px"><span style="font-size:13px;margin-right:6px">'+r.emoji+'</span><span style="font-weight:500">'+r.nom+'</span></td>'
+      + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm)">'+r.target_pct.toFixed(0)+'%</td>'
+      + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm)">'+r.real_pct.toFixed(1)+'%</td>'
+      + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm);color:'+gapCol+';font-weight:500">'+(r.gap_pct>=0?'+':'')+r.gap_pct.toFixed(1)+'pp</td>'
+      + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm);color:'+gapCol+';font-weight:500">'+(r.gap_eur>=0?'+':'')+Math.round(r.gap_eur).toLocaleString('ca-ES')+'€</td>'
+    + '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
+// Gràfic SVG d'evolució (invertit acumulat + valor cartera, àrea de guany)
+function renderEvolucioSVG(width) {
+  var serie = calcEvolucioCartera();
+  if (serie.length < 2) {
+    return '<div style="padding:32px;text-align:center;color:var(--g400);font-size:12px">📈 Encara no hi ha prou moviments per dibuixar l\'evolució<br><span style="font-size:11px">Caldrà almenys 2 moviments en dates diferents</span></div>';
+  }
+  width = width || 720;
+  var H = 220;
+  var pad = {t:20, r:20, b:36, l:60};
+  var W = width - pad.l - pad.r;
+  var HH = H - pad.t - pad.b;
+
+  // Range temporal
+  var dates = serie.map(function(s){ return new Date(s.data).getTime(); });
+  var tMin = Math.min.apply(null, dates);
+  var tMax = Math.max.apply(null, dates);
+  if (tMin === tMax) tMax = tMin + 86400000;  // evitar div per 0
+
+  // Range valors
+  var valors = [];
+  serie.forEach(function(s){
+    valors.push(s.invertit_acum);
+    if (s.valor_actual != null) valors.push(s.valor_actual);
+  });
+  var vMax = Math.max.apply(null, valors) * 1.1 || 100;
+  var vMin = 0;
+
+  function xpx(t) { return pad.l + (t - tMin) / (tMax - tMin) * W; }
+  function ypx(v) { return pad.t + (1 - (v - vMin) / (vMax - vMin)) * HH; }
+
+  // Sèrie invertit (esglaonada)
+  var pathInv = '';
+  serie.forEach(function(s, i){
+    var x = xpx(new Date(s.data).getTime());
+    var y = ypx(s.invertit_acum);
+    pathInv += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
+  });
+
+  // Punt final amb valor actual
+  var last = serie[serie.length-1];
+  var xLast = xpx(new Date(last.data).getTime());
+  var yLastInv = ypx(last.invertit_acum);
+  var yLastVal = ypx(last.valor_actual != null ? last.valor_actual : last.invertit_acum);
+
+  // Àrea de guany (entre invertit i valor al punt final, interpolada)
+  // Simple: una línia diagonal des de l'inici al final i una àrea entre invertit i valor
+  // Per simplicitat, només marquem el punt final amb una línia vertical
+  var areaPath = pathInv + ' L' + xLast.toFixed(1) + ',' + yLastVal.toFixed(1) + ' Z';
+
+  // Eixos: 5 línies horitzontals de guia
+  var guides = '';
+  for (var i = 0; i <= 4; i++) {
+    var v = vMin + (vMax - vMin) * i / 4;
+    var y = ypx(v);
+    guides += '<line x1="'+pad.l+'" y1="'+y.toFixed(1)+'" x2="'+(pad.l+W)+'" y2="'+y.toFixed(1)+'" stroke="#EEE" stroke-width="1"/>';
+    guides += '<text x="'+(pad.l-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="#999" text-anchor="end">'+Math.round(v).toLocaleString('ca-ES')+'€</text>';
+  }
+
+  // Eix X amb labels d'inici/fi
+  var dataIni = new Date(tMin).toISOString().slice(0,10);
+  var dataFi = new Date(tMax).toISOString().slice(0,10);
+  var xAxis = '<text x="'+pad.l+'" y="'+(H-12)+'" font-size="9" fill="#999">'+dataIni+'</text>'
+    + '<text x="'+(pad.l+W)+'" y="'+(H-12)+'" font-size="9" fill="#999" text-anchor="end">'+dataFi+'</text>';
+
+  // Estil de colors
+  var colInv = '#3B82C4';
+  var colVal = last.valor_actual >= last.invertit_acum ? '#1A5C3A' : '#C0392B';
+  var colFill = last.valor_actual >= last.invertit_acum ? 'rgba(26,92,58,.12)' : 'rgba(192,57,43,.10)';
+
+  // Línia diagonal d'invertit a valor al punt final (visualitza guany/pèrdua)
+  var bridge = '<line x1="'+xLast.toFixed(1)+'" y1="'+yLastInv.toFixed(1)+'" x2="'+xLast.toFixed(1)+'" y2="'+yLastVal.toFixed(1)+'" stroke="'+colVal+'" stroke-width="2"/>';
+  var bridgeDot = '<circle cx="'+xLast.toFixed(1)+'" cy="'+yLastVal.toFixed(1)+'" r="5" fill="'+colVal+'"/>';
+  var bridgeLabel = '<text x="'+(xLast-8).toFixed(1)+'" y="'+(yLastVal-8).toFixed(1)+'" font-size="11" font-weight="600" fill="'+colVal+'" text-anchor="end">'+Math.round(last.valor_actual||0).toLocaleString('ca-ES')+'€</text>';
+  var invLabel = '<text x="'+(xLast-8).toFixed(1)+'" y="'+(yLastInv+14).toFixed(1)+'" font-size="10" fill="'+colInv+'" text-anchor="end">'+Math.round(last.invertit_acum).toLocaleString('ca-ES')+'€</text>';
+
+  // Llegenda
+  var legend = '<rect x="'+(pad.l+10)+'" y="'+(pad.t+6)+'" width="10" height="10" fill="'+colInv+'"/>'
+    + '<text x="'+(pad.l+26)+'" y="'+(pad.t+15)+'" font-size="10" fill="#444">Capital invertit</text>'
+    + '<rect x="'+(pad.l+130)+'" y="'+(pad.t+6)+'" width="10" height="10" fill="'+colVal+'"/>'
+    + '<text x="'+(pad.l+146)+'" y="'+(pad.t+15)+'" font-size="10" fill="#444">Valor cartera</text>';
+
+  return '<svg viewBox="0 0 '+width+' '+H+'" style="width:100%;height:auto;display:block">'
+    + guides + xAxis
+    + '<path d="'+pathInv+'" stroke="'+colInv+'" stroke-width="2" fill="none"/>'
+    + bridge + bridgeDot + bridgeLabel + invLabel + legend
+  + '</svg>';
+}
+
+// ── Exportació CSV (posicions + moviments) ──────────────────────────────
+function exportarCarteraCSV() {
+  var posAgg = calcPosicionsAmbAgregats();
+  var moviments = getMovimentsV2();
+  var c = getClient();
+  var nomCli = c ? c.nom : 'client';
+  var avui = new Date().toISOString().slice(0,10);
+
+  var lines = [];
+  lines.push('# Cartera de ' + nomCli + ' — exportat ' + avui);
+  lines.push('');
+  lines.push('# POSICIONS');
+  lines.push('Categoria,Nom,ISIN,Broker,Cost base (€),Valor actual (€),P&L (€),P&L (%),Moviments');
+  posAgg.forEach(function(p){
+    var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; });
+    var catNom = taxon ? taxon.ca : p.cat;
+    lines.push([
+      '"'+catNom+'"',
+      '"'+(p.nom||'').replace(/"/g,"'")+'"',
+      p.isin||'',
+      '"'+(p.broker||'').replace(/"/g,"'")+'"',
+      p.cost_base.toFixed(2),
+      (p.valor_actual||0).toFixed(2),
+      p.pnl_eur.toFixed(2),
+      p.pnl_pct.toFixed(2)+'%',
+      p.num_moviments
+    ].join(','));
+  });
+  lines.push('');
+  lines.push('# MOVIMENTS');
+  lines.push('Data,Tipus,Posició,Import (€),Unitats,Preu/unitat,Nota');
+  moviments.slice().sort(function(a,b){return (a.data||'').localeCompare(b.data||'');}).forEach(function(m){
+    var p = getPosicionsV2().find(function(x){return x.id===m.posicio_id;});
+    var nomPos = p ? (p.nom || p.cat) : '(eliminada)';
+    lines.push([
+      m.data||'',
+      m.tipus,
+      '"'+nomPos.replace(/"/g,"'")+'"',
+      (m.import||0).toFixed(2),
+      m.unitats!=null?m.unitats:'',
+      m.preu_unitat!=null?m.preu_unitat:'',
+      '"'+(m.nota||'').replace(/"/g,"'")+'"'
+    ].join(','));
+  });
+
+  var csv = lines.join('\n');
+  var blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'cartera_'+nomCli.replace(/\s+/g,'_')+'_'+avui+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  toast('✓ CSV descarregat');
+}
+
 
 // Editar l'aportació mensual
 function editarAportacioMensual() {
@@ -4696,31 +5193,40 @@ function renderPortalAportacions(el) {
   if (!c) { el.innerHTML = '<div class="content-inner"><p style="padding:40px;color:var(--g400)">Carregant...</p></div>'; return; }
   var arq = getArquetip(c.arquetipId || 'navegant');
   var pla = getPlaAportacions();
-  var posicions = (c.cartera_actual_usuari || []);
-  var aportMens = pla ? (parseFloat(pla.mensual)||0) : (parseFloat((c.perfil && c.perfil.aportacioMensual)||0)||0);
-  var frequencia = pla ? (pla.frequencia||'Mensual') : 'Mensual';
-  var propera = pla ? (pla.propera||'1 del mes vinent') : '1 del mes vinent';
-  var distribucio = pla ? (pla.distribucio||[]) : (arq.actius||[]).map(function(a){
-    return { actiu:a.nom, pct:a.pct, import:Math.round(aportMens*a.pct/100), color:a.color };
-  });
+
+  // Aportació mensual: prioritzem pla.mensual, després perfil.aportacioMensual
+  var aportMens = 0;
+  if (pla && pla.mensual != null) {
+    aportMens = parseFloat(pla.mensual) || 0;
+  } else if (c.perfil && c.perfil.aportacioMensual) {
+    aportMens = parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
+  }
+  var frequencia = (pla && pla.frequencia) || 'Mensual';
+  var propera = (pla && pla.propera) || '1 del mes vinent';
+
+  // Càlcul amb algoritme nou: top 2 categories més infraponderades
+  var match = calcMatchingITactic(aportMens);
   var ajustos = (pla && pla.ajustos) ? pla.ajustos : [];
 
   var html = '<div class="content-inner fade-in">';
 
-  if (!pla && aportMens === 0) {
+  // Sense aportació configurada → CTA
+  if (aportMens === 0) {
     html += '<div style="padding:28px;background:#F4F3F0;border-radius:12px;margin-bottom:20px;text-align:center">'
       + '<div style="font-size:22px;margin-bottom:8px">&#128197;</div>'
       + '<div style="font-family:var(--fd);font-size:18px;margin-bottom:6px">Configura la teva aportació mensual</div>'
-      + '<div style="font-size:13px;color:var(--g500);margin-bottom:16px;line-height:1.6">Defineix quant vols aportar cada mes i la plataforma et dirà exactament quant comprar de cada actiu.</div>'
+      + '<div style="font-size:13px;color:var(--g500);margin-bottom:16px;line-height:1.6">Defineix quant vols aportar cada mes i la plataforma calcularà automàticament a quines categories aportar per maximitzar el matching amb la teva cartera target.</div>'
       + '<button onclick="editarAportacioMensual()" style="padding:11px 24px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Configurar aportació →</button>'
-    + '</div>';
+    + '</div></div>';
+    el.innerHTML = html;
+    return;
   }
 
-  // Summary
+  // Cards summary
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px" class="mob-grid">'
-    + '<div style="padding:18px;background:var(--accent);border-radius:12px;text-align:center">'
-      + '<div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Aportació mensual</div>'
-      + '<div style="font-family:var(--fm);font-size:28px;font-weight:500;color:var(--white)">' + pla.mensual + ' €</div>'
+    + '<div style="padding:18px;background:var(--accent);border-radius:12px;text-align:center;cursor:pointer" onclick="editarAportacioMensual()" title="Editar aportació">'
+      + '<div style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Aportació mensual ✏️</div>'
+      + '<div style="font-family:var(--fm);font-size:28px;font-weight:500;color:var(--white)">' + aportMens.toLocaleString('ca-ES') + ' €</div>'
     + '</div>'
     + '<div style="padding:18px;background:var(--white);border:1px solid var(--g200);border-radius:12px;text-align:center">'
       + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Freqüència</div>'
@@ -4732,24 +5238,43 @@ function renderPortalAportacions(el) {
     + '</div>'
   + '</div>';
 
-  // Distribució de la propera aportació
-  if (aportMens > 0) {
-  html += '<div class="card"><div class="card-title">Distribució de la propera aportació — ' + aportMens.toLocaleString('ca-ES') + ' €</div>';
-  distribucio.forEach(function(d){
-    var colorD = d.color || ((arq.actius||[]).find(function(a){return a.nom===d.actiu;})||{}).color || '#888';
-    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--g100)">'
-      + '<div class="alloc-dot" style="background:' + colorD + '"></div>'
-      + '<div style="font-size:12px;flex:1">' + d.actiu + '</div>'
-      + '<div style="font-family:var(--fm);font-size:11px;color:var(--g500);width:32px;text-align:right">' + d.pct + '%</div>'
-      + '<div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--accent);width:60px;text-align:right">' + (d.import!==undefined ? d.import.toLocaleString('ca-ES') : Math.round(aportMens*(d.pct||0)/100).toLocaleString('ca-ES')) + '€</div>'
+  // ── Recomanació intel·ligent (algoritme nou) ──
+  if (match && match.recomanacio.length > 0) {
+    html += '<div style="background:linear-gradient(135deg,#FAF7F0 0%,#F4ECE0 100%);border:1px solid #E8C285;border-radius:13px;padding:22px 26px;margin-bottom:20px">'
+      + '<div style="font-family:var(--fd);font-size:18px;color:#7A4A00;margin-bottom:6px">💡 On aportar aquest mes</div>'
+      + '<div style="font-size:12px;color:#9A6B1F;margin-bottom:18px;line-height:1.6">Per maximitzar el matching amb la teva cartera <strong>'+arq.cartNom+'</strong>, concentra l\'aportació de <strong>'+aportMens.toLocaleString('ca-ES')+'€</strong> en les 2 categories més infraponderades:</div>'
+      + '<div style="display:flex;gap:14px;flex-wrap:wrap">';
+    match.recomanacio.forEach(function(r){
+      var pct = aportMens > 0 ? Math.round(r.import/aportMens*100) : 0;
+      html += '<div style="flex:1;min-width:220px;padding:18px;background:#fff;border-radius:11px;border:1px solid #E8C285">'
+        + '<div style="font-size:11px;color:var(--g500);margin-bottom:6px">'+r.emoji+' '+r.nom+'</div>'
+        + '<div style="font-family:var(--fm);font-size:26px;font-weight:500;color:#7A4A00;margin-bottom:3px">'+r.import.toLocaleString('ca-ES')+'€</div>'
+        + '<div style="font-size:10px;color:var(--g400)">'+pct+'% de l\'aportació · '+r.motiu+'</div>'
+      + '</div>';
+    });
+    html += '</div>'
+      + '<div style="margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.6);border-radius:8px;font-size:11px;color:var(--g600);line-height:1.6">'
+        + '<strong>Per què només 2 categories?</strong> Concentrar l\'aportació estalvia comissions i accelera el rebalanceig. La resta de categories es mantindran fins que tornin a estar infraponderades.<br>'
+        + '<strong>L\'actiu concret</strong> (ETF, fons o producte) dins de cada categoria el determinarà el teu assessor conjuntament amb tu.'
+      + '</div>'
     + '</div>';
-  });
-  html += '</div>';
-  } // fi if aportMens > 0
+  } else if (match) {
+    html += '<div style="padding:20px;background:#EAF3DE;border:1px solid #B5D192;border-radius:11px;font-size:13px;color:#1A5C3A;margin-bottom:20px;line-height:1.6">'
+      + '✅ <strong>Cartera equilibrada</strong> — Cap categoria està infraponderada. L\'aportació es destinarà a mantenir els pesos més grans del target.'
+    + '</div>';
+  }
 
-  // Ajustos recomanats
+  // ── Matching real vs target ──
+  if (match && match.rows.length > 0) {
+    html += '<div class="card"><div class="card-title">📊 Matching: Real vs Target</div>'
+      + '<div style="font-size:12px;color:var(--g500);margin-bottom:14px;line-height:1.6">Comparativa per categoria entre la teva cartera actual i la cartera target <strong>'+arq.cartNom+'</strong>. Files marcades són les que cal reforçar.</div>'
+      + renderMatchingTable(match)
+    + '</div>';
+  }
+
+  // Ajustos recomanats (manté el sistema de notes opcional per a l'admin)
   if (ajustos && ajustos.length > 0) {
-    html += '<div class="card"><div class="card-title">⚡ Ajustos recomanats per reequilibrar</div>';
+    html += '<div class="card"><div class="card-title">⚡ Ajustos recomanats per l\'assessor</div>';
     ajustos.forEach(function(a){
       var isOver = a.accio.indexOf('Reduir') >= 0;
       html += '<div style="padding:12px;background:' + (isOver?'#FEF5E7':'#EAF3DE') + ';border-radius:8px;margin-bottom:8px;border-left:3px solid ' + (isOver?'#7A4A00':'#1A5C3A') + '">'
@@ -4760,12 +5285,12 @@ function renderPortalAportacions(el) {
     html += '</div>';
   }
 
-  // Nota
-  html += '<div class="card"><div class="card-title">Com funciona</div>'
+  // Nota explicativa
+  html += '<div class="card"><div class="card-title">Com funciona l\'algoritme</div>'
     + '<div style="font-size:12px;color:var(--g600);line-height:1.8">'
-      + 'La distribució segueix els pesos de la teva cartera <strong>' + arq.cartNom + '</strong>. '
-      + 'Quan un actiu es desvia del seu target, les aportacions es redirigeixen automàticament per reequilibrar. '
-      + 'Això evita haver de vendre (i pagar impostos) per rebalancejar — les aportacions noves fan la feina.'
+      + 'A partir del valor actual de la teva cartera real, calculem el <strong>gap (€)</strong> per cada categoria del target. '
+      + 'L\'aportació mensual es reparteix entre les <strong>2 categories més infraponderades</strong>, proporcionalment al gap de cadascuna. '
+      + 'Així evitem fragmentar l\'aportació (i les comissions), i les compres noves fan la feina de rebalancejar sense haver de vendre.'
     + '</div>'
   + '</div>';
 
@@ -8237,49 +8762,8 @@ function renderPlatformTickers(data, el, updEl) {
 
 // ══════════════════════════════════════════════════
 // ── EXPORTACIÓ SEGUIMENT ──────────────────────────────────────────────────
-function exportarSeguimentCSV() {
-  var c = getClient();
-  if (!c) return;
-  var moviments = c.moviments || [];
-  if (!moviments.length) { toast('No hi ha dades per exportar'); return; }
-  var rows = ['Mes,Capital invertit acumulat (EUR),Valor mercat (EUR),Rendiment (%)'];
-  var cumCost = 0;
-  moviments.forEach(function(m) {
-    cumCost += parseFloat(m.cost||0);
-    var valor = parseFloat(m.valor||cumCost);
-    var rend = cumCost > 0 ? ((valor/cumCost-1)*100).toFixed(2) : '0.00';
-    rows.push(m.mes + ',' + cumCost.toFixed(2) + ',' + valor.toFixed(2) + ',' + rend);
-  });
-  var pos = c.cartera_actual_usuari || [];
-  if (pos.length) {
-    rows.push('');
-    rows.push('Posicions actuals');
-    rows.push('Categoria,Producte,Broker,Cost (EUR),Valor actual (EUR)');
-    pos.forEach(function(p) {
-      rows.push([p.cat, p.desc||'', p.broker||'', p.cost||0, p.valor||0].join(','));
-    });
-  }
-  var blob = new Blob([rows.join('\n')], { type:'text/csv;charset=utf-8;' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'seguiment_' + (c.nom||'client').replace(/\s+/g,'_') + '_' + new Date().toISOString().split('T')[0] + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-  toast('\u2713 CSV exportat');
-}
-
-async function esborrarMoviment(mes, redirectView) {
-  var c = getClient();
-  if (!c) return;
-  var moviments = (c.moviments||[]).filter(function(m){ return m.mes !== mes; });
-  try {
-    if (sb) await sb.from('clients').update({ moviments:moviments }).eq('email', APP.user.email.toLowerCase());
-    if (APP.clientData) APP.clientData.moviments = moviments;
-    toast('\u2713 Eliminat ' + mes);
-    if (redirectView) renderView(redirectView);
-  } catch(e) { toast('Error: ' + (e.message||e)); }
-}
+// ── Funcions exportarSeguimentCSV i esborrarMoviment (sistema antic) eliminades.
+// Substituïdes per exportarCarteraCSV() i esborrarMovimentV2() del sistema v2.
 
 function checkRetestBanner() {
   var c = APP.clientData;
