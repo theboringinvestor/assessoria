@@ -3777,95 +3777,11 @@ function renderPortalPerfil(el) {
 
   // Unread messages alert — dinàmic amb id per actualitzar després
   html += '<div id="unread-banner" style="display:none"></div>';
+
+  // Placeholder per a Accions pendents — es renderitzarà dinàmicament
+  html += '<div id="accions-pendents-placeholder"></div>';
+
   setTimeout(actualitzarBannerMissatges, 100);
-
-  // ── Card "Accions pendents" — checklist dinàmic d'accions concretes ──
-  var accions = [];
-  // 1) Cartera buida
-  if (kpis_v2.num_posicions === 0) {
-    accions.push({
-      icon: '💼',
-      titol: 'Importar la teva cartera',
-      desc: 'Afegeix les posicions actuals per veure el matching amb la teva cartera target.',
-      cta: 'Anar a la cartera',
-      view: 'portal-cartera',
-      prioritat: 'alta'
-    });
-  } else {
-    // 2) Matching amb gap gran
-    var aportMensTmp = (c.perfil && c.perfil.aportacioMensual) ? parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) || 0 : 0;
-    var matchTmp = calcMatchingITactic(aportMensTmp);
-    if (matchTmp && matchTmp.recomanacio.length > 0) {
-      var topGap = matchTmp.rows.slice().sort(function(a,b){return b.gap_eur - a.gap_eur;})[0];
-      if (topGap && topGap.gap_pct > 5) {
-        accions.push({
-          icon: '⚡',
-          titol: 'Categoria infraponderada: ' + topGap.nom,
-          desc: 'La teva cartera està a ' + topGap.real_pct.toFixed(1) + '% (target ' + topGap.target_pct.toFixed(0) + '%). Aporta a aquesta categoria per rebalancejar.',
-          cta: 'Veure recomanació',
-          view: 'portal-aportacions',
-          prioritat: 'mitja'
-        });
-      }
-    }
-  }
-  // 3) Aportació mensual no configurada
-  if (!c.perfil || !c.perfil.aportacioMensual || c.perfil.aportacioMensual === '—' || parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) === 0) {
-    accions.push({
-      icon: '📅',
-      titol: 'Configura la teva aportació mensual',
-      desc: 'Defineix quant pots aportar cada mes per generar el pla automàtic.',
-      cta: 'Configurar',
-      view: 'portal-aportacions',
-      prioritat: 'mitja'
-    });
-  }
-  // 4) Fons d'emergència incomplet
-  if (emerg) {
-    var liq = (emerg.liquiditat||[]).reduce(function(s,l){return s+(l.import||0);}, 0);
-    var lp = LIQUIDITAT_PERFILS[c.arquetipId] || LIQUIDITAT_PERFILS.arquitecte;
-    var obj = (emerg.despesesMensuals||0) * lp.mesos;
-    if (obj > 0 && liq < obj * 0.6) {
-      accions.push({
-        icon: '🛡️',
-        titol: 'Fons d\'emergència per sota del 60%',
-        desc: 'Tens ' + liq.toLocaleString('ca-ES') + '€ líquids però l\'objectiu és ' + obj.toLocaleString('ca-ES') + '€. Reforça el coixí abans d\'invertir.',
-        cta: 'Veure detall',
-        view: 'portal-emergencia',
-        prioritat: 'alta'
-      });
-    }
-  } else {
-    accions.push({
-      icon: '🛡️',
-      titol: 'Defineix el teu fons d\'emergència',
-      desc: 'Configura el coixí de seguretat abans de començar a invertir.',
-      cta: 'Configurar',
-      view: 'portal-emergencia',
-      prioritat: 'mitja'
-    });
-  }
-
-  if (accions.length > 0) {
-    html += '<div class="card"><div class="card-title">🎯 Accions pendents</div>';
-    accions.forEach(function(a){
-      var border = a.prioritat === 'alta' ? '#C0392B' : (a.prioritat === 'mitja' ? '#7A4A00' : '#1A5C3A');
-      var bg     = a.prioritat === 'alta' ? '#FDF0F0' : (a.prioritat === 'mitja' ? '#FEF5E7' : '#EAF3DE');
-      html += '<div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:'+bg+';border-left:3px solid '+border+';border-radius:8px;margin-bottom:8px">'
-        + '<div style="font-size:22px;flex-shrink:0">'+a.icon+'</div>'
-        + '<div style="flex:1;min-width:0">'
-          + '<div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:2px">'+a.titol+'</div>'
-          + '<div style="font-size:11px;color:var(--g600);line-height:1.5">'+a.desc+'</div>'
-        + '</div>'
-        + '<button onclick="navigateTo(\''+a.view+'\')" style="padding:7px 14px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap;flex-shrink:0">'+a.cta+' →</button>'
-      + '</div>';
-    });
-    html += '</div>';
-  } else if (kpis_v2.num_posicions > 0) {
-    html += '<div style="padding:16px;background:#EAF3DE;border:1px solid #B5D192;border-radius:11px;font-size:12px;color:#1A5C3A;margin-bottom:20px;line-height:1.6">'
-      + '✅ <strong>Tot al dia.</strong> No tens cap acció pendent en aquest moment.'
-    + '</div>';
-  }
 
   // Rationale — WHY this portfolio for this archetype
   html += '<div class="card">'
@@ -3942,6 +3858,14 @@ function renderPortalPerfil(el) {
   html += '</div>';
   el.innerHTML = html;
 
+  // Accions Pendents — en setTimeout per aïllar errors i evitar que bloquegin el render
+  var _kpis = kpis_v2;
+  var _c = c;
+  var _emerg = emerg;
+  setTimeout(function(){
+    try { renderAccionsPendents(_c, _kpis, _emerg); } catch(e) { /* silenci: no bloquejar Resum */ }
+  }, 80);
+
   // Render radar chart
   setTimeout(function(){
     var canvas = document.getElementById('radarChart');
@@ -3975,8 +3899,121 @@ function renderPortalPerfil(el) {
   }, 200);
 }
 
+// ════════════════════════════════════════════════════════
+// Accions Pendents — renderitzat asíncron per al Resum
+// S'executa via setTimeout per no bloquejar renderPortalPerfil
+// ════════════════════════════════════════════════════════
+function renderAccionsPendents(c, kpis, emerg) {
+  var placeholder = document.getElementById('accions-pendents-placeholder');
+  if (!placeholder) return;
+
+  var accions = [];
+
+  // 1) Cartera buida
+  if (!kpis || kpis.num_posicions === 0) {
+    accions.push({
+      icon: '💼',
+      titol: 'Importar la teva cartera',
+      desc: 'Afegeix les posicions actuals per veure el matching amb la teva cartera target.',
+      cta: 'Anar a la cartera',
+      view: 'portal-cartera',
+      prioritat: 'alta'
+    });
+  } else {
+    // 2) Gap de matching > 5pp
+    try {
+      var aportMensTmp = 0;
+      if (c && c.perfil && c.perfil.aportacioMensual) {
+        aportMensTmp = parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
+      }
+      var matchTmp = calcMatchingITactic(aportMensTmp);
+      if (matchTmp && matchTmp.rows && matchTmp.rows.length > 0) {
+        var topGap = matchTmp.rows.slice().sort(function(a,b){return b.gap_eur - a.gap_eur;})[0];
+        if (topGap && topGap.gap_pct > 5) {
+          accions.push({
+            icon: '⚡',
+            titol: 'Categoria infraponderada: ' + (topGap.nom || ''),
+            desc: 'La teva cartera est\u00e0 a ' + topGap.real_pct.toFixed(1) + '% (target ' + topGap.target_pct.toFixed(0) + '%). Aporta a aquesta categoria per rebalancejar.',
+            cta: 'Veure recomanaci\u00f3',
+            view: 'portal-aportacions',
+            prioritat: 'mitja'
+          });
+        }
+      }
+    } catch(e) { /* ignorar errors de matching */ }
+  }
+
+  // 3) Aportació mensual no configurada
+  var aportConfigurada = false;
+  if (c && c.perfil && c.perfil.aportacioMensual && c.perfil.aportacioMensual !== '—') {
+    aportConfigurada = (parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) || 0) > 0;
+  }
+  if (!aportConfigurada) {
+    accions.push({
+      icon: '📅',
+      titol: 'Configura la teva aportaci\u00f3 mensual',
+      desc: 'Defineix quant pots aportar cada mes per generar el pla autom\u00e0tic.',
+      cta: 'Configurar',
+      view: 'portal-aportacions',
+      prioritat: 'mitja'
+    });
+  }
+
+  // 4) Fons d'emergència
+  try {
+    if (emerg) {
+      var liqE = (emerg.liquiditat||[]).reduce(function(s,l){return s+(l.import||0);}, 0);
+      var lpE = (typeof LIQUIDITAT_PERFILS !== 'undefined' && c) ? (LIQUIDITAT_PERFILS[c.arquetipId] || LIQUIDITAT_PERFILS.arquitecte) : {mesos:3};
+      var objE = (emerg.despesesMensuals||0) * (lpE.mesos||3);
+      if (objE > 0 && liqE < objE * 0.6) {
+        accions.push({
+          icon: '🛡\ufe0f',
+          titol: 'Fons d\u2019emerg\u00e8ncia per sota del 60%',
+          desc: 'Tens ' + liqE.toLocaleString('ca-ES') + '\u20ac l\u00edquids per\u00f2 l\u2019objectiu \u00e9s ' + objE.toLocaleString('ca-ES') + '\u20ac.',
+          cta: 'Veure detall',
+          view: 'portal-emergencia',
+          prioritat: 'alta'
+        });
+      }
+    } else {
+      accions.push({
+        icon: '🛡\ufe0f',
+        titol: 'Defineix el teu fons d\u2019emerg\u00e8ncia',
+        desc: 'Configura el coix\u00ed de seguretat abans de comen\u00e7ar a invertir.',
+        cta: 'Configurar',
+        view: 'portal-emergencia',
+        prioritat: 'mitja'
+      });
+    }
+  } catch(e) { /* ignorar errors emergència */ }
+
+  // Renderitzar
+  var html = '';
+  if (accions.length > 0) {
+    html += '<div class="card"><div class="card-title">🎯 Accions pendents</div>';
+    accions.forEach(function(a){
+      var border = a.prioritat === 'alta' ? '#C0392B' : '#7A4A00';
+      var bg     = a.prioritat === 'alta' ? '#FDF0F0' : '#FEF5E7';
+      html += '<div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:'+bg+';border-left:3px solid '+border+';border-radius:8px;margin-bottom:8px">'
+        + '<div style="font-size:22px;flex-shrink:0">'+a.icon+'</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:500;color:#0A0A0A;margin-bottom:2px">'+a.titol+'</div>'
+          + '<div style="font-size:11px;color:#6B6762;line-height:1.5">'+a.desc+'</div>'
+        + '</div>'
+        + '<button onclick="navigateTo(\''+a.view+'\')" style="padding:7px 14px;background:#0A0A0A;color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap;flex-shrink:0">'+a.cta+' \u2192</button>'
+      + '</div>';
+    });
+    html += '</div>';
+  } else if (kpis && kpis.num_posicions > 0) {
+    html = '<div style="padding:16px;background:#EAF3DE;border:1px solid #B5D192;border-radius:11px;font-size:12px;color:#1A5C3A;margin-bottom:20px;line-height:1.6">'
+      + '\u2705 <strong>Tot al dia.</strong> No tens cap acci\u00f3 pendent en aquest moment.'
+    + '</div>';
+  }
+
+  placeholder.innerHTML = html;
+}
+
 // ══════════════════════════════════════════════════
-// VIEW: PORTAL ASSESSORIA
 // ══════════════════════════════════════════════════
 function renderPortalAssessoria(el) {
   var cats = {
