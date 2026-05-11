@@ -3646,12 +3646,15 @@ function renderCarteraDonut(actius, opts) {
   svgH += '</svg>';
 
   // Llegenda
-  var legend = '<div style="flex:1;min-width:140px">';
+  var legend = '<div style="flex:1;min-width:200px">';
   actius.forEach(function(a) {
-    legend += '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--g100)">'
+    var pctFmt = (typeof a.pct === 'number') ? a.pct.toFixed(1) : a.pct;
+    var valorFmt = (a.valor != null && a.valor > 0) ? a.valor.toLocaleString('ca-ES') + '€' : '';
+    legend += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--g100)">'
       + '<div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:'+a.color+'"></div>'
       + '<div style="font-size:11px;flex:1;color:var(--black)">'+a.nom+'</div>'
-      + '<div style="font-family:var(--fm);font-size:11px;color:'+a.color+'">'+a.pct+'%</div>'
+      + (valorFmt ? '<div style="font-family:var(--fm);font-size:11px;color:var(--g500);text-align:right;min-width:64px">'+valorFmt+'</div>' : '')
+      + '<div style="font-family:var(--fm);font-size:11px;color:'+a.color+';min-width:48px;text-align:right">'+pctFmt+'%</div>'
     + '</div>';
   });
   legend += '</div>';
@@ -3776,6 +3779,94 @@ function renderPortalPerfil(el) {
   html += '<div id="unread-banner" style="display:none"></div>';
   setTimeout(actualitzarBannerMissatges, 100);
 
+  // ── Card "Accions pendents" — checklist dinàmic d'accions concretes ──
+  var accions = [];
+  // 1) Cartera buida
+  if (kpis_v2.num_posicions === 0) {
+    accions.push({
+      icon: '💼',
+      titol: 'Importar la teva cartera',
+      desc: 'Afegeix les posicions actuals per veure el matching amb la teva cartera target.',
+      cta: 'Anar a la cartera',
+      view: 'portal-cartera',
+      prioritat: 'alta'
+    });
+  } else {
+    // 2) Matching amb gap gran
+    var aportMensTmp = (c.perfil && c.perfil.aportacioMensual) ? parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) || 0 : 0;
+    var matchTmp = calcMatchingITactic(aportMensTmp);
+    if (matchTmp && matchTmp.recomanacio.length > 0) {
+      var topGap = matchTmp.rows.slice().sort(function(a,b){return b.gap_eur - a.gap_eur;})[0];
+      if (topGap && topGap.gap_pct > 5) {
+        accions.push({
+          icon: '⚡',
+          titol: 'Categoria infraponderada: ' + topGap.nom,
+          desc: 'La teva cartera està a ' + topGap.real_pct.toFixed(1) + '% (target ' + topGap.target_pct.toFixed(0) + '%). Aporta a aquesta categoria per rebalancejar.',
+          cta: 'Veure recomanació',
+          view: 'portal-aportacions',
+          prioritat: 'mitja'
+        });
+      }
+    }
+  }
+  // 3) Aportació mensual no configurada
+  if (!c.perfil || !c.perfil.aportacioMensual || c.perfil.aportacioMensual === '—' || parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.')) === 0) {
+    accions.push({
+      icon: '📅',
+      titol: 'Configura la teva aportació mensual',
+      desc: 'Defineix quant pots aportar cada mes per generar el pla automàtic.',
+      cta: 'Configurar',
+      view: 'portal-aportacions',
+      prioritat: 'mitja'
+    });
+  }
+  // 4) Fons d'emergència incomplet
+  if (emerg) {
+    var liq = (emerg.liquiditat||[]).reduce(function(s,l){return s+(l.import||0);}, 0);
+    var lp = LIQUIDITAT_PERFILS[c.arquetipId] || LIQUIDITAT_PERFILS.arquitecte;
+    var obj = (emerg.despesesMensuals||0) * lp.mesos;
+    if (obj > 0 && liq < obj * 0.6) {
+      accions.push({
+        icon: '🛡️',
+        titol: 'Fons d\'emergència per sota del 60%',
+        desc: 'Tens ' + liq.toLocaleString('ca-ES') + '€ líquids però l\'objectiu és ' + obj.toLocaleString('ca-ES') + '€. Reforça el coixí abans d\'invertir.',
+        cta: 'Veure detall',
+        view: 'portal-emergencia',
+        prioritat: 'alta'
+      });
+    }
+  } else {
+    accions.push({
+      icon: '🛡️',
+      titol: 'Defineix el teu fons d\'emergència',
+      desc: 'Configura el coixí de seguretat abans de començar a invertir.',
+      cta: 'Configurar',
+      view: 'portal-emergencia',
+      prioritat: 'mitja'
+    });
+  }
+
+  if (accions.length > 0) {
+    html += '<div class="card"><div class="card-title">🎯 Accions pendents</div>';
+    accions.forEach(function(a){
+      var border = a.prioritat === 'alta' ? '#C0392B' : (a.prioritat === 'mitja' ? '#7A4A00' : '#1A5C3A');
+      var bg     = a.prioritat === 'alta' ? '#FDF0F0' : (a.prioritat === 'mitja' ? '#FEF5E7' : '#EAF3DE');
+      html += '<div style="display:flex;align-items:center;gap:14px;padding:12px 14px;background:'+bg+';border-left:3px solid '+border+';border-radius:8px;margin-bottom:8px">'
+        + '<div style="font-size:22px;flex-shrink:0">'+a.icon+'</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:2px">'+a.titol+'</div>'
+          + '<div style="font-size:11px;color:var(--g600);line-height:1.5">'+a.desc+'</div>'
+        + '</div>'
+        + '<button onclick="navigateTo(\''+a.view+'\')" style="padding:7px 14px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap;flex-shrink:0">'+a.cta+' →</button>'
+      + '</div>';
+    });
+    html += '</div>';
+  } else if (kpis_v2.num_posicions > 0) {
+    html += '<div style="padding:16px;background:#EAF3DE;border:1px solid #B5D192;border-radius:11px;font-size:12px;color:#1A5C3A;margin-bottom:20px;line-height:1.6">'
+      + '✅ <strong>Tot al dia.</strong> No tens cap acció pendent en aquest moment.'
+    + '</div>';
+  }
+
   // Rationale — WHY this portfolio for this archetype
   html += '<div class="card">'
     + '<div class="card-title">Per què la cartera ' + arq.cartNom + '?</div>'
@@ -3789,16 +3880,8 @@ function renderPortalPerfil(el) {
     + '</div>'
   + '</div>';
 
-  // La meva cartera — asset allocation (donut + legend)
-  html += '<div class="card"><div class="card-title">Composició de cartera — ' + arq.cartNom + '</div>';
-  html += renderCarteraDonut(arq.actius, {donutSize: 180, centerLabel: arq.cartNom.split('·')[0].trim(), centerSublabel: 'Cartera'});
-  // KPIs
-  html += '<div class="kpi-grid" style="margin-top:14px">'
-    + '<div class="kpi-item"><div class="kpi-label">TER estimat</div><div class="kpi-value">' + arq.ter + '</div></div>'
-    + '<div class="kpi-item"><div class="kpi-label">Retorn esperat</div><div class="kpi-value">' + arq.retorn + '</div></div>'
-    + '<div class="kpi-item"><div class="kpi-label">Nivell de risc</div><div class="kpi-value">' + arq.risc + '</div></div>'
-  + '</div>';
-  html += '</div>';
+  // La composició de cartera (donut + TER/retorn/risc) s'ha mogut a "La meva cartera"
+  // per evitar redundància entre les dues vistes.
 
   // Widget Pregunta setmanal (només per a clients essencials)
   if (APP.role !== 'admin') {
@@ -3833,13 +3916,8 @@ function renderPortalPerfil(el) {
   });
   html += '</div><div class="radar-wrap"><canvas id="radarChart"></canvas></div></div>';
 
-  // Projeccions
-  html += '<div class="card"><div class="card-title">Projecció Montecarlo</div><div class="proj-grid">'
-    + '<div class="proj-card" style="background:#FDF0F0"><div class="proj-lbl" style="color:#8B1A1A">P10 Pessimista</div><div class="proj-val" style="color:#8B1A1A">' + proj.p10 + '</div></div>'
-    + '<div class="proj-card" style="background:#EBF0FA"><div class="proj-lbl" style="color:#1B3A6B">P50 Equilibrat</div><div class="proj-val" style="color:#1B3A6B">' + proj.p50 + '</div></div>'
-    + '<div class="proj-card" style="background:#EAF3DE"><div class="proj-lbl" style="color:#1A5C3A">P90 Optimista</div><div class="proj-val" style="color:#1A5C3A">' + proj.p90 + '</div></div>'
-  + '</div>'
-  + '<div style="font-size:10px;color:var(--g400);margin-top:10px">Simulació basada en model GBM. Els rendiments passats no garanteixen resultats futurs.</div></div>';
+  // La projecció Montecarlo s'ha mogut fora del Resum per netejar-lo.
+  // Es pot reincorporar en una vista pròpia o a la pestanya Matching de Cartera.
 
   // Nota assessor
   html += '<div class="card"><div class="card-title">Nota de l\'assessor</div><div class="nota-box">' + c.nota + '</div></div>';
@@ -4367,7 +4445,7 @@ function renderPortalCartera(el) {
       + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">📊 Composició real per categoria</div>';
     if (distReal.length > 0) {
       var totalReal = distReal.reduce(function(s,d){return s+d.valor;},0);
-      var donutData = distReal.map(function(d){ return {nom:d.nom, pct:d.pct, color:d.color}; });
+      var donutData = distReal.map(function(d){ return {nom:d.nom, pct:d.pct, color:d.color, valor:d.valor}; });
       html += renderCarteraDonut(donutData, {donutSize:170, centerLabel:totalReal.toLocaleString('ca-ES')+'€', centerSublabel:'Total real'});
     } else {
       html += '<div style="padding:20px;text-align:center;color:var(--g400);font-size:12px">Sense posicions amb valor</div>';
@@ -4489,25 +4567,17 @@ function renderCarteraOnboarding(el) {
   var c = getClient();
   var arq = getArquetip((c && c.arquetipId) || 'navegant');
 
-  el.innerHTML = '<div style="padding:24px;background:linear-gradient(135deg,#FAF7F0 0%,#F4ECE0 100%);border:1px solid #E8C285;border-radius:14px;margin-bottom:24px;text-align:center">'
-    + '<div style="font-size:32px;margin-bottom:10px">💼</div>'
-    + '<div style="font-family:var(--fd);font-size:24px;font-weight:400;color:#7A4A00;margin-bottom:8px">Comencem la teva cartera</div>'
-    + '<div style="font-size:13px;color:#9A6B1F;line-height:1.7;max-width:520px;margin:0 auto 24px">La teva cartera target és <strong>'+arq.cartNom+'</strong>. Com vols començar a registrar les teves posicions reals?</div>'
-    + '<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">'
-      + '<button onclick="obrirWizardCartera()" style="padding:14px 24px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);min-width:240px">'
-        + '<div style="font-size:14px;margin-bottom:4px">📥 Tinc posicions actuals</div>'
-        + '<div style="font-size:10px;color:rgba(255,255,255,.7);font-weight:400">Importar la cartera que ja tinc</div>'
-      + '</button>'
-      + '<button onclick="comencarCarteraZero()" style="padding:14px 24px;background:#fff;color:var(--black);border:1.5px solid var(--g200);border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);min-width:240px">'
-        + '<div style="font-size:14px;margin-bottom:4px">🌱 Començo de zero</div>'
-        + '<div style="font-size:10px;color:var(--g500);font-weight:400">Registrar la primera compra més endavant</div>'
-      + '</button>'
+  el.innerHTML = '<div style="padding:32px;background:linear-gradient(135deg,#FAF7F0 0%,#F4ECE0 100%);border:1px solid #E8C285;border-radius:14px;margin-bottom:24px;text-align:center">'
+    + '<div style="font-size:36px;margin-bottom:12px">💼</div>'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;color:#7A4A00;margin-bottom:10px">Comencem la teva cartera</div>'
+    + '<div style="font-size:13px;color:#9A6B1F;line-height:1.7;max-width:560px;margin:0 auto 28px">La teva cartera target és <strong>'+arq.cartNom+'</strong>. Importa les posicions que ja tinguis per veure el matching amb la teva cartera ideal.</div>'
+    + '<button onclick="obrirWizardCartera()" style="padding:14px 32px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">'
+      + '📥 Importar posicions actuals →'
+    + '</button>'
+    + '<div style="margin-top:20px;font-size:11px;color:#9A6B1F;line-height:1.6;max-width:520px;margin-left:auto;margin-right:auto">'
+      + '💡 <strong>Encara no tens cap inversió?</strong> Vés al <a href="javascript:navigateTo(\'portal-aportacions\')" style="color:#7A4A00;font-weight:500;text-decoration:underline">Pla d\'aportacions</a> per saber exactament per on començar.'
     + '</div>'
   + '</div>';
-}
-
-function comencarCarteraZero() {
-  obrirModalMoviment();  // l'usuari pot registrar el primer moviment directament
 }
 
 // ── Wizard d'alta de cartera (punt zero) ─────────────────────────────────
