@@ -3252,6 +3252,8 @@ var CLIENT_NAV = [
   {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
   {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
+  {section:'Suport'},
+  {id:'portal-ajuda', icon:'❓', label:'Ajuda'},
 ];
 
 function setupSidebar() {
@@ -3331,6 +3333,7 @@ function navigateTo(viewId) {
     'portal-assessoria': APP.role === 'admin' ? ['Portal Client · Assessoria', '👁 Previsualització'] : ['Anàlisi de mercat', 'Informació financera de The Boring Investor'],
     'portal-informes': APP.role === 'admin' ? ['Portal Client · Informes', '👁 Previsualització'] : ['Informes', 'Documents i informes generats'],
     'portal-carteres': APP.role === 'admin' ? ['Portal Client · Carteres Model', '👁 Previsualització'] : ['Carteres Model', '10 carteres personalitzades per perfil'],
+    'portal-ajuda':    ['Ajuda', 'Com funciona la plataforma'],
     'portal-actius': ['Guia d\'Actius', '21 categories d\'inversió — educació i referència'],
     'portal-fire': APP.role === 'admin' ? ['Portal Client · FIRE', '👁 Previsualització'] : ['Calculadora FIRE', 'Financial Independence, Retire Early'],
     'portal-turbo': APP.role === 'admin' ? ['Portal Client · Turbo Estalvi', '👁 Previsualització · Editable'] : ['Turbo Estalvi', 'Optimitza la teva taxa d\'estalvi'],
@@ -3418,9 +3421,26 @@ function renderView(viewId) {
     case 'portal-turbo': renderPortalTurbo(content); break;
     case 'portal-emergencia': renderPortalEmergencia(content); break;
     case 'portal-educacio': renderPortalEducacio(content); break;
+    case 'portal-ajuda': renderPortalAjuda(content); break;
     case 'portal-questionnaire': renderPortalQuestionnaire(content); break;
     case 'settings': renderSettings(content); break;
     default: content.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:60px;color:var(--g400)">Vista no disponible</div></div>';
+  }
+
+  // Botó ? flotant — contextual per a cada vista del portal client
+  var oldFab = document.getElementById('help-fab');
+  if (oldFab) oldFab.remove();
+  if (APP.role !== 'admin' && viewId.startsWith('portal-') && viewId !== 'portal-ajuda') {
+    var fab = document.createElement('button');
+    fab.id = 'help-fab';
+    fab.title = 'Ajuda d\'aquesta secció';
+    var fabViewId = viewId;
+    fab.style.cssText = 'position:fixed;bottom:24px;right:24px;width:40px;height:40px;border-radius:50%;background:#0A0A0A;color:#fff;border:none;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:1000;line-height:1;font-family:system-ui;transition:transform .15s';
+    fab.textContent = '?';
+    fab.onmouseenter = function(){ this.style.transform='scale(1.1)'; };
+    fab.onmouseleave = function(){ this.style.transform='scale(1)'; };
+    fab.onclick = function(){ obrirAjudaContextual(fabViewId); };
+    document.body.appendChild(fab);
   }
 }
 
@@ -4029,6 +4049,162 @@ function renderAccionsPendents(c, kpis, emerg) {
 }
 
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════
+// SISTEMA D'AJUDA — pàgina completa + botó ? contextual per vista
+// ══════════════════════════════════════════════════════════════════════════
+
+var AJUDA_CONTENT = {
+  'portal-perfil': {
+    icon:'📊', titol:'Resum',
+    desc: 'El teu dashboard general. D\'un cop d\'ull veus l\'estat de la cartera, les accions pendents i els indicadors clau.',
+    seccions:[
+      {nom:'Accions pendents', txt:'Llistat dinàmic d\'ítems a resoldre: importar cartera, configurar aportació, reforçar el fons d\'emergència. Desapareixen quan estan resolts.'},
+      {nom:'Cards de KPIs', txt:'Sis indicadors ràpids: valor cartera, full de ruta, aportació, emergència i FIRE. Clica qualsevol card per anar a la secció.'},
+      {nom:'Perfil 7 dimensions', txt:'Radar chart amb la teva puntuació en 7 dimensions del perfil inversor, obtinguda del qüestionari inicial.'},
+    ],
+    consell:'Visita el Resum cada mes per veure si hi ha accions pendents.'
+  },
+  'portal-cartera': {
+    icon:'💼', titol:'La meva cartera',
+    desc:'Gestió completa de la cartera real: posicions, moviments, composició i matching amb la cartera target.',
+    seccions:[
+      {nom:'Pestanya Resum', txt:'KPIs globals (valor, invertit, P&L, CAGR), donut de composició real, Top posicions i gràfic d\'evolució mensual.'},
+      {nom:'Pestanya Moviments', txt:'Historial de totes les transaccions: compres, vendes, dividends i comissions. Pots esborrar qualsevol moviment erroni.'},
+      {nom:'Pestanya Matching', txt:'Comparació entre la cartera real i la cartera target del teu arquetip. Mostra el gap en % i en € per cada categoria.'},
+      {nom:'+ Registrar moviment', txt:'Afegir una compra, venda, dividend o comissió. Sempre menys d\'un minut.'},
+      {nom:'💱 Actualitzar valors', txt:'Introduir el valor de mercat actual de cada posició. Fes-ho un cop al mes per tenir els KPIs al dia.'},
+    ],
+    consell:'Actualitza els valors de mercat un cop al mes per veure l\'evolució real.'
+  },
+  'portal-aportacions': {
+    icon:'📅', titol:"Pla d'aportacions",
+    desc:'Cada mes la plataforma et diu exactament on aportar per millorar el matching amb la cartera ideal.',
+    seccions:[
+      {nom:'Recomanació mensual', txt:'L\'algoritme calcula les 2 categories més infraponderades i reparteix l\'aportació proporcionalment al gap. Estalvies comissions i acceleres el rebalanceig.'},
+      {nom:'Matching real vs target', txt:'Taula amb el % real i % target de cada categoria, i el gap en punts percentuals i en euros.'},
+      {nom:"L'actiu concret", txt:"La recomanació indica la categoria però no l'ETF concret. L'actiu específic el decideixes amb el teu assessor."},
+    ],
+    consell:"Configura la teva aportació mensual al perfil perquè aparegui la recomanació automàtica."
+  },
+  'portal-roadmap': {
+    icon:'\ud83d\uddfa\ufe0f', titol:'Full de Ruta',
+    desc:'Les 5 fases del teu pla financer, des de l\'estabilitat bàsica fins a la independència financera.',
+    seccions:[
+      {nom:'Fases', txt:'Fase 1 (Estabilitat), Fase 2 (Protecció), Fase 3 (Creixement), Fase 4 (Acceleració), Fase 5 (Llibertat).'},
+      {nom:'Objectius', txt:'Cada objectiu té un estat: pendent, en progrés o completat. L\'assessor els actualitza a mesura que avances.'},
+    ],
+    consell:'Revisa el Full de Ruta cada trimestre amb el teu assessor.'
+  },
+  'portal-missatges': {
+    icon:'💬', titol:'Missatges',
+    desc:'Canal de comunicació directe i privat amb el teu assessor.',
+    seccions:[
+      {nom:'Enviar missatge', txt:'Escriu qualsevol consulta: dubtes sobre la cartera, canvis de situació, noves inversions. Resposta habitual en 24-48h laborables.'},
+      {nom:'Historial', txt:'Tots els missatges queden guardats de forma cronològica.'},
+    ],
+    consell:'Per a decisions importants (nova inversió, canvi de pla...) sempre millor consultar primer.'
+  },
+  'portal-assessoria': {
+    icon:'📈', titol:'Anàlisi de mercat',
+    desc:'Articles i anàlisis periòdics de The Boring Investor sobre mercats, macro i estratègia d\'inversió.',
+    seccions:[
+      {nom:'Categories', txt:'Mercat, Sectorial, Value, Macro, Cartera i Setmanal. Filtra per trobar el contingut que t\'interessa.'},
+      {nom:'Articles destacats', txt:'Els marcats amb ⭐ són els que l\'assessor considera especialment rellevants per al moment actual.'},
+    ],
+    consell:'Llegeix el resum setmanal cada dilluns per mantenir-te informat sense perdre temps.'
+  },
+  'portal-carteres': {
+    icon:'\ud83d\uddc2', titol:'Carteres Model',
+    desc:'Les 10 carteres de referència de TBI, cada una associada a un arquetip inversor.',
+    seccions:[
+      {nom:'La teva cartera', txt:'La primera card destacada és la teva cartera assignada. Consulta-la per entendre la distribució per categories.'},
+      {nom:'Comparar carteres', txt:'Veus les 10 carteres i pots comparar TER, retorn esperat i nivell de risc.'},
+    ],
+    consell:'Si creus que la teva cartera no s\'ajusta al teu perfil, contacta l\'assessor per revisar-la.'
+  },
+  'portal-fire': {
+    icon:'\ud83d\udd25', titol:'Calculadora FIRE',
+    desc:'Calcula quan podràs assolir la independència financera amb 5 models: Lean, Regular, Fat, Coast i Barista.',
+    seccions:[
+      {nom:'5 models FIRE', txt:'Lean (frugal), Regular, Fat (confort), Coast (parar d\'aportar) i Barista (temps parcial). Cada model té supòsits de despesa diferents.'},
+      {nom:'Inputs', txt:'Patrimoni actual, aportació mensual, rendiment esperat i despesa anual objectiu.'},
+    ],
+    consell:"Usa el model 'Coast FIRE' per saber si pots parar d'aportar avui i arribar igualment a l'objectiu."
+  },
+  'portal-emergencia': {
+    icon:'\ud83d\udee1\ufe0f', titol:"Fons d'emergència",
+    desc:'El teu coixí de liquiditat per a imprevistos. Cal tenir-lo cobert abans d\'invertir de forma agressiva.',
+    seccions:[
+      {nom:'Objectiu', txt:'Calculat a partir de les teves despeses mensuals i l\'arquetip (entre 3 i 12 mesos de despeses).'},
+      {nom:'Liquiditat registrada', txt:'Afegeix aquí comptes corrents, dipòsits i fons monetaris. No incloguis la cartera d\'inversió.'},
+    ],
+    consell:"Prioritza omplir el fons d'emergència abans d'incrementar les aportacions a la cartera."
+  },
+  'portal-turbo': {
+    icon:'\ud83d\ude80', titol:'Turbo Estalvi',
+    desc:'Calcula l\'impacte de reduir despeses recurrents i redirigir-les a la inversió.',
+    seccions:[
+      {nom:'Despeses recurrents', txt:'Afegeix despeses mensuals (subscripcions, lleure...) i veu l\'impacte d\'eliminar-les sobre el patrimoni a 20 anys.'},
+    ],
+    consell:'Una subscripció de 20\u20ac/mes invertida al 16% anual durant 20 anys val m\u00e9s de 16.000\u20ac.'
+  },
+  'plans': {
+    icon:'\ud83d\udc8e', titol:'El meu pla',
+    desc:'El teu pla de subscripció determina quines funcionalitats tens disponibles a la plataforma.',
+    seccions:[
+      {nom:'Plans disponibles', txt:'Senyal, Brúixola, Mapa, Rumb i Family. Cada pla desbloqueja seccions addicionals.'},
+      {nom:'Canviar pla', txt:'Contacta l\'assessor per missatge. El canvi és immediat un cop confirmat.'},
+    ],
+    consell:'El pla Rumb inclou accés complet a totes les seccions i revisió trimestral personalitzada.'
+  },
+};
+
+function obrirAjudaContextual(viewId) {
+  var info = AJUDA_CONTENT[viewId] || {icon:'❓',titol:'Ajuda',desc:'Consulta la pàgina d\'Ajuda per trobar informació sobre totes les seccions.',seccions:[],consell:null};
+  var old = document.getElementById('modal-ajuda-contextual');
+  if (old) { old.remove(); return; }  // toggle
+  var modal = document.createElement('div');
+  modal.id = 'modal-ajuda-contextual';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;display:flex;align-items:flex-end;justify-content:flex-end;padding:20px';
+  var panel = document.createElement('div');
+  panel.style.cssText = 'background:#fff;border-radius:16px;max-width:400px;width:100%;padding:26px 28px;box-shadow:0 20px 60px rgba(0,0,0,.2);max-height:82vh;overflow-y:auto';
+  var secc = (info.seccions||[]).map(function(s){
+    return '<div style="padding:10px 0;border-top:1px solid #F4F2EF"><div style="font-size:11px;font-weight:600;color:#3D3935;margin-bottom:2px">'+s.nom+'</div><div style="font-size:11px;color:#6B6762;line-height:1.6">'+s.txt+'</div></div>';
+  }).join('');
+  panel.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+    +'<div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px">'+info.icon+'</div><div style="font-family:var(--fd);font-size:18px;font-weight:400;color:#0A0A0A">'+info.titol+'</div></div>'
+    +'<button onclick="document.getElementById(\'modal-ajuda-contextual\').remove()" style="background:none;border:none;cursor:pointer;font-size:22px;color:#AAA;line-height:1">\u00d7</button>'
+    +'</div>'
+    +'<div style="font-size:12px;color:#6B6762;line-height:1.7;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #EBEBEB">'+info.desc+'</div>'
+    +secc
+    +(info.consell?'<div style="margin-top:14px;padding:10px 14px;background:#EAF3DE;border-radius:8px;font-size:11px;color:#1A5C3A;line-height:1.6">\ud83d\udca1 <strong>Consell:</strong> '+info.consell+'</div>':'')
+    +'<div style="margin-top:16px;text-align:center"><button onclick="document.getElementById(\'modal-ajuda-contextual\').remove();navigateTo(\'portal-ajuda\')" style="padding:7px 16px;background:transparent;border:1.5px solid #DEDBD6;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);color:#6B6762">Tota l\'ajuda \u2192</button></div>';
+  modal.appendChild(panel);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function renderPortalAjuda(el) {
+  var ORDRE = ['portal-perfil','portal-cartera','portal-aportacions','portal-roadmap','portal-missatges','portal-assessoria','portal-carteres','portal-fire','portal-emergencia','portal-turbo','plans'];
+  var html = '<div class="content-inner fade-in">'
+    +'<div style="margin-bottom:28px"><div style="font-family:var(--fd);font-size:26px;font-weight:400;color:#0A0A0A;margin-bottom:6px">Com funciona la plataforma</div><div style="font-size:13px;color:#6B6762;line-height:1.7">Guia de referència de totes les seccions. Cada apartat explica per a qu\u00e8 serveix i com treure-li el m\u00e0xim profit.</div></div>';
+  ORDRE.forEach(function(viewId){
+    var info = AJUDA_CONTENT[viewId]; if (!info) return;
+    html += '<div style="background:#fff;border:1px solid #E8E6E1;border-radius:13px;padding:20px 24px;margin-bottom:12px">'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div style="font-size:20px">'+info.icon+'</div><div><div style="font-size:14px;font-weight:600;color:#0A0A0A">'+info.titol+'</div><div style="font-size:11px;color:#9A9690;margin-top:1px">'+info.desc+'</div></div></div>';
+    (info.seccions||[]).forEach(function(s){
+      html += '<div style="padding:9px 0;border-top:1px solid #F4F2EF"><div style="font-size:11px;font-weight:600;color:#3D3935;margin-bottom:2px">'+s.nom+'</div><div style="font-size:11px;color:#6B6762;line-height:1.6">'+s.txt+'</div></div>';
+    });
+    if (info.consell) html += '<div style="margin-top:12px;padding:9px 12px;background:#EAF3DE;border-radius:7px;font-size:11px;color:#1A5C3A;line-height:1.6">\ud83d\udca1 '+info.consell+'</div>';
+    if (viewId.startsWith('portal-')) html += '<div style="margin-top:12px;text-align:right"><button onclick="navigateTo(\''+viewId+'\')" style="padding:5px 12px;background:transparent;border:1.5px solid #DEDBD6;border-radius:6px;font-size:10px;cursor:pointer;font-family:var(--fb);color:#6B6762;font-weight:500">Anar a '+info.titol+' \u2192</button></div>';
+    html += '</div>';
+  });
+  html += '<div style="background:linear-gradient(135deg,#FAF7F0,#F4ECE0);border:1px solid #E8C285;border-radius:13px;padding:22px 24px;margin-top:6px"><div style="font-size:14px;font-weight:600;color:#7A4A00;margin-bottom:6px">💬 Encar\u00e0 tens dubtes?</div><div style="font-size:12px;color:#9A6B1F;line-height:1.7;margin-bottom:12px">El teu assessor Guillem respon qualsevol consulta en 24-48h laborables.</div><button onclick="navigateTo(\'portal-missatges\')" style="padding:9px 18px;background:#7A4A00;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Escriure a l\'assessor \u2192</button></div>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+
 // ══════════════════════════════════════════════════
 function renderPortalAssessoria(el) {
   var cats = {
@@ -5126,91 +5302,71 @@ function renderMatchingTable(match) {
 
 // Gràfic SVG d'evolució (invertit acumulat + valor cartera, àrea de guany)
 function renderEvolucioSVG(width) {
-  var serie = calcEvolucioCartera();
-  if (serie.length < 2) {
-    return '<div style="padding:32px;text-align:center;color:var(--g400);font-size:12px">📈 Encara no hi ha prou moviments per dibuixar l\'evolució<br><span style="font-size:11px">Caldrà almenys 2 moviments en dates diferents</span></div>';
+  var MESOS_CA = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
+  function fmtMes(yyyymm) {
+    var p = yyyymm.split('-');
+    return MESOS_CA[parseInt(p[1])-1] + ' ' + p[0].slice(2);
   }
-  width = width || 720;
-  var H = 220;
-  var pad = {t:20, r:20, b:36, l:60};
-  var W = width - pad.l - pad.r;
-  var HH = H - pad.t - pad.b;
-
-  // Range temporal
-  var dates = serie.map(function(s){ return new Date(s.data).getTime(); });
-  var tMin = Math.min.apply(null, dates);
-  var tMax = Math.max.apply(null, dates);
-  if (tMin === tMax) tMax = tMin + 86400000;  // evitar div per 0
-
-  // Range valors
-  var valors = [];
-  serie.forEach(function(s){
-    valors.push(s.invertit_acum);
-    if (s.valor_actual != null) valors.push(s.valor_actual);
-  });
-  var vMax = Math.max.apply(null, valors) * 1.1 || 100;
-  var vMin = 0;
-
-  function xpx(t) { return pad.l + (t - tMin) / (tMax - tMin) * W; }
-  function ypx(v) { return pad.t + (1 - (v - vMin) / (vMax - vMin)) * HH; }
-
-  // Sèrie invertit (esglaonada)
-  var pathInv = '';
-  serie.forEach(function(s, i){
-    var x = xpx(new Date(s.data).getTime());
-    var y = ypx(s.invertit_acum);
-    pathInv += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
-  });
-
-  // Punt final amb valor actual
-  var last = serie[serie.length-1];
-  var xLast = xpx(new Date(last.data).getTime());
-  var yLastInv = ypx(last.invertit_acum);
-  var yLastVal = ypx(last.valor_actual != null ? last.valor_actual : last.invertit_acum);
-
-  // Àrea de guany (entre invertit i valor al punt final, interpolada)
-  // Simple: una línia diagonal des de l'inici al final i una àrea entre invertit i valor
-  // Per simplicitat, només marquem el punt final amb una línia vertical
-  var areaPath = pathInv + ' L' + xLast.toFixed(1) + ',' + yLastVal.toFixed(1) + ' Z';
-
-  // Eixos: 5 línies horitzontals de guia
-  var guides = '';
-  for (var i = 0; i <= 4; i++) {
-    var v = vMin + (vMax - vMin) * i / 4;
-    var y = ypx(v);
-    guides += '<line x1="'+pad.l+'" y1="'+y.toFixed(1)+'" x2="'+(pad.l+W)+'" y2="'+y.toFixed(1)+'" stroke="#EEE" stroke-width="1"/>';
-    guides += '<text x="'+(pad.l-6)+'" y="'+(y+3).toFixed(1)+'" font-size="9" fill="#999" text-anchor="end">'+Math.round(v).toLocaleString('ca-ES')+'€</text>';
+  var moviments = getMovimentsV2().slice().sort(function(a,b){ return (a.data||'').localeCompare(b.data||''); });
+  if (moviments.length === 0) {
+    return '<div style="padding:32px;text-align:center;color:var(--g400);font-size:12px">— Sense moviments registrats encara</div>';
   }
-
-  // Eix X amb labels d'inici/fi
-  var dataIni = new Date(tMin).toISOString().slice(0,10);
-  var dataFi = new Date(tMax).toISOString().slice(0,10);
-  var xAxis = '<text x="'+pad.l+'" y="'+(H-12)+'" font-size="9" fill="#999">'+dataIni+'</text>'
-    + '<text x="'+(pad.l+W)+'" y="'+(H-12)+'" font-size="9" fill="#999" text-anchor="end">'+dataFi+'</text>';
-
-  // Estil de colors
-  var colInv = '#3B82C4';
-  var colVal = last.valor_actual >= last.invertit_acum ? '#1A5C3A' : '#C0392B';
-  var colFill = last.valor_actual >= last.invertit_acum ? 'rgba(26,92,58,.12)' : 'rgba(192,57,43,.10)';
-
-  // Línia diagonal d'invertit a valor al punt final (visualitza guany/pèrdua)
-  var bridge = '<line x1="'+xLast.toFixed(1)+'" y1="'+yLastInv.toFixed(1)+'" x2="'+xLast.toFixed(1)+'" y2="'+yLastVal.toFixed(1)+'" stroke="'+colVal+'" stroke-width="2"/>';
-  var bridgeDot = '<circle cx="'+xLast.toFixed(1)+'" cy="'+yLastVal.toFixed(1)+'" r="5" fill="'+colVal+'"/>';
-  var bridgeLabel = '<text x="'+(xLast-8).toFixed(1)+'" y="'+(yLastVal-8).toFixed(1)+'" font-size="11" font-weight="600" fill="'+colVal+'" text-anchor="end">'+Math.round(last.valor_actual||0).toLocaleString('ca-ES')+'€</text>';
-  var invLabel = '<text x="'+(xLast-8).toFixed(1)+'" y="'+(yLastInv+14).toFixed(1)+'" font-size="10" fill="'+colInv+'" text-anchor="end">'+Math.round(last.invertit_acum).toLocaleString('ca-ES')+'€</text>';
-
-  // Llegenda
-  var legend = '<rect x="'+(pad.l+10)+'" y="'+(pad.t+6)+'" width="10" height="10" fill="'+colInv+'"/>'
-    + '<text x="'+(pad.l+26)+'" y="'+(pad.t+15)+'" font-size="10" fill="#444">Capital invertit</text>'
-    + '<rect x="'+(pad.l+130)+'" y="'+(pad.t+6)+'" width="10" height="10" fill="'+colVal+'"/>'
-    + '<text x="'+(pad.l+146)+'" y="'+(pad.t+15)+'" font-size="10" fill="#444">Valor cartera</text>';
-
-  return '<svg viewBox="0 0 '+width+' '+H+'" style="width:100%;height:auto;display:block">'
-    + guides + xAxis
-    + '<path d="'+pathInv+'" stroke="'+colInv+'" stroke-width="2" fill="none"/>'
-    + bridge + bridgeDot + bridgeLabel + invLabel + legend
-  + '</svg>';
+  var mesAcum = {}, cumAcc = 0;
+  moviments.forEach(function(m){
+    var mes = (m.data||'').slice(0,7); if (!mes) return;
+    var imp = parseFloat(m.import)||0;
+    if (m.tipus==='compra') cumAcc+=imp; if (m.tipus==='venda') cumAcc-=imp;
+    mesAcum[mes] = cumAcc;
+  });
+  var mesosList = Object.keys(mesAcum).sort();
+  var mesAvui = new Date().toISOString().slice(0,7);
+  if (!mesAcum[mesAvui]) { mesosList.push(mesAvui); mesAcum[mesAvui] = cumAcc; }
+  mesosList = mesosList.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
+  if (mesosList.length < 2) {
+    var ym = mesosList[0].split('-'), y2=parseInt(ym[0]), mo2=parseInt(ym[1]);
+    var ant = mo2===1?(y2-1)+'-12':y2+'-'+String(mo2-1).padStart(2,'0');
+    mesosList = [ant].concat(mesosList); mesAcum[ant] = 0;
+  }
+  var kpis2 = (typeof calcKPIsCartera==='function') ? calcKPIsCartera() : {valor_total:0};
+  var valorFinal = kpis2.valor_total;
+  var invertitFinal = mesAcum[mesosList[mesosList.length-1]]||0;
+  var esPlusvalua = valorFinal >= invertitFinal;
+  width = width||720;
+  var H=240, pad={t:20,r:80,b:40,l:64}, W=width-pad.l-pad.r, HH=H-pad.t-pad.b;
+  var tots = mesosList.map(function(m){return mesAcum[m];}); tots.push(valorFinal);
+  var vMax = Math.max.apply(null,tots)*1.15||1000;
+  function xpx(i){ return pad.l + i/Math.max(mesosList.length-1,1)*W; }
+  function ypx(v){ return pad.t + (1-v/vMax)*HH; }
+  var guides='';
+  for (var gi=0;gi<=4;gi++){
+    var gv=vMax*gi/4, gy=ypx(gv);
+    guides+='<line x1="'+pad.l+'" y1="'+gy.toFixed(1)+'" x2="'+(pad.l+W)+'" y2="'+gy.toFixed(1)+'" stroke="#EBEBEB" stroke-width="1"/>';
+    guides+='<text x="'+(pad.l-6)+'" y="'+(gy+3.5).toFixed(1)+'" font-size="9" fill="#AAA" text-anchor="end">'+Math.round(gv).toLocaleString('ca-ES')+'€</text>';
+  }
+  var colInv='#3B82C4', colVal=esPlusvalua?'#1A5C3A':'#C0392B';
+  var pathInv=mesosList.map(function(m,i){return (i===0?'M':'L')+xpx(i).toFixed(1)+','+ypx(mesAcum[m]).toFixed(1);}).join(' ');
+  var xFi=xpx(mesosList.length-1), yBase=ypx(0);
+  var areaInv=pathInv+' L'+xFi.toFixed(1)+','+yBase.toFixed(1)+' L'+pad.l+','+yBase.toFixed(1)+' Z';
+  var xi=xpx(mesosList.length-1), yiInv=ypx(invertitFinal), yiVal=ypx(valorFinal);
+  var bridge='<line x1="'+xi.toFixed(1)+'" y1="'+yiInv.toFixed(1)+'" x2="'+xi.toFixed(1)+'" y2="'+yiVal.toFixed(1)+'" stroke="'+colVal+'" stroke-width="2.5" stroke-dasharray="4,3"/>';
+  var dotV='<circle cx="'+xi.toFixed(1)+'" cy="'+yiVal.toFixed(1)+'" r="6" fill="'+colVal+'" stroke="#fff" stroke-width="2"/>';
+  var dotI='<circle cx="'+xi.toFixed(1)+'" cy="'+yiInv.toFixed(1)+'" r="4" fill="'+colInv+'" stroke="#fff" stroke-width="1.5"/>';
+  var lblV='<text x="'+(xi+10)+'" y="'+(yiVal+4).toFixed(1)+'" font-size="12" font-weight="700" fill="'+colVal+'" font-family="ui-monospace,monospace">'+Math.round(valorFinal).toLocaleString('ca-ES')+'€</text>';
+  var lblI='<text x="'+(xi+10)+'" y="'+(yiInv+4).toFixed(1)+'" font-size="10" fill="'+colInv+'" font-family="ui-monospace,monospace">'+Math.round(invertitFinal).toLocaleString('ca-ES')+'€</text>';
+  var xAxis='', pas=Math.ceil(mesosList.length/8);
+  mesosList.forEach(function(m,i){
+    if (i%pas===0||i===mesosList.length-1)
+      xAxis+='<text x="'+xpx(i).toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#AAA" text-anchor="middle">'+fmtMes(m)+'</text>';
+  });
+  var lineDots=mesosList.map(function(m,i){return '<circle cx="'+xpx(i).toFixed(1)+'" cy="'+ypx(mesAcum[m]).toFixed(1)+'" r="3" fill="'+colInv+'" stroke="#fff" stroke-width="1.5"/>';}).join('');
+  var legend='<rect x="'+pad.l+'" y="14" width="10" height="10" rx="2" fill="'+colInv+'"/><text x="'+(pad.l+14)+'" y="22" font-size="10" fill="#666" font-family="system-ui">Capital invertit</text>'
+    +'<rect x="'+(pad.l+130)+'" y="14" width="10" height="10" rx="2" fill="'+colVal+'"/><text x="'+(pad.l+144)+'" y="22" font-size="10" fill="#666" font-family="system-ui">Valor cartera</text>';
+  return '<svg viewBox="0 0 '+width+' '+H+'" style="width:100%;height:auto;display:block;overflow:visible">'
+    +guides+'<path d="'+areaInv+'" fill="rgba(59,130,196,.06)"/>'
+    +'<path d="'+pathInv+'" stroke="'+colInv+'" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
+    +lineDots+bridge+dotV+dotI+lblV+lblI+xAxis+legend+'</svg>';
 }
+
 
 // ── Exportació CSV (posicions + moviments) ──────────────────────────────
 function exportarCarteraCSV() {
