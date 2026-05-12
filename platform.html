@@ -2777,6 +2777,7 @@ function normalizeClient(raw) {
     moviments_posicions: Array.isArray(raw.moviments_posicions) ? raw.moviments_posicions : [],
     informes: Array.isArray(raw.informes) ? raw.informes : [],
     snapshots_cartera: Array.isArray(raw.snapshots_cartera) ? raw.snapshots_cartera : [],
+    reunions: Array.isArray(raw.reunions) ? raw.reunions : [],
   };
 }
 
@@ -3212,6 +3213,7 @@ var ADMIN_NAV = [
   {id:'hub',               icon:'🏠', label:'Hub'},
   {id:'admin-clients',     icon:'👥', label:'Clients'},
   {id:'admin-informe',     icon:'📄', label:'Generar Informe'},
+  {id:'admin-calendari',   icon:'📆', label:'Calendari'},
   {id:'admin-diagnostic',  icon:'🔍', label:'Diagn\u00f2stic'},
   {id:'admin-plans',       icon:'&#128142;', label:'Plans'},
   {section:'Clients'},
@@ -3255,6 +3257,7 @@ var CLIENT_NAV = [
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
   {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
   {section:'Suport'},
+  {id:'portal-calendari', icon:'📆', label:'Reunions'},
   {id:'portal-ajuda', icon:'❓', label:'Ajuda'},
 ];
 
@@ -3347,6 +3350,8 @@ function navigateTo(viewId) {
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
     'admin-preguntes': ['Preguntes dels clients', 'Respon les preguntes pendents dels clients Essencial'],
     'admin-informe':    ['Generar Informe', 'Crea i gestiona els informes dels clients'],
+    'admin-calendari':  ['Calendari de reunions', 'Gestiona totes les cites amb clients'],
+    'portal-calendari': ['Les meves reunions', 'Properes cites amb el teu assessor'],
     'admin-broadcast': ['Missatge a la comunitat', 'Envia un comunicat a tots els clients actius'],
     'pending-review': ['Sol·licitud rebuda', 'Esperant validació de l\'assessor'],
     'admin-pendents': ['Sol·licituds pendents', 'Clients esperant validació'],
@@ -3411,6 +3416,8 @@ function renderView(viewId) {
     case 'admin-broadcast': renderAdminBroadcast(content); break;
     case 'pending-review': renderPendingReview(content); break;
     case 'admin-informe': renderAdminInforme(content); break;
+    case 'admin-calendari': renderAdminCalendari(content); break;
+    case 'portal-calendari': renderPortalCalendari(content); break;
     case 'portal-perfil': renderPortalPerfil(content); break;
     case 'portal-roadmap': renderPortalRoadmap(content); break;
     case 'portal-cartera': renderPortalCartera(content); break;
@@ -4207,6 +4214,556 @@ function renderPortalAjuda(el) {
   html += '</div>';
   el.innerHTML = html;
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// SISTEMA DE REUNIONS / CALENDARI
+// Admin: vista mensual global + CRUD
+// Client: llista de les seves reunions + sol·licitud nova
+// Model: columna reunions JSONB per client
+// ══════════════════════════════════════════════════════════════════════════
+
+var REUNIO_TIPUS = {
+  inicial:      { lbl:'Reunió inicial',       color:'#3B82C4', bg:'#EBF0FA' },
+  trimestral:   { lbl:'Revisió trimestral',   color:'#1A5C3A', bg:'#EAF3DE' },
+  cartera:      { lbl:'Revisió de cartera',   color:'#534AB7', bg:'#EDEAF9' },
+  consulta:     { lbl:'Consulta puntual',     color:'#7A4A00', bg:'#FEF5E7' },
+  anual:        { lbl:'Revisió anual',        color:'#8B1A1A', bg:'#FDF0F0' },
+};
+var REUNIO_ESTAT = {
+  pendent:      { lbl:'Pendent',    color:'#7A4A00', bg:'#FEF5E7' },
+  confirmada:   { lbl:'Confirmada', color:'#1A5C3A', bg:'#EAF3DE' },
+  completada:   { lbl:'Completada', color:'#534AB7', bg:'#EDEAF9' },
+  cancelada:    { lbl:'Cancel·lada',color:'#8B1A1A', bg:'#FDF0F0' },
+};
+var REUNIO_LLOC = { videoconferencia:'📹 Videoconferència', presencial:'🏢 Presencial', telefon:'📞 Telèfon' };
+
+function novaIdReunio() {
+  return 'reu_' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+}
+
+// Obtenir totes les reunions de tots els clients (per a la vista admin)
+function getAllReunions() {
+  var totes = [];
+  (APP.clientsList||[]).forEach(function(cl){
+    (cl.reunions||[]).forEach(function(r){
+      totes.push(Object.assign({}, r, { client_nom: cl.nom, client_email: cl.email }));
+    });
+  });
+  // Inclou les del client actual si no és a la llista
+  var c = getClient();
+  if (c && c.reunions && c.reunions.length > 0) {
+    var emailsJa = totes.map(function(r){ return r.client_email; });
+    if (!emailsJa.includes(c.email)) {
+      c.reunions.forEach(function(r){
+        totes.push(Object.assign({}, r, { client_nom: c.nom, client_email: c.email }));
+      });
+    }
+  }
+  return totes.sort(function(a,b){ return (a.data+a.hora).localeCompare(b.data+b.hora); });
+}
+
+// ── VISTA ADMIN: Calendari mensual ────────────────────────────────────────
+function renderAdminCalendari(el) {
+  var avui = new Date();
+  var mesActual = window._calMes || avui.getFullYear() + '-' + String(avui.getMonth()+1).padStart(2,'0');
+  var [yStr, mStr] = mesActual.split('-');
+  var y = parseInt(yStr), mo = parseInt(mStr);
+
+  var mesPrev = mo===1 ? (y-1)+'-12' : y+'-'+String(mo-1).padStart(2,'0');
+  var mesNext = mo===12 ? (y+1)+'-01' : y+'-'+String(mo+1).padStart(2,'0');
+
+  var MESOS_CA = ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'];
+  var DIES_CA  = ['dl','dm','dc','dj','dv','ds','dg'];
+
+  var totes = getAllReunions().filter(function(r){ return r.data && r.data.slice(0,7) === mesActual; });
+
+  // --- Construir el grid del mes ---
+  var primerDia = new Date(y, mo-1, 1);
+  var diesAlMes = new Date(y, mo, 0).getDate();
+  var diaSemPrimer = (primerDia.getDay()+6) % 7; // 0=dl, 6=dg
+
+  var html = '<div class="content-inner fade-in">';
+
+  // Header
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">'
+    + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<button onclick="window._calMes=\''+mesPrev+'\';renderView(\'admin-calendari\')" style="padding:7px 12px;background:#fff;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:14px">‹</button>'
+      + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;min-width:200px;text-align:center">'+MESOS_CA[mo-1]+' '+y+'</div>'
+      + '<button onclick="window._calMes=\''+mesNext+'\';renderView(\'admin-calendari\')" style="padding:7px 12px;background:#fff;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:14px">›</button>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button onclick="window._calMes=undefined;renderView(\'admin-calendari\')" style="padding:8px 14px;background:#F4F3F0;color:var(--black);border:none;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb)">Avui</button>'
+      + '<button onclick="obrirModalNovaReunio()" style="padding:8px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Nova reunió</button>'
+    + '</div>'
+  + '</div>';
+
+  // Dues columnes: calendari + llista del mes
+  html += '<div style="display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start">';
+
+  // --- Grid calendari ---
+  html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:13px;overflow:hidden">';
+
+  // Capçalera dies setmana
+  html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--g100)">';
+  DIES_CA.forEach(function(d){
+    html += '<div style="padding:10px 4px;text-align:center;font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase">' + d + '</div>';
+  });
+  html += '</div>';
+
+  // Dies del mes
+  html += '<div style="display:grid;grid-template-columns:repeat(7,1fr)">';
+
+  // Cel·les buides inicials
+  for (var bi=0; bi<diaSemPrimer; bi++) {
+    html += '<div style="padding:8px 6px;border:1px solid var(--g50);min-height:72px;background:var(--g50)"></div>';
+  }
+
+  var avuiStr = avui.toISOString().slice(0,10);
+  for (var dia=1; dia<=diesAlMes; dia++) {
+    var diaStr = y+'-'+String(mo).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
+    var reunioDia = totes.filter(function(r){ return r.data===diaStr; });
+    var isAvui = diaStr===avuiStr;
+
+    html += '<div style="padding:7px 8px;border:1px solid var(--g100);min-height:72px;cursor:'+(reunioDia.length>0?'pointer':'default')+';vertical-align:top;background:#fff" '
+      + (reunioDia.length>0 ? 'onclick="veureDiaReunions(\''+diaStr+'\')"' : '') + '>'
+      + '<div style="font-size:11px;font-weight:'+(isAvui?'700':'400')+';color:'+(isAvui?'var(--accent)':'var(--black)')+';margin-bottom:4px;text-align:right">'
+        + (isAvui ? '<span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;line-height:20px;text-align:center;font-size:11px">'+dia+'</span>' : dia)
+      + '</div>';
+
+    reunioDia.slice(0,2).forEach(function(r){
+      var t = REUNIO_TIPUS[r.tipus] || REUNIO_TIPUS.consulta;
+      var e = REUNIO_ESTAT[r.estat] || REUNIO_ESTAT.pendent;
+      html += '<div style="padding:2px 5px;border-radius:3px;font-size:9px;font-weight:500;background:'+t.bg+';color:'+t.color+';margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+        + r.hora+' '+r.client_nom+'</div>';
+    });
+    if (reunioDia.length > 2) {
+      html += '<div style="font-size:9px;color:var(--g400);text-align:right">+'+(reunioDia.length-2)+'</div>';
+    }
+    html += '</div>';
+  }
+
+  // Cel·les buides finals
+  var totalCells = diaSemPrimer + diesAlMes;
+  var restants = (7 - totalCells % 7) % 7;
+  for (var bf=0; bf<restants; bf++) {
+    html += '<div style="padding:8px 6px;border:1px solid var(--g50);min-height:72px;background:var(--g50)"></div>';
+  }
+
+  html += '</div></div>'; // fi grid + card
+
+  // --- Llista reunions del mes ---
+  html += '<div>';
+  html += '<div style="font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">'+totes.length+' reunió'+(totes.length!==1?'ns':'')+' al '+MESOS_CA[mo-1]+'</div>';
+
+  if (totes.length === 0) {
+    html += '<div style="padding:32px;background:#fff;border:1px solid var(--g200);border-radius:12px;text-align:center">'
+      + '<div style="font-size:28px;margin-bottom:8px">📆</div>'
+      + '<div style="font-size:12px;color:var(--g500)">Sense reunions programades.<br>Crea\'n una amb el botó superior.</div>'
+    + '</div>';
+  } else {
+    totes.forEach(function(r){
+      var t = REUNIO_TIPUS[r.tipus] || REUNIO_TIPUS.consulta;
+      var e = REUNIO_ESTAT[r.estat] || REUNIO_ESTAT.pendent;
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:11px;padding:14px 16px;margin-bottom:10px">'
+        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+          + '<div style="font-family:var(--fm);font-size:14px;font-weight:500;color:var(--black);min-width:44px">'+r.hora+'</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:12px;font-weight:600;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.client_nom+'</div>'
+            + '<div style="font-size:10px;color:var(--g500)">'+r.data+(r.lloc?' · '+(REUNIO_LLOC[r.lloc]||r.lloc):'')+'</div>'
+          + '</div>'
+          + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+e.bg+';color:'+e.color+'">'+e.lbl+'</span>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;justify-content:space-between">'
+          + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.color+'">'+t.lbl+'</span>'
+          + '<div style="display:flex;gap:6px">'
+            + '<button onclick="editarReunioAdmin(\''+r.client_email+'\',\''+r.id+'\')" style="padding:4px 10px;background:transparent;border:1.5px solid var(--g200);border-radius:6px;font-size:10px;cursor:pointer;font-family:var(--fb);color:var(--g600)">✏️ Editar</button>'
+            + '<button onclick="esborrarReunioAdmin(\''+r.client_email+'\',\''+r.id+'\')" style="padding:4px 8px;background:transparent;border:1.5px solid var(--g200);border-radius:6px;font-size:10px;cursor:pointer;color:var(--g400)">×</button>'
+          + '</div>'
+        + '</div>'
+        + (r.notes ? '<div style="margin-top:8px;font-size:11px;color:var(--g500);line-height:1.5;padding:8px 10px;background:var(--g50);border-radius:6px">'+r.notes+'</div>' : '')
+      + '</div>';
+    });
+  }
+  html += '</div>';
+
+  html += '</div></div>'; // fi dos columnes + content-inner
+  el.innerHTML = html;
+}
+
+// Modal per veure totes les reunions d'un dia
+function veureDiaReunions(data) {
+  var totes = getAllReunions().filter(function(r){ return r.data === data; });
+  if (totes.length === 0) return;
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var panel = document.createElement('div');
+  panel.style.cssText = 'background:#fff;border-radius:14px;max-width:420px;width:100%;padding:24px 28px';
+  var html = '<div style="font-family:var(--fd);font-size:18px;margin-bottom:16px">'+data+'</div>';
+  totes.forEach(function(r){
+    var t = REUNIO_TIPUS[r.tipus]||REUNIO_TIPUS.consulta;
+    var e = REUNIO_ESTAT[r.estat]||REUNIO_ESTAT.pendent;
+    html += '<div style="padding:12px;background:var(--g50);border-radius:9px;margin-bottom:10px">'
+      +'<div style="font-size:13px;font-weight:500">'+r.hora+' · '+r.client_nom+'</div>'
+      +'<div style="font-size:11px;color:var(--g500);margin-top:2px">'+t.lbl+' · '+e.lbl+'</div>'
+      +(r.notes?'<div style="font-size:11px;color:var(--g600);margin-top:6px">'+r.notes+'</div>':'')
+      +'<div style="display:flex;gap:6px;margin-top:10px">'
+        +'<button onclick="editarReunioAdmin(\''+r.client_email+'\',\''+r.id+'\');this.closest(\'div[style*=inset]\').remove()" style="padding:5px 12px;background:var(--black);color:#fff;border:none;border-radius:6px;font-size:10px;cursor:pointer;font-family:var(--fb)">Editar</button>'
+        +'<button onclick="esborrarReunioAdmin(\''+r.client_email+'\',\''+r.id+'\');this.closest(\'div[style*=inset]\').remove()" style="padding:5px 10px;background:transparent;border:1.5px solid var(--g200);border-radius:6px;font-size:10px;cursor:pointer;color:var(--g400)">×</button>'
+      +'</div>'
+    +'</div>';
+  });
+  html += '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;padding:10px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600);margin-top:6px">Tancar</button>';
+  panel.innerHTML = html;
+  modal.appendChild(panel);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+// Modal crear nova reunió (admin)
+function obrirModalNovaReunio(dataPreseleccionada) {
+  var clients = (APP.clientsList||[]).filter(function(cl){ return cl.status==='active'; });
+  var c = getClient();
+  var avui = new Date().toISOString().slice(0,10);
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-nova-reunio';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:500px;width:100%;padding:28px 32px;max-height:92vh;overflow-y:auto';
+
+  var optsClients = clients.map(function(cl){
+    var sel = (c && cl.email===c.email) ? ' selected' : '';
+    return '<option value="'+cl.email+'"'+sel+'>'+cl.nom+' ('+cl.email+')</option>';
+  }).join('');
+
+  var optsTipus = Object.keys(REUNIO_TIPUS).map(function(k){
+    return '<option value="'+k+'">'+REUNIO_TIPUS[k].lbl+'</option>';
+  }).join('');
+  var optsEstat = Object.keys(REUNIO_ESTAT).map(function(k){
+    return '<option value="'+k+'"'+(k==='confirmada'?' selected':'')+'>'+REUNIO_ESTAT[k].lbl+'</option>';
+  }).join('');
+  var optsLloc = Object.keys(REUNIO_LLOC).map(function(k){
+    return '<option value="'+k+'">'+REUNIO_LLOC[k]+'</option>';
+  }).join('');
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:18px">📆 Nova reunió</div>'
+    + '<div style="display:flex;flex-direction:column;gap:14px">'
+      + inputGroup('Client', '<select id="nr-client" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsClients+'</select>')
+      + inputGroup('Tipus', '<select id="nr-tipus" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsTipus+'</select>')
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+        + inputGroup('Data', '<input id="nr-data" type="date" value="'+(dataPreseleccionada||avui)+'" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">')
+        + inputGroup('Hora', '<input id="nr-hora" type="time" value="10:00" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">')
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+        + inputGroup('Durada (min)', '<input id="nr-durada" type="number" value="60" min="15" max="180" step="15" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm);text-align:right">')
+        + inputGroup('Estat', '<select id="nr-estat" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsEstat+'</select>')
+      + '</div>'
+      + inputGroup('Lloc', '<select id="nr-lloc" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsLloc+'</select>')
+      + inputGroup('Notes (opcional)', '<textarea id="nr-notes" placeholder="Tema a tractar, preparació..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb);min-height:72px;resize:vertical;line-height:1.5"></textarea>')
+    + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end">'
+      + '<button onclick="document.getElementById(\'modal-nova-reunio\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel\u00b7lar</button>'
+      + '<button onclick="guardarNovaReunio()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Crear reuni\u00f3 \u2192</button>'
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function inputGroup(label, inputHtml) {
+  return '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">'+label+'</label>'+inputHtml+'</div>';
+}
+
+async function guardarNovaReunio() {
+  var email = document.getElementById('nr-client').value;
+  var data = document.getElementById('nr-data').value;
+  var hora = document.getElementById('nr-hora').value;
+  if (!email || !data || !hora) { toast('Omple client, data i hora'); return; }
+
+  var reunio = {
+    id: novaIdReunio(),
+    data: data, hora: hora,
+    durada: parseInt(document.getElementById('nr-durada').value)||60,
+    tipus: document.getElementById('nr-tipus').value,
+    estat: document.getElementById('nr-estat').value,
+    lloc: document.getElementById('nr-lloc').value,
+    notes: document.getElementById('nr-notes').value.trim(),
+    creat_per: (APP.user&&APP.user.email)||'admin',
+    creat_at: new Date().toISOString().slice(0,10),
+  };
+
+  await afegirReunioAClient(email, reunio);
+}
+
+async function afegirReunioAClient(email, reunio) {
+  var clientObj = (APP.clientsList||[]).find(function(cl){ return cl.email===email; });
+  if (!clientObj) { toast('Client no trobat'); return; }
+  var reunions = Array.isArray(clientObj.reunions) ? clientObj.reunions.slice() : [];
+  var idx = reunions.findIndex(function(r){ return r.id===reunio.id; });
+  if (idx>=0) { reunions[idx]=reunio; } else { reunions.push(reunio); }
+  try {
+    if (sb) await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase());
+    clientObj.reunions = reunions;
+    if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
+    var m = document.getElementById('modal-nova-reunio') || document.getElementById('modal-editar-reunio');
+    if (m) m.remove();
+    toast('\u2713 Reuni\u00f3 desada per a '+clientObj.nom);
+    renderView('admin-calendari');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+function editarReunioAdmin(email, reunioId) {
+  var clientObj = (APP.clientsList||[]).find(function(cl){ return cl.email===email; });
+  if (!clientObj) return;
+  var reunio = (clientObj.reunions||[]).find(function(r){ return r.id===reunioId; });
+  if (!reunio) return;
+
+  var old = document.getElementById('modal-editar-reunio');
+  if (old) old.remove();
+  var modal = document.createElement('div');
+  modal.id = 'modal-editar-reunio';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:500px;width:100%;padding:28px 32px;max-height:92vh;overflow-y:auto';
+
+  var optsTipus = Object.keys(REUNIO_TIPUS).map(function(k){ return '<option value="'+k+'"'+(k===reunio.tipus?' selected':'')+'>'+REUNIO_TIPUS[k].lbl+'</option>'; }).join('');
+  var optsEstat = Object.keys(REUNIO_ESTAT).map(function(k){ return '<option value="'+k+'"'+(k===reunio.estat?' selected':'')+'>'+REUNIO_ESTAT[k].lbl+'</option>'; }).join('');
+  var optsLloc = Object.keys(REUNIO_LLOC).map(function(k){ return '<option value="'+k+'"'+(k===reunio.lloc?' selected':'')+'>'+REUNIO_LLOC[k]+'</option>'; }).join('');
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:6px">Editar reuni\u00f3</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px">'+clientObj.nom+' · '+email+'</div>'
+    + '<div style="display:flex;flex-direction:column;gap:14px">'
+      + inputGroup('Tipus', '<select id="er-tipus" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsTipus+'</select>')
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+        + inputGroup('Data', '<input id="er-data" type="date" value="'+reunio.data+'" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">')
+        + inputGroup('Hora', '<input id="er-hora" type="time" value="'+reunio.hora+'" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">')
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+        + inputGroup('Durada (min)', '<input id="er-durada" type="number" value="'+(reunio.durada||60)+'" min="15" max="180" step="15" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm);text-align:right">')
+        + inputGroup('Estat', '<select id="er-estat" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsEstat+'</select>')
+      + '</div>'
+      + inputGroup('Lloc', '<select id="er-lloc" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsLloc+'</select>')
+      + inputGroup('Notes', '<textarea id="er-notes" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb);min-height:72px;resize:vertical;line-height:1.5">'+( reunio.notes||'')+'</textarea>')
+    + '</div>'
+    + '<div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end">'
+      + '<button onclick="document.getElementById(\'modal-editar-reunio\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel\u00b7lar</button>'
+      + '<button onclick="desarEditorReunio(\''+email+'\',\''+reunioId+'\')" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar canvis \u2192</button>'
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+async function desarEditorReunio(email, reunioId) {
+  var clientObj = (APP.clientsList||[]).find(function(cl){ return cl.email===email; });
+  if (!clientObj) return;
+  var reunions = (clientObj.reunions||[]).slice();
+  var idx = reunions.findIndex(function(r){ return r.id===reunioId; });
+  if (idx<0) return;
+  reunions[idx] = Object.assign({}, reunions[idx], {
+    tipus: document.getElementById('er-tipus').value,
+    data:  document.getElementById('er-data').value,
+    hora:  document.getElementById('er-hora').value,
+    durada: parseInt(document.getElementById('er-durada').value)||60,
+    estat: document.getElementById('er-estat').value,
+    lloc:  document.getElementById('er-lloc').value,
+    notes: document.getElementById('er-notes').value.trim(),
+  });
+  try {
+    if (sb) await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase());
+    clientObj.reunions = reunions;
+    if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
+    document.getElementById('modal-editar-reunio').remove();
+    toast('\u2713 Reuni\u00f3 actualitzada');
+    renderView('admin-calendari');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+async function esborrarReunioAdmin(email, reunioId) {
+  if (!confirm('Esborrar aquesta reuni\u00f3?')) return;
+  var clientObj = (APP.clientsList||[]).find(function(cl){ return cl.email===email; });
+  if (!clientObj) return;
+  var reunions = (clientObj.reunions||[]).filter(function(r){ return r.id!==reunioId; });
+  try {
+    if (sb) await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase());
+    clientObj.reunions = reunions;
+    if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
+    toast('\u2713 Reuni\u00f3 eliminada');
+    renderView('admin-calendari');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+// ── VISTA CLIENT: les seves reunions ─────────────────────────────────────
+function renderPortalCalendari(el) {
+  var c = getClient();
+  var reunions = Array.isArray(c && c.reunions) ? c.reunions.slice() : [];
+  reunions.sort(function(a,b){ return (a.data+a.hora).localeCompare(b.data+b.hora); });
+
+  var avui = new Date().toISOString().slice(0,10);
+  var properes = reunions.filter(function(r){ return r.data >= avui && r.estat !== 'cancelada'; });
+  var passades = reunions.filter(function(r){ return r.data < avui || r.estat === 'completada'; }).reverse();
+
+  var WHATSAPP_NUM = '34629340892';
+
+  var html = '<div class="content-inner fade-in">';
+
+  // Header
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">'
+    + '<div><div style="font-family:var(--fd);font-size:26px;font-weight:400;margin-bottom:4px">Les meves reunions</div>'
+      + '<div style="font-size:13px;color:var(--g500)">Cites programades amb el teu assessor.</div></div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button onclick="obrirModalSolicitarReunio()" style="padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">📅 Sol·licitar reunió</button>'
+      + '<a href="https://wa.me/'+WHATSAPP_NUM+'?text=Hola%20Guillem,%20voldria%20programar%20una%20reuni%C3%B3." target="_blank" style="padding:9px 14px;background:#25D366;color:#fff;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:6px">💬 WhatsApp</a>'
+    + '</div>'
+  + '</div>';
+
+  // Properes reunions
+  if (properes.length === 0) {
+    html += '<div style="padding:36px;text-align:center;background:#fff;border:1px solid var(--g200);border-radius:14px;margin-bottom:20px">'
+      + '<div style="font-size:36px;margin-bottom:12px">📆</div>'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap reunió propera programada</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.7;margin-bottom:18px">Si vols programar una cita, pots sol·licitar-la per missatge a la plataforma o directament per WhatsApp.</div>'
+      + '<button onclick="obrirModalSolicitarReunio()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Sol\u00b7licitar reuni\u00f3 →</button>'
+    + '</div>';
+  } else {
+    html += '<div style="font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Properes ('+ properes.length+')</div>';
+    properes.forEach(function(r){
+      var t = REUNIO_TIPUS[r.tipus]||REUNIO_TIPUS.consulta;
+      var e = REUNIO_ESTAT[r.estat]||REUNIO_ESTAT.pendent;
+      var dataObj = new Date(r.data+'T00:00:00');
+      var diesRestants = Math.round((dataObj-new Date())/86400000);
+      var labelDies = diesRestants===0?'Avui':diesRestants===1?'Demà':diesRestants+' dies';
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:13px;padding:20px 24px;margin-bottom:12px">'
+        + '<div style="display:flex;gap:16px;align-items:center">'
+          + '<div style="text-align:center;padding:12px 14px;background:'+t.bg+';border-radius:10px;flex-shrink:0">'
+            + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:'+t.color+'">'+r.hora+'</div>'
+            + '<div style="font-size:10px;color:'+t.color+';margin-top:2px">'+labelDies+'</div>'
+          + '</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+              + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.color+'">'+t.lbl+'</span>'
+              + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+e.bg+';color:'+e.color+'">'+e.lbl+'</span>'
+            + '</div>'
+            + '<div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:3px">'+r.data+(r.lloc?' · '+(REUNIO_LLOC[r.lloc]||r.lloc):'')+'</div>'
+            + (r.durada?'<div style="font-size:11px;color:var(--g500)">Durada: '+r.durada+' min</div>':'')
+            + (r.notes?'<div style="font-size:11px;color:var(--g600);margin-top:8px;padding:8px 10px;background:var(--g50);border-radius:6px;line-height:1.5">'+r.notes+'</div>':'')
+          + '</div>'
+        + '</div>'
+      + '</div>';
+    });
+  }
+
+  // Reunions passades
+  if (passades.length > 0) {
+    html += '<div style="font-size:11px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin:20px 0 12px">Historial ('+passades.length+')</div>';
+    passades.slice(0,5).forEach(function(r){
+      var t = REUNIO_TIPUS[r.tipus]||REUNIO_TIPUS.consulta;
+      var e = REUNIO_ESTAT[r.estat]||REUNIO_ESTAT.completada;
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:11px;padding:14px 18px;margin-bottom:8px;opacity:.75">'
+        + '<div style="display:flex;align-items:center;gap:12px">'
+          + '<div style="font-family:var(--fm);font-size:12px;color:var(--g500);min-width:80px">'+r.data+'</div>'
+          + '<div style="flex:1"><span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.color+'">'+t.lbl+'</span></div>'
+          + '<span style="font-size:9px;color:var(--g400)">'+r.hora+(r.durada?' · '+r.durada+'min':'')+'</span>'
+        + '</div>'
+        + (r.notes?'<div style="font-size:11px;color:var(--g500);margin-top:6px;padding-left:92px">'+r.notes+'</div>':'')
+      + '</div>';
+    });
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// Modal client per sol·licitar reunió
+function obrirModalSolicitarReunio() {
+  var WHATSAPP_NUM = '34629340892';
+  var c = getClient();
+  var nom = c ? c.nom : '';
+
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:440px;width:100%;padding:28px 32px';
+
+  var optsTipus = Object.keys(REUNIO_TIPUS).map(function(k){ return '<option value="'+k+'">'+REUNIO_TIPUS[k].lbl+'</option>'; }).join('');
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:6px">Sol\u00b7licitar reuni\u00f3</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:20px;line-height:1.6">Indica qu\u00e8 necessites i l\'assessor et confirmar\u00e0 la cita per missatge.</div>'
+    + '<div style="display:flex;flex-direction:column;gap:14px">'
+      + inputGroup('Tipus de reuni\u00f3', '<select id="sr-tipus" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsTipus+'</select>')
+      + inputGroup('Data prefer\u00eda <span style="color:var(--g400);font-weight:400">(orientativa)</span>', '<input id="sr-data" type="date" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">')
+      + inputGroup('Hora prefer\u00eda <span style="color:var(--g400);font-weight:400">(orientativa)</span>', '<input id="sr-hora" type="time" value="10:00" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">')
+      + inputGroup('Motiu / tema a tractar', '<textarea id="sr-nota" placeholder="Explica breument qu\u00e8 vols tractar..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb);min-height:80px;resize:vertical;line-height:1.5"></textarea>')
+    + '</div>'
+    + '<div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">'
+      + '<button onclick="enviarSolicitudReunioMissatge()" style="width:100%;padding:12px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Enviar sol\u00b7licitud per missatge →</button>'
+      + '<a id="sr-wa-link" href="#" target="_blank" style="width:100%;padding:12px;background:#25D366;color:#fff;border-radius:9px;font-size:13px;font-weight:500;text-align:center;text-decoration:none;display:block">💬 Continuar per WhatsApp</a>'
+      + '<button onclick="this.parentElement.parentElement.parentElement.remove()" style="width:100%;padding:10px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel\u00b7lar</button>'
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(inner.parentElement === modal ? modal : (function(){ modal.appendChild(inner); return modal; })());
+  document.body.appendChild(modal);
+
+  // Actualitzar link WhatsApp en temps real
+  function updateWaLink() {
+    var tipus = document.getElementById('sr-tipus');
+    var data = document.getElementById('sr-data');
+    var hora = document.getElementById('sr-hora');
+    var nota = document.getElementById('sr-nota');
+    var tipusLbl = tipus ? (REUNIO_TIPUS[tipus.value]||{}).lbl||'' : '';
+    var msg = 'Hola Guillem, soc '+nom+'. Voldria sol·licitar una '+tipusLbl.toLowerCase()+'.'
+      +(data&&data.value?' Data preferida: '+data.value:'')
+      +(hora&&hora.value?' a les '+hora.value:'')
+      +'.'+(nota&&nota.value?' Motiu: '+nota.value:'');
+    var link = document.getElementById('sr-wa-link');
+    if (link) link.href = 'https://wa.me/'+WHATSAPP_NUM+'?text='+encodeURIComponent(msg);
+  }
+  setTimeout(function(){
+    ['sr-tipus','sr-data','sr-hora','sr-nota'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateWaLink);
+    });
+    updateWaLink();
+  }, 50);
+}
+
+async function enviarSolicitudReunioMissatge() {
+  var tipus = document.getElementById('sr-tipus');
+  var data = document.getElementById('sr-data');
+  var hora = document.getElementById('sr-hora');
+  var nota = document.getElementById('sr-nota');
+  var c = getClient();
+  if (!c) { toast('Cap client carregat'); return; }
+
+  var tipusLbl = tipus ? (REUNIO_TIPUS[tipus.value]||{}).lbl||'' : 'reunió';
+  var text = '📅 Sol·licitud de reunió\n'
+    + 'Tipus: '+tipusLbl+'\n'
+    + (data&&data.value?'Data preferida: '+data.value+'\n':'')
+    + (hora&&hora.value?'Hora preferida: '+hora.value+'\n':'')
+    + (nota&&nota.value?'Tema: '+nota.value:'');
+
+  // Enviar com a missatge de la plataforma
+  try {
+    var missatgesActuals = Array.isArray(c.missatges) ? c.missatges.slice() : [];
+    missatgesActuals.push({
+      id: 'msg_'+Date.now(),
+      de: c.email,
+      text: text,
+      data: new Date().toISOString(),
+      llegit: false,
+    });
+    if (sb && c.email) await sb.from('clients').update({ missatges: missatgesActuals }).eq('email', c.email.toLowerCase());
+    if (APP.clientData) APP.clientData.missatges = missatgesActuals;
+    document.querySelector('[style*="inset:0"]')&&document.querySelector('[style*="inset:0"]').remove();
+    toast('\u2713 Sol\u00b7licitud enviada per missatge!');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════
 function renderPortalAssessoria(el) {
