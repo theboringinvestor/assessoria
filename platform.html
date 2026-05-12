@@ -2775,6 +2775,8 @@ function normalizeClient(raw) {
     // tipus pot ser: 'compra', 'venda', 'dividend', 'comissio'
     posicions: Array.isArray(raw.posicions) ? raw.posicions : [],
     moviments_posicions: Array.isArray(raw.moviments_posicions) ? raw.moviments_posicions : [],
+    informes: Array.isArray(raw.informes) ? raw.informes : [],
+    snapshots_cartera: Array.isArray(raw.snapshots_cartera) ? raw.snapshots_cartera : [],
   };
 }
 
@@ -3344,6 +3346,7 @@ function navigateTo(viewId) {
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
     'admin-preguntes': ['Preguntes dels clients', 'Respon les preguntes pendents dels clients Essencial'],
+    'admin-informe':    ['Generar Informe', 'Crea i gestiona els informes dels clients'],
     'admin-broadcast': ['Missatge a la comunitat', 'Envia un comunicat a tots els clients actius'],
     'pending-review': ['Sol·licitud rebuda', 'Esperant validació de l\'assessor'],
     'admin-pendents': ['Sol·licituds pendents', 'Clients esperant validació'],
@@ -3407,7 +3410,7 @@ function renderView(viewId) {
     case 'admin-preguntes': renderAdminPreguntes(content); break;
     case 'admin-broadcast': renderAdminBroadcast(content); break;
     case 'pending-review': renderPendingReview(content); break;
-    case 'admin-pendents': renderAdminPendents(content); break;
+    case 'admin-informe': renderAdminInforme(content); break;
     case 'portal-perfil': renderPortalPerfil(content); break;
     case 'portal-roadmap': renderPortalRoadmap(content); break;
     case 'portal-cartera': renderPortalCartera(content); break;
@@ -4501,35 +4504,80 @@ function obrirEditarTargetAdmin(email) {
   var c = (APP.clientsList||[]).find(function(x){ return x.email===email; }) || getClient();
   if (!c) return;
   var arq = getArquetip(c.arquetipId||'navegant');
-  var actius = JSON.parse(JSON.stringify(arq.actius||[]));
+  // Partir de la cartera custom si existeix, o de la de l'arquetip
+  var actius = JSON.parse(JSON.stringify(
+    (c.cartera_target_custom && c.cartera_target_custom.length > 0)
+      ? c.cartera_target_custom
+      : (arq.actius || [])
+  ));
+
+  // Assignar colors per als actius nous (si no en tenen)
+  function getColorCat(catId) {
+    var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === catId; });
+    return taxon ? taxon.color : '#888';
+  }
 
   var modal = document.createElement('div');
   modal.id = 'modal-edit-target';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
 
   var inner = document.createElement('div');
-  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:480px;width:100%;padding:28px 32px;max-height:90vh;overflow-y:auto';
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:560px;width:100%;padding:28px 32px;max-height:92vh;overflow-y:auto';
 
   function renderForm() {
     var totalPct = actius.reduce(function(s,a){ return s+(parseFloat(a.pct)||0); }, 0);
-    var html = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:6px">Editar cartera target</div>'
-      + '<div style="font-size:12px;color:var(--g500);margin-bottom:20px">'+c.nom||email+' · '+arq.cartNom+'</div>';
+    var sumOk = Math.abs(totalPct-100) < 1;
+    var html = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:4px">Editar cartera target</div>'
+      + '<div style="font-size:12px;color:var(--g500);margin-bottom:20px">'+(c.nom||email)+' · '+arq.cartNom+'</div>';
+
+    // Capçalera taula
+    html += '<div style="display:grid;grid-template-columns:1.8fr 1fr auto;gap:8px;margin-bottom:8px;padding:0 4px">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em">Categoria</div>'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;text-align:right">Pes (%)</div>'
+      + '<div></div>'
+    + '</div>';
+
     html += '<div id="et-actius">';
     actius.forEach(function(a,i){
-      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
-        + '<div style="width:10px;height:10px;border-radius:2px;background:'+a.color+';flex-shrink:0"></div>'
-        + '<div style="flex:1;font-size:12px">'+a.nom+'</div>'
-        + '<input type="number" min="0" max="100" step="1" value="'+a.pct+'" id="et-pct-'+i+'" oninput="etActualitzar()" style="width:64px;padding:6px 8px;border:1.5px solid var(--g200);border-radius:6px;font-size:12px;font-family:var(--fm);text-align:right">'
-        + '<span style="font-size:11px;color:var(--g400);width:14px">%</span>'
+      var color = a.color || getColorCat(a.id || a.nom);
+      html += '<div id="et-row-'+i+'" style="display:grid;grid-template-columns:1.8fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px;padding:8px 10px;background:var(--g50);border-radius:8px">'
+        + '<div style="display:flex;align-items:center;gap:8px;min-width:0">'
+          + '<div style="width:10px;height:10px;border-radius:2px;background:'+color+';flex-shrink:0"></div>'
+          + '<span style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+a.nom+'</span>'
+        + '</div>'
+        + '<input type="number" min="0" max="100" step="1" value="'+(parseFloat(a.pct)||0)+'" id="et-pct-'+i+'" oninput="etActualitzar()" style="width:100%;padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:13px;font-family:var(--fm);text-align:right">'
+        + '<button onclick="etEsborrarActiu('+i+')" title="Eliminar" style="background:none;border:none;cursor:pointer;color:var(--g400);font-size:18px;padding:2px 6px;line-height:1;flex-shrink:0" onmouseover="this.style.color=\'#C0392B\'" onmouseout="this.style.color=\'var(--g400)\'">×</button>'
       + '</div>';
     });
     html += '</div>';
-    html += '<div style="margin-top:10px;padding:10px 12px;background:'+(Math.abs(totalPct-100)<1?'#EAF3DE':'#FEF5E7')+';border-radius:8px;font-size:12px;font-weight:500;color:'+(Math.abs(totalPct-100)<1?'#1A5C3A':'#7A4A00')+'" id="et-total">Total: '+totalPct.toFixed(0)+'% '+(Math.abs(totalPct-100)<1?'✓ OK':'⚠️ Ha de sumar 100%')+'</div>';
-    html += '<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
+
+    // Indicador total
+    html += '<div style="padding:10px 12px;background:'+(sumOk?'#EAF3DE':'#FEF5E7')+';border-radius:8px;font-size:12px;font-weight:500;color:'+(sumOk?'#1A5C3A':'#7A4A00')+';margin:12px 0" id="et-total">'
+      + 'Total: '+totalPct.toFixed(0)+'% '+(sumOk?'✓ OK':'⚠️ Ha de sumar 100%')
+    + '</div>';
+
+    // Selectorr per afegir actiu nou
+    var optsCat = ACTIUS_TAXONOMY.map(function(t){
+      return '<option value="'+t.id+'">'+t.emoji+' '+t.ca+'</option>';
+    }).join('');
+    html += '<div style="padding:14px;border:1.5px dashed var(--g200);border-radius:10px;margin-bottom:16px">'
+      + '<div style="font-size:11px;font-weight:500;color:var(--g500);margin-bottom:10px;text-transform:uppercase;letter-spacing:.07em">+ Afegir categoria</div>'
+      + '<div style="display:grid;grid-template-columns:1.8fr 1fr auto;gap:8px;align-items:center">'
+        + '<select id="et-nova-cat" style="width:100%;padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fb)"><option value="">— Selecciona —</option>'+optsCat+'</select>'
+        + '<input type="number" id="et-nova-pct" min="0" max="100" step="1" placeholder="%" style="width:100%;padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:13px;font-family:var(--fm);text-align:right">'
+        + '<button onclick="etAfegirActiu()" style="padding:8px 14px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap">+ Afegir</button>'
+      + '</div>'
+    + '</div>';
+
+    html += '<div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--g100);padding-top:16px">'
       + '<button onclick="document.getElementById(\'modal-edit-target\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
-      + '<button onclick="guardarTargetAdmin()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar target →</button>'
+      + '<button onclick="guardarTargetAdmin(\''+email+'\')" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar target →</button>'
     + '</div>';
     return html;
+  }
+
+  function refreshForm() {
+    inner.innerHTML = renderForm();
   }
 
   inner.innerHTML = renderForm();
@@ -4539,6 +4587,8 @@ function obrirEditarTargetAdmin(email) {
 
   window.etActius = actius;
   window.etEmail = email;
+  window._etRefresh = refreshForm;
+
   window.etActualitzar = function() {
     var total = 0;
     actius.forEach(function(a,i){
@@ -4546,7 +4596,36 @@ function obrirEditarTargetAdmin(email) {
       if (inp) { a.pct = parseFloat(inp.value)||0; total += a.pct; }
     });
     var t = document.getElementById('et-total');
-    if (t) { t.textContent = 'Total: '+total.toFixed(0)+'% '+(Math.abs(total-100)<1?'✓ OK':'⚠️ Ha de sumar 100%'); t.style.background = Math.abs(total-100)<1?'#EAF3DE':'#FEF5E7'; t.style.color = Math.abs(total-100)<1?'#1A5C3A':'#7A4A00'; }
+    if (t) {
+      var ok = Math.abs(total-100) < 1;
+      t.textContent = 'Total: '+total.toFixed(0)+'% '+(ok?'✓ OK':'⚠️ Ha de sumar 100%');
+      t.style.background = ok?'#EAF3DE':'#FEF5E7';
+      t.style.color = ok?'#1A5C3A':'#7A4A00';
+    }
+  };
+
+  window.etEsborrarActiu = function(idx) {
+    actius.splice(idx, 1);
+    refreshForm();
+  };
+
+  window.etAfegirActiu = function() {
+    var sel = document.getElementById('et-nova-cat');
+    var pctInp = document.getElementById('et-nova-pct');
+    var catId = sel ? sel.value : '';
+    var pct = pctInp ? (parseFloat(pctInp.value)||0) : 0;
+    if (!catId) { toast('Selecciona una categoria'); return; }
+    if (pct <= 0) { toast('Indica un pes > 0%'); return; }
+    var taxon = ACTIUS_TAXONOMY.find(function(t){ return t.id === catId; });
+    var nom = taxon ? taxon.ca : catId;
+    var color = taxon ? taxon.color : '#888';
+    // Evitar duplicats
+    if (actius.find(function(a){ return (a.id||a.nom) === catId || a.nom === nom; })) {
+      toast('Aquesta categoria ja és a la cartera. Modifica\'n el pes directament.'); return;
+    }
+    actius.push({ id: catId, nom: nom, color: color, pct: pct });
+    refreshForm();
+    toast('✓ '+nom+' afegit');
   };
 }
 
@@ -4620,6 +4699,7 @@ function renderPortalCartera(el) {
     + '<button onclick="obrirModalMoviment()" style="padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Registrar moviment</button>'
     + '<button onclick="obrirModalActualitzarValors()" style="padding:9px 16px;background:var(--white);color:var(--black);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">💱 Actualitzar valors</button>'
     + '<button onclick="obrirModalAfegirPosicio()" style="padding:9px 16px;background:var(--white);color:var(--g600);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Afegir posició</button>'
+    + '<button onclick="guardarSnapshotManual()" title="Desar snapshot del mes actual amb els valors actuals" style="padding:9px 14px;background:var(--white);color:#7A4A00;border:1.5px solid #E8C285;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">📸 Snapshot</button>'
     + '<div style="flex:1"></div>'
     + '<button onclick="exportarCarteraCSV()" style="padding:9px 14px;background:transparent;color:var(--g500);border:1.5px solid var(--g200);border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb)">📄 CSV</button>'
   + '</div>';
@@ -5186,6 +5266,7 @@ function obrirModalActualitzarValors() {
 
 async function guardarValorsActualitzats() {
   var data = new Date().toISOString().slice(0,10);
+  var mes = data.slice(0,7);  // YYYY-MM
   var posicions = getPosicionsV2().slice();
   var inputs = document.querySelectorAll('.val-input');
   inputs.forEach(function(inp){
@@ -5194,13 +5275,38 @@ async function guardarValorsActualitzats() {
     var p = posicions.find(function(x){ return x.id === posId; });
     if (p) { p.valor_actual = v; p.valor_data = data; }
   });
+
+  // Calcular totals per al snapshot mensual
+  var valorTotal = posicions.reduce(function(s,p){ return s+(parseFloat(p.valor_actual)||0); }, 0);
+  var invertitTotal = (function(){
+    var movs = getMovimentsV2();
+    var cum = 0;
+    movs.forEach(function(m){
+      var imp = parseFloat(m.import)||0;
+      if (m.tipus==='compra') cum+=imp;
+      if (m.tipus==='venda')  cum-=imp;
+    });
+    return cum;
+  })();
+
+  // Actualitzar o afegir snapshot del mes actual
+  var snapshots = Array.isArray(APP.clientData && APP.clientData.snapshots_cartera) ? APP.clientData.snapshots_cartera.slice() : [];
+  var idxSnap = snapshots.findIndex(function(s){ return s.mes === mes; });
+  var nouSnap = { mes: mes, data: data, valor: valorTotal, invertit: invertitTotal };
+  if (idxSnap >= 0) { snapshots[idxSnap] = nouSnap; }
+  else { snapshots.push(nouSnap); }
+  snapshots.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
   try {
     if (sb && APP.user && APP.user.email) {
-      await sb.from('clients').update({ posicions: posicions }).eq('email', APP.user.email.toLowerCase());
+      await sb.from('clients').update({ posicions: posicions, snapshots_cartera: snapshots }).eq('email', APP.user.email.toLowerCase());
     }
-    if (APP.clientData) APP.clientData.posicions = posicions;
+    if (APP.clientData) {
+      APP.clientData.posicions = posicions;
+      APP.clientData.snapshots_cartera = snapshots;
+    }
     document.getElementById('modal-valors').remove();
-    toast('✓ Valors actualitzats');
+    toast('✓ Valors actualitzats · Snapshot '+mes+' desat');
     renderView('portal-cartera');
   } catch(e) { toast('Error: '+(e.message||e)); }
 }
@@ -5307,68 +5413,151 @@ function renderEvolucioSVG(width) {
     var p = yyyymm.split('-');
     return MESOS_CA[parseInt(p[1])-1] + ' ' + p[0].slice(2);
   }
-  var moviments = getMovimentsV2().slice().sort(function(a,b){ return (a.data||'').localeCompare(b.data||''); });
-  if (moviments.length === 0) {
-    return '<div style="padding:32px;text-align:center;color:var(--g400);font-size:12px">— Sense moviments registrats encara</div>';
-  }
-  var mesAcum = {}, cumAcc = 0;
-  moviments.forEach(function(m){
-    var mes = (m.data||'').slice(0,7); if (!mes) return;
-    var imp = parseFloat(m.import)||0;
-    if (m.tipus==='compra') cumAcc+=imp; if (m.tipus==='venda') cumAcc-=imp;
-    mesAcum[mes] = cumAcc;
-  });
-  var mesosList = Object.keys(mesAcum).sort();
+
+  // Obtenir snapshots guardats (historial real de valors mensuals)
+  var c = getClient();
+  var snapshots = (c && Array.isArray(c.snapshots_cartera)) ? c.snapshots_cartera.slice() : [];
+  var kpis = (typeof calcKPIsCartera === 'function') ? calcKPIsCartera() : {valor_total:0, cost_total:0};
   var mesAvui = new Date().toISOString().slice(0,7);
-  if (!mesAcum[mesAvui]) { mesosList.push(mesAvui); mesAcum[mesAvui] = cumAcc; }
-  mesosList = mesosList.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
-  if (mesosList.length < 2) {
-    var ym = mesosList[0].split('-'), y2=parseInt(ym[0]), mo2=parseInt(ym[1]);
+
+  // Afegir/actualitzar punt actual en memòria (no persistit)
+  var serie = snapshots.slice();
+  var idxAvui = serie.findIndex(function(s){ return s.mes === mesAvui; });
+  if (idxAvui >= 0) { serie[idxAvui] = { mes:mesAvui, valor:kpis.valor_total, invertit:kpis.cost_total }; }
+  else { serie.push({ mes:mesAvui, valor:kpis.valor_total, invertit:kpis.cost_total }); }
+
+  // Completar amb moviments mensuals si hi ha pocs snapshots
+  if (serie.length < 2) {
+    var moviments = (typeof getMovimentsV2 === 'function') ? getMovimentsV2().slice().sort(function(a,b){ return (a.data||'').localeCompare(b.data||''); }) : [];
+    var mesAcum = {}, cumAcc = 0;
+    moviments.forEach(function(m){
+      var mes = (m.data||'').slice(0,7); if (!mes) return;
+      var imp = parseFloat(m.import)||0;
+      if (m.tipus==='compra') cumAcc+=imp; if (m.tipus==='venda') cumAcc-=imp;
+      mesAcum[mes] = cumAcc;
+    });
+    Object.keys(mesAcum).forEach(function(mes){
+      if (!serie.find(function(s){ return s.mes === mes; })) {
+        serie.push({ mes:mes, invertit:mesAcum[mes], valor:mesAcum[mes] });
+      }
+    });
+  }
+
+  serie.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
+  // Si un sol punt, afegir mes anterior fictici
+  if (serie.length < 2) {
+    var ym = serie[0].mes.split('-'), y2=parseInt(ym[0]), mo2=parseInt(ym[1]);
     var ant = mo2===1?(y2-1)+'-12':y2+'-'+String(mo2-1).padStart(2,'0');
-    mesosList = [ant].concat(mesosList); mesAcum[ant] = 0;
+    serie = [{ mes:ant, valor:0, invertit:0 }].concat(serie);
   }
-  var kpis2 = (typeof calcKPIsCartera==='function') ? calcKPIsCartera() : {valor_total:0};
-  var valorFinal = kpis2.valor_total;
-  var invertitFinal = mesAcum[mesosList[mesosList.length-1]]||0;
-  var esPlusvalua = valorFinal >= invertitFinal;
+
+  var n = serie.length;
   width = width||720;
-  var H=240, pad={t:20,r:80,b:40,l:64}, W=width-pad.l-pad.r, HH=H-pad.t-pad.b;
-  var tots = mesosList.map(function(m){return mesAcum[m];}); tots.push(valorFinal);
+  var H=260, pad={t:24,r:90,b:40,l:68}, W=width-pad.l-pad.r, HH=H-pad.t-pad.b;
+
+  var tots = [];
+  serie.forEach(function(s){ tots.push(s.valor||0); tots.push(s.invertit||0); });
   var vMax = Math.max.apply(null,tots)*1.15||1000;
-  function xpx(i){ return pad.l + i/Math.max(mesosList.length-1,1)*W; }
-  function ypx(v){ return pad.t + (1-v/vMax)*HH; }
+  if (vMax===0) vMax=1000;
+
+  function xpx(i){ return pad.l + i/Math.max(n-1,1)*W; }
+  function ypx(v){ return pad.t + (1-Math.min(v,vMax)/vMax)*HH; }
+
+  // Guies horitzontals
   var guides='';
-  for (var gi=0;gi<=4;gi++){
+  for (var gi=0; gi<=4; gi++) {
     var gv=vMax*gi/4, gy=ypx(gv);
-    guides+='<line x1="'+pad.l+'" y1="'+gy.toFixed(1)+'" x2="'+(pad.l+W)+'" y2="'+gy.toFixed(1)+'" stroke="#EBEBEB" stroke-width="1"/>';
-    guides+='<text x="'+(pad.l-6)+'" y="'+(gy+3.5).toFixed(1)+'" font-size="9" fill="#AAA" text-anchor="end">'+Math.round(gv).toLocaleString('ca-ES')+'€</text>';
+    guides += '<line x1="' + pad.l + '" y1="' + gy.toFixed(1) + '" x2="' + (pad.l+W) + '" y2="' + gy.toFixed(1) + '" stroke="#F0EEEB" stroke-width="1"/>';
+    guides += '<text x="' + (pad.l-6) + '" y="' + (gy+3.5).toFixed(1) + '" font-size="9" fill="#BBBBBB" text-anchor="end" font-family="ui-monospace,monospace">' + Math.round(gv).toLocaleString('ca-ES') + '\u20ac</text>';
   }
-  var colInv='#3B82C4', colVal=esPlusvalua?'#1A5C3A':'#C0392B';
-  var pathInv=mesosList.map(function(m,i){return (i===0?'M':'L')+xpx(i).toFixed(1)+','+ypx(mesAcum[m]).toFixed(1);}).join(' ');
-  var xFi=xpx(mesosList.length-1), yBase=ypx(0);
-  var areaInv=pathInv+' L'+xFi.toFixed(1)+','+yBase.toFixed(1)+' L'+pad.l+','+yBase.toFixed(1)+' Z';
-  var xi=xpx(mesosList.length-1), yiInv=ypx(invertitFinal), yiVal=ypx(valorFinal);
-  var bridge='<line x1="'+xi.toFixed(1)+'" y1="'+yiInv.toFixed(1)+'" x2="'+xi.toFixed(1)+'" y2="'+yiVal.toFixed(1)+'" stroke="'+colVal+'" stroke-width="2.5" stroke-dasharray="4,3"/>';
-  var dotV='<circle cx="'+xi.toFixed(1)+'" cy="'+yiVal.toFixed(1)+'" r="6" fill="'+colVal+'" stroke="#fff" stroke-width="2"/>';
-  var dotI='<circle cx="'+xi.toFixed(1)+'" cy="'+yiInv.toFixed(1)+'" r="4" fill="'+colInv+'" stroke="#fff" stroke-width="1.5"/>';
-  var lblV='<text x="'+(xi+10)+'" y="'+(yiVal+4).toFixed(1)+'" font-size="12" font-weight="700" fill="'+colVal+'" font-family="ui-monospace,monospace">'+Math.round(valorFinal).toLocaleString('ca-ES')+'€</text>';
-  var lblI='<text x="'+(xi+10)+'" y="'+(yiInv+4).toFixed(1)+'" font-size="10" fill="'+colInv+'" font-family="ui-monospace,monospace">'+Math.round(invertitFinal).toLocaleString('ca-ES')+'€</text>';
-  var xAxis='', pas=Math.ceil(mesosList.length/8);
-  mesosList.forEach(function(m,i){
-    if (i%pas===0||i===mesosList.length-1)
-      xAxis+='<text x="'+xpx(i).toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#AAA" text-anchor="middle">'+fmtMes(m)+'</text>';
+
+  var last = serie[n-1];
+  var esPlusvalua = (last.valor||0) >= (last.invertit||0);
+  var colInv = '#C8A95A';
+  var colVal = esPlusvalua ? '#7A3B10' : '#C0392B';
+  var colBen = esPlusvalua ? 'rgba(185,100,30,.75)' : 'rgba(192,57,43,.75)';
+  var colBenArea = esPlusvalua ? 'rgba(185,100,30,.15)' : 'rgba(192,57,43,.12)';
+
+  // Paths
+  var pathInv = serie.map(function(s,i){ return (i===0?'M':'L')+xpx(i).toFixed(1)+','+ypx(s.invertit||0).toFixed(1); }).join(' ');
+  var pathVal = serie.map(function(s,i){ return (i===0?'M':'L')+xpx(i).toFixed(1)+','+ypx(s.valor||0).toFixed(1); }).join(' ');
+  var yBase=ypx(0);
+  var areaInv = pathInv + ' L'+xpx(n-1).toFixed(1)+','+yBase.toFixed(1)+' L'+pad.l+','+yBase.toFixed(1)+' Z';
+  // Àrea benefici: entre línia valor (endavant) i línia invertit (enrere)
+  var pathValFwd = serie.map(function(s,i){ return (i===0?'M':'L')+xpx(i).toFixed(1)+','+ypx(s.valor||0).toFixed(1); }).join(' ');
+  var pathInvBwd = serie.slice().reverse().map(function(s,i){ return 'L'+xpx(n-1-i).toFixed(1)+','+ypx(s.invertit||0).toFixed(1); }).join(' ');
+  var areaBen = pathValFwd + ' ' + pathInvBwd + ' Z';
+
+  // Eix X
+  var xAxis='', pas=Math.ceil(n/8);
+  serie.forEach(function(s,i){
+    if (i%pas===0||i===n-1) xAxis+='<text x="'+xpx(i).toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#BBBBBB" text-anchor="middle">'+fmtMes(s.mes)+'</text>';
   });
-  var lineDots=mesosList.map(function(m,i){return '<circle cx="'+xpx(i).toFixed(1)+'" cy="'+ypx(mesAcum[m]).toFixed(1)+'" r="3" fill="'+colInv+'" stroke="#fff" stroke-width="1.5"/>';}).join('');
-  var legend='<rect x="'+pad.l+'" y="14" width="10" height="10" rx="2" fill="'+colInv+'"/><text x="'+(pad.l+14)+'" y="22" font-size="10" fill="#666" font-family="system-ui">Capital invertit</text>'
-    +'<rect x="'+(pad.l+130)+'" y="14" width="10" height="10" rx="2" fill="'+colVal+'"/><text x="'+(pad.l+144)+'" y="22" font-size="10" fill="#666" font-family="system-ui">Valor cartera</text>';
+
+  // Punts intermedis de la línia valor
+  var valDots = serie.map(function(s,i){
+    if (i===0||i===n-1) return '';
+    return '<circle cx="'+xpx(i).toFixed(1)+'" cy="'+ypx(s.valor||0).toFixed(1)+'" r="2.5" fill="'+colVal+'" opacity=".5"/>';
+  }).join('');
+
+  // Punt i etiquetes finals
+  var xFi=xpx(n-1), yFiV=ypx(last.valor||0), yFiI=ypx(last.invertit||0);
+  var beneficiEur=Math.round((last.valor||0)-(last.invertit||0));
+  var beneficiPct=(last.invertit||0)>0?(((last.valor||0)/(last.invertit||0)-1)*100).toFixed(1):'0.0';
+  var signB=beneficiEur>=0?'+':'';
+  var yMidBen=(Math.min(yFiV,yFiI)+Math.abs(yFiV-yFiI)/2).toFixed(1);
+
+  var dotV='<circle cx="'+xFi.toFixed(1)+'" cy="'+yFiV.toFixed(1)+'" r="5.5" fill="'+colVal+'" stroke="#fff" stroke-width="2"/>';
+  var dotI='<circle cx="'+xFi.toFixed(1)+'" cy="'+yFiI.toFixed(1)+'" r="4" fill="'+colInv+'" stroke="#fff" stroke-width="1.5"/>';
+  var lblV='<text x="'+(xFi+10)+'" y="'+(yFiV+4).toFixed(1)+'" font-size="12" font-weight="700" fill="'+colVal+'" font-family="ui-monospace,monospace">'+Math.round(last.valor||0).toLocaleString('ca-ES')+'\u20ac</text>';
+  var lblI='<text x="'+(xFi+10)+'" y="'+(yFiI+4).toFixed(1)+'" font-size="10" fill="'+colInv+'" font-family="ui-monospace,monospace">'+Math.round(last.invertit||0).toLocaleString('ca-ES')+'\u20ac</text>';
+  var lblB='<text x="'+(xFi+10)+'" y="'+yMidBen+'" font-size="10" font-weight="600" fill="'+colBen+'" font-family="ui-monospace,monospace">'+signB+beneficiEur.toLocaleString('ca-ES')+'\u20ac ('+signB+beneficiPct+'%)</text>';
+
+  // Llegenda
+  var legend='<rect x="'+pad.l+'" y="12" width="10" height="10" rx="2" fill="'+colVal+'" opacity=".8"/>'
+    +'<text x="'+(pad.l+14)+'" y="20" font-size="10" fill="#666" font-family="system-ui">Valor cartera</text>'
+    +'<rect x="'+(pad.l+120)+'" y="12" width="10" height="10" rx="2" fill="'+colInv+'" opacity=".8"/>'
+    +'<text x="'+(pad.l+134)+'" y="20" font-size="10" fill="#666" font-family="system-ui">Capital invertit</text>'
+    +'<rect x="'+(pad.l+255)+'" y="12" width="10" height="10" rx="2" fill="'+colBen+'" opacity=".8"/>'
+    +'<text x="'+(pad.l+269)+'" y="20" font-size="10" fill="#666" font-family="system-ui">'+(esPlusvalua?'Benefici':'P\u00e8rdua')+'</text>';
+
   return '<svg viewBox="0 0 '+width+' '+H+'" style="width:100%;height:auto;display:block;overflow:visible">'
-    +guides+'<path d="'+areaInv+'" fill="rgba(59,130,196,.06)"/>'
-    +'<path d="'+pathInv+'" stroke="'+colInv+'" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
-    +lineDots+bridge+dotV+dotI+lblV+lblI+xAxis+legend+'</svg>';
+    +guides
+    +'<path d="'+areaInv+'" fill="rgba(200,169,90,.14)" stroke="none"/>'
+    +'<path d="'+areaBen+'" fill="'+colBenArea+'" stroke="none"/>'
+    +'<path d="'+pathInv+'" stroke="'+colInv+'" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<path d="'+pathVal+'" stroke="'+colVal+'" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
+    +valDots+dotV+dotI+lblV+lblI+lblB
+    +xAxis+legend+'</svg>';
 }
 
 
-// ── Exportació CSV (posicions + moviments) ──────────────────────────────
+// ── Snapshot manual del mes actual ──────────────────────────────────────
+async function guardarSnapshotManual() {
+  var kpis = calcKPIsCartera();
+  if (kpis.valor_total === 0 && kpis.cost_total === 0) {
+    toast('Actualitza primer els valors de mercat'); return;
+  }
+  var avui = new Date().toISOString().slice(0,10);
+  var mes = avui.slice(0,7);
+  var snapshots = Array.isArray(APP.clientData && APP.clientData.snapshots_cartera)
+    ? APP.clientData.snapshots_cartera.slice() : [];
+  var idx = snapshots.findIndex(function(s){ return s.mes === mes; });
+  var snap = { mes:mes, data:avui, valor:kpis.valor_total, invertit:kpis.cost_total };
+  if (idx >= 0) { snapshots[idx] = snap; } else { snapshots.push(snap); }
+  snapshots.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+  try {
+    if (sb && APP.user && APP.user.email) {
+      await sb.from('clients').update({ snapshots_cartera: snapshots }).eq('email', APP.user.email.toLowerCase());
+    }
+    if (APP.clientData) APP.clientData.snapshots_cartera = snapshots;
+    toast('\u2713 Snapshot ' + mes + ' desat: ' + kpis.valor_total.toLocaleString('ca-ES') + '\u20ac');
+    renderView('portal-cartera');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+
 function exportarCarteraCSV() {
   var posAgg = calcPosicionsAmbAgregats();
   var moviments = getMovimentsV2();
@@ -5821,34 +6010,398 @@ function subscribeToMessages(email) {
 // ══════════════════════════════════════════════════
 // VIEW: INFORMES
 // ══════════════════════════════════════════════════
-function renderPortalInformes(el) {
-  var html = '<div class="content-inner fade-in">';
-  html += '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:20px">Els teus informes</div>';
+// ══════════════════════════════════════════════════════════════════════════
+// SISTEMA D'INFORMES — Admin (crear/editar/publicar) + Client (veure)
+// Model: columna `informes` JSONB a taula clients
+// Format: [{id, titol, subtitol, tipus, seccions:{}, data, publicat, creat_per}]
+// ══════════════════════════════════════════════════════════════════════════
 
-  DEMO_INFORMES.forEach(function(r){
-    var tipusMap = {trimestral:{bg:'#EBF0FA',tc:'#1B3A6B',lbl:'Trimestral'},perfil:{bg:'#EDEAF9',tc:'#534AB7',lbl:'Perfil'},pla:{bg:'#EAF3DE',tc:'#1A5C3A',lbl:'Pla financer'}};
-    var t = tipusMap[r.tipus] || tipusMap.trimestral;
-    var isPendent = r.estat === 'pendent';
-    html += '<div class="card" style="' + (isPendent?'opacity:.5':'cursor:pointer') + '">'
-      + '<div style="display:flex;align-items:center;gap:12px">'
-        + '<div style="width:40px;height:40px;border-radius:10px;background:' + t.bg + ';display:flex;align-items:center;justify-content:center;font-size:18px">' + (isPendent?'🕐':'📄') + '</div>'
-        + '<div style="flex:1;min-width:0">'
-          + '<div style="display:flex;gap:6px;align-items:center;margin-bottom:3px">'
-            + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:' + t.bg + ';color:' + t.tc + '">' + t.lbl + '</span>'
-            + '<span style="font-size:10px;color:var(--g400)">' + r.data + '</span>'
-          + '</div>'
-          + '<div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:2px">' + r.titol + '</div>'
-          + '<div style="font-size:12px;color:var(--g500)">' + r.desc + '</div>'
-        + '</div>'
-        + (isPendent ? '<div style="font-size:10px;color:var(--g400);padding:4px 10px;border:1px solid var(--g200);border-radius:6px">Pendent</div>'
-          : '<div style="font-size:10px;color:var(--accent);padding:4px 10px;border:1px solid var(--accent);border-radius:6px;cursor:pointer">📥 Descarregar</div>')
-      + '</div>'
-    + '</div>';
+var INFORME_TIPUS = {
+  trimestral: { lbl:'Trimestral', emoji:'📊', bg:'#EBF0FA', tc:'#1B3A6B' },
+  perfil:     { lbl:'Perfil inversor', emoji:'👤', bg:'#EDEAF9', tc:'#534AB7' },
+  pla:        { lbl:'Pla financer', emoji:'🗺️', bg:'#EAF3DE', tc:'#1A5C3A' },
+  especial:   { lbl:'Especial', emoji:'⭐', bg:'#FEF5E7', tc:'#7A4A00' },
+};
+
+var INFORME_SECCIONS_BASE = {
+  trimestral: [
+    { id:'resum',           titol:'Resum executiu',              placeholder:'Escriu el resum del trimestre...' },
+    { id:'mercat',          titol:'Context de mercat',           placeholder:'Anàlisi del context macro i de mercats...' },
+    { id:'cartera',         titol:'Evolució de la cartera',      placeholder:'Rendiment de la cartera, comparativa amb benchmark...' },
+    { id:'recomanacions',   titol:'Recomanacions per al proper trimestre', placeholder:'Accions recomanades, ajustos de cartera...' },
+    { id:'conclusio',       titol:'Conclusió',                   placeholder:'Missatge final i properes passes...' },
+  ],
+  perfil: [
+    { id:'resum',           titol:'Resum del perfil',            placeholder:'Descripció del perfil inversor...' },
+    { id:'arquetip',        titol:'Arquetip assignat',           placeholder:'Per què aquest arquetip i cartera...' },
+    { id:'recomanacions',   titol:'Recomanacions inicials',      placeholder:'Primeres accions a dur a terme...' },
+  ],
+  pla: [
+    { id:'resum',           titol:'Resum del pla',               placeholder:'Objectius generals del pla...' },
+    { id:'fases',           titol:'Fases del pla',               placeholder:'Descripció de les 5 fases i timeline...' },
+    { id:'cartera',         titol:'Cartera recomanada',          placeholder:'Justificació de la cartera assignada...' },
+    { id:'recomanacions',   titol:'Primeres accions',            placeholder:'Passos concrets a fer el primer mes...' },
+  ],
+  especial: [
+    { id:'resum',           titol:'Resum',                       placeholder:'Escriu el resum...' },
+    { id:'contingut',       titol:'Contingut principal',         placeholder:'Contingut de l\'informe especial...' },
+    { id:'conclusio',       titol:'Conclusió',                   placeholder:'Conclusió i properes passes...' },
+  ],
+};
+
+function novaIdInforme() {
+  return 'inf_' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+}
+
+function getInformesClient(c) {
+  return Array.isArray(c && c.informes) ? c.informes : [];
+}
+
+// ── Vista ADMIN: crear i gestionar informes ──────────────────────────────
+function renderAdminInforme(el) {
+  var c = getClient();
+  if (!c) {
+    el.innerHTML = '<div class="content-inner"><div style="padding:40px;text-align:center;color:var(--g400)">'
+      + '<div style="font-size:32px;margin-bottom:12px">👤</div>'
+      + '<div style="font-size:14px;font-weight:500;margin-bottom:6px">Cap client seleccionat</div>'
+      + '<div style="font-size:12px;color:var(--g500)">Entra a la fitxa d\'un client des de Clients i torna aquí.</div>'
+    + '</div></div>';
+    return;
+  }
+
+  var informes = getInformesClient(c).slice().sort(function(a,b){
+    return (b.data||'').localeCompare(a.data||'');
   });
+  var avui = new Date().toISOString().slice(0,10);
+
+  var html = '<div class="content-inner fade-in">';
+
+  // Header
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">'
+    + '<div>'
+      + '<div style="font-family:var(--fd);font-size:24px;font-weight:400;margin-bottom:4px">Informes — '+c.nom+'</div>'
+      + '<div style="font-size:12px;color:var(--g500)">'+(informes.length)+' informe'+(informes.length===1?'':'s')+' creats</div>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  Object.keys(INFORME_TIPUS).forEach(function(tipus){
+    var t = INFORME_TIPUS[tipus];
+    html += '<button onclick="crearNouInforme(\''+tipus+'\')" style="padding:9px 14px;background:'+t.bg+';color:'+t.tc+';border:none;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)">'+t.emoji+' Nou '+t.lbl+'</button>';
+  });
+  html += '</div></div>';
+
+  if (informes.length === 0) {
+    html += '<div style="padding:48px;text-align:center;background:#fff;border:1px solid var(--g200);border-radius:14px">'
+      + '<div style="font-size:36px;margin-bottom:12px">📄</div>'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap informe creat encara</div>'
+      + '<div style="font-size:12px;color:var(--g500)">Utilitza els botons superiors per crear el primer informe per a '+c.nom+'.</div>'
+    + '</div>';
+  } else {
+    informes.forEach(function(inf){
+      var t = INFORME_TIPUS[inf.tipus] || INFORME_TIPUS.especial;
+      var pubBg = inf.publicat ? '#EAF3DE' : '#F4F3F0';
+      var pubCol = inf.publicat ? '#1A5C3A' : '#9A9690';
+      var pubLbl = inf.publicat ? '✓ Publicat' : 'Esborrany';
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:13px;padding:18px 22px;margin-bottom:12px">'
+        + '<div style="display:flex;align-items:center;gap:14px">'
+          + '<div style="width:44px;height:44px;border-radius:10px;background:'+t.bg+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+t.emoji+'</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
+              + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.tc+'">'+t.lbl+'</span>'
+              + '<span style="font-size:9px;padding:2px 7px;border-radius:99px;background:'+pubBg+';color:'+pubCol+';font-weight:600">'+pubLbl+'</span>'
+              + '<span style="font-size:10px;color:var(--g400)">'+inf.data+'</span>'
+            + '</div>'
+            + '<div style="font-size:14px;font-weight:600;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+inf.titol+'</div>'
+            + (inf.subtitol ? '<div style="font-size:11px;color:var(--g500);margin-top:1px">'+inf.subtitol+'</div>' : '')
+          + '</div>'
+          + '<div style="display:flex;gap:6px;flex-shrink:0">'
+            + '<button onclick="editarInforme(\''+inf.id+'\')" style="padding:7px 14px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)">✏️ Editar</button>'
+            + '<button onclick="togglePublicarInforme(\''+inf.id+'\')" style="padding:7px 14px;background:'+(inf.publicat?'#FDF0F0':'#EAF3DE')+';color:'+(inf.publicat?'#C0392B':'#1A5C3A')+';border:none;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)">'+(inf.publicat?'Despublicar':'Publicar')+'</button>'
+            + '<button onclick="esborrarInforme(\''+inf.id+'\')" style="padding:7px 10px;background:transparent;border:1.5px solid var(--g200);border-radius:7px;font-size:11px;cursor:pointer;color:var(--g500)">×</button>'
+          + '</div>'
+        + '</div>'
+      + '</div>';
+    });
+  }
 
   html += '</div>';
   el.innerHTML = html;
 }
+
+// Crear nou informe (plantilla base)
+function crearNouInforme(tipus) {
+  var c = getClient();
+  if (!c) { toast('Cap client seleccionat'); return; }
+  var t = INFORME_TIPUS[tipus] || INFORME_TIPUS.especial;
+  var seccions = {};
+  (INFORME_SECCIONS_BASE[tipus] || INFORME_SECCIONS_BASE.especial).forEach(function(s){ seccions[s.id] = ''; });
+  var avui = new Date().toISOString().slice(0,10);
+  var nouInforme = {
+    id: novaIdInforme(),
+    titol: t.lbl + ' — ' + new Date().toLocaleDateString('ca-ES', {month:'long', year:'numeric'}),
+    subtitol: '',
+    tipus: tipus,
+    seccions: seccions,
+    data: avui,
+    publicat: false,
+    creat_per: (APP.user && APP.user.email) || 'admin',
+  };
+  // Obre directament l'editor
+  window._informeEditat = nouInforme;
+  window._informeEsNou = true;
+  obrirEditorInforme(nouInforme);
+}
+
+// Editar informe existent
+function editarInforme(informeId) {
+  var c = getClient();
+  if (!c) return;
+  var inf = getInformesClient(c).find(function(x){ return x.id === informeId; });
+  if (!inf) { toast('Informe no trobat'); return; }
+  window._informeEditat = JSON.parse(JSON.stringify(inf));
+  window._informeEsNou = false;
+  obrirEditorInforme(window._informeEditat);
+}
+
+// Modal editor d'informe (full-screen)
+function obrirEditorInforme(inf) {
+  var old = document.getElementById('modal-editor-informe');
+  if (old) old.remove();
+
+  var t = INFORME_TIPUS[inf.tipus] || INFORME_TIPUS.especial;
+  var seccDefs = INFORME_SECCIONS_BASE[inf.tipus] || INFORME_SECCIONS_BASE.especial;
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-editor-informe';
+  modal.style.cssText = 'position:fixed;inset:0;background:#F4F3F0;z-index:9999;display:flex;flex-direction:column;overflow:hidden';
+
+  // Topbar editor
+  var topbar = '<div style="background:#fff;border-bottom:1px solid #E8E6E1;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
+    + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<button onclick="document.getElementById(\'modal-editor-informe\').remove()" style="background:none;border:none;cursor:pointer;color:var(--g500);font-size:13px;padding:6px 10px;border-radius:6px;font-family:var(--fb)">← Tornar</button>'
+      + '<div style="width:1px;height:20px;background:#E8E6E1"></div>'
+      + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.tc+'">'+t.lbl+'</span>'
+      + '<span id="editor-titol-preview" style="font-size:13px;font-weight:500;color:#0A0A0A;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+inf.titol+'</span>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button onclick="desarEsborrany()" style="padding:8px 16px;background:#F4F3F0;color:#0A0A0A;border:1.5px solid #DEDBD6;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar esborrany</button>'
+      + '<button onclick="publicarInforme()" style="padding:8px 18px;background:#0A0A0A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Publicar al client ✓</button>'
+    + '</div>'
+  + '</div>';
+
+  // Contingut editor
+  var body = '<div style="flex:1;overflow-y:auto;padding:32px 0">'
+    + '<div style="max-width:760px;margin:0 auto;padding:0 24px">';
+
+  // Camps de metadades
+  body += '<div style="background:#fff;border-radius:13px;padding:22px 26px;margin-bottom:20px;border:1px solid #E8E6E1">'
+    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#9A9690;margin-bottom:14px">Metadades de l\'informe</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'
+      + '<div><label style="font-size:11px;font-weight:500;color:#6B6762;display:block;margin-bottom:4px">Títol</label>'
+        + '<input id="editor-titol" type="text" value="'+inf.titol.replace(/"/g,'&quot;')+'" oninput="document.getElementById(\'editor-titol-preview\').textContent=this.value" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:13px;font-family:var(--fb)">'
+      + '</div>'
+      + '<div><label style="font-size:11px;font-weight:500;color:#6B6762;display:block;margin-bottom:4px">Subtítol <span style="color:#AAAAAA;font-weight:400">(opcional)</span></label>'
+        + '<input id="editor-subtitol" type="text" value="'+(inf.subtitol||'').replace(/"/g,'&quot;')+'" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:13px;font-family:var(--fb)">'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+
+  // Seccions editables
+  seccDefs.forEach(function(s){
+    var contingut = (inf.seccions && inf.seccions[s.id]) || '';
+    body += '<div style="background:#fff;border-radius:13px;padding:22px 26px;margin-bottom:14px;border:1px solid #E8E6E1">'
+      + '<div style="font-size:13px;font-weight:600;color:#0A0A0A;margin-bottom:12px;display:flex;align-items:center;gap:8px">'
+        + '<div style="width:4px;height:16px;border-radius:2px;background:#0A0A0A"></div>'+s.titol
+      + '</div>'
+      + '<textarea id="editor-secc-'+s.id+'" placeholder="'+s.placeholder+'" style="width:100%;min-height:140px;padding:12px 14px;border:1.5px solid #E8E6E1;border-radius:9px;font-size:13px;font-family:var(--fb);line-height:1.7;resize:vertical;color:#0A0A0A">'+contingut+'</textarea>'
+    + '</div>';
+  });
+
+  body += '</div></div>';
+
+  modal.innerHTML = topbar + body;
+  document.body.appendChild(modal);
+}
+
+// Recollir dades del formulari editor
+function recollirDadesEditor() {
+  var inf = window._informeEditat;
+  if (!inf) return null;
+  var titol = document.getElementById('editor-titol');
+  var subtitol = document.getElementById('editor-subtitol');
+  if (titol) inf.titol = titol.value.trim() || inf.titol;
+  if (subtitol) inf.subtitol = subtitol.value.trim();
+  var seccDefs = INFORME_SECCIONS_BASE[inf.tipus] || INFORME_SECCIONS_BASE.especial;
+  if (!inf.seccions) inf.seccions = {};
+  seccDefs.forEach(function(s){
+    var el = document.getElementById('editor-secc-'+s.id);
+    if (el) inf.seccions[s.id] = el.value;
+  });
+  inf.data_modificacio = new Date().toISOString().slice(0,10);
+  return inf;
+}
+
+async function desarEsborrany() {
+  var inf = recollirDadesEditor();
+  if (!inf) return;
+  inf.publicat = false;
+  await desarInformeClient(inf, 'esborrany');
+}
+
+async function publicarInforme() {
+  var inf = recollirDadesEditor();
+  if (!inf) return;
+  inf.publicat = true;
+  await desarInformeClient(inf, 'publicat');
+}
+
+async function desarInformeClient(inf, estat) {
+  var c = getClient();
+  if (!c) { toast('Cap client seleccionat'); return; }
+  var informes = getInformesClient(c).slice();
+  var idx = informes.findIndex(function(x){ return x.id === inf.id; });
+  if (idx >= 0) {
+    informes[idx] = inf;
+  } else {
+    informes.push(inf);
+  }
+  informes.sort(function(a,b){ return (b.data||'').localeCompare(a.data||''); });
+  try {
+    if (sb && c.email) {
+      var r = await sb.from('clients').update({ informes: informes }).eq('email', c.email.toLowerCase());
+      if (r.error) throw r.error;
+    }
+    if (c) c.informes = informes;
+    if (APP.clientData && APP.clientData.email === c.email) APP.clientData.informes = informes;
+    toast('✓ Informe desat com a ' + estat);
+    var modal = document.getElementById('modal-editor-informe');
+    if (modal) modal.remove();
+    renderView('admin-informe');
+  } catch(e) {
+    toast('Error desant: ' + (e.message||e));
+  }
+}
+
+async function togglePublicarInforme(informeId) {
+  var c = getClient();
+  if (!c) return;
+  var informes = getInformesClient(c).slice();
+  var inf = informes.find(function(x){ return x.id === informeId; });
+  if (!inf) return;
+  inf.publicat = !inf.publicat;
+  try {
+    if (sb && c.email) await sb.from('clients').update({ informes: informes }).eq('email', c.email.toLowerCase());
+    if (c) c.informes = informes;
+    if (APP.clientData && APP.clientData.email === c.email) APP.clientData.informes = informes;
+    toast(inf.publicat ? '✓ Informe publicat al client' : '✓ Informe despublicat');
+    renderView('admin-informe');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+async function esborrarInforme(informeId) {
+  if (!confirm('Esborrar aquest informe? Aquesta acció no es pot desfer.')) return;
+  var c = getClient();
+  if (!c) return;
+  var informes = getInformesClient(c).filter(function(x){ return x.id !== informeId; });
+  try {
+    if (sb && c.email) await sb.from('clients').update({ informes: informes }).eq('email', c.email.toLowerCase());
+    if (c) c.informes = informes;
+    if (APP.clientData && APP.clientData.email === c.email) APP.clientData.informes = informes;
+    toast('✓ Informe esborrat');
+    renderView('admin-informe');
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+
+// ── Vista CLIENT: veure informes publicats ───────────────────────────────
+function renderPortalInformes(el) {
+  var c = getClient();
+  var informes = getInformesClient(c).filter(function(inf){ return inf.publicat; })
+    .sort(function(a,b){ return (b.data||'').localeCompare(a.data||''); });
+
+  var html = '<div class="content-inner fade-in">'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;margin-bottom:6px">Els teus informes</div>'
+    + '<div style="font-size:13px;color:var(--g500);margin-bottom:24px">Documents i anàlisis preparats pel teu assessor.</div>';
+
+  if (informes.length === 0) {
+    html += '<div style="padding:48px;text-align:center;background:#fff;border:1px solid var(--g200);border-radius:14px">'
+      + '<div style="font-size:36px;margin-bottom:12px">📋</div>'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap informe disponible</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.7">El teu assessor prepararà el primer informe en breu. Mentre tant, pots consultar el teu perfil inversor a la secció Resum.</div>'
+    + '</div>';
+  } else {
+    informes.forEach(function(inf){
+      var t = INFORME_TIPUS[inf.tipus] || INFORME_TIPUS.especial;
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:13px;padding:20px 24px;margin-bottom:12px;cursor:pointer" onclick="veureinformeClient(\''+inf.id+'\')">'
+        + '<div style="display:flex;align-items:center;gap:14px">'
+          + '<div style="width:44px;height:44px;border-radius:10px;background:'+t.bg+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+t.emoji+'</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
+              + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.tc+'">'+t.lbl+'</span>'
+              + '<span style="font-size:10px;color:var(--g400)">'+inf.data+'</span>'
+            + '</div>'
+            + '<div style="font-size:14px;font-weight:600;color:#0A0A0A;margin-bottom:2px">'+inf.titol+'</div>'
+            + (inf.subtitol ? '<div style="font-size:11px;color:var(--g500)">'+inf.subtitol+'</div>' : '')
+          + '</div>'
+          + '<div style="color:var(--g400);font-size:18px">›</div>'
+        + '</div>'
+      + '</div>';
+    });
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// Modal per veure un informe (vista client)
+function veureinformeClient(informeId) {
+  var c = getClient();
+  var inf = getInformesClient(c).find(function(x){ return x.id === informeId; });
+  if (!inf) return;
+  var t = INFORME_TIPUS[inf.tipus] || INFORME_TIPUS.especial;
+  var seccDefs = INFORME_SECCIONS_BASE[inf.tipus] || INFORME_SECCIONS_BASE.especial;
+
+  var old = document.getElementById('modal-informe-client');
+  if (old) old.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-informe-client';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto';
+
+  var panel = document.createElement('div');
+  panel.style.cssText = 'background:#fff;border-radius:16px;max-width:720px;width:100%;padding:0;overflow:hidden;margin:auto';
+
+  // Header de l'informe
+  var headerHtml = '<div style="background:#0A0A0A;color:#fff;padding:32px 36px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+        + '<div style="font-size:20px">'+t.emoji+'</div>'
+        + '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.15);color:#fff">'+t.lbl+'</span>'
+      + '</div>'
+      + '<button onclick="document.getElementById(\'modal-informe-client\').remove()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;color:#fff;cursor:pointer;padding:7px 12px;font-size:12px;font-family:var(--fb)">× Tancar</button>'
+    + '</div>'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;margin-bottom:6px">'+inf.titol+'</div>'
+    + (inf.subtitol ? '<div style="font-size:13px;color:rgba(255,255,255,.7)">'+inf.subtitol+'</div>' : '')
+    + '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:14px">The Boring Investor · '+inf.data+(inf.creat_per ? ' · '+inf.creat_per : '')+'</div>'
+  + '</div>';
+
+  // Seccions
+  var seccsHtml = '<div style="padding:32px 36px">';
+  seccDefs.forEach(function(s){
+    var text = (inf.seccions && inf.seccions[s.id]) || '';
+    if (!text.trim()) return;
+    seccsHtml += '<div style="margin-bottom:28px">'
+      + '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9A9690;margin-bottom:10px">'+s.titol+'</div>'
+      + '<div style="font-size:14px;color:#0A0A0A;line-height:1.8;white-space:pre-wrap">'+text+'</div>'
+    + '</div>';
+  });
+  seccsHtml += '</div>';
+
+  panel.innerHTML = headerHtml + seccsHtml;
+  modal.appendChild(panel);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+
 
 // ══════════════════════════════════════════════════
 // VIEW: FIRE
@@ -6205,7 +6758,7 @@ function renderPortalQuestionnaire(el) {
 
   if (APP.role === 'admin') {
     html += '<div style="display:flex;gap:8px">'
-      + '<a href="client_onboarding_v3.html" target="_blank" style="padding:8px 14px;background:var(--accent);color:#fff;border-radius:8px;font-size:12px;text-decoration:none;font-weight:500">📋 Veure qüestionari</a>'
+      + '<button onclick="veurequestionariClient(\'' + (c && c.email ? c.email : '') + '\')" style="padding:8px 14px;background:var(--accent);color:#fff;border-radius:8px;font-size:12px;border:none;cursor:pointer;font-family:var(--fb)">📋 Actualitzar qüestionari</button>'
       + '</div>';
   }
   html += '</div>';
@@ -7790,7 +8343,7 @@ function obrirModalValidacio(email) {
       + '</div>'
       
       + '<div style="margin-bottom:16px">'
-        + '<button onclick="navigateTo(\'portal-questionnaire\');tancarModalValidacio()" style="width:100%;padding:11px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">📋 Veure totes les respostes del qüestionari</button>'
+        + '<button onclick="veurequestionariClient(\'' + email + '\');tancarModalValidacio()" style="width:100%;padding:11px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">📋 Veure totes les respostes del qüestionari</button>'
       + '</div>'
       
       + '<div style="margin-bottom:14px">'
@@ -9691,13 +10244,61 @@ function diagKpi(val, cls, label) {
   return '<div class="diag-kpi"><div class="diag-kpi-val '+(cls||'')+'">'+(val||'\u2014')+'</div><div class="diag-kpi-lbl">'+label+'</div></div>';
 }
 
+// ── Fix #2: Carrega el client correctament i navega al qüestionari ──────
+function veurequestionariClient(email) {
+  if (!email) { toast('Email de client no disponible'); return; }
+  // Buscar el client a la llista de clients de l'admin
+  var clientObj = (APP.clientsList||[]).find(function(x){
+    return x.email && x.email.toLowerCase() === email.toLowerCase();
+  });
+  if (clientObj) {
+    // Carregar-lo a APP.clientData per que getClient() el trobi
+    APP.clientData = clientObj;
+  }
+  navigateTo('portal-questionnaire');
+}
+
+// ── Fix #3: Desar diagnòstic amb selector de client si cal ──────────────
 async function diagDesarPortal() {
   if (!DIAG.result) return;
   var client = DIAG.client;
+
+  // Si no hi ha client amb id, permetre seleccionar-ne un
   if (!client || !client.id) {
-    alert('No hi ha cap client seleccionat. Obre el diagn\u00f2stic des de la fitxa d\u2019un client.');
+    var clients = (APP.clientsList||[]).filter(function(x){ return x.id && x.status === 'active'; });
+    if (clients.length === 0) {
+      toast('No hi ha clients actius per guardar el diagnòstic'); return;
+    }
+
+    // Modal per triar client destí
+    var old = document.getElementById('modal-diag-client');
+    if (old) old.remove();
+    var m = document.createElement('div');
+    m.id = 'modal-diag-client';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
+    var opts = clients.map(function(cl){
+      return '<option value="'+cl.id+'">'+cl.nom+' ('+cl.email+')</option>';
+    }).join('');
+    m.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:420px;width:100%;padding:28px 32px">'
+      + '<div style="font-family:var(--fd);font-size:20px;margin-bottom:6px">Guardar diagnòstic</div>'
+      + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.6">Tria el client al qual vols guardar aquest diagnòstic generat.</div>'
+      + '<select id="diag-client-sel" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb);margin-bottom:18px">'+opts+'</select>'
+      + '<div style="display:flex;gap:10px;justify-content:flex-end">'
+        + '<button onclick="document.getElementById(\'modal-diag-client\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
+        + '<button onclick="diagDesarPortalAmbId(document.getElementById(\'diag-client-sel\').value)" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar →</button>'
+      + '</div>'
+    + '</div>';
+    m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
+    document.body.appendChild(m);
     return;
   }
+
+  await diagDesarPortalAmbId(client.id);
+}
+
+async function diagDesarPortalAmbId(clientId) {
+  var m = document.getElementById('modal-diag-client');
+  if (m) m.remove();
   try {
     var payload = {
       diagnostic: JSON.stringify(DIAG.result),
@@ -9711,11 +10312,11 @@ async function diagDesarPortal() {
         objectius: diagGetObjs(), data_diag: dV('diag-data')
       })
     };
-    var r = await sb.from('clients').update(payload).eq('id', client.id);
+    var r = await sb.from('clients').update(payload).eq('id', clientId);
     if (r.error) throw r.error;
     showToast('\u2713 Diagn\u00f2stic desat al portal del client!', 'success');
-    // Actualitzar APP.clientData localment
-    if (APP.clientData) {
+    // Actualitzar APP.clientData localment si és el mateix client
+    if (APP.clientData && (APP.clientData.id === clientId)) {
       APP.clientData.diagnostic = payload.diagnostic;
       APP.clientData.diagnostic_data = payload.diagnostic_data;
     }
@@ -9723,6 +10324,8 @@ async function diagDesarPortal() {
     showToast('Error desant: '+err.message, 'error');
   }
 }
+
+
 
 </script>
 </body>
