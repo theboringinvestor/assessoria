@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Boring Investor &mdash; An&agrave;lisi i Educaci&oacute; Financera Independent</title>
+<meta name="description" content="An&agrave;lisi financera independent. Honor&agrave; transparents. &Iacute;ndex TBI 13,9% XIRR (2020&ndash;2026). Des de 8&euro;/mes.">
+<meta property="og:title" content="The Boring Investor &mdash; Inverteix millor, sense intermediaris innecessaris">
+<meta property="og:description" content="An&agrave;lisi i educaci&oacute; financera independent. &Iacute;ndex TBI 13,9% XIRR en 6 anys. Honor&agrave; transparents. Des de 8&euro;/mes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#0D0D0D;--white:#FAFAF8;--cream:#F5F3ED;
+  --gold:#C8A54A;--gold-light:#E8D49A;--gold-dark:#9A7B2F;
+  --green:#1A5C3A;--green-light:#EAF3DE;--red:#8B1A1A;--blue:#1B3A6B;
+  --g50:#F9F8F5;--g100:#E8E6E0;--g200:#D4D1C9;--g300:#B0ADA5;--g400:#8A8780;--g500:#6B685F;--g600:#4A473F;
+  --fd:"Playfair Display",Georgia,serif;--fb:"DM Sans",system-ui,sans-serif;--fm:"DM Mono",monospace;--max:1120px}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);color:var(--black);background:var(--white);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}img{max-width:100%;display:block}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;transition:all .3s}
+.nav.scrolled{background:rgba(13,13,13,.97);backdrop-filter:blur(12px);box-shadow:0 1px 20px rgba(0,0,0,.2)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:#fff}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{font-size:13px;color:rgba(255,255,255,.5);font-weight:500;transition:color .2s}
+.nav-links a:hover{color:#fff}
+.nav-cta{padding:8px 20px!important;background:var(--gold)!important;color:var(--black)!important;border-radius:8px;font-weight:600!important}
+.nav-efa{display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(200,165,74,.15);border:1px solid rgba(200,165,74,.3);border-radius:4px;font-size:10px;font-family:var(--fm);color:var(--gold);letter-spacing:.04em}
+@media(max-width:768px){.nav-links a:not(.nav-cta){display:none}.nav-efa{display:none}}
+.hero{min-height:100vh;background:var(--black);position:relative;overflow:hidden;display:flex;align-items:center}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 65% 20%,rgba(200,165,74,.08) 0%,transparent 55%)}
+.hero-inner{max-width:var(--max);margin:0 auto;padding:140px 28px 80px;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(200,165,74,.1);border:1px solid rgba(200,165,74,.2);border-radius:99px;font-size:11px;color:var(--gold);font-weight:500;letter-spacing:.04em;margin-bottom:24px}
+.hero h1{font-family:var(--fd);font-size:clamp(34px,4.8vw,54px);font-weight:500;color:#fff;line-height:1.16;letter-spacing:-.5px;margin-bottom:20px}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.5);line-height:1.78;margin-bottom:36px;max-width:520px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:40px}
+.btn-primary{padding:14px 32px;background:var(--gold);color:var(--black);border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(200,165,74,.35)}
+.btn-secondary{padding:14px 28px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.14);border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .2s}
+.btn-secondary:hover{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.04)}
+.hero-proof{display:flex;gap:28px;flex-wrap:wrap}
+.hero-proof-item{font-size:12px;color:rgba(255,255,255,.32);display:flex;align-items:center;gap:6px}
+.hero-proof-item strong{color:rgba(255,255,255,.7)}
+.hero-kiid{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:24px}
+.hero-kiid-title{font-size:10px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--fm);margin-bottom:16px}
+.hero-kiid-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hero-kpi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px}
+.hero-kpi-num{font-family:var(--fm);font-size:22px;font-weight:500;color:var(--gold);margin-bottom:3px}
+.hero-kpi-label{font-size:10px;color:rgba(255,255,255,.35);line-height:1.5}
+.hero-kpi.wide{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between}
+.hero-bar-track{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin:0 12px}
+.hero-bar-fill{height:100%;border-radius:99px}
+@media(max-width:768px){.hero-inner{grid-template-columns:1fr;text-align:center}.hero-sub{margin:0 auto 36px}.hero-ctas{justify-content:center}.hero-proof{justify-content:center}.hero-kiid{display:none}}
+section{padding:100px 28px}
+.section-inner{max-width:var(--max);margin:0 auto}
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.13em;color:var(--gold);margin-bottom:12px}
+.section-title{font-family:var(--fd);font-size:clamp(28px,3.5vw,42px);font-weight:500;letter-spacing:-.3px;line-height:1.2;margin-bottom:16px}
+.section-sub{font-size:15px;color:var(--g500);line-height:1.78;max-width:600px;margin-bottom:48px}
+.problema{background:var(--cream)}
+.prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.prob-card{padding:32px 28px;background:#fff;border-radius:16px;border:1px solid var(--g100)}
+.prob-card-num{font-family:var(--fm);font-size:36px;font-weight:500;color:var(--red);margin-bottom:8px}
+.prob-card-title{font-size:15px;font-weight:600;margin-bottom:8px}
+.prob-card-text{font-size:13px;color:var(--g500);line-height:1.72}
+@media(max-width:768px){.prob-grid{grid-template-columns:1fr}}
+.transparencia{background:var(--black);color:#fff}
+.kiid-doc{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;margin-top:20px}
+.kiid-header{background:rgba(255,255,255,.04);padding:24px 32px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.06)}
+.kiid-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.06)}
+.kiid-kpi{background:rgba(13,13,13,.9);padding:22px 24px}
+.kiid-kpi-num{font-family:var(--fm);font-size:28px;font-weight:500;color:var(--gold);margin-bottom:4px}
+.kiid-kpi-label{font-size:11px;color:rgba(255,255,255,.4);line-height:1.5}
+.kiid-kpi-note{font-size:10px;color:rgba(255,255,255,.25);margin-top:4px;font-style:italic}
+.kiid-anual{padding:24px 32px}
+.anual-item{padding:14px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;text-align:center}
+.anual-item .any{font-size:10px;color:rgba(255,255,255,.35);font-family:var(--fm);margin-bottom:6px}
+.anual-item .ret{font-family:var(--fm);font-size:20px;font-weight:500}
+.anual-item .ret.pos{color:#4CAF82}.anual-item .ret.neg{color:#E57373}
+.kiid-nota{padding:16px 32px;background:rgba(255,255,255,.02);border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:rgba(255,255,255,.25);line-height:1.6}
+@media(max-width:768px){.kiid-kpi-grid{grid-template-columns:1fr 1fr}.kiid-header{flex-direction:column;gap:8px}}
+.metodologia{background:var(--cream)}
+.meto-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px}
+.meto-card{padding:24px 20px;background:#fff;border-radius:14px;border:1px solid var(--g100);text-align:center}
+.meto-card-icon{font-size:32px;margin-bottom:12px}
+.meto-card-title{font-size:14px;font-weight:600;margin-bottom:8px}
+.meto-card-text{font-size:12px;color:var(--g500);line-height:1.65}
+.meto-card-pct{font-family:var(--fm);font-size:22px;font-weight:500;color:var(--green);margin-top:8px}
+.meto-result{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.meto-kpi{padding:24px;background:var(--black);border-radius:14px;text-align:center}
+.meto-kpi-num{font-family:var(--fm);font-size:36px;font-weight:500;color:var(--gold);margin-bottom:6px}
+.meto-kpi-label{font-size:12px;color:rgba(255,255,255,.4);line-height:1.5}
+@media(max-width:768px){.meto-grid{grid-template-columns:1fr 1fr}.meto-result{grid-template-columns:1fr}}
+.comparativa{background:var(--black);color:#fff}
+.comp-wrapper{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:32px}
+.comp-card{border-radius:16px;padding:28px}
+.comp-card.banc{background:rgba(139,26,26,.12);border:1px solid rgba(139,26,26,.25)}
+.comp-card.tbi{background:rgba(26,92,58,.12);border:1px solid rgba(26,92,58,.25)}
+.comp-card-icon{font-size:28px;margin-bottom:12px}
+.comp-card-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.comp-card-sub{font-size:12px;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:20px}
+.comp-card-result{font-family:var(--fm);font-size:36px;font-weight:500;margin-bottom:4px}
+.comp-card.banc .comp-card-result{color:#E57373}
+.comp-card.tbi .comp-card-result{color:#4CAF82}
+.comp-card-detail{font-size:12px;color:rgba(255,255,255,.4)}
+.comp-diff{text-align:center;padding:32px;background:rgba(200,165,74,.08);border:1px solid rgba(200,165,74,.2);border-radius:16px}
+.comp-diff-label{font-size:12px;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.comp-diff-value{font-family:var(--fd);font-size:48px;font-weight:600;color:var(--gold)}
+.comp-diff-sub{font-size:13px;color:rgba(255,255,255,.4);margin-top:8px;line-height:1.6}
+.comp-inputs{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}
+.comp-input-group{display:flex;flex-direction:column;gap:4px}
+.comp-input-group label{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.06em}
+.comp-input-group input{padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-family:var(--fm);font-size:14px;width:140px;text-align:center}
+.comp-input-group input:focus{outline:none;border-color:var(--gold)}
+@media(max-width:768px){.comp-wrapper{grid-template-columns:1fr}}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{text-align:center;padding:32px 20px;position:relative}
+.step-num{width:44px;height:44px;border-radius:50%;background:var(--gold);color:var(--black);font-family:var(--fm);font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step-title{font-size:14px;font-weight:600;margin-bottom:8px}
+.step-text{font-size:12px;color:var(--g500);line-height:1.7}
+.step-arrow{position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--g300);font-size:18px}
+@media(max-width:768px){.steps-grid{grid-template-columns:1fr 1fr}.step-arrow{display:none}}
+.pack-diag{background:var(--black);color:#fff}
+.pack-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:center}
+.pack-card{background:linear-gradient(135deg,rgba(200,165,74,.06),rgba(200,165,74,.02));border:1px solid rgba(200,165,74,.2);border-radius:24px;padding:36px}
+.pack-price{font-family:var(--fm);font-size:48px;font-weight:500;color:var(--gold);margin-bottom:4px}
+.pack-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.pack-features li{font-size:13px;color:rgba(255,255,255,.7);display:flex;align-items:flex-start;gap:10px;line-height:1.5}
+.pack-features li::before{content:"\2713";color:var(--gold);font-weight:700;flex-shrink:0;margin-top:1px}
+.workshops{background:var(--cream)}
+.workshop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px}
+.workshop-card{background:#fff;border:1px solid var(--g100);border-radius:14px;padding:24px 20px}
+.workshop-icon{font-size:28px;margin-bottom:12px}
+.workshop-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.workshop-desc{font-size:12px;color:var(--g500);line-height:1.65;margin-bottom:14px}
+.workshop-meta{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--g100)}
+.workshop-date{font-size:11px;color:var(--g400);font-family:var(--fm)}
+.workshop-price{font-family:var(--fm);font-size:14px;font-weight:500;color:var(--black)}
+@media(max-width:768px){.workshop-grid{grid-template-columns:1fr}}
+.pricing{background:var(--white)}
+.pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+.plan{background:#fff;border:1.5px solid var(--g100);border-radius:16px;padding:24px 20px;position:relative;transition:all .2s}
+.plan:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.08)}
+.plan.featured{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,165,74,.12)}
+.plan-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-size:10px;font-weight:700;padding:4px 14px;border-radius:99px;white-space:nowrap;letter-spacing:.04em}
+.plan-icon{font-size:24px;margin-bottom:10px}
+.plan-name{font-family:var(--fd);font-size:22px;font-weight:600;margin-bottom:4px;margin-top:4px}
+.plan-tagline{font-size:11px;color:var(--g400);margin-bottom:16px;line-height:1.5}
+.plan-price{font-family:var(--fm);font-size:32px;font-weight:500;color:var(--black);margin-bottom:2px}
+.plan-price span{font-size:14px;color:var(--g400);font-weight:400}
+.plan-pioneer{font-size:12px;color:var(--gold-dark);font-family:var(--fm);font-weight:600;margin-bottom:4px}
+.plan-annual{font-size:11px;color:var(--g400);margin-bottom:6px}
+.plan-setup{font-size:11px;color:var(--g500);margin-bottom:16px;padding:6px 10px;background:var(--g50);border-radius:6px;font-family:var(--fm)}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:22px}
+.plan-features li{font-size:12px;color:var(--g600);line-height:1.5;padding-left:18px;position:relative}
+.plan-features li::before{content:"\2713";position:absolute;left:0;color:var(--green);font-weight:700;font-size:11px}
+.plan-features li.no::before{content:"\2014";color:var(--g300)}
+.plan-features li.no{color:var(--g300)}
+.plan-btn{width:100%;padding:12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .15s;border:none}
+.plan-btn-outline{background:transparent;color:var(--black);border:1.5px solid var(--g200)}
+.plan-btn-primary{background:var(--black);color:#fff}
+.plan-btn-gold{background:var(--gold);color:var(--black)}
+.plan-btn-anchor{background:linear-gradient(135deg,#8B6914,#C8A44A);color:#fff}
+.plan-note{font-size:11px;color:var(--g400);text-align:center;margin-top:10px}
+.plan-performance-note{background:#FEF7E8;border:1px solid #F3D28A;border-radius:8px;padding:8px 10px;margin:10px 0;font-size:11px;color:#92400E;line-height:1.45}
+@media(max-width:900px){.pricing-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.pricing-grid{grid-template-columns:1fr}}
+.honoraris-bar{display:flex;gap:20px;flex-wrap:wrap;margin-top:36px}
+.honoraris-item{flex:1;min-width:200px;padding:24px;background:var(--g50);border:1px solid var(--g100);border-radius:14px}
+.honoraris-icon{font-size:28px;margin-bottom:10px}
+.honoraris-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.honoraris-text{font-size:13px;color:var(--g500);line-height:1.6}
+.honoraris-check{display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:12px;color:var(--green)}
+.honoraris-check::before{content:"\2713";font-weight:700;flex-shrink:0}
+.about{background:var(--cream)}
+.about-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:60px;align-items:center}
+.about-creds{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.about-cred{padding:5px 14px;background:#fff;border:1px solid var(--g200);border-radius:99px;font-size:12px;color:var(--g600)}
+.about-cred.highlight{background:var(--black);color:#fff;border-color:var(--black)}
+@media(max-width:768px){.about-grid{grid-template-columns:1fr}}
+.marc-legal{background:var(--black);color:#fff}
+.legal-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:36px}
+.legal-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:24px}
+.legal-card-icon{font-size:24px;margin-bottom:12px}
+.legal-card-title{font-size:14px;font-weight:600;color:#fff;margin-bottom:8px}
+.legal-card-text{font-size:12px;color:rgba(255,255,255,.45);line-height:1.7}
+.legal-highlight{background:rgba(200,165,74,.08);border:1px solid rgba(200,165,74,.15);border-radius:12px;padding:20px 24px;margin-top:20px}
+.legal-highlight-title{font-size:13px;font-weight:600;color:var(--gold);margin-bottom:8px}
+.legal-highlight-text{font-size:12px;color:rgba(255,255,255,.4);line-height:1.7}
+@media(max-width:768px){.legal-grid{grid-template-columns:1fr}}
+.faq-list{max-width:720px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--g100)}
+.faq-q{padding:20px 0;font-size:15px;font-weight:500;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;transition:color .15s}
+.faq-q::after{content:"+";font-size:20px;color:var(--g300);font-family:var(--fm);flex-shrink:0;transition:all .2s}
+.faq-q:hover{color:var(--g600)}
+.faq-q.open::after{content:"\2212"}
+.faq-a{max-height:0;overflow:hidden;font-size:14px;color:var(--g500);line-height:1.75;transition:max-height .3s ease,padding .3s ease}
+.faq-a.open{max-height:220px;padding-bottom:20px}
+.cta-final{background:var(--black);padding:120px 28px;text-align:center}
+.cta-final .section-title{color:#fff;margin-bottom:16px}
+.cta-final .section-sub{color:rgba(255,255,255,.4);margin:0 auto 40px}
+.cta-final-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.footer{background:var(--black);border-top:1px solid rgba(255,255,255,.06);padding:28px;text-align:center;font-size:12px;color:rgba(255,255,255,.3);line-height:1.8}
+.plataforma{background:var(--cream)}
+.screen-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+.screen-tab{padding:8px 18px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--g200);background:#fff;color:var(--g500);transition:all .15s;font-family:var(--fb)}
+.screen-tab.active{background:var(--black);color:#fff;border-color:var(--black)}
+.screen-window{background:var(--black);border-radius:20px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.18)}
+.screen-bar{height:42px;background:#1A1A1A;display:flex;align-items:center;padding:0 16px;gap:8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.screen-dots{display:flex;gap:6px}
+.screen-dot{width:10px;height:10px;border-radius:50%}
+.screen-url{flex:1;height:22px;background:rgba(255,255,255,.06);border-radius:5px;margin:0 12px;display:flex;align-items:center;padding:0 10px}
+.screen-url span{font-size:10px;color:rgba(255,255,255,.3);font-family:var(--fm)}
+.screen-content{padding:24px;display:none;color:#fff}
+.screen-content.active{display:block}
+.fade-up{animation:fadeUp .6s ease both;animation-play-state:paused}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}
+.wa-fab{position:fixed;bottom:24px;right:24px;z-index:200;width:52px;height:52px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,.4);transition:all .2s}
+.wa-fab:hover{transform:scale(1.08)}
+.wa-fab svg{width:26px;height:26px;fill:#fff}
+</style>
+</head>
+<body>
+<nav class="nav" id="main-nav">
+  <div class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+      <circle cx="8.5" cy="10" r="2" fill="white"/><circle cx="8.5" cy="17" r="2" fill="white"/>
+      <rect x="12" y="12.5" width="6" height="1.5" rx=".75" fill="white"/>
+      <rect x="20.5" y="8" width="1.5" height="12" rx=".75" fill="white"/>
+    </svg>
+    The Boring Investor
+  </div>
+  <div class="nav-links">
+    <a href="#problema">El problema</a>
+    <a href="#transparencia">R&egrave;ndex TBI</a>
+    <a href="#pack">Pack Diagn&ograve;stic</a>
+    <a href="#pricing">Plans</a>
+    <a href="#legal">Marc legal</a>
+    <div class="nav-efa">&#9878; Candidat EFA &middot; Pre-certificaci&oacute;</div>
+    <a href="client_onboarding_v3.html" class="nav-cta">Fes el test &rarr;</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="fade-up">
+      <div class="hero-badge">&#128202; An&agrave;lisi independent &middot; Honor&agrave;ris transparents &middot; Candidat EFA &middot; 6 anys d&apos;experi&egrave;ncia</div>
+      <h1>Inverteix millor.<br>Sense <em>intermediaris</em><br>innecessaris.</h1>
+      <p class="hero-sub">Els fons bancaris tradicionals et cobren fins a 1,8% anual en comissions mentre sovint rendeixen per sota del mercat. Una cartera ben constru&iuml;da i gestionada amb disciplina pot marcar una difer&egrave;ncia molt significativa en 20 anys.</p>
+      <div class="hero-ctas">
+        <a href="client_onboarding_v3.html" class="btn-primary">Fes el test gra&egrave;rit <span style="font-size:12px;opacity:.6">2 min</span></a>
+        <a href="#pack" class="btn-secondary">Pack Diagn&ograve;stic &rarr;</a>
+      </div>
+      <div class="hero-proof">
+        <div class="hero-proof-item"><strong>13,9% XIRR anualitzat</strong> &middot; &Iacute;ndex TBI</div>
+        <div class="hero-proof-item"><strong>6 anys</strong> d&apos;experi&egrave;ncia real</div>
+        <div class="hero-proof-item"><strong>Garantia</strong> 30 dies</div>
+      </div>
+    </div>
+    <div class="hero-kiid fade-up d2">
+      <div class="hero-kiid-title">&Iacute;ndex TBI &middot; Base 100 &middot; Jun 2020 &ndash; Mai 2026</div>
+      <div class="hero-kiid-grid">
+        <div class="hero-kpi"><div class="hero-kpi-num">13,9%</div><div class="hero-kpi-label">XIRR anualitzat<br>(taxa interna de retorn)</div></div>
+        <div class="hero-kpi"><div class="hero-kpi-num">11,7%</div><div class="hero-kpi-label">Volatilitat anual<br>(retorn ponderat temps)</div></div>
+        <div class="hero-kpi"><div class="hero-kpi-num">0,97</div><div class="hero-kpi-label">R&agrave;tio de Sharpe<br>(rendiment/risc)</div></div>
+        <div class="hero-kpi"><div class="hero-kpi-num">&minus;8,2%</div><div class="hero-kpi-label">Drawdown m&agrave;xim<br>(p&egrave;rdua temporal m&agrave;x.)</div></div>
+        <div class="hero-kpi wide">
+          <div style="font-size:11px;color:rgba(255,255,255,.35)">Cost mig cartera (TER)</div>
+          <div class="hero-bar-track"><div class="hero-bar-fill" style="width:18%;background:#C8A54A"></div></div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);font-family:var(--fm);flex-shrink:0">~0,25%</div>
+        </div>
+        <div class="hero-kpi wide">
+          <div style="font-size:11px;color:rgba(255,255,255,.35)">Cost mig fons bancaris (TER)</div>
+          <div class="hero-bar-track"><div class="hero-bar-fill" style="width:100%;background:#8B1A1A"></div></div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);font-family:var(--fm);flex-shrink:0">~1,80%</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:rgba(255,255,255,.2);line-height:1.6">&Iacute;ndex TBI &middot; base 100 = juny 2020 &middot; 72 mesos. Rendiments passats no garantitzen resultats futurs.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMA -->
+<section class="problema" id="problema">
+  <div class="section-inner">
+    <div class="section-label">El problema</div>
+    <div class="section-title">Per qu&egrave; la majoria d&apos;inversors <span style="color:var(--red)">perden diners sense saber-ho</span></div>
+    <p class="section-sub">No &eacute;s que les inversions banc&agrave;ries siguin dolentes per definici&oacute;. El problema &eacute;s la combinaci&oacute; de comissions altes, conflictes d&apos;inter&egrave;s estructurals i manca d&apos;informaci&oacute; transparent.</p>
+    <div class="prob-grid">
+      <div class="prob-card fade-up">
+        <div class="prob-card-num">1,5&ndash;2%</div>
+        <div class="prob-card-title">Comissions anuals en fons bancaris t&iacute;pics</div>
+        <div class="prob-card-text">La majoria de fons mixtos i de gesti&oacute; activa comercialitzats a la banca cobren entre l&apos;1,5% i el 2% anual. Sobre 30.000&euro;, s&oacute;n entre 450&euro; i 600&euro; cada any, independentment del rendiment obtingut.</div>
+      </div>
+      <div class="prob-card fade-up d1">
+        <div class="prob-card-num" style="color:var(--gold-dark)">Conflicte</div>
+        <div class="prob-card-title">d&apos;inter&egrave;s estructural en la banca</div>
+        <div class="prob-card-text">El &ldquo;consultor financer&rdquo; de la teva entitat banc&agrave;ria cobra comissions de retrocess&oacute; per cada producte que col&middot;loca. Les seves recomanacions reflecteixen els marges del banc, no necessàriament el teu inter&egrave;s.</div>
+      </div>
+      <div class="prob-card fade-up d2">
+        <div class="prob-card-num" style="color:var(--blue)">92%</div>
+        <div class="prob-card-title">dels fons actius europeus rendeixen per sota del seu &iacute;ndex a 10 anys</div>
+        <div class="prob-card-text">Dades SPIVA (S&amp;P Indices vs. Active): el 92% dels fons de gesti&oacute; activa europeus no superen el seu &iacute;ndex de refer&egrave;ncia en un horitz&oacute; de 10 anys. Tot i aix&iacute;, les comissions es cobren igual.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRANSPARENCIA / INDEX TBI -->
+<section class="transparencia" id="transparencia">
+  <div class="section-inner">
+    <div class="section-label" style="color:var(--gold)">Transpar&egrave;ncia total</div>
+    <div class="section-title" style="color:#fff">L&apos;&Iacute;ndex TBI. Dades reals, presentaci&oacute; neutral.</div>
+    <p style="font-size:15px;color:rgba(255,255,255,.5);line-height:1.78;max-width:640px;margin-bottom:0">La metodologia TBI es pot expressar com un &iacute;ndex de rendiment (base 100) calculat sobre retorns ponderats en el temps (TWR). Les dades absolutes s&apos;han simulat aplicant els retorns mensuals reals de l&apos;&iacute;ndex a un capital hip&ograve;tic de 10.000&euro;. Aqu&iacute; tens tots els KPIs, positius i negatius, sense filtre.</p>
+
+    <div style="margin-top:28px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div style="background:rgba(200,165,74,.08);border:1px solid rgba(200,165,74,.2);border-radius:14px;padding:20px;text-align:center">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:var(--fm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Simulaci&oacute; &middot; inversi&oacute; &uacute;nica 10.000&euro;</div>
+        <div style="font-family:var(--fm);font-size:32px;font-weight:500;color:var(--gold)">21.703 &euro;</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Valor simulat final (Maig 2026)</div>
+      </div>
+      <div style="background:rgba(26,92,58,.12);border:1px solid rgba(76,175,130,.2);border-radius:14px;padding:20px;text-align:center">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:var(--fm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Guany simulat</div>
+        <div style="font-family:var(--fm);font-size:32px;font-weight:500;color:#4CAF82">+11.703 &euro;</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">+117,0% en 5 anys i 11 mesos</div>
+      </div>
+      <div style="background:rgba(139,26,26,.12);border:1px solid rgba(229,115,115,.2);border-radius:14px;padding:20px;text-align:center">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);font-family:var(--fm);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Pitjor moment (drawdown m&agrave;x.)</div>
+        <div style="font-family:var(--fm);font-size:32px;font-weight:500;color:#E57373">&minus;8,2%</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Setembre 2022 &middot; recuperat en 4 mesos</div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px 24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#fff">&Iacute;ndex TBI &middot; Base 100 &middot; Jun 2020 &ndash; Mai 2026</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:3px">Retorn ponderat en el temps (TWR) &middot; 72 mesos &middot; dades simulades</div>
+        </div>
+        <div style="display:flex;gap:16px">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.4)"><div style="width:16px;height:2px;background:var(--gold);border-radius:1px"></div>&Iacute;ndex TBI</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.4)"><div style="width:16px;height:2px;background:rgba(255,255,255,.2);border-radius:1px"></div>Base 100</div>
+        </div>
+      </div>
+      <canvas id="tbiChart" style="width:100%;height:200px;display:block"></canvas>
+    </div>
+
+    <div class="kiid-doc">
+      <div class="kiid-header">
+        <div>
+          <div style="font-size:12px;font-family:var(--fm);color:rgba(255,255,255,.3);margin-bottom:4px">DOCUMENT D&apos;INFORMACI&Oacute; DE RENDIMENT &middot; ESTIL KIID</div>
+          <div style="font-size:18px;font-weight:600;color:#fff">&Iacute;ndex TBI &mdash; Cartera Model</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px">Metodologia semi-passiva amb gesti&oacute; activa d&apos;assignaci&oacute; &middot; Juny 2020 &ndash; Maig 2026</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--fm);font-size:28px;font-weight:500;color:var(--gold)">13,87%</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">XIRR anualitzat</div>
+        </div>
+      </div>
+      <div class="kiid-kpi-grid">
+        <div class="kiid-kpi"><div class="kiid-kpi-num">+117,0%</div><div class="kiid-kpi-label">Retorn total (&iacute;ndex base 100)</div><div class="kiid-kpi-note">De 100 a 217 en 5,91 anys</div></div>
+        <div class="kiid-kpi"><div class="kiid-kpi-num">2,17x</div><div class="kiid-kpi-label">M&uacute;ltiple sobre capital inicial</div><div class="kiid-kpi-note">Simulaci&oacute; inversi&oacute; &uacute;nica</div></div>
+        <div class="kiid-kpi"><div class="kiid-kpi-num">11,7%</div><div class="kiid-kpi-label">Volatilitat anual (TWR)</div><div class="kiid-kpi-note">Desv. est&agrave;ndard mensual &times; &radic;12</div></div>
+        <div class="kiid-kpi"><div class="kiid-kpi-num">0,97</div><div class="kiid-kpi-label">R&agrave;tio de Sharpe</div><div class="kiid-kpi-note">Rf = 2,5% &middot; bon risc/rendiment</div></div>
+      </div>
+      <div class="kiid-anual">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Rendiments anuals &mdash; retorn ponderat temps (TWR) &middot; 6 anys i 11 mesos</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:14px">
+          <div class="anual-item"><div class="any">2020<div style="font-size:8px;opacity:.6">(2n sem.)</div></div><div class="ret pos">+8,4%</div></div>
+          <div class="anual-item"><div class="any">2021</div><div class="ret pos">+42,4%</div></div>
+          <div class="anual-item"><div class="any">2022</div><div class="ret neg">&minus;16,8%</div></div>
+          <div class="anual-item"><div class="any">2023</div><div class="ret pos">+17,6%</div></div>
+          <div class="anual-item"><div class="any">2024</div><div class="ret pos">+24,6%</div></div>
+          <div class="anual-item"><div class="any">2025</div><div class="ret pos">+6,9%</div></div>
+          <div class="anual-item"><div class="any">2026<div style="font-size:8px;opacity:.6">(YTD)</div></div><div class="ret pos">+7,9%</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="padding:12px;background:rgba(26,92,58,.15);border:1px solid rgba(76,175,130,.2);border-radius:8px;font-size:12px;color:rgba(255,255,255,.5)">Millor any: 2021 (+42,4%) &mdash; renda variable global en m&agrave;xims, actius alternatius alcistes</div>
+          <div style="padding:12px;background:rgba(139,26,26,.12);border:1px solid rgba(229,115,115,.2);border-radius:8px;font-size:12px;color:rgba(255,255,255,.5)">Pitjor any: 2022 (&minus;16,8%) &mdash; pujada de tipus, inflaci&oacute;, correcci&oacute; mercats globals</div>
+        </div>
+      </div>
+      <div class="kiid-nota">
+        &Iacute;ndex TBI calculat sobre retorns mensuals ponderats en el temps (TWR) de la cartera de refer&egrave;ncia TBI, metodologia semi-passiva amb rebalanceig trimestral. Les dades simulades (&euro;) s&apos;obtenen aplicant els retorns mensuals reals de l&apos;&iacute;ndex a un capital hip&ograve;tic; no representen la cartera real d&apos;un inversor espec&iacute;fic. XIRR calculat sobre fluxos de caixa reals (72 observacions mensuals, Juny 2020 &ndash; Maig 2026). Rendiments passats no garantitzen rendiments futurs. Document elaborat amb finalitat de transpar&egrave;ncia informativa, no com a documentaci&oacute; regulada MiFID II.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METODOLOGIA -->
+<section class="metodologia" id="metodologia">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">La metodologia</div>
+    <div class="section-title" style="text-align:center">Simple, provada i replicable</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 40px">La clau no &eacute;s trobar el proper actiu calent. &Eacute;s construir una cartera robusta amb cost baix, diversificaci&oacute; real i disciplina de rebalanceig.</p>
+    <div class="meto-grid">
+      <div class="meto-card fade-up"><div class="meto-card-icon">&#128200;</div><div class="meto-card-title">Passiu (nucli)</div><div class="meto-card-text">ETFs indexats globals de baix cost. Repliquen el mercat de forma eficient. La base estable de qualsevol cartera TBI.</div><div class="meto-card-pct">60&ndash;70%</div></div>
+      <div class="meto-card fade-up d1"><div class="meto-card-icon">&#127919;</div><div class="meto-card-title">Actiu selectiu</div><div class="meto-card-text">Sectors i factors amb avantatge estructural: Value, Dividend, Growth tecnol&ograve;gic. Selecci&oacute; basada en fonamentals i cicle.</div><div class="meto-card-pct">15&ndash;20%</div></div>
+      <div class="meto-card fade-up d2"><div class="meto-card-icon">&#128301;</div><div class="meto-card-title">Alternatius</div><div class="meto-card-text">Or, REITs, crowdlending selectiu. Descorrelaci&oacute; real i protecci&oacute; contra inflaci&oacute;. Usats amb disciplina i mesura.</div><div class="meto-card-pct">10&ndash;20%</div></div>
+      <div class="meto-card fade-up d3"><div class="meto-card-icon">&#9878;</div><div class="meto-card-title">Rebalanceig</div><div class="meto-card-text">Algoritme simple: quan un actiu desvia m&eacute;s d&apos;un 5% del target, rebalancejar. Automatitza la disciplina inversora.</div><div class="meto-card-pct">Trimestral</div></div>
+    </div>
+    <div class="meto-result">
+      <div class="meto-kpi fade-up"><div class="meto-kpi-num">13,9%</div><div class="meto-kpi-label">XIRR anualitzat<br>&Iacute;ndex TBI (2020&ndash;2026)</div></div>
+      <div class="meto-kpi fade-up d1"><div class="meto-kpi-num">11,7%</div><div class="meto-kpi-label">Volatilitat anual controlada<br>Risc assumible a llarg termini</div></div>
+      <div class="meto-kpi fade-up d2"><div class="meto-kpi-num">0,2&ndash;0,4%</div><div class="meto-kpi-label">Cost total de la cartera<br>vs. 1,5&ndash;2% t&iacute;pic fons bancaris</div></div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--g400);margin-top:20px;line-height:1.6">Rendiments passats no garantitzen rendiments futurs. KPIs basats en &Iacute;ndex TBI (72 observacions mensuals, Juny 2020 &ndash; Maig 2026).</p>
+  </div>
+</section>
+
+<!-- COMPARATIVA -->
+<section class="comparativa" id="comparativa">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Comparativa</div>
+    <div class="section-title" style="color:#fff;text-align:center">Fons bancari t&iacute;pic (net comissions) vs. &Iacute;ndex TBI</div>
+    <p style="font-size:15px;color:rgba(255,255,255,.4);text-align:center;margin:0 auto 28px;line-height:1.7;max-width:540px">Ajusta les xifres al teu cas i veur&agrave;s l&apos;impacte real de les comissions i el rendiment diferencial al llarg del temps.</p>
+    <div class="comp-inputs">
+      <div class="comp-input-group"><label>Capital inicial (&euro;)</label><input type="number" id="c-cap" value="20000" min="1000" step="1000" oninput="calcComp()"></div>
+      <div class="comp-input-group"><label>Aportaci&oacute; mensual (&euro;)</label><input type="number" id="c-men" value="200" min="0" step="50" oninput="calcComp()"></div>
+      <div class="comp-input-group"><label>Anys d&apos;inversi&oacute;</label><input type="number" id="c-any" value="20" min="5" max="40" step="5" oninput="calcComp()"></div>
+    </div>
+    <div class="comp-wrapper">
+      <div class="comp-card banc">
+        <div class="comp-card-icon">&#127968;</div>
+        <div class="comp-card-title">Fons bancari mixt tradicional</div>
+        <div class="comp-card-sub">Rendiment net de comissions estimat: 3,0%<br>Comissions t&iacute;piques: 1,5&ndash;2,0% &middot; Exemple representatiu sector</div>
+        <div class="comp-card-result" id="r-banc">&mdash;</div>
+        <div class="comp-card-detail" id="d-banc">Valor final estimat</div>
+      </div>
+      <div class="comp-card tbi">
+        <div class="comp-card-icon">&#128200;</div>
+        <div class="comp-card-title">Cartera TBI (metodologia pr&ograve;pia)</div>
+        <div class="comp-card-sub">XIRR &Iacute;ndex TBI: 13,9% &middot; TER: ~0,25%<br>Passiu + Actiu selectiu + Alternatius + Rebalanceig</div>
+        <div class="comp-card-result" id="r-tbi">&mdash;</div>
+        <div class="comp-card-detail" id="d-tbi">Valor final estimat</div>
+      </div>
+    </div>
+    <div class="comp-diff">
+      <div class="comp-diff-label">Difer&egrave;ncia potencial en el teu patrimoni</div>
+      <div class="comp-diff-value" id="r-diff">&mdash;</div>
+      <div class="comp-diff-sub" id="r-diff-sub">Difer&egrave;ncia acumulada al llarg dels anys seleccionats.</div>
+    </div>
+    <p style="text-align:center;font-size:11px;color:rgba(255,255,255,.25);margin-top:20px;line-height:1.6">&#9888; La calculadora usa el XIRR de l&apos;&Iacute;ndex TBI (13,9%) com a refer&egrave;ncia il&middot;lustrativa, no com a promesa de rendiment futur. El rendiment del fons bancari (3,0% net) &eacute;s una estimaci&oacute; representativa del sector; el teu cas concret dependre de l&apos;entitat i productes concrets.</p>
+  </div>
+</section>
+
+<!-- COM FUNCIONA -->
+<section id="com-funciona">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Com funciona</div>
+    <div class="section-title" style="text-align:center">4 passos per prendre el control</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 48px">No necessites saber res de finances per comen&ccedil;ar. Et guio des del primer pas.</p>
+    <div class="steps-grid">
+      <div class="step fade-up"><div class="step-num">1</div><div class="step-title">Test gra&egrave;rit (2 min)</div><div class="step-text">Respon 27 preguntes sobre el teu perfil, objectius i toler&agrave;ncia al risc. L&apos;algorisme calcular&agrave; el teu arquetip inversor.</div><div class="step-arrow">&rarr;</div></div>
+      <div class="step fade-up d1"><div class="step-num">2</div><div class="step-title">Pack Diagn&ograve;stic</div><div class="step-text">An&agrave;lisi completa de la teva situaci&oacute; financera, cartera recomanada i Full de Ruta personalitzat en una sessi&oacute; de 60 min.</div><div class="step-arrow">&rarr;</div></div>
+      <div class="step fade-up d2"><div class="step-num">3</div><div class="step-title">Cartera i pla</div><div class="step-text">Reps la teva cartera target (entre 10 arquetips TBI), el pla d&apos;aportacions i el full de ruta financer al portal privat.</div><div class="step-arrow">&rarr;</div></div>
+      <div class="step fade-up d3"><div class="step-num">4</div><div class="step-title">Seguiment continu</div><div class="step-text">Monitora la teva cartera, rep an&agrave;lisis peri&ograve;diques i consulta&apos;m directament per missatgeria o sessions de v&iacute;deo.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATAFORMA -->
+<section class="plataforma" id="plataforma">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">La plataforma</div>
+    <div class="section-title" style="text-align:center">Tot el que necessites, en un sol lloc</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 28px">Cartera, seguiment, eines financeres i comunicaci&oacute; directa. Tot integrat i personalitzat.</p>
+    <div class="screen-tabs">
+      <button class="screen-tab active" onclick="showScreen('resum',this)">&#128202; Resum</button>
+      <button class="screen-tab" onclick="showScreen('cartera',this)">&#128188; Cartera</button>
+      <button class="screen-tab" onclick="showScreen('fire',this)">&#128293; FIRE</button>
+      <button class="screen-tab" onclick="showScreen('arquetips',this)">&#128193; Arquetips</button>
+    </div>
+    <div class="screen-window">
+      <div class="screen-bar"><div class="screen-dots"><div class="screen-dot" style="background:#FF5F57"></div><div class="screen-dot" style="background:#FEBC2E"></div><div class="screen-dot" style="background:#28C840"></div></div><div class="screen-url"><span>theboringinvestor.github.io/assessoria/platform.html</span></div></div>
+      <div class="screen-content active" id="screen-resum">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">Tauler de resum &middot; L&apos;Arquitecte (Cartera IV)</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:var(--gold)">47.280&euro;</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Valor cartera</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:#4CAF82">+18,2%</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Rendiment YTD</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:#fff">500&euro;</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Aportaci&oacute;/mes</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:var(--gold-light)">12 anys</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">A la llibertat FIRE</div></div>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,.3);text-align:center">Full de Ruta &middot; Carteres Model &middot; Calculadora FIRE &middot; Turbo Estalvi &middot; Fons d&apos;Emerg&egrave;ncia &middot; Educaci&oacute; financera</div>
+      </div>
+      <div class="screen-content" id="screen-cartera">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">La meva cartera &middot; Posicions actuals</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">&#127758; ETF RV Global (MSCI World)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+14,3%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">&#128176; ETF Dividend (SCHD/VIG)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+8,7%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">&#127963; RF Gov. Eurozona</span><span style="font-family:var(--fm);color:#E57373;font-size:13px">&minus;2,1%</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">&#129351; Or f&iacute;sic (IAU/ZGLD)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+22,4%</span></div>
+        </div>
+      </div>
+      <div class="screen-content" id="screen-fire">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">Calculadora FIRE &middot; 5 modalitats</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:rgba(200,165,74,.08);border:1px solid rgba(200,165,74,.2);border-radius:10px;padding:14px"><div style="font-size:12px;color:var(--gold);margin-bottom:4px">&#128293; Regular FIRE</div><div style="font-family:var(--fm);font-size:20px;color:#fff">875.000&euro;</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Objectiu amb regla del 4%</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px"><div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">&#127958; Fat FIRE</div><div style="font-family:var(--fm);font-size:20px;color:#fff">1.500.000&euro;</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Estil de vida premium</div></div>
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;grid-column:1/-1"><div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">&#128200; Progr&eacute;s actual</div><div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden"><div style="height:100%;width:54%;background:var(--gold);border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:6px">54% del cam&iacute; cap a Regular FIRE</div></div>
+        </div>
+      </div>
+      <div class="screen-content" id="screen-arquetips">
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">10 Carteres model &middot; Un arquetip per a cada perfil</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">I.</span> La Catapulta &middot; L&apos;Estoic</div>
+          <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">II.</span> La Caravella &middot; L&apos;Explorador</div>
+          <div style="padding:10px 12px;background:rgba(200,165,74,.1);border:1px solid rgba(200,165,74,.2);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">IV.</span> La Catedral &middot; L&apos;Arquitecte &#9733;</div>
+          <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">V.</span> La Muralla &middot; El Tresorer</div>
+          <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px;grid-column:1/-1;color:rgba(255,255,255,.4)">+ 6 carteres m&eacute;s: El Gale&oacute;, El Scriptorium, L&apos;Alamb&iacute;, El Sarr&oacute;, El Pionier, La Renda</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PACK DIAGNOSTIC -->
+<section class="pack-diag" id="pack">
+  <div class="section-inner">
+    <div class="pack-grid">
+      <div class="fade-up">
+        <div class="section-label" style="color:var(--gold)">Punt d&apos;entrada</div>
+        <div class="section-title" style="color:#fff">Pack Diagn&ograve;stic Financer</div>
+        <p style="font-size:15px;color:rgba(255,255,255,.5);line-height:1.78;margin-bottom:28px">El punt d&apos;entrada ideal per a qui vol saber exactament com est&agrave; la seva situaci&oacute; financera i quins passos concrets ha de fer, sense compromís de subscripci&oacute; mensual.</p>
+        <div style="padding:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;font-size:14px;color:rgba(255,255,255,.5);line-height:1.7">&#10003; Sense subscripci&oacute; mensual &mdash; servei &uacute;nic<br>&#10003; Tot el contingut del diagn&ograve;stic disponible al portal<br>&#10003; Compatible amb qualsevol pla posterior</div>
+      </div>
+      <div class="pack-card fade-up d1">
+        <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(200,165,74,.15);border:1px solid rgba(200,165,74,.25);border-radius:99px;font-size:10px;color:var(--gold);font-family:var(--fm);margin-bottom:20px">&#128207; Servei &uacute;nic &middot; Sense subscripci&oacute;</div>
+        <div class="pack-price">149 &euro;</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.3);margin-bottom:20px">Pioners (10 primers): <strong style="color:var(--gold)">99&euro;</strong></div>
+        <ul class="pack-features">
+          <li>Entrevista inicial d&apos;1h per v&iacute;deo (situaci&oacute;, objectius, risc)</li>
+          <li>An&agrave;lisi de la teva cartera actual si en tens</li>
+          <li>C&agrave;lcul del teu arquetip TBI i cartera recomanada</li>
+          <li>Full de Ruta financer personalitzat (PDF + portal)</li>
+          <li>Projecci&oacute; FIRE personalitzada amb 3 escenaris</li>
+          <li>Informe escrit complet en PDF (lliurable en 48h)</li>
+          <li>Acc&eacute;s al portal TBI durant 30 dies</li>
+        </ul>
+        <a href="https://wa.me/34629340892?text=M%27interessa%20el%20Pack%20Diagn%C3%B2stic" target="_blank"><button class="btn-primary" style="width:100%;justify-content:center">Reservar diagn&ograve;si &rarr;</button></a>
+        <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.3);text-align:center">Places limitades &middot; Resposta en 24h laborables</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKSHOPS -->
+<section class="workshops" id="workshops">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Formaci&oacute; grupal</div>
+    <div class="section-title" style="text-align:center">Workshops mensuals</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 40px">Sessions en grup de m&agrave;xim 10 persones per aprofundir en temes financers concrets. Aprens, preguntes i t&apos;emportes materials pr&agrave;ctics.</p>
+    <div class="workshop-grid">
+      <div class="workshop-card fade-up"><div class="workshop-icon">&#128293;</div><div class="workshop-title">FIRE: La Independ&egrave;ncia Financera Pas a Pas</div><div class="workshop-desc">La regla del 4%, les 5 modalitats FIRE, el teu nombre m&agrave;gic, tax-efficiency. Amb calculadora en viu i cas pr&agrave;ctic.</div><div class="workshop-meta"><div class="workshop-date">Pr&ograve;xim: juny 2026</div><div class="workshop-price">59&euro; <span style="font-size:11px;color:var(--g400)">&middot; Pioners 39&euro;</span></div></div></div>
+      <div class="workshop-card fade-up d1"><div class="workshop-icon">&#128202;</div><div class="workshop-title">ETFs des de Zero: Com Construir una Cartera Indexada</div><div class="workshop-desc">Brokers, TER, swap vs. physical, domiciliaci&oacute; fiscal, error de seguiment. Tot el que necessites per operar per compte propi.</div><div class="workshop-meta"><div class="workshop-date">Pr&ograve;xim: juliol 2026</div><div class="workshop-price">59&euro; <span style="font-size:11px;color:var(--g400)">&middot; Pioners 39&euro;</span></div></div></div>
+      <div class="workshop-card fade-up d2"><div class="workshop-icon">&#129534;</div><div class="workshop-title">Fiscalitat de les Inversions: IRPF, ETFs vs. Fons i Diferiment</div><div class="workshop-desc">Plusv&agrave;lues, ordre FIFO, traspassos, Renda 2025, planificaci&oacute; fiscal b&agrave;sica per a inversors particulars.</div><div class="workshop-meta"><div class="workshop-date">Pr&ograve;xim: agost 2026</div><div class="workshop-price">59&euro; <span style="font-size:11px;color:var(--g400)">&middot; Pioners 39&euro;</span></div></div></div>
+    </div>
+    <div style="text-align:center"><a href="https://wa.me/34629340892?text=M%27interessa%20un%20workshop" target="_blank" class="btn-primary" style="display:inline-flex">Apuntar-me a un workshop &rarr;</a><div style="margin-top:12px;font-size:12px;color:var(--g400)">M&agrave;xim 10 persones per sessi&oacute; &middot; Gravaci&oacute; inclosa &middot; Certificat d&apos;assist&egrave;ncia</div></div>
+  </div>
+</section>
+
+<!-- HONORARIS OPCIO B -->
+<section style="background:var(--black);padding:80px 28px;color:#fff">
+  <div class="section-inner">
+    <div class="section-label" style="color:var(--gold)">Model d&apos;ingressos</div>
+    <div class="section-title" style="color:#fff">Honor&agrave;ris transparents.<br>Sense comissions de producte.</div>
+    <p style="font-size:15px;color:rgba(255,255,255,.5);line-height:1.78;max-width:600px">La meva &uacute;nica font d&apos;ingressos &eacute;s la teva subscripci&oacute; o els honor&agrave;ris acordats. Quan et recomano un ETF de Vanguard o iShares, no cobro absolutament res d&apos;ells.</p>
+    <div class="honoraris-bar">
+      <div class="honoraris-item"><div class="honoraris-icon">&#9986;&#65039;</div><div class="honoraris-title">Sense retrocessions</div><div class="honoraris-text">No cobro comissions de cap entitat financera, gestora de fons, broker ni plataforma. Cap. Zero.</div><div class="honoraris-check">Estructuralment independent</div></div>
+      <div class="honoraris-item"><div class="honoraris-icon">&#128203;</div><div class="honoraris-title">Sense conflicte d&apos;inter&egrave;s</div><div class="honoraris-text">No tinc incentiu per recomanar un producte sobre un altre. La meva recomanaci&oacute; parteix exclusivament del teu perfil i objectius.</div><div class="honoraris-check">Alineaci&oacute; total amb el client</div></div>
+      <div class="honoraris-item"><div class="honoraris-icon">&#129534;</div><div class="honoraris-title">Preus p&uacute;blics i fixes</div><div class="honoraris-text">Saps exactament el que pagues. Sense sorpreses, sense costos ocults, sense lletra petita.</div><div class="honoraris-check">Total transpar&egrave;ncia econ&ograve;mica</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="pricing" id="pricing">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Plans i preus</div>
+    <div class="section-title" style="text-align:center">Tria el teu nivell d&apos;acompanyament</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 20px">Honor&agrave;ris transparents. Cap comissi&oacute; de productes. L&apos;assessorament que el teu banc no et dona.</p>
+    <div style="text-align:center;margin-bottom:36px"><div style="display:inline-block;padding:8px 20px;background:var(--gold);color:var(--black);border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.03em">&#128640; PIONERS &middot; Primers 10 clients: preus especials de llan&ccedil;ament</div></div>
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-icon">&#128225;</div><div class="plan-name">Senyal</div><div class="plan-tagline">Plataforma + eines d&apos;autogesti&oacute;</div>
+        <div class="plan-price">8<span> &euro;/mes</span></div><div class="plan-annual">80&euro;/any (2 mesos de regal)</div>
+        <div class="plan-pioneer">Pioners: 8&euro;/mes (igual)</div>
+        <ul class="plan-features"><li>Arquetip inversor + cartera recomanada</li><li>An&agrave;lisi setmanal de mercat TBI</li><li>Calculadora FIRE (5 modalitats)</li><li>Fons d&apos;emerg&egrave;ncia + Turbo Estalvi</li><li>Gloss&agrave;ri financer (28+ termes)</li><li>1 consulta/setmana (missatgeria)</li><li>Workshops amb 20% descompte</li><li class="no">Cartera target personalitzada</li><li class="no">Missatgeria directa il&middot;limitada</li><li class="no">Sessions per v&iacute;deo</li></ul>
+        <a href="platform.html"><button class="plan-btn plan-btn-outline">Comen&ccedil;ar &rarr;</button></a>
+        <div class="plan-note">Ideal per a autogestors informats</div>
+      </div>
+      <div class="plan">
+        <div class="plan-icon">&#129517;</div><div class="plan-name">Br&uacute;&iacute;xola</div><div class="plan-tagline">An&agrave;lisi i acompanyament actiu</div>
+        <div class="plan-price">29<span> &euro;/mes</span></div><div class="plan-annual">290&euro;/any (2 mesos de regal)</div>
+        <div class="plan-pioneer">Pioners: <s>29&euro;</s> 20&euro;/mes</div>
+        <div class="plan-setup">Setup mes 1: +59&euro; (entrevista inicial inclosa)</div>
+        <ul class="plan-features"><li>Tot el pla Senyal</li><li>Entrevista inicial 1h per v&iacute;deo</li><li>Cartera target personalitzada</li><li>Full de Ruta financer personalitzat</li><li>An&agrave;lisi mensual aprofundida</li><li>Missatgeria directa (fins a 8 missatges/mes)</li><li>Informes PDF trimestrals</li><li>Workshops amb 30% descompte</li><li class="no">Sessions trimestrals per v&iacute;deo</li><li class="no">Seguiment posicions reals</li></ul>
+        <a href="platform.html"><button class="plan-btn plan-btn-primary">Triar Br&uacute;&iacute;xola</button></a>
+        <div class="plan-note">Ideal per a inversors que volen orientaci&oacute; activa</div>
+      </div>
+      <div class="plan featured">
+        <div class="plan-badge">RECOMANAT</div>
+        <div class="plan-icon">&#11088;</div><div class="plan-name">Nord</div><div class="plan-tagline">Seguiment complet + sessions</div>
+        <div class="plan-price">59<span> &euro;/mes</span></div><div class="plan-annual">590&euro;/any (2 mesos de regal)</div>
+        <div class="plan-pioneer">Pioners: <s>59&euro;</s> 40&euro;/mes</div>
+        <div class="plan-setup">Setup mes 1: +59&euro; (entrevista inicial inclosa)</div>
+        <ul class="plan-features"><li>Tot el pla Br&uacute;&iacute;xola (missatgeria il&middot;limitada)</li><li>Sessi&oacute; trimestral 1h per v&iacute;deo</li><li>Seguiment posicions reals</li><li>Rebalanceig semestral assistit</li><li>Planificaci&oacute; fiscal b&agrave;sica</li><li>Informes mensuals complets</li><li>Suport prioritari (resposta en 24h)</li><li>Workshops inclosos (1/trimestre)</li></ul>
+        <a href="platform.html"><button class="plan-btn plan-btn-gold">Triar Nord</button></a>
+        <div class="plan-note">Ideal per a inversors seriosos amb &gt;10.000&euro;</div>
+      </div>
+      <div class="plan" style="border:2px solid var(--gold);background:linear-gradient(135deg,#FFFDF5 0%,#FEF7E8 100%)">
+        <div class="plan-badge" style="background:linear-gradient(90deg,#8B6914,#C8A44A);color:#fff">PATRIMONI FAMILIAR</div>
+        <div class="plan-icon">&#9875;</div><div class="plan-name" style="color:var(--gold-dark)">&Agrave;ncora</div><div class="plan-tagline">Gesti&oacute; integral patrimoni familiar &middot; &gt;100.000&euro;</div>
+        <div class="plan-price" style="color:var(--gold-dark)">99<span style="color:var(--gold-dark)"> &euro;/mes</span></div>
+        <div class="plan-annual" style="color:var(--gold-dark)">O b&eacute;: 20% dels guanys nets anuals</div>
+        <div class="plan-performance-note"><strong>Model per rendiment:</strong> Tria entre quota fixa (99&euro;/mes) o 20% dels guanys nets anuals (sense quota fixa). Tu tries el model.</div>
+        <ul class="plan-features"><li>Tot el pla Nord (sessions mensuals 1h)</li><li>Dedicaci&oacute; preferent i resposta en el dia</li><li>Seguiment diari de posicions</li><li>Rebalanceig sota demanda</li><li>Planificaci&oacute; fiscal completa</li><li>Assessoria success&ograve;ria b&agrave;sica</li><li>Informe mensual patrimonial complet</li><li>Workshops il&middot;limitats inclosos</li></ul>
+        <a href="https://wa.me/34629340892?text=M%27interessa%20el%20pla%20%C3%80ncora" target="_blank"><button class="plan-btn plan-btn-anchor">Parlar amb Guillem &rarr;</button></a>
+        <div class="plan-note" style="color:var(--gold-dark)">Patrim&ograve;ni m&iacute;nim: 100.000&euro; &middot; M&agrave;xim 5 clients sim.</div>
+      </div>
+    </div>
+    <div style="margin-top:28px;text-align:center;max-width:600px;margin-left:auto;margin-right:auto"><p style="font-size:12px;color:var(--g400);line-height:1.7">Compr&ograve;mis m&iacute;nim: 3 mesos. Garantia de satisfacci&oacute; els primers 30 dies (devoluci&oacute; &iacute;ntegra). Cancel&middot;la quan vulguis a partir del 4t mes. El pack diagn&ograve;stic de 149&euro; &eacute;s descomptable de la primera mensualitat de qualsevol pla.</p></div>
+  </div>
+</section>
+
+<!-- SOBRE MI -->
+<section class="about" id="about">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="fade-up" style="text-align:center">
+        <div style="width:200px;height:200px;border-radius:50%;background:var(--g100);margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:64px">&#128104;&#8205;&#128187;</div>
+      </div>
+      <div class="fade-up d1">
+        <div class="section-label">Qui s&oacute;c</div>
+        <div class="section-title">Guillem Puig</div>
+        <p style="font-size:15px;color:var(--g500);line-height:1.8;margin-bottom:16px">No s&oacute;c un gestor de fons ni un banquer. S&oacute;c un enginyer que va descobrir, fa 6 anys, que els bancs ens estaven cobrant molt per gestionar malament els nostres diners.</p>
+        <p style="font-size:15px;color:var(--g500);line-height:1.8;margin-bottom:16px">Des de 2020 he invertit el meu capital personal en pr&agrave;cticament tots els instruments del mercat: ETFs indexats, fons actius, REITs, or, crowdlending, crypto i actius alternatius. He provat, he errat i he apr&egrave;s. Aquesta experi&egrave;ncia directa &mdash; no te&ograve;rica &mdash; &eacute;s el que t&apos;ofereixo.</p>
+        <p style="font-size:15px;color:var(--g600);line-height:1.8;font-weight:500;margin-bottom:20px"><em style="color:var(--gold-dark)">&ldquo;Invertir hauria de ser avorrit. Els diners emocionants acostumen a acabar malament.&rdquo;</em></p>
+        <div class="about-creds">
+          <span class="about-cred highlight">Candidat EFA (EFPA Espanya)</span>
+          <span class="about-cred">Enginyer de formaci&oacute;</span>
+          <span class="about-cred">Sense comissions de producte</span>
+          <span class="about-cred">6 anys d&apos;experi&egrave;ncia inversora</span>
+          <span class="about-cred">Barcelona</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARC LEGAL -->
+<section class="marc-legal" id="legal">
+  <div class="section-inner">
+    <div class="section-label" style="color:var(--gold)">Transpar&egrave;ncia legal</div>
+    <div class="section-title" style="color:#fff">Marc legal i regulatori</div>
+    <p style="font-size:15px;color:rgba(255,255,255,.5);line-height:1.78;max-width:620px">La transpar&egrave;ncia &eacute;s un valor fonamental de TBI. Aqu&iacute; tens exactament quina &eacute;s la meva situaci&oacute; regulat&ograve;ria i el que significa per a tu com a usuari.</p>
+    <div class="legal-grid">
+      <div class="legal-card"><div class="legal-card-icon">&#128220;</div><div class="legal-card-title">Estatus regulatori actual (Pre-EFA)</div><div class="legal-card-text">Guillem Puig &eacute;s candidat a la certificaci&oacute; EFA (European Financial Advisor) per EFPA Espanya, amb examen previst al juny de 2026. En la fase actual, TBI opera com a plataforma d&apos;educaci&oacute; i an&agrave;lisi financera independent, no com a empresa d&apos;assessorament d&apos;inversi&oacute; regulada per la CNMV (Ley 6/2023, art. 140.1.g).</div></div>
+      <div class="legal-card"><div class="legal-card-icon">&#9878;</div><div class="legal-card-title">Ab&agrave;st dels serveis actuals</div><div class="legal-card-text">Els serveis actuals de TBI inclouen: educaci&oacute; financera, an&agrave;lisi de mercats i metodologia, recomanacions generals de carteres model (per a informaci&oacute;, no com a servei de gesti&oacute; regulat) i eines de planificaci&oacute; financera personal. Cada inversor &eacute;s responsible de les seves pr&ograve;pies decisions d&apos;inversi&oacute;.</div></div>
+      <div class="legal-card"><div class="legal-card-icon">&#128274;</div><div class="legal-card-title">Protecci&oacute; de dades (RGPD)</div><div class="legal-card-text">Les dades personals es tracten de conformitat amb el RGPD (2016/679) i la LOPDGDD (LO 3/2018). Responsable: Guillem Puig. Drets ARSULIPO exercibles via contacte. Dades allotjades a Supabase (UE, GDPR-compliant).</div></div>
+      <div class="legal-card"><div class="legal-card-icon">&#128197;</div><div class="legal-card-title">Evoluci&oacute; prevista (Post-EFA)</div><div class="legal-card-text">Un cop obtinguda la certificaci&oacute; EFA i el registre com a agent vinculat d&apos;una EAFI autoritzada per la CNMV, TBI podr&agrave; oferir assessorament d&apos;inversi&oacute; personalitzat regulat. Tots els clients actuals seran informats dels canvis sense cap cost addicional.</div></div>
+    </div>
+    <div class="legal-highlight">
+      <div class="legal-highlight-title">&#128204; Av&iacute;s important sobre els resultats presentats</div>
+      <div class="legal-highlight-text">El XIRR del 13,87% i tots els rendiments mostrats corresponen a l&apos;&Iacute;ndex TBI, calculat sobre retorns mensuals ponderats en el temps (TWR) de la cartera de refer&egrave;ncia TBI des de juny de 2020. Les dades simulades en euros (p. ex. &ldquo;10.000&euro; &rarr; 21.703&euro;&rdquo;) s&apos;obtenen aplicant els retorns mensuals reals de l&apos;&iacute;ndex a un capital hip&ograve;tic; no representen la cartera real d&apos;un inversor espec&iacute;fic ni garantia de rendiments futurs. La inversió en mercats financers comporta risc de p&egrave;rdua parcial o total del capital invertit.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section style="padding:100px 28px">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Preguntes freq&uuml;ents</div>
+    <div class="section-title" style="text-align:center;margin-bottom:40px">Tot el que necessites saber</div>
+    <div class="faq-list">
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Quant necessito per comen&ccedil;ar a invertir?</div><div class="faq-a">No hi ha m&iacute;nim. Pots comen&ccedil;ar amb 50&euro; al mes. El que importa &eacute;s la const&agrave;ncia, no la quantitat. La majoria de clients comencen amb 200&ndash;500&euro;/mes i aportacions inicials de 5.000&ndash;20.000&euro;.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Est&agrave;s registrat com a assessor financer a la CNMV?</div><div class="faq-a">S&oacute;c candidat a la certificaci&oacute; EFA (EFPA Espanya) amb examen al juny de 2026. En la fase actual, TBI opera com a plataforma d&apos;educaci&oacute; i an&agrave;lisi financera, no com a empresa d&apos;assessorament regulada. Pots consultar l&apos;apartat &ldquo;Marc legal&rdquo; per a tots els detalls.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">El 13,9% de XIRR &eacute;s garantit per als clients?</div><div class="faq-a">No. El 13,87% &eacute;s el XIRR de l&apos;&Iacute;ndex TBI, calculat sobre 72 observacions mensuals de juny 2020 a maig 2026. No &eacute;s una promesa de rendiment per als clients. Els rendiments futurs depenen del context de mercat, el perfil de cada inversor i la disciplina d&apos;execuci&oacute;.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Quin &eacute;s el teu model d&apos;ingressos?</div><div class="faq-a">La meva &uacute;nica font d&apos;ingressos &eacute;s la subscripci&oacute; mensual o els honor&agrave;ris puntuals (Pack Diagn&ograve;stic, Workshops). No cobro cap comissi&oacute; de cap entitat financera, gestora de fons, broker ni plataforma d&apos;inversi&oacute;.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Puc cancel&middot;lar quan vulgui?</div><div class="faq-a">S&iacute;. Despr&eacute;s dels 3 mesos inicials, cancel&middot;laci&oacute; lliure sense penalitzaci&oacute;. Durant el primer mes: garantia de satisfacci&oacute; al 100%, devoluci&oacute; &iacute;ntegra si no est&agrave;s satisfet.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Per qu&egrave; &ldquo;&Agrave;ncora&rdquo; i no &ldquo;Family Banker&rdquo;?</div><div class="faq-a">&ldquo;&Agrave;ncora&rdquo; segueix la nomenclatura n&agrave;utica de TBI (Senyal &rarr; Br&uacute;&iacute;xola &rarr; Nord &rarr; &Agrave;ncora) i evoca estabilitat i perman&egrave;ncia intergeneracional: exactament el que ofereix per al patrimoni familiar a llarg termini.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Necessito coneixements previs?</div><div class="faq-a">Gens. La plataforma inclou una Guia d&apos;Actius completa amb 21 categories explicades de forma accessible. La majoria de clients comencen sense tenir coneixements previs de finances.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <div class="section-inner">
+    <div style="font-size:48px;margin-bottom:20px">&#129517;</div>
+    <div class="section-title">El teu futur financer<br>comen&ccedil;a avui</div>
+    <p class="section-sub">Fes el test gra&egrave;rit, descobreix el teu perfil inversor i parlarem sobre com pots millorar la teva situaci&oacute; financera.</p>
+    <div class="cta-final-buttons">
+      <a href="client_onboarding_v3.html" class="btn-primary" style="font-size:17px;padding:16px 40px">Fes el test gra&egrave;rit &rarr;</a>
+      <a href="https://wa.me/34629340892?text=Hola%20Guillem%2C%20m%27interessa%20TBI" class="btn-secondary" style="font-size:17px;padding:16px 40px;color:rgba(255,255,255,.7)">Parla amb mi per WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div>The Boring Investor &middot; An&agrave;lisi i Educaci&oacute; Financera Independent &middot; Barcelona</div>
+  <div style="margin-top:6px">&copy; 2026 Guillem Puig &middot; Sense comissions de producte &middot; Candidat EFA (EFPA Espanya)</div>
+  <div style="margin-top:8px;font-size:11px;opacity:.6;line-height:1.7">&#9878; Av&iacute;s legal: TBI no &eacute;s una empresa d&apos;assessorament financer regulada per la CNMV. Els serveis actuals comprenen educaci&oacute; i an&agrave;lisi financera independent. Els rendiments mostrats corresponen a l&apos;&Iacute;ndex TBI (refer&egrave;ncia de metodologia) i no constitueixen garantia de resultats futurs.</div>
+  <div style="margin-top:6px;font-family:var(--fm);opacity:.4">landing v2026-06 &middot; pre-EFA</div>
+</footer>
+
+<a href="https://wa.me/34629340892?text=Hola%20Guillem" class="wa-fab" title="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
+
+<script>
+window.addEventListener("scroll",function(){document.getElementById("main-nav").classList.toggle("scrolled",window.scrollY>60)});
+function toggleFaq(el){var a=el.nextElementSibling;var w=el.classList.contains("open");document.querySelectorAll(".faq-q").forEach(function(q){q.classList.remove("open")});document.querySelectorAll(".faq-a").forEach(function(aa){aa.classList.remove("open")});if(!w){el.classList.add("open");a.classList.add("open")}}
+function fmt(n){return Math.round(n).toLocaleString("ca-ES")}
+function calcComp(){
+  var c=parseFloat(document.getElementById("c-cap").value)||20000;
+  var m=parseFloat(document.getElementById("c-men").value)||0;
+  var a=parseInt(document.getElementById("c-any").value)||20;
+  var ms=a*12;
+  var rB=(Math.pow(1.03,1/12)-1);
+  var rT=(Math.pow(1.1387,1/12)-1);
+  var vB=c,vT=c;
+  for(var i=0;i<ms;i++){vB=vB*(1+rB)+m;vT=vT*(1+rT)+m;}
+  var t=c+m*ms;var d=vT-vB;
+  document.getElementById("r-banc").textContent=fmt(vB)+" \u20ac";
+  document.getElementById("d-banc").textContent="Aportat: "+fmt(t)+" \u20ac \u00b7 Guany net: "+fmt(vB-t)+" \u20ac";
+  document.getElementById("r-tbi").textContent=fmt(vT)+" \u20ac";
+  document.getElementById("d-tbi").textContent="Aportat: "+fmt(t)+" \u20ac \u00b7 Guany net: "+fmt(vT-t)+" \u20ac";
+  document.getElementById("r-diff").textContent="+"+fmt(d)+" \u20ac";
+  document.getElementById("r-diff-sub").textContent="Difer\u00e8ncia estimada en "+a+" anys entre el fons bancari t\u00edpic (3% net) i la metodologia TBI (13,9% XIRR refer\u00e8ncia). No \u00e9s una garantia de rendiment futur.";
+}
+calcComp();
+function showScreen(id,btn){document.querySelectorAll(".screen-content").forEach(function(el){el.classList.remove("active")});document.querySelectorAll(".screen-tab").forEach(function(el){el.classList.remove("active")});document.getElementById("screen-"+id).classList.add("active");btn.classList.add("active")}
+/* CHART INDEX TBI */
+const D=[[100.00],[100.00],[101.07],[103.10],[102.41],[102.74],[108.39],[107.38],[110.45],[116.75],[120.85],[127.73],[134.79],[134.23],[136.85],[139.15],[146.42],[146.37],[154.37],[148.04],[146.35],[153.06],[149.74],[140.89],[131.60],[138.13],[137.36],[130.33],[128.83],[130.35],[128.42],[136.37],[137.47],[136.48],[135.88],[137.07],[137.98],[141.68],[137.67],[137.09],[136.61],[143.28],[151.06],[150.78],[158.51],[170.13],[165.66],[171.22],[171.27],[172.32],[168.18],[173.13],[179.59],[191.02],[188.19],[192.77],[189.80],[184.01],[175.99],[187.77],[185.24],[195.19],[197.85],[202.24],[206.10],[202.48],[201.16],[211.88],[211.25],[199.81],[210.18],[217.03]];
+const YM=['Jun 20','','','','','','Dec 20','','','','','','Jun 21','','','','','','Dec 21','','','','','','Jun 22','','','','','','Dec 22','','','','','','Jun 23','','','','','','Dec 23','','','','','','Jun 24','','','','','','Dec 24','','','','','','Jun 25','','','','','','Dec 25','','','','','','Mai 26'];
+(function(){
+  var canvas=document.getElementById('tbiChart');
+  if(!canvas) return;
+  var ctx=canvas.getContext('2d');
+  var W=canvas.offsetWidth||800,H=200;
+  canvas.width=W*2;canvas.height=H*2;canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.scale(2,2);
+  var vals=D.map(function(d){return d[0];});
+  var mn=Math.min.apply(null,vals)-5,mx=Math.max.apply(null,vals)+8;
+  var pL=24,pR=8,pT=10,pB=24;
+  var W2=W-pL-pR,H2=H-pT-pB,n=vals.length;
+  var toX=function(i){return pL+i/(n-1)*W2;};
+  var toY=function(v){return pT+H2-(v-mn)/(mx-mn)*H2;};
+  /* Grid */
+  [100,120,140,160,180,200].forEach(function(v){
+    if(v<mn||v>mx) return;
+    var y=toY(v);
+    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+W2,y);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.2)';ctx.font='8px monospace';ctx.fillText(v,2,y+3);
+  });
+  /* Base 100 */
+  var y100=toY(100);
+  ctx.setLineDash([3,3]);ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pL,y100);ctx.lineTo(pL+W2,y100);ctx.stroke();
+  ctx.setLineDash([]);
+  /* Year labels */
+  var yIdx=[0,6,18,30,42,54,66,71];
+  var yLbl=['Jun 20','Dec 20','Dec 21','Dec 22','Dec 23','Dec 24','Dec 25','Mai 26'];
+  yIdx.forEach(function(i,k){
+    var x=toX(i);
+    ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x,pT);ctx.lineTo(x,pT+H2);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.2)';ctx.font='8px monospace';
+    var lbl=yLbl[k];ctx.fillText(lbl,x-(lbl.length*2.5),pT+H2+13);
+  });
+  /* Area */
+  ctx.beginPath();ctx.moveTo(toX(0),toY(vals[0]));
+  for(var i=1;i<n;i++) ctx.lineTo(toX(i),toY(vals[i]));
+  ctx.lineTo(toX(n-1),pT+H2);ctx.lineTo(toX(0),pT+H2);ctx.closePath();
+  var g=ctx.createLinearGradient(0,pT,0,pT+H2);
+  g.addColorStop(0,'rgba(200,165,74,.22)');g.addColorStop(1,'rgba(200,165,74,0)');
+  ctx.fillStyle=g;ctx.fill();
+  /* Line */
+  ctx.beginPath();ctx.moveTo(toX(0),toY(vals[0]));
+  for(var j=1;j<n;j++) ctx.lineTo(toX(j),toY(vals[j]));
+  ctx.strokeStyle='#C8A54A';ctx.lineWidth=2;ctx.stroke();
+  /* End dot + label */
+  var fx=toX(n-1),fy=toY(vals[n-1]);
+  ctx.beginPath();ctx.arc(fx,fy,4,0,Math.PI*2);ctx.fillStyle='#C8A54A';ctx.fill();
+  ctx.fillStyle='rgba(200,165,74,.9)';ctx.font='bold 9px monospace';ctx.fillText('217',fx-21,fy-8);
+  /* Annotations: best/worst year */
+  var peakIdx=vals.indexOf(Math.max.apply(null,vals));
+  ctx.fillStyle='rgba(76,175,130,.6)';ctx.font='7px sans-serif';
+  ctx.fillText('\u25b2 Max 206',toX(peakIdx)-12,toY(vals[peakIdx])-5);
+})();
+var obs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.style.animationPlayState="running"});},{threshold:.15});
+document.querySelectorAll(".fade-up").forEach(function(el){el.style.animationPlayState="paused";obs.observe(el);});
+</script>
+</body>
+</html>
