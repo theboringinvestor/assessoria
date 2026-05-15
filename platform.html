@@ -2505,8 +2505,23 @@ async function enterApp(role, email, isDemo) {
   } else if (APP.clientData && APP.clientData.status && APP.clientData.status !== 'active') {
     // Client amb qüestionari completat però no validat — pantalla d'espera
     navigateTo('pending-review');
+  } else if (APP.clientData && !APP.clientData.status && APP.clientData.scoring > 0) {
+    // ── FIX APROVACIÓ ──
+    // El client té scoring (ha fet el qüestionari) però no té status explícit.
+    // Pot passar si: (a) el qüestionari no va guardar status:'pending', o
+    // (b) el client torna a entrar sense que l'admin l'hagi aprovat.
+    // En cap cas ha d'entrar al portal: posem status pending i mostrem espera.
+    navigateTo('pending-review');
+    if (sb && APP.user && APP.user.email) {
+      sb.from('clients')
+        .update({ status: 'pending', submitted_at: APP.clientData.submitted_at || new Date().toISOString() })
+        .eq('email', APP.user.email.toLowerCase())
+        .then(function(){ console.log('[enterApp] status fixat a pending per client sense aprovació'); })
+        .catch(function(e){ console.warn('[enterApp] No s\'ha pogut actualitzar status:', e); });
+      if (APP.clientData) APP.clientData.status = 'pending';
+    }
   } else {
-    // Client actiu — portal complet
+    // Client actiu amb aprovació explícita — portal complet
     navigateTo('portal-perfil');
   }
   
@@ -2778,6 +2793,13 @@ function normalizeClient(raw) {
     informes: Array.isArray(raw.informes) ? raw.informes : [],
     snapshots_cartera: Array.isArray(raw.snapshots_cartera) ? raw.snapshots_cartera : [],
     reunions: Array.isArray(raw.reunions) ? raw.reunions : [],
+    // ── Qüestionari d'onboarding (respostes completes per a la vista d'admin) ──
+    questionnaire_responses: raw.questionnaire_responses || null,
+    questionnaire_date: raw.questionnaire_date || null,
+    // ── Notes entrevista inicial (JSONB: {checks:{}, notes:{}, summary:{}}) ──
+    interview_notes: raw.interview_notes || null,
+    // ── Permet re-fer el qüestionari (activat per admin) ──
+    allow_retest: raw.allow_retest || false,
   };
 }
 
@@ -3218,6 +3240,7 @@ var ADMIN_NAV = [
   {id:'admin-plans',       icon:'&#128142;', label:'Plans'},
   {section:'Clients'},
   {id:'admin-pendents',    icon:'⏳', label:'Sol\u00b7licituds pendents'},
+  {id:'admin-entrevista',  icon:'📋', label:'Entrevista inicial'},
   {id:'portal-missatges',  icon:'💬', label:'Missatges clients'},
   {id:'admin-preguntes',   icon:'❓', label:'Preguntes', badge:'\u2022'},
   {id:'admin-broadcast',   icon:'📣', label:'Comunicat comunitat'},
@@ -3355,6 +3378,7 @@ function navigateTo(viewId) {
     'admin-broadcast': ['Missatge a la comunitat', 'Envia un comunicat a tots els clients actius'],
     'pending-review': ['Sol·licitud rebuda', 'Esperant validació de l\'assessor'],
     'admin-pendents': ['Sol·licituds pendents', 'Clients esperant validació'],
+    'admin-entrevista': ['Entrevista inicial', 'Checklist de la primera reunió amb el client'],
   };
   var t = titles[viewId] || [viewId, ''];
   document.getElementById('topbar-title').textContent = t[0];
@@ -3414,6 +3438,7 @@ function renderView(viewId) {
     case 'admin-plans': renderAdminPlans(content); break;
     case 'admin-preguntes': renderAdminPreguntes(content); break;
     case 'admin-broadcast': renderAdminBroadcast(content); break;
+    case 'admin-entrevista': renderAdminEntrevista(content); break;
     case 'pending-review': renderPendingReview(content); break;
     case 'admin-informe': renderAdminInforme(content); break;
     case 'admin-calendari': renderAdminCalendari(content); break;
@@ -8646,6 +8671,286 @@ async function enviarBroadcast() {
   }
 }
 
+// ══════════════════════════════════════════════════
+// ENTREVISTA INICIAL — checklist interactiu per client
+// Guarda a clients.interview_notes (JSONB)
+// ══════════════════════════════════════════════════
+async function renderAdminEntrevista(el) {
+  el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:40px;color:var(--g500)">Carregant...</div></div>';
+  if (!sb) { el.innerHTML = '<div class="content-inner"><div class="card">Supabase no disponible</div></div>'; return; }
+
+  // Carregar llista de clients actius + pendents per al selector
+  var res = await sb.from('clients').select('nom,email,status,interview_notes').order('nom');
+  var allClients = (res.data || []).filter(function(c){ return c.status === 'active' || c.status === 'pending' || !c.status; });
+
+  var selectedEmail = (APP._entrevistaEmail) || (allClients.length > 0 ? allClients[0].email : '');
+  var selectedClient = allClients.find(function(c){ return c.email === selectedEmail; }) || allClients[0] || null;
+  var savedNotes = (selectedClient && selectedClient.interview_notes) ? selectedClient.interview_notes : {};
+
+  function sV(key, def) { return savedNotes[key] !== undefined ? savedNotes[key] : def; }
+
+  var SECCIONS = [
+    { id:'s0', icon:'🗂', num:'Fase 0', tit:'Preparació prèvia', temps:'~10 min · Fer el dia anterior',
+      blocs:[
+        { id:'b0a', lbl:'Logística', items:[
+          {id:'c0',txt:'Enviar <b>recordatori</b> amb l\'hora i l\'enllaç de videollamada.'},
+          {id:'c1',txt:'Tenir a mà el <b>dossier TBI base</b> per preguntes de conceptes.'},
+          {id:'c2',txt:'Preparar el <b>qüestionari d\'onboarding</b> al navegador.'},
+        ]},
+        { id:'b0b', lbl:'Recerca prèvia', items:[
+          {id:'c3',txt:'Buscar context laboral / sector professional del client.'},
+          {id:'c4',txt:'Revisar si ha enviat missatge previ amb info útil.'},
+          {id:'c5',txt:'Preparar 2-3 <b>preguntes personalitzades</b> pel seu perfil probable.'},
+        ]},
+      ]},
+    { id:'s1', icon:'👋', num:'Fase 1', tit:'Benvinguda i context', temps:'~10 min',
+      blocs:[
+        { id:'b1', lbl:'Punts a cobrir', items:[
+          {id:'c6',txt:'<b>Model fee-only:</b> assessor independent, sense comissions de producte.'},
+          {id:'c7',txt:'<b>Com funciona el procés:</b> entrevista → qüestionari → proposta → revisió trimestral.'},
+          {id:'c8',txt:'<b>Confidencialitat:</b> tota la informació és privada i segura.'},
+          {id:'c9',txt:'Preguntar per què ha acudit: <b>«Què t\'ha portat a buscar un assessor ara?»</b>'},
+          {id:'c10',txt:'<b>Escoltar activament</b> sense interrompre. Prendre notes.'},
+        ], nota: true, notaId:'n_benvinguda', notaPlac:'Per què ha acudit? Primers impressions...'},
+      ]},
+    { id:'s2', icon:'💼', num:'Fase 2', tit:'Situació financera actual', temps:'~15 min · D2 Situació · MiFID II',
+      blocs:[
+        { id:'b2a', lbl:'Ingressos i despeses', items:[
+          {id:'c11',txt:'Ingressos mensuals nets aproximats (nòmina + altres fonts). <span style="font-family:var(--fm);font-size:10px;padding:1px 6px;border-radius:8px;background:#E8EDF5;color:var(--accent)">MiFID II</span>'},
+          {id:'c12',txt:'Despeses fixes mensuals (hipoteca/lloguer, préstecs, fills, assegurances...).'},
+          {id:'c13',txt:'Estalvi mensual disponible i si és estable. <b>Calcular marge real.</b>'},
+          {id:'c14',txt:'Estabilitat laboral (funcionari, autònom, empresa privada...). <span style="font-family:var(--fm);font-size:10px;padding:1px 6px;border-radius:8px;background:#E8EDF5;color:var(--accent)">MiFID II</span>'},
+        ], nota:true, notaId:'n_ingressos', notaPlac:'Ingressos / Despeses / Estalvi disponible mensual...'},
+        { id:'b2b', lbl:'Patrimoni i deutes', items:[
+          {id:'c15',txt:'Estalvis actuals (comptes, dipòsits, fons, plans de pensions, immobles...).'},
+          {id:'c16',txt:'Deutes vigents: hipoteca, préstec cotxe, BNPL... (import pendent i termini).'},
+          {id:'c17',txt:'Si té hipoteca: tipus fix o variable? Quota mensual? Anys restants?'},
+          {id:'c18',txt:'Situació familiar: estat civil, fills dependents, altres càrregues.'},
+        ], nota:true, notaId:'n_patrimoni', notaPlac:'Resum patrimonial actual...'},
+        { id:'b2c', lbl:'Fons d\'emergència', items:[
+          {id:'c19',txt:'Té fons d\'emergència separat? <b>Quants mesos de despeses cobreix?</b>'},
+          {id:'c20',txt:'On té els estalvis actuals? (compte corrent, dipòsit, res...)'},
+        ]},
+      ]},
+    { id:'s3', icon:'🎯', num:'Fase 3', tit:'Objectius i horitzó temporal', temps:'~12 min · D1 · D3 · MiFID II',
+      blocs:[
+        { id:'b3a', lbl:'Objectiu principal', items:[
+          {id:'c21',txt:'Quin és l\'objectiu principal? (FIRE, jubilació, patrimoni, habitatge, fills, cap objectiu concret...)'},
+          {id:'c22',txt:'Hi ha un import o milestone concret? («1M€», «tenir 2.000€/mes de renda»...).'},
+          {id:'c23',txt:'Quina és la <b>motivació de fons real</b>? («treballar menys», «seguretat», «llegar als fills»...).'},
+        ], nota:true, notaId:'n_objectius', notaPlac:'Objectiu / motivació real / import en ment...'},
+        { id:'b3b', lbl:'Horitzó i aportació', items:[
+          {id:'c24',txt:'Quants anys pot tenir els diners invertits sense necessitar-los?'},
+          {id:'c25',txt:'Hi ha alguna data concreta en la qual necessitarà els diners?'},
+          {id:'c26',txt:'«Si la cartera caigués un 30% el primer any, esperaries o retiraries?» → horitzó real.'},
+          {id:'c27',txt:'Quant pot aportar mensualment de forma <b>còmoda i sostenible</b>?'},
+          {id:'c28',txt:'Hi ha capital inicial disponible? De quant i en quin termini?'},
+        ], nota:true, notaId:'n_horitz', notaPlac:'Horitzó / aportació mensual / capital inicial...'},
+      ]},
+    { id:'s4', icon:'📚', num:'Fase 4', tit:'Coneixement i experiència', temps:'~10 min · D4 · MiFID II Conveniència',
+      blocs:[
+        { id:'b4', lbl:'Coneixements i experiència pràctica', items:[
+          {id:'c29',txt:'Estudis en finances, economia, dret o comptabilitat?'},
+          {id:'c30',txt:'Treballa o ha treballat al sector financer?'},
+          {id:'c31',txt:'Coneix els conceptes bàsics? (acció, bo, ETF, inflació, volatilitat) <b>Comprovar indirectament.</b>'},
+          {id:'c32',txt:'Ha invertit mai? En quin producte? (dipòsits, fons bancaris, borsa, ETF, cripto, immoble lloguer...)'},
+          {id:'c33',txt:'Amb quina freqüència feia operacions? (mai / ocasionalment / regularment).'},
+          {id:'c34',txt:'Ha tingut algun mal resultat? Ho va poder gestionar emocionalment?'},
+          {id:'c35',txt:'Té alguna inversió activa ara mateix que calgui tenir en compte?'},
+        ], nota:true, notaId:'n_coneixement', notaPlac:'Historial inversions / productes / experiències negatives...'},
+      ]},
+    { id:'s5', icon:'🧠', num:'Fase 5', tit:'Tolerància al risc i comportament', temps:'~12 min · D5 · D6 · MiFID II',
+      blocs:[
+        { id:'b5a', lbl:'Tolerància al risc', items:[
+          {id:'c36',txt:'«Si la cartera cau un <b>20% en 6 mesos</b>, quin seria el teu primer impuls?» → Vendre / esperar / comprar més.'},
+          {id:'c37',txt:'Quina pèrdua màxima podria acceptar sense <b>perdre la son</b>? (expressar en % concret)'},
+          {id:'c38',txt:'Quina rendibilitat anual esperaria com a mínim per sentir que «val la pena»?'},
+          {id:'c39',txt:'Si perd la feina, quant de temps podria aguantar econòmicament sense tocar la inversió?'},
+        ], nota:true, notaId:'n_risc', notaPlac:'Tolerància percebuda vs real / discrepàncies detectades...'},
+        { id:'b5b', lbl:'Comportament i biaixos (observar)', items:[
+          {id:'c40',txt:'Sembla impulsiu? Parla d\'actius «calents», tendències, influencers? → possible biaix de disponibilitat.'},
+          {id:'c41',txt:'Pren decisions sol/a o sempre consulta algú? Qui l\'influencia?'},
+          {id:'c42',txt:'Es compara amb altres inversors / influencers financers?'},
+          {id:'c43',txt:'Ha pres mai una decisió financera impulsiva de la qual se\'n penedís?'},
+        ]},
+      ]},
+    { id:'s6', icon:'⚙️', num:'Fase 6', tit:'Preferències, edat i alternatius', temps:'~8 min · D7 · D8 · D9',
+      blocs:[
+        { id:'b6', lbl:'Preferències / Retir / Alternatius', items:[
+          {id:'c44',txt:'Prefereix <b>gestió passiva</b> o li agrada estar implicat?'},
+          {id:'c45',txt:'Li preocupa la <b>sostenibilitat / ESG</b>? Vol excloure sectors?'},
+          {id:'c46',txt:'Prefereix <b>acumulació</b> (reinvertir tot) o <b>distribució</b> (dividends periòdics)?'},
+          {id:'c47',txt:'Edat actual i edat de retir desitjada. Espera tenir pensió pública suficient?'},
+          {id:'c48',txt:'Li interessen actius alternatius? (or, REITs, crowdlending, cripto, immoble físic).'},
+          {id:'c49',txt:'Té exposició actual a algun d\'aquests actius?'},
+        ], nota:true, notaId:'n_pref', notaPlac:'Preferències / retir / alternatius observats...'},
+      ]},
+    { id:'s7', icon:'✅', num:'Fase 7', tit:'Tancament i propers passos', temps:'~8 min',
+      blocs:[
+        { id:'b7', lbl:'Verificació final i impressió general', items:[
+          {id:'c50',txt:'Hi ha alguna pregunta que hagi quedat sense resposta clara?'},
+          {id:'c51',txt:'Reserves espai per als dubtes del client: <b>«Tens cap pregunta per a mi?»</b>'},
+          {id:'c52',txt:'Confirmar que entén el model fee-only (sense comissions de producte).'},
+          {id:'c53',txt:'El client ha confirmat que vol seguir endavant. ✅'},
+          {id:'c54',txt:'Motivació sòlida i expectatives raonables. ✅'},
+          {id:'c55',txt:'Cal fer pedagogia addicional (formació bàsica). 🟡'},
+          {id:'c56',txt:'Expectatives no alineades / conflicte de risc a resoldre. 🔴'},
+        ], nota:true, notaId:'n_tancament', notaPlac:'Impressió global / arquetip probable / notes per al qüestionari...'},
+      ]},
+  ];
+
+  var TOTAL_ITEMS = 57; // c0..c56
+
+  // ── HTML ──
+  var clientSelector = '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:22px">'
+    + '<label style="font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500)">Client:</label>'
+    + '<select id="entrevista-client-sel" onchange="APP._entrevistaEmail=this.value;renderView(\'admin-entrevista\')" style="padding:8px 12px;border:1px solid var(--g200);border-radius:8px;font-family:var(--fb);font-size:13px;min-width:220px">'
+    + allClients.map(function(c){
+        return '<option value="'+c.email+'"'+(c.email===selectedEmail?' selected':'')+'>'+c.nom+' ('+c.email+')</option>';
+      }).join('')
+    + '</select>'
+    + (selectedClient ? '<span style="font-family:var(--fm);font-size:11px;color:var(--g400)">'+savedNotes._updatedAt ? 'Última actualització: '+new Date(savedNotes._updatedAt).toLocaleString('ca-ES') : 'Sense dades guardades'+'</span>' : '')
+    + '<button onclick="guardarEntrevistaAdmin(\''+selectedEmail+'\')" style="margin-left:auto;padding:9px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">💾 Guardar notes</button>'
+    + '</div>';
+
+  function renderBlocItems(items) {
+    return items.map(function(item){
+      var checked = sV('chk_'+item.id, false);
+      return '<label style="display:grid;grid-template-columns:18px 1fr;gap:9px;align-items:start;cursor:pointer;margin-bottom:8px">'
+        + '<input type="checkbox" id="ent_'+item.id+'" '+(checked?'checked':'')+' onchange="entrevistaCheckChange(\''+item.id+'\',\''+selectedEmail+'\')" style="margin-top:2px;accent-color:var(--accent);width:16px;height:16px;cursor:pointer">'
+        + '<span style="font-size:13px;color:var(--g700);line-height:1.55;'+(checked?'text-decoration:line-through;color:var(--g400)':'')+'" id="lbl_'+item.id+'">'+item.txt+'</span>'
+        + '</label>';
+    }).join('');
+  }
+
+  var secHTML = SECCIONS.map(function(sec){
+    var totalSec = sec.blocs.reduce(function(sum,b){ return sum + b.items.length; }, 0);
+    var doneSec  = sec.blocs.reduce(function(sum,b){
+      return sum + b.items.filter(function(it){ return sV('chk_'+it.id, false); }).length;
+    }, 0);
+    var progColor = doneSec >= totalSec ? '#1A5C3A' : 'var(--g500)';
+    var progBg    = doneSec >= totalSec ? '#EAF3DE' : 'var(--g100)';
+
+    var blocsHTML = sec.blocs.map(function(bloc){
+      var notaHtml = '';
+      if (bloc.nota) {
+        var notaVal = sV(bloc.notaId, '');
+        notaHtml = '<div style="margin-top:10px">'
+          + '<div style="font-family:var(--fm);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-bottom:4px">Notes</div>'
+          + '<textarea id="'+bloc.notaId+'" style="width:100%;min-height:60px;padding:9px 11px;border:1px solid var(--g200);border-radius:8px;font-family:var(--fb);font-size:13px;resize:vertical;background:var(--g100)" placeholder="'+(bloc.notaPlac||'Escriu notes...')+'">'+notaVal+'</textarea>'
+          + '</div>';
+      }
+      return '<div style="padding:14px 20px;border-bottom:1px solid var(--g100)">'
+        + '<div style="font-family:var(--fm);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-bottom:10px">'+bloc.lbl+'</div>'
+        + renderBlocItems(bloc.items)
+        + notaHtml
+        + '</div>';
+    }).join('');
+
+    return '<div style="margin-bottom:20px">'
+      + '<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--g200);border-radius:13px;padding:14px 20px;cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">'
+        + '<div style="width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:16px;border:1px solid var(--g200);background:var(--bg);flex-shrink:0">'+sec.icon+'</div>'
+        + '<div style="flex:1">'
+          + '<div style="font-family:var(--fm);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400)">'+sec.num+'</div>'
+          + '<div style="font-family:var(--fd);font-size:17px;font-weight:600">'+sec.tit+'</div>'
+          + '<div style="font-size:11.5px;color:var(--g400);margin-top:1px">'+sec.temps+'</div>'
+        + '</div>'
+        + '<span style="font-family:var(--fm);font-size:10.5px;color:'+progColor+';background:'+progBg+';border-radius:10px;padding:2px 8px">'+doneSec+'/'+totalSec+'</span>'
+        + '<span style="font-size:11px;color:var(--g400)">&#9654;</span>'
+      + '</div>'
+      + '<div style="background:#fff;border:1px solid var(--g200);border-radius:0 0 13px 13px;border-top:none;display:'+(doneSec===0?'none':'block')+'">'
+        + blocsHTML
+      + '</div>'
+    + '</div>';
+  }).join('');
+
+  // Resum post-sessió
+  var totalDone = SECCIONS.reduce(function(sum,sec){
+    return sum + sec.blocs.reduce(function(s2,b){
+      return s2 + b.items.filter(function(it){ return sV('chk_'+it.id, false); }).length;
+    }, 0);
+  }, 0);
+  var pct = Math.round(totalDone / TOTAL_ITEMS * 100);
+
+  var resumHtml = '<div style="background:#fff;border:1px solid var(--g200);border-radius:13px;padding:22px 24px;margin-bottom:20px">'
+    + '<div style="font-family:var(--fd);font-size:18px;font-weight:600;margin-bottom:4px">Resum post-sessió</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 18px">'
+    + [
+        {k:'Ingressos nets/mes', id:'rs_ingressos'},
+        {k:'Estalvi mensual',    id:'rs_estalvi'},
+        {k:'Horitzó temporal',   id:'rs_horitz'},
+        {k:'Arquetip probable',  id:'rs_arquetip'},
+      ].map(function(f){
+        return '<div>'
+          + '<div style="font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);margin-bottom:5px">'+f.k+'</div>'
+          + '<input id="'+f.id+'" type="text" value="'+(sV(f.id,'')).replace(/"/g,'&quot;')+'" placeholder="—" style="border:1px solid var(--g200);border-radius:7px;padding:6px 9px;font-family:var(--fm);font-size:14px;color:var(--accent);width:100%;background:var(--g100)">'
+        + '</div>';
+      }).join('')
+    + '</div>'
+    + '<div style="margin-bottom:12px"><div style="font-family:var(--fm);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-bottom:5px">Notes generals post-sessió</div>'
+      + '<textarea id="rs_notes" style="width:100%;min-height:72px;padding:9px 11px;border:1px solid var(--g200);border-radius:8px;font-family:var(--fb);font-size:13px;resize:vertical;background:var(--g100)" placeholder="Observació rellevant que no encaixa en cap apartat: context familiar, situació emocional, temes pendents...">'+sV('rs_notes','')+'</textarea>'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'
+      + '<div style="font-family:var(--fm);font-size:11px;color:var(--g500)">'+totalDone+' / '+TOTAL_ITEMS+' ítems verificats</div>'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+        + '<div style="width:120px;height:5px;background:var(--g200);border-radius:3px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:var(--accent);border-radius:3px"></div></div>'
+        + '<span style="font-family:var(--fm);font-size:12px;color:var(--accent)">'+pct+'%</span>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+
+  el.innerHTML = '<div class="content-inner fade-in">'
+    + clientSelector
+    + (allClients.length === 0 ? '<div class="card" style="text-align:center;padding:40px">Cap client disponible</div>' :
+        resumHtml + secHTML
+      )
+    + '</div>';
+}
+
+// Actualitza checkbox sense guardar (guardat manual o automàtic cada 30s)
+function entrevistaCheckChange(itemId, email) {
+  var cb = document.getElementById('ent_'+itemId);
+  var lbl = document.getElementById('lbl_'+itemId);
+  if (lbl) {
+    lbl.style.textDecoration = cb && cb.checked ? 'line-through' : '';
+    lbl.style.color = cb && cb.checked ? 'var(--g400)' : 'var(--g700)';
+  }
+}
+
+async function guardarEntrevistaAdmin(email) {
+  if (!sb || !email) { toast('No hi ha client seleccionat'); return; }
+  email = email.toLowerCase().trim();
+
+  // Recollir tots els checkboxes
+  var checks = {};
+  document.querySelectorAll('[id^="ent_"]').forEach(function(cb){
+    var id = cb.id.replace('ent_','');
+    checks['chk_'+id] = cb.checked;
+  });
+  // Recollir totes les textareas
+  var notes = {};
+  document.querySelectorAll('textarea[id^="n_"], textarea[id^="rs_"]').forEach(function(ta){
+    notes[ta.id] = ta.value;
+  });
+  // Recollir inputs del resum
+  ['rs_ingressos','rs_estalvi','rs_horitz','rs_arquetip'].forEach(function(id){
+    var inp = document.getElementById(id);
+    if (inp) notes[id] = inp.value;
+  });
+
+  var data = Object.assign({}, checks, notes, { _updatedAt: new Date().toISOString() });
+
+  try {
+    var r = await sb.from('clients').update({ interview_notes: data }).eq('email', email);
+    if (r.error) throw r.error;
+    toast('✓ Notes de l\'entrevista guardades');
+    // Actualitzar cache local
+    if (APP.clientData && APP.clientData.email === email) APP.clientData.interview_notes = data;
+  } catch(e) {
+    toast('Error guardant: ' + (e.message || e));
+  }
+}
+
 async function renderAdminPendents(el) {
   el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:40px;color:var(--g500)">Carregant sol·licituds...</div></div>';
   
@@ -8879,7 +9184,7 @@ async function obrirRevisio(email) {
   try {
     // Query mínima: només els camps que el modal necessita
     var queryPromise = sb.from('clients')
-      .select('id,nom,email,arquetip,cartera,scoring,pla,status,perfil,submitted_at')
+      .select('id,nom,email,arquetip,cartera,scoring,pla,status,perfil,submitted_at,questionnaire_responses,questionnaire_date,scoring_mods,interview_notes')
       .eq('email', email)
       .limit(1);
     var timeoutPromise = new Promise(function(_, reject){
@@ -8934,8 +9239,7 @@ function obrirModalValidacio(email) {
       + '</div>'
       
       + '<div style="margin-bottom:16px">'
-        + '<button onclick="veurequestionariClient(\'' + email + '\');tancarModalValidacio()" style="width:100%;padding:11px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">📋 Veure totes les respostes del qüestionari</button>'
-      + '</div>'
+        + '<button onclick="veurequestionariClient(\'' + email + '\');tancarModalValidacio()" style="width:100%;padding:11px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">📋 Veure respostes qüestionari</button>'      + '<button onclick="APP._entrevistaEmail=\'' + email + '\';tancarModalValidacio();navigateTo(\'admin-entrevista\')" style="width:100%;padding:11px;background:transparent;border:1.5px solid #C9D4E4;border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--accent)">📝 Entrevista inicial</button>'      + '</div>'
       
       + '<div style="margin-bottom:14px">'
         + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Pla a assignar (en aprovar)</label>'
@@ -10838,15 +11142,26 @@ function diagKpi(val, cls, label) {
 // ── Fix #2: Carrega el client correctament i navega al qüestionari ──────
 function veurequestionariClient(email) {
   if (!email) { toast('Email de client no disponible'); return; }
-  // Buscar el client a la llista de clients de l'admin
-  var clientObj = (APP.clientsList||[]).find(function(x){
-    return x.email && x.email.toLowerCase() === email.toLowerCase();
-  });
-  if (clientObj) {
-    // Carregar-lo a APP.clientData per que getClient() el trobi
-    APP.clientData = clientObj;
+  // Carregar el client COMPLET (inclou questionnaire_responses) des de Supabase
+  if (sb) {
+    toast('Carregant respostes...');
+    loadClientFromSupabase(email).then(function(clientObj) {
+      if (clientObj) APP.clientData = clientObj;
+      navigateTo('portal-questionnaire');
+    }).catch(function() {
+      var clientObj = (APP.clientsList||[]).find(function(x){
+        return x.email && x.email.toLowerCase() === email.toLowerCase();
+      });
+      if (clientObj) APP.clientData = clientObj;
+      navigateTo('portal-questionnaire');
+    });
+  } else {
+    var clientObj = (APP.clientsList||[]).find(function(x){
+      return x.email && x.email.toLowerCase() === email.toLowerCase();
+    });
+    if (clientObj) APP.clientData = clientObj;
+    navigateTo('portal-questionnaire');
   }
-  navigateTo('portal-questionnaire');
 }
 
 // ── Fix #3: Desar diagnòstic amb selector de client si cal ──────────────
