@@ -2766,12 +2766,12 @@ function normalizeClient(raw) {
     activated_at: raw.activated_at || null,
     rejection_reason: raw.rejection_reason || null,
     perfil: {
-      capitalInicial: perfil.capitalInicial || '—',
-      aportacioMensual: perfil.aportacioMensual || '—',
-      horitzo: perfil.horitzo || '—',
-      objectiu: perfil.objectiu || '—',
-      riscFinancer: perfil.riscFinancer || '—',
-      riscEmocional: perfil.riscEmocional || '—',
+      capitalInicial:  perfil.capitalInicial  || perfil.capital_inicial  || raw.capital_inicial  || '—',
+      aportacioMensual:perfil.aportacioMensual|| perfil.aportacio_mensual|| raw.aportacio_mensual|| '—',
+      horitzo:         perfil.horitzo         || perfil.horitz            || perfil.horitzó       || perfil.horizon || raw.horitzo || '—',
+      objectiu:        perfil.objectiu         || perfil.objectivo         || perfil.objective     || raw.objectiu   || '—',
+      riscFinancer:    perfil.riscFinancer     || perfil.risc_financer     || raw.risc_financer    || '—',
+      riscEmocional:   perfil.riscEmocional    || perfil.risc_emocional    || raw.risc_emocional   || '—',
     },
     scoring_mods: raw.scoring_mods || arq.dims,
     cartera_composicio: raw.cartera_composicio || arq.actius.map(function(a){
@@ -3447,6 +3447,7 @@ function renderView(viewId) {
     case 'admin-preguntes': renderAdminPreguntes(content); break;
     case 'admin-broadcast': renderAdminBroadcast(content); break;
     case 'admin-entrevista': renderAdminEntrevista(content); break;
+    case 'admin-pendents': renderAdminPendents(content); break;
     case 'pending-review': renderPendingReview(content); break;
     case 'admin-informe': renderAdminInforme(content); break;
     case 'admin-calendari': renderAdminCalendari(content); break;
@@ -3891,13 +3892,37 @@ function _renderPortalPerfilImpl(el) {
   html += '<div id="platform-macro-widget" style="background:#fff;border:1px solid #E8E6E1;border-radius:12px;padding:12px 16px;margin-bottom:16px;">'    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'      + '<span style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.1em">Mercats · Temps real</span>'      + '<span id="platform-macro-update" style="font-size:9px;color:#C8C5BE">Carregant...</span>'    + '</div>'    + '<div id="platform-macro-tickers" style="display:flex;gap:10px;flex-wrap:wrap;min-height:32px;align-items:center">'      + '<span style="font-size:11px;color:#9A9690">Connectant...</span>'    + '</div>'  + '</div>';
   setTimeout(fetchPlatformMacro, 100);
 
-  // Dades financeres
-  html += '<div class="card"><div class="card-title">Dades financeres</div><div class="perfil-grid">';
-  [['Capital inicial', perfil.capitalInicial],['Aportació mensual', perfil.aportacioMensual],
-   ['Horitzó', perfil.horitzo],['Objectiu', perfil.objectiu],
-   ['Risc financer', perfil.riscFinancer],['Risc emocional', perfil.riscEmocional]
-  ].forEach(function(r){
-    html += '<div class="perfil-item"><div class="perfil-lbl">' + r[0] + '</div><div class="perfil-val">' + r[1] + '</div></div>';
+  // Dades financeres — intenta extreure camps del perfil i del questionnaire_responses
+  var qr = c.questionnaire_responses;
+  // Helpers per treure valors del qüestionari si el perfil els té buits
+  function pVal(perfilKey, qrKeys) {
+    var v = perfil[perfilKey];
+    if (v && v !== '—') return v;
+    if (!qr) return '—';
+    if (typeof qrKeys === 'string') qrKeys = [qrKeys];
+    for (var k = 0; k < qrKeys.length; k++) {
+      var qv = qr[qrKeys[k]];
+      if (qv && qv !== '—') return qv;
+    }
+    return '—';
+  }
+  var dadesF = [
+    ['Capital inicial',   pVal('capitalInicial',   ['capitalInicial','capital_inicial','capital'])],
+    ['Aportació mensual', pVal('aportacioMensual',  ['aportacioMensual','aportacio_mensual','aportacio'])],
+    ['Horitzó',           pVal('horitzo',           ['horitzo','horitz','horitzó','horizon'])],
+    ['Objectiu',          pVal('objectiu',          ['objectiu','objectivo','objective','goal'])],
+    ['Risc financer',     pVal('riscFinancer',      ['riscFinancer','risc_financer','riscF'])],
+    ['Risc emocional',    pVal('riscEmocional',     ['riscEmocional','risc_emocional','riscE'])],
+  ];
+  html += '<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+    + '<div class="card-title" style="margin-bottom:0">Dades financeres</div>'
+    + (APP.role === 'admin' ? '<button onclick="obrirEditarDadesFinanceres(\'' + (c.email||'') + '\')" style="padding:4px 10px;font-size:11px;border:1px solid var(--g200);border-radius:6px;background:transparent;cursor:pointer;color:var(--g500);font-family:var(--fb)">✏️ Editar</button>' : '')
+  + '</div>'
+  + '<div class="perfil-grid">';
+  dadesF.forEach(function(r){
+    var isEmpty = !r[1] || r[1] === '—';
+    html += '<div class="perfil-item"><div class="perfil-lbl">' + r[0] + '</div>'
+      + '<div class="perfil-val" style="color:' + (isEmpty ? 'var(--g400)' : 'var(--black)') + '">' + r[1] + '</div></div>';
   });
   html += '</div></div>';
 
@@ -5089,6 +5114,63 @@ function toggleCartera(id) {
 // Matching), obrirWizardCartera, obrirModalMoviment, obrirModalActualitzarValors.
 // ══════════════════════════════════════════════════════════════════════════
 
+
+// Editar dades financeres del client (admin)
+function obrirEditarDadesFinanceres(email) {
+  if (!email || APP.role !== 'admin') return;
+  var c = getClient();
+  var perfil = (c && c.perfil) || {};
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-dades-fin';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+  var fs = [
+    {k:'capitalInicial',   l:'Capital inicial',   ph:'Ex: 10.000€'},
+    {k:'aportacioMensual', l:'Aportació mensual', ph:'Ex: 500€/mes'},
+    {k:'horitzo',          l:'Horitzó',           ph:'Ex: 15–20 anys'},
+    {k:'objectiu',         l:'Objectiu',          ph:'Ex: Independència financera'},
+    {k:'riscFinancer',     l:'Risc financer',     ph:'Ex: Moderat, Alt, Baix'},
+    {k:'riscEmocional',    l:'Risc emocional',    ph:'Ex: Moderat, Alt, Baix'},
+  ];
+  var fields = fs.map(function(f){
+    var v = perfil[f.k] || '';
+    return '<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">'
+      + f.l + '</div>'
+      + '<input id="edf_' + f.k + '" type="text" value="' + (v==='—'?'':v).replace(/"/g,'&quot;') + '" placeholder="' + f.ph + '" style="width:100%;padding:9px 11px;border:1px solid var(--g200);border-radius:7px;font-family:var(--fb);font-size:13px;outline:none">'
+    + '</div>';
+  }).join('');
+  modal.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:480px;width:100%;padding:28px">'
+    + '<div style="font-family:var(--fd);font-size:20px;font-weight:600;margin-bottom:5px">Editar dades financeres</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:20px">' + email + '</div>'
+    + fields
+    + '<div style="display:flex;gap:10px;margin-top:20px">'
+      + '<button onclick="desarDadesFinanceres(\'' + email + '\')" style="flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar</button>'
+      + '<button onclick="document.getElementById(\'modal-dades-fin\').remove()" style="padding:11px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb)">Cancel·lar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+}
+
+async function desarDadesFinanceres(email) {
+  var fs = ['capitalInicial','aportacioMensual','horitzo','objectiu','riscFinancer','riscEmocional'];
+  var c = getClient();
+  var perfil = Object.assign({}, (c && c.perfil) || {});
+  fs.forEach(function(k){
+    var inp = document.getElementById('edf_' + k);
+    if (inp) perfil[k] = inp.value.trim() || '—';
+  });
+  var modal = document.getElementById('modal-dades-fin');
+  if (modal) modal.remove();
+  if (!sb) { toast('Supabase no disponible'); return; }
+  try {
+    await sb.from('clients').update({ perfil: perfil }).eq('email', email.toLowerCase());
+    if (APP.clientData) APP.clientData.perfil = perfil;
+    toast('✓ Dades financeres desades');
+    renderView('portal-perfil');
+  } catch(e) {
+    toast('Error: ' + (e.message || e));
+  }
+}
 
 // Modificació cartera target per admin
 function obrirEditarTargetAdmin(email) {
