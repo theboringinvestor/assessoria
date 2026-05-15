@@ -2472,6 +2472,14 @@ async function enterApp(role, email, isDemo) {
   
   if (role === 'admin') {
     navigateTo('hub');
+  } else if (window._justCompletedRetest) {
+    // RETEST: acaba de tornar del qüestionari en mode retest
+    // No passa per aprovació — mostra modal per triar: actualitzar perfil o informe
+    window._justCompletedRetest = false;
+    navigateTo('portal-perfil');
+    setTimeout(function() {
+      try { mostrarModalRetestResultat(); } catch(e) { console.warn(e); }
+    }, 600);
   } else if (window._justCompletedQuestionnaire) {
     // PRIORITAT MÀXIMA: acaba de tornar del qüestionari
     // (cal comprovar-ho ABANS d'esClientNou per evitar bucle si Supabase
@@ -3770,6 +3778,7 @@ function _renderPortalPerfilImpl(el) {
     + '<div class="score-right">'
       + '<div class="score-num" style="color:' + scoreColor + '">' + sc + '<span class="score-denom">/100</span></div>'
       + '<div style="padding:6px 12px;background:' + scoreBg + ';border-radius:6px;font-size:11px;font-weight:500;color:' + scoreColor + ';margin-top:6px;display:inline-block">' + scoreLabel + '</div>'
+      + (APP.role !== 'admin' ? '<div style="margin-top:14px"><button onclick="confirmarRetestQuestionnaire()" style="padding:7px 13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:8px;font-size:11px;color:rgba(255,255,255,.7);cursor:pointer;font-family:var(--fb)">&#x1F504; Actualitzar perfil</button></div>' : '')
     + '</div>'
   + '</div>';
 
@@ -9589,6 +9598,105 @@ function redirectToQuestionnaire() {
   mostrarPantallaCompletaPerfil();
 }
 
+// ── RETEST QÜESTIONARI — sistema simplificat ──────────────────────────────
+// El client pot tornar a fer el qüestionari des del Resum en qualsevol moment.
+// Quan torna, se li pregunta si vol actualitzar el perfil i scoring, o
+// guardar-ho com a informe sense canviar el perfil actual.
+function confirmarRetestQuestionnaire() {
+  var modal = document.createElement('div');
+  modal.id = 'modal-retest';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)';
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:480px;width:100%;padding:32px 28px">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:600;color:#0A0A0A;margin-bottom:8px">Actualitzar el teu perfil</div>'
+    + '<div style="font-size:13px;color:#6B6762;line-height:1.65;margin-bottom:24px">Tornaràs a fer el qüestionari d\'inversió. Tindràs dues opcions quan acabis:<br><br>'
+      + '&bull; <strong>Actualitzar el perfil:</strong> el nou resultat reemplaça l\'actual (arquetip, scoring i cartera).<br>'
+      + '&bull; <strong>Guardar com a informe:</strong> les noves respostes es guarden per consulta sense canviar res.'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px">'
+      + '<button onclick="anarAlQuestionariRetest()" style="padding:13px;background:#0A0A0A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">🔄 Fer el qüestionari</button>'
+      + '<button onclick="document.getElementById(\'modal-retest\').remove()" style="padding:13px;background:transparent;border:1.5px solid #E8E6E1;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--fb);color:#6B6762">Cancel·lar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+}
+
+function anarAlQuestionariRetest() {
+  var el = document.getElementById('modal-retest');
+  if (el) el.remove();
+  var email = (APP.user && APP.user.email) || '';
+  var name  = (APP.user && APP.user.name) || '';
+  var url = 'client_onboarding_v3.html?from=platform&retest=true'
+    + '&email=' + encodeURIComponent(email)
+    + '&name='  + encodeURIComponent(name);
+  window.location.href = url;
+}
+
+// Cridat des de platform.html quan el client torna del retest (?just_completed + retest=true)
+// Mostra el modal: actualitzar perfil o guardar com a informe
+async function mostrarModalRetestResultat() {
+  var c = getClient();
+  if (!c) return;
+  var modal = document.createElement('div');
+  modal.id = 'modal-retest-resultat';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)';
+  var arq = getArquetip(c.arquetipId || 'navegant');
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:500px;width:100%;padding:32px 28px">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:600;margin-bottom:6px">Qüestionari completat ✅</div>'
+    + '<div style="font-size:13px;color:#6B6762;line-height:1.65;margin-bottom:22px">Nou resultat: <strong>' + arq.nom + '</strong> · Scoring <strong>' + (c.scoring||0) + '/100</strong><br>Perfil actual: <strong>' + (c.arquetip||'—').split('—')[0].trim() + '</strong><br><br>Qu\'hi vols fer?</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px">'
+      + '<button onclick="aplicarRetestComPerfil()" style="padding:13px;background:#1A5C3A;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">✅ Actualitzar el meu perfil i cartera</button>'
+      + '<button onclick="guardarRetestComInforme()" style="padding:13px;background:transparent;border:1.5px solid #1B3A6B;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--fb);color:#1B3A6B;font-weight:500">📄 Guardar com a informe (sense canviar el perfil)</button>'
+      + '<button onclick="document.getElementById(\'modal-retest-resultat\').remove()" style="padding:13px;background:transparent;border:1.5px solid #E8E6E1;border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--fb);color:#6B6762">Cancel·lar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+}
+
+// Actualitza el perfil i la cartera amb el nou resultat del qüestionari
+async function aplicarRetestComPerfil() {
+  var el = document.getElementById('modal-retest-resultat');
+  if (el) el.remove();
+  // Les dades ja estan guardades per l'onboarding — només cal guardar l'informe
+  await guardarRetestComInforme(true);
+  toast('✅ Perfil actualitzat correctament');
+  // Recarregar les dades del client
+  if (sb && APP.user && APP.user.email) {
+    var cd = await loadClientFromSupabase(APP.user.email);
+    if (cd) { APP.clientData = cd; }
+  }
+  renderView('portal-perfil');
+}
+
+// Guarda el resultat del retest com un informe (sense tocar el perfil actual)
+async function guardarRetestComInforme(jaActualitzatPerfil) {
+  var el = document.getElementById('modal-retest-resultat');
+  if (el) el.remove();
+  var c = getClient();
+  if (!c || !sb || !APP.user || !APP.user.email) { toast('Error desant l\'informe'); return; }
+  var arq = getArquetip(c.arquetipId || 'navegant');
+  var data = new Date().toLocaleDateString('ca-ES', {day:'numeric', month:'long', year:'numeric'});
+  var informe = {
+    id: 'retest_' + Date.now(),
+    titol: 'Actualització de perfil — ' + data,
+    data: new Date().toISOString().slice(0,10),
+    tipus: 'retest',
+    desc: 'Resultat del qüestionari actualitzat. Arquetip: ' + arq.nom + '. Scoring: ' + (c.scoring||0) + '/100.' + (jaActualitzatPerfil ? ' Perfil actualitzat.' : ' Perfil no modificat (guardat com a consulta).'),
+    estat: 'disponible'
+  };
+  var informes = Array.isArray(c.informes) ? c.informes.slice() : [];
+  informes.unshift(informe);
+  try {
+    await sb.from('clients').update({ informes: informes }).eq('email', APP.user.email.toLowerCase());
+    if (APP.clientData) APP.clientData.informes = informes;
+    if (!jaActualitzatPerfil) {
+      toast('📄 Resultat guardat com a informe a "Informes"');
+      renderView('portal-perfil');
+    }
+  } catch(e) {
+    toast('Error desant l\'informe: ' + (e.message||e));
+  }
+}
+
 function anarAlQuestionari() {
   var email = (APP.user && APP.user.email) || '';
   var name  = (APP.user && APP.user.name) || '';
@@ -9979,7 +10087,7 @@ function renderPlansScreen(el) {
   var html = '<div class="content-inner fade-in" style="max-width:1100px;margin:0 auto">';
   html += '<div style="text-align:center;margin-bottom:32px">'
     + '<div style="font-family:var(--fd);font-size:30px;font-weight:400;margin-bottom:8px;letter-spacing:-.3px">Tria el teu pla</div>'
-    + '<div style="font-size:14px;color:var(--g500);max-width:520px;margin:0 auto">Des de 7€/mes. Cancel·la quan vulguis. Sense permanència.</div>'
+    + '<div style="font-size:14px;color:var(--g500);max-width:520px;margin:0 auto">Des de 8€/mes. Cancel·la quan vulguis. Sense permanència.</div>'
     + '</div>';
   html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px" class="mob-grid">';
   
@@ -10036,7 +10144,12 @@ function handleQuestionnaireReturn() {
   // Cas 2: l'usuari ha completat el qüestionari i ha tornat (manualment o per countdown)
   if (params.get('just_completed') === 'true') {
     history.replaceState({}, '', window.location.pathname);
-    window._justCompletedQuestionnaire = true;
+    if (params.get('retest') === 'true') {
+      // Retest: no passa per l'aprovació — mostra el modal d'opcions
+      window._justCompletedRetest = true;
+    } else {
+      window._justCompletedQuestionnaire = true;
+    }
   }
 }
 
