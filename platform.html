@@ -8227,8 +8227,10 @@ function renderPortalEducacio(el) {
 // ══════════════════════════════════════════════════
 
 /* ════════════════════════════════════════════════════════════════════════════
-   FULL DE RUTA v3 INSERIT AUTOMÀTICAMENT · 16 maig 2026
-   La funció renderPortalRoadmap original ha estat renombrada a renderPortalRoadmapTracker
+   FULL DE RUTA v5 INSERIT AUTOMÀTICAMENT · 16 maig 2026
+   Versió funcional per a la generació d'informes de pla d'inversió.
+   v5: 10 plantilles d'objectius pre-definits (compra, jubilació, educació, fons d'emergència,
+       viatge, vehicle, reforma, negoci, patrimoni, personalitzat) accessibles des de dropdown
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -8479,19 +8481,56 @@ function _frEdField(text, opts) {
 
 
 /* ════════════════════════════════════════════════════════════════════════════
-   GESTIÓ D'OBJECTIUS · add/edit/remove inline
+   GESTIÓ D'OBJECTIUS · add/edit/remove inline + plantilles
    ════════════════════════════════════════════════════════════════════════════ */
-function _frAddObjectiu() {
+
+// Catàleg de plantilles d'objectius típics — l'assessor selecciona, no escriu de zero
+var _FR_OBJECTIUS_TIPUS = [
+  { id:'habitatge_compra', icona:'\uD83C\uDFE0', titol:'Compra d\u2019habitatge',     meta:'Entrada de pis o casa',                import:60000,  termini:'5 anys'  },
+  { id:'jubilacio',        icona:'\uD83C\uDF05', titol:'Jubilaci\u00f3 complement\u00e0ria', meta:'Complement a la pensi\u00f3 p\u00fablica',  import:300000, termini:'20 anys' },
+  { id:'educacio_fills',   icona:'\uD83C\uDF93', titol:'Educaci\u00f3 superior fills', meta:'Universitat · matr\u00edcula + estada',  import:45000,  termini:'12 anys' },
+  { id:'emergencia',       icona:'\uD83D\uDEE1', titol:'Fons d\u2019emerg\u00e8ncia',  meta:'6 mesos de despeses essencials',        import:12000,  termini:'1 any'   },
+  { id:'viatge',           icona:'\u2708\uFE0F', titol:'Viatge gran',                  meta:'Volta al m\u00f3n / any sab\u00e0tic',  import:25000,  termini:'3 anys'  },
+  { id:'vehicle',          icona:'\uD83D\uDE97', titol:'Vehicle nou',                  meta:'Cotxe / moto / vehicle el\u00e8ctric',  import:30000,  termini:'4 anys'  },
+  { id:'reforma',          icona:'\uD83D\uDD28', titol:'Reforma habitatge',            meta:'Renovaci\u00f3 i millora energ\u00e8tica', import:35000,  termini:'3 anys'  },
+  { id:'negoci',           icona:'\uD83D\uDCBC', titol:'Capital inicial de negoci',    meta:'Inversi\u00f3 emprenedora',             import:50000,  termini:'3 anys'  },
+  { id:'patrimoni',        icona:'\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67', titol:'Patrimoni familiar', meta:'Llegat de transmissi\u00f3 familiar', import:200000, termini:'25 anys' },
+  { id:'lliure',           icona:'\uD83C\uDFAF', titol:'Objectiu personalitzat',       meta:'Descripci\u00f3 breu',                  import:10000,  termini:'5 anys'  },
+];
+
+function _frAddObjectiu(tipusId) {
   var c = getClient();
   if (!c.fullderuta) c.fullderuta = {};
   if (!Array.isArray(c.fullderuta.objectius)) c.fullderuta.objectius = [];
+  // Si rep un tipusId, carrega plantilla; si no, objectiu buit personalitzat
+  var plantilla;
+  if (tipusId) {
+    for (var i = 0; i < _FR_OBJECTIUS_TIPUS.length; i++) {
+      if (_FR_OBJECTIUS_TIPUS[i].id === tipusId) {
+        plantilla = _FR_OBJECTIUS_TIPUS[i];
+        break;
+      }
+    }
+  }
+  if (!plantilla) plantilla = _FR_OBJECTIUS_TIPUS[_FR_OBJECTIUS_TIPUS.length - 1]; // lliure
   c.fullderuta.objectius.push({
-    icona: '🎯', titol: 'Nou objectiu', meta: 'Descripció breu', import: 10000, termini: '5 anys'
+    tipus: plantilla.id,
+    icona: plantilla.icona,
+    titol: plantilla.titol,
+    meta:  plantilla.meta,
+    import: plantilla.import,
+    termini: plantilla.termini
   });
   _frMarkDirty();
-  // Re-render
-  var content = document.querySelector('.content-inner').parentElement;
-  if (content) renderPortalRoadmap(content);
+  _frRerender();
+}
+
+function _frToggleObjMenu(btn) {
+  var menu = btn.nextElementSibling;
+  if (!menu) return;
+  var oberts = document.querySelectorAll('.fr-obj-menu.open');
+  for (var i = 0; i < oberts.length; i++) if (oberts[i] !== menu) oberts[i].classList.remove('open');
+  menu.classList.toggle('open');
 }
 
 function _frRemoveObjectiu(idx) {
@@ -8500,8 +8539,7 @@ function _frRemoveObjectiu(idx) {
   if (!confirm('Eliminar aquest objectiu?')) return;
   c.fullderuta.objectius.splice(idx, 1);
   _frMarkDirty();
-  var content = document.querySelector('.content-inner').parentElement;
-  if (content) renderPortalRoadmap(content);
+  _frRerender();
 }
 
 function _frUpdateObjectiu(idx, field, val) {
@@ -8519,6 +8557,141 @@ function _frUpdateObjectiu(idx, field, val) {
 
 
 /* ════════════════════════════════════════════════════════════════════════════
+   OVERRIDES · l'assessor sobreescriu valors sense tocar el client a Supabase
+   ════════════════════════════════════════════════════════════════════════════ */
+
+// Parser robust: "38.500 €" / "38500" / "38,5k" / "1.2M" → number
+function _frParseEur(str) {
+  if (typeof str === 'number') return str;
+  if (!str) return 0;
+  var s = String(str).trim().toLowerCase().replace(/€/g, '').replace(/\s/g, '');
+  var mult = 1;
+  if (s.endsWith('k')) { mult = 1000; s = s.slice(0, -1); }
+  else if (s.endsWith('m')) { mult = 1000000; s = s.slice(0, -1); }
+  // Detecta format europeu (38.500) vs decimal (38,5)
+  if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) {
+    // Tots dos: el punt és milers, la coma és decimal
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.indexOf(',') >= 0) {
+    s = s.replace(',', '.');
+  } else if (s.indexOf('.') >= 0 && s.match(/^\d{1,3}(\.\d{3})+$/)) {
+    // Format europeu pur: 38.500
+    s = s.replace(/\./g, '');
+  }
+  var n = parseFloat(s);
+  return isNaN(n) ? 0 : n * mult;
+}
+
+// Parser per a anys: "18 anys" / "18" / "18a" → 18
+function _frParseAnys(str) {
+  if (typeof str === 'number') return str;
+  if (!str) return 0;
+  var s = String(str).replace(/[^\d.,-]/g, '').replace(',', '.');
+  var n = parseFloat(s);
+  return isNaN(n) ? 0 : Math.round(n);
+}
+
+// Actualitza un camp d'override i marca dirty
+function _frSetOverride(key, value) {
+  var c = getClient();
+  if (!c.fullderuta) c.fullderuta = {};
+  if (!c.fullderuta.overrides) c.fullderuta.overrides = {};
+  if (value == null || value === '' || (typeof value === 'number' && value === 0)) {
+    delete c.fullderuta.overrides[key];
+  } else {
+    c.fullderuta.overrides[key] = value;
+  }
+  _frMarkDirty();
+}
+
+// Llista de tots els arquetips disponibles (per als selectors)
+function _frListArquetips() {
+  var ids;
+  if (typeof ARQUETIPS_CARTERES !== 'undefined' && ARQUETIPS_CARTERES) {
+    ids = Object.keys(ARQUETIPS_CARTERES);
+  } else {
+    ids = ['estoic','explorador','navegant','arquitecte','tresorer','cronista','alquimista','ermita','pionier','renda'];
+  }
+  return ids.map(function(id) {
+    var a = getArquetip(id);
+    return { id: id, nom: a.nom || id, cartRoma: a.cartRoma || '' };
+  });
+}
+
+// Obre/tanca un dropdown d'arquetips
+function _frToggleArqMenu(btn) {
+  var menu = btn.nextElementSibling;
+  if (!menu) return;
+  // Tanca altres menús oberts
+  var oberts = document.querySelectorAll('.fr-arq-menu.open');
+  for (var i = 0; i < oberts.length; i++) if (oberts[i] !== menu) oberts[i].classList.remove('open');
+  menu.classList.toggle('open');
+}
+
+// Selecciona un arquetip per a un target ('principal' / 'conservador' / 'agressiu')
+function _frSelectArq(arqId, target) {
+  var key;
+  if (target === 'principal')   key = 'arquetipId';
+  else if (target === 'conservador') key = 'arquetipConservador';
+  else if (target === 'agressiu')    key = 'arquetipAgressiu';
+  else return;
+  _frSetOverride(key, arqId);
+  _frRerender();
+}
+
+// Tanca tots els dropdowns en clicar fora
+document.addEventListener('click', function(ev) {
+  if (!ev.target.closest('.fr-arq-wrap')) {
+    var oberts = document.querySelectorAll('.fr-arq-menu.open');
+    for (var i = 0; i < oberts.length; i++) oberts[i].classList.remove('open');
+  }
+  if (!ev.target.closest('.fr-obj-wrap')) {
+    var oberts2 = document.querySelectorAll('.fr-obj-menu.open');
+    for (var j = 0; j < oberts2.length; j++) oberts2[j].classList.remove('open');
+  }
+});
+
+// Restaurar el valor d'un camp al seu origen (esborrar override)
+function _frResetOverride(key) {
+  var c = getClient();
+  if (!c.fullderuta || !c.fullderuta.overrides) return;
+  delete c.fullderuta.overrides[key];
+  _frMarkDirty();
+  _frRerender();
+}
+
+// Re-render preservant focus si possible
+function _frRerender() {
+  var content = document.getElementById('content')
+    || (document.querySelector('.content-inner') && document.querySelector('.content-inner').parentElement);
+  if (!content) return;
+  // Preservem focus si era a un camp identificable
+  var active = document.activeElement;
+  var focusKey = null;
+  if (active && active.dataset) {
+    focusKey = active.dataset.key || active.dataset.dadaKey || active.dataset.editField || null;
+  }
+  renderPortalRoadmap(content);
+  if (focusKey) {
+    var sel = '[data-key="' + focusKey + '"],[data-dada-key="' + focusKey + '"],[data-edit-field="' + focusKey + '"]';
+    var newField = document.querySelector(sel);
+    if (newField) {
+      newField.focus();
+      // Posiciona cursor al final
+      if (window.getSelection && document.createRange) {
+        var range = document.createRange();
+        range.selectNodeContents(newField);
+        range.collapse(false);
+        var sel2 = window.getSelection();
+        sel2.removeAllRanges();
+        sel2.addRange(range);
+      }
+    }
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
    FUNCIÓ PRINCIPAL · renderPortalRoadmap
    ════════════════════════════════════════════════════════════════════════════ */
 function renderPortalRoadmap(el) {
@@ -8527,15 +8700,21 @@ function renderPortalRoadmap(el) {
   _FR_AUTO_VALUES = {};
 
   var c = getClient() || (typeof DEMO_CLIENT !== 'undefined' ? DEMO_CLIENT : {});
-  var arq = getArquetip((c && c.arquetipId) || 'navegant');
   var isAdmin = APP.role === 'admin';
   var perfil = c.perfil || {};
   var fr = c.fullderuta || {};
   var notes = fr.notes || {};
+  var overrides = fr.overrides || {};
   var actiusNotes = notes.actius || {};
 
+  // ── Arquetip principal (amb override) ─────────────────────
+  var arqIdOrig = c.arquetipId || 'navegant';
+  var arqId = overrides.arquetipId || arqIdOrig;
+  var arq = getArquetip(arqId);
+
   // ── Cartera real ──────────────────────────────────────────
-  var hasCustom = c.cartera_target_custom && c.cartera_target_custom.length > 0;
+  // Si l'override d'arquetip està actiu, ignorem cartera_target_custom (no aplica a un arquetip diferent)
+  var hasCustom = !overrides.arquetipId && c.cartera_target_custom && c.cartera_target_custom.length > 0;
   var actiusTarget = hasCustom ? c.cartera_target_custom : (arq.actius || []);
 
   var cartera = actiusTarget.map(function(a) {
@@ -8554,16 +8733,21 @@ function renderPortalRoadmap(el) {
     };
   });
 
-  // ── Dades financeres ──────────────────────────────────────
-  var capital = parseFloat(String(perfil.capitalInicial || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
-  var aportacio = parseFloat(String(perfil.aportacioMensual || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
-  var horitzo = parseFloat(String(perfil.horitzo || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 15;
+  // ── Dades financeres (amb override) ───────────────────────
+  var capitalOrig = parseFloat(String(perfil.capitalInicial || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
+  var aportacioOrig = parseFloat(String(perfil.aportacioMensual || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
+  var horitzoOrig = parseFloat(String(perfil.horitzo || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
+
+  var capital = (overrides.capitalInicial != null) ? overrides.capitalInicial : capitalOrig;
+  var aportacio = (overrides.aportacioMensual != null) ? overrides.aportacioMensual : aportacioOrig;
+  var horitzo = (overrides.horitzo != null) ? overrides.horitzo : horitzoOrig;
+
   if (capital === 0) capital = 30000;
   if (aportacio === 0) aportacio = 400;
   if (horitzo === 0) horitzo = 15;
   var rf = 2.0;
 
-  // ── Escenaris alternatius ─────────────────────────────────
+  // ── Escenaris alternatius (amb override d'arquetip) ───────
   function enriquir(actiusList) {
     return actiusList.map(function(a) {
       var ms = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(a.id) : { mu: 6, sigma: 12 };
@@ -8576,8 +8760,10 @@ function renderPortalRoadmap(el) {
       };
     });
   }
-  var arqCons = getArquetip('tresorer');
-  var arqAgr  = getArquetip('estoic');
+  var arqConsId = overrides.arquetipConservador || 'tresorer';
+  var arqAgrId  = overrides.arquetipAgressiu    || 'estoic';
+  var arqCons = getArquetip(arqConsId);
+  var arqAgr  = getArquetip(arqAgrId);
   var carteraCons = enriquir(arqCons.actius || []);
   var carteraAgr  = enriquir(arqAgr.actius || []);
 
@@ -8639,6 +8825,17 @@ function renderPortalRoadmap(el) {
     + '.fr-obj-del:hover{background:#FDF0F0;color:#8B1A1A}'
     + '.fr-obj-add{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1.5px dashed var(--g300);color:var(--g500);font-family:var(--fb);font-size:12px;font-weight:500;padding:10px 18px;border-radius:10px;cursor:pointer;margin-top:6px;transition:all .15s}'
     + '.fr-obj-add:hover{border-color:#1B3A6B;color:#1B3A6B;background:#EBF0FA}'
+    + '.fr-obj-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}'
+    + '.fr-obj-wrap{position:relative;display:inline-block}'
+    + '.fr-obj-add-custom{border-style:dotted;color:var(--g500)}'
+    + '.fr-obj-menu{position:absolute;top:100%;left:0;margin-top:6px;background:#fff;border:1px solid var(--g200);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.10);padding:6px;min-width:340px;max-height:420px;overflow-y:auto;z-index:9998;display:none}'
+    + '.fr-obj-menu.open{display:block;animation:frFadeIn .12s ease-out}'
+    + '.fr-obj-opt{padding:10px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background .1s}'
+    + '.fr-obj-opt:hover{background:var(--g100)}'
+    + '.fr-obj-opt-icona{font-size:22px;flex-shrink:0;width:32px;text-align:center}'
+    + '.fr-obj-opt-text{flex:1;min-width:0}'
+    + '.fr-obj-opt-titol{font-family:var(--fd);font-size:13.5px;font-weight:500;color:var(--black);line-height:1.2;margin-bottom:2px}'
+    + '.fr-obj-opt-sub{font-family:var(--fm);font-size:10px;color:var(--g500);letter-spacing:.02em}'
     // Cartera
     + '.fr-cart-grid{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:center}'
     + '@media(max-width:780px){.fr-cart-grid{grid-template-columns:1fr}}'
@@ -8779,6 +8976,39 @@ function renderPortalRoadmap(el) {
     + '.fr-tracker-mount{padding:0;background:var(--g50);border:1px solid var(--g200);border-top:none;border-radius:0 0 12px 12px}'
     + '.fr-tracker-mount .content-inner{padding:18px 22px !important}'
 
+    // ─── PANELL D'AJUDA ADMIN ───
+    + '.fr-admin-panel{background:#FCF3E2;border:1px dashed #D4943A;border-radius:10px;padding:14px 18px;margin-bottom:24px;font-size:11.5px;color:#5C3D0A;line-height:1.6}'
+    + '.fr-admin-panel-t{font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#7A4A00;margin-bottom:8px;display:flex;align-items:center;gap:8px}'
+    + '.fr-admin-panel-t::before{content:"💡";font-size:13px}'
+    + '.fr-admin-panel table{width:100%;margin-top:8px;font-family:var(--fm);font-size:10.5px}'
+    + '.fr-admin-panel td{padding:3px 8px 3px 0}'
+    + '.fr-admin-panel td:first-child{color:#7A4A00;font-weight:500;width:170px}'
+    + '.fr-admin-panel code{background:rgba(212,148,58,.15);padding:1px 5px;border-radius:3px;font-size:10px}'
+
+    // ─── DADES EDITABLES (capital, aport, horitzó) ───
+    + '.fr-dada-val.editable{outline:none;cursor:text;padding:1px 4px;margin:-1px -4px;border-radius:5px;transition:all .15s}'
+    + '.fr-dada-val.editable:hover{background:rgba(212,148,58,.08);box-shadow:0 0 0 1px rgba(212,148,58,.4)}'
+    + '.fr-dada-val.editable:focus{background:#fff;box-shadow:0 0 0 1.5px #1B3A6B}'
+    + '.fr-dada-origin{font-family:var(--fm);font-size:8.5px;color:var(--g400);letter-spacing:.06em;margin-top:6px;display:flex;align-items:center;gap:6px}'
+    + '.fr-dada-origin.modified{color:#7A4A00}'
+    + '.fr-dada-reset{background:transparent;border:none;color:var(--g400);cursor:pointer;font-size:9px;text-decoration:underline;padding:0;font-family:var(--fm)}'
+    + '.fr-dada-reset:hover{color:#1B3A6B}'
+
+    // ─── DROPDOWN D'ARQUETIP ───
+    + '.fr-arq-wrap{position:relative;display:inline-block}'
+    + '.fr-arq-btn{background:transparent;border:1.5px dashed transparent;font-family:inherit;font-size:inherit;color:inherit;cursor:pointer;padding:2px 8px;border-radius:6px;transition:all .15s;display:inline-flex;align-items:center;gap:6px}'
+    + '.fr-arq-btn:hover{border-color:#D4943A;background:rgba(212,148,58,.08)}'
+    + '.fr-arq-btn::after{content:"▾";font-size:10px;opacity:.6}'
+    + '.fr-chip .fr-arq-btn{padding:0 4px;color:#0F2847}'
+    + '.fr-esc-s .fr-arq-btn{padding:0 4px;color:inherit;font-family:var(--fm);font-size:10px;letter-spacing:.08em;text-transform:uppercase}'
+    + '.fr-arq-menu{position:absolute;top:100%;left:0;margin-top:6px;background:#fff;border:1px solid var(--g200);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.10);padding:6px;min-width:240px;max-height:340px;overflow-y:auto;z-index:9998;display:none}'
+    + '.fr-arq-menu.open{display:block;animation:frFadeIn .12s ease-out}'
+    + '@keyframes frFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}'
+    + '.fr-arq-opt{padding:8px 10px;border-radius:6px;cursor:pointer;font-family:var(--fb);font-size:12px;color:var(--black);display:flex;align-items:baseline;gap:8px;text-transform:none;letter-spacing:0;transition:background .1s;text-align:left}'
+    + '.fr-arq-opt:hover{background:var(--g100)}'
+    + '.fr-arq-opt.actiu{background:#EBF0FA;color:#0F2847;font-weight:500}'
+    + '.fr-arq-opt-roma{font-family:var(--fm);font-size:10px;color:var(--g500);letter-spacing:.06em;flex-shrink:0;min-width:64px}'
+
     + '</style>';
 
 
@@ -8804,22 +9034,89 @@ function renderPortalRoadmap(el) {
   + '</div>';
 
   // ─── 2. PERFIL ──────────────────────────────────────────────
+  // Helper local: render del chip d'arquetip (clickable per a admin)
+  function chipArquetipHtml() {
+    if (!isAdmin) {
+      return '<span class="fr-chip fr-chip-navy">\uD83C\uDFDB Arquetip ' + arq.nom + '</span>';
+    }
+    // Admin: dropdown
+    var llista = _frListArquetips();
+    var optsHtml = '';
+    for (var li = 0; li < llista.length; li++) {
+      var op = llista[li];
+      optsHtml += '<div class="fr-arq-opt' + (op.id === arqId ? ' actiu' : '') + '" '
+        + 'onclick="_frSelectArq(\'' + op.id + '\', \'principal\')">'
+        + '<span class="fr-arq-opt-roma">' + op.cartRoma + '</span><span>' + op.nom + '</span>'
+      + '</div>';
+    }
+    var modIndicator = overrides.arquetipId ? ' <span style="font-size:10px;color:#7A4A00;font-weight:500">●</span>' : '';
+    return '<span class="fr-chip fr-chip-navy fr-arq-wrap" style="padding:4px 8px">'
+      + '\uD83C\uDFDB Arquetip <button type="button" class="fr-arq-btn" onclick="_frToggleArqMenu(this)">' + arq.nom + modIndicator + '</button>'
+      + '<div class="fr-arq-menu">' + optsHtml + '</div>'
+    + '</span>';
+  }
+
+  // Helper local: una "card de dada" editable
+  function dadaCellHtml(dadaKey, label, valueStr, subText, originText, isModified) {
+    var valHtml;
+    if (isAdmin && dadaKey) {
+      valHtml = '<div class="fr-dada-val editable" contenteditable="true" '
+        + 'data-dada-key="' + dadaKey + '" '
+        + 'spellcheck="false">' + valueStr + '</div>';
+    } else {
+      valHtml = '<div class="fr-dada-val">' + valueStr + '</div>';
+    }
+    var originHtml = '';
+    if (isAdmin && originText) {
+      originHtml = '<div class="fr-dada-origin' + (isModified ? ' modified' : '') + '">'
+        + (isModified ? '● Modificat' : '○ ' + originText)
+        + (isModified ? ' · <button class="fr-dada-reset" onclick="_frResetOverride(\'' + dadaKey + '\')">restaurar</button>' : '')
+      + '</div>';
+    }
+    return '<div class="fr-dada">'
+      + '<div class="fr-dada-lbl">' + label + '</div>'
+      + valHtml
+      + '<div class="fr-dada-sub">' + subText + '</div>'
+      + originHtml
+    + '</div>';
+  }
+
+  // Origens dels valors
+  var capOrigin = (capitalOrig > 0) ? 'Origen: perfil del client' : 'Origen: valor demo (no hi ha capital al perfil)';
+  var aprOrigin = (aportacioOrig > 0) ? 'Origen: perfil del client' : 'Origen: valor demo (no hi ha aportació al perfil)';
+  var horOrigin = (horitzoOrig > 0) ? 'Origen: perfil del client' : 'Origen: valor demo (no hi ha horitzó al perfil)';
+
+  // Panell d'ajuda admin
+  var adminPanel = '';
+  if (isAdmin) {
+    adminPanel = '<div class="fr-admin-panel">'
+      + '<div class="fr-admin-panel-t">Per a l\u2019assessor · com funciona aquest document</div>'
+      + 'Tots els camps editables (hover amb vora gold) modifiquen el document <strong>sense afectar les dades del client a Supabase</strong>. \u00daltil per a provar escenaris o personalitzar el report. Els canvis es guarden localment (botó "Desar Full de Ruta") i es persistiran al núvol quan integrem la columna <code>clients.fullderuta</code>.'
+      + '<table><tr><td>Arquetip</td><td>de <code>c.arquetipId</code> \u2192 clica el chip per canviar-lo</td></tr>'
+      + '<tr><td>Capital / aportació / horitzó</td><td>de <code>c.perfil.*</code> (qüestionari) \u2192 edita els valors directament</td></tr>'
+      + '<tr><td>Total aportat futur</td><td>calculat: capital + aportació × 12 × horitzó</td></tr>'
+      + '<tr><td>Objectius</td><td>plantilles ràpides (compra de pis, jubilació, educació...) o personalitzat \u2192 afegeix sota la secció 02</td></tr>'
+      + '<tr><td>Escenaris alternatius</td><td>arquetips de referència \u2192 clica el subtítol per canviar-los</td></tr></table>'
+    + '</div>';
+  }
+
   html += '<div class="fr-section">'
     + '<div class="fr-label">01 · El teu perfil inversor</div>'
+    + adminPanel
     + '<div class="fr-h2">' + arq.nom + ' <em style="font-style:italic;color:var(--g400)"> \u2014 ' + arq.cartRoma + '</em></div>'
     + '<div class="fr-lead">' + (arq.rationale || '') + '</div>'
     + '<div class="fr-chips">'
-      + '<span class="fr-chip fr-chip-navy">\uD83C\uDFDB Arquetip ' + arq.nom + '</span>'
+      + chipArquetipHtml()
       + '<span class="fr-chip">\u23F3 Horitz\u00f3 ' + horitzo + ' anys</span>'
       + (perfil.riscFinancer ? '<span class="fr-chip">\uD83D\uDCCA Risc tolerable: ' + perfil.riscFinancer + '</span>' : '')
       + (perfil.riscEmocional ? '<span class="fr-chip">\uD83D\uDE0C Risc emocional: ' + perfil.riscEmocional + '</span>' : '')
       + (c.pla ? '<span class="fr-chip fr-chip-gold">\u2699 Pla ' + (getPla(c.pla).nom || c.pla) + '</span>' : '')
     + '</div>'
     + '<div class="fr-dades">'
-      + '<div class="fr-dada"><div class="fr-dada-lbl">Capital inicial</div><div class="fr-dada-val">' + fEur(capital) + '</div><div class="fr-dada-sub">Comptes + fons disponible</div></div>'
-      + '<div class="fr-dada"><div class="fr-dada-lbl">Aportaci\u00f3 mensual</div><div class="fr-dada-val">' + fEur(aportacio) + '</div><div class="fr-dada-sub">Domiciliada · revisable</div></div>'
-      + '<div class="fr-dada"><div class="fr-dada-lbl">Horitz\u00f3 d\u2019inversi\u00f3</div><div class="fr-dada-val">' + horitzo + ' anys</div><div class="fr-dada-sub">Termini objectiu</div></div>'
-      + '<div class="fr-dada"><div class="fr-dada-lbl">Total aportat futur</div><div class="fr-dada-val">' + fEur(capital + aportacio * 12 * horitzo) + '</div><div class="fr-dada-sub">Capital + aportacions</div></div>'
+      + dadaCellHtml('capitalInicial',    'Capital inicial',       fEur(capital),                            'Comptes + fons disponible', capOrigin, overrides.capitalInicial != null)
+      + dadaCellHtml('aportacioMensual',  'Aportaci\u00f3 mensual', fEur(aportacio),                          'Domiciliada · revisable',   aprOrigin, overrides.aportacioMensual != null)
+      + dadaCellHtml('horitzo',           'Horitz\u00f3 d\u2019inversi\u00f3', horitzo + ' anys',              'Termini objectiu',           horOrigin, overrides.horitzo != null)
+      + dadaCellHtml(null,                'Total aportat futur',   fEur(capital + aportacio * 12 * horitzo), 'Capital + aportacions',     'Calculat automàticament', false)
     + '</div>'
   + '</div>';
 
@@ -8866,7 +9163,21 @@ function renderPortalRoadmap(el) {
     }
   }
   if (isAdmin) {
-    html += '<button class="fr-obj-add" onclick="_frAddObjectiu()">+ Afegir objectiu</button>';
+    var plantillesHtml = '';
+    for (var pti = 0; pti < _FR_OBJECTIUS_TIPUS.length - 1; pti++) {
+      var pt = _FR_OBJECTIUS_TIPUS[pti];
+      plantillesHtml += '<div class="fr-obj-opt" onclick="_frAddObjectiu(\'' + pt.id + '\')">'
+        + '<span class="fr-obj-opt-icona">' + pt.icona + '</span>'
+        + '<div class="fr-obj-opt-text"><div class="fr-obj-opt-titol">' + pt.titol + '</div><div class="fr-obj-opt-sub">' + pt.meta + ' · ' + fEur(pt.import) + ' · ' + pt.termini + '</div></div>'
+      + '</div>';
+    }
+    html += '<div class="fr-obj-actions">'
+      + '<div class="fr-obj-wrap">'
+        + '<button class="fr-obj-add" onclick="_frToggleObjMenu(this)">+ Afegir des de plantilla \u25BE</button>'
+        + '<div class="fr-obj-menu">' + plantillesHtml + '</div>'
+      + '</div>'
+      + '<button class="fr-obj-add fr-obj-add-custom" onclick="_frAddObjectiu(\'lliure\')">+ Personalitzat</button>'
+    + '</div>';
   }
   html += '</div>';
 
@@ -8983,10 +9294,31 @@ function renderPortalRoadmap(el) {
   var pRec  = _frProj(capital, aportacio, mCart.mu, mCart.sigma, horitzo);
   var pAgr  = _frProj(capital, aportacio, mAgr.mu,  mAgr.sigma,  horitzo);
 
-  function escBlock(cls, titol, sub, donutId, mu, sig, sh, dd, proj) {
+  // Helper: render del subtítol d'escenari (clickable per a admin)
+  function escSubHtml(target, currentArqId) {
+    var curArq = getArquetip(currentArqId);
+    var displayText = curArq.cartRoma + ' · ' + curArq.nom;
+    if (!isAdmin || target === 'recomanat') return displayText;
+    // Admin: dropdown per a 'conservador' o 'agressiu'
+    var llista = _frListArquetips();
+    var optsHtml = '';
+    for (var li = 0; li < llista.length; li++) {
+      var op = llista[li];
+      optsHtml += '<div class="fr-arq-opt' + (op.id === currentArqId ? ' actiu' : '') + '" '
+        + 'onclick="_frSelectArq(\'' + op.id + '\', \'' + target + '\')">'
+        + '<span class="fr-arq-opt-roma">' + op.cartRoma + '</span><span>' + op.nom + '</span>'
+      + '</div>';
+    }
+    return '<span class="fr-arq-wrap">'
+      + '<button type="button" class="fr-arq-btn" onclick="_frToggleArqMenu(this)">' + displayText + '</button>'
+      + '<div class="fr-arq-menu">' + optsHtml + '</div>'
+    + '</span>';
+  }
+
+  function escBlock(cls, titol, target, currentArqId, donutId, mu, sig, sh, dd, proj) {
     return '<div class="fr-esc' + cls + '">'
       + '<div class="fr-esc-t">' + titol + '</div>'
-      + '<div class="fr-esc-s">' + sub + '</div>'
+      + '<div class="fr-esc-s">' + escSubHtml(target, currentArqId) + '</div>'
       + '<svg id="' + donutId + '" viewBox="0 0 100 100" class="fr-esc-d"></svg>'
       + '<div class="fr-esc-k">'
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03BC esperat</div><div class="fr-esc-kv" style="color:#1A5C3A">+' + f1(mu) + '%</div></div>'
@@ -9012,9 +9344,9 @@ function renderPortalRoadmap(el) {
     + '<div class="fr-h2">I si fos m\u00e9s conservadora? I si fos m\u00e9s agressiva?</div>'
     + '<div class="fr-lead">Cada cartera \u00e9s un trade-off entre rendiment i risc. Aquesta comparativa et permet veure exactament qu\u00e8 guanyes o qu\u00e8 perds si t\u2019inclines per una altra direcci\u00f3.</div>'
     + '<div class="fr-esc-g">'
-      + escBlock('',      'Conservadora', arqCons.cartRoma + ' · ' + arqCons.nom, 'fr-d-cons', mCons.mu, mCons.sigma, sCons, ddCons, pCons)
-      + escBlock(' actiu','Recomanada',   arq.cartRoma     + ' · ' + arq.nom,    'fr-d-rec',  mCart.mu, mCart.sigma, sCart, ddCart, pRec)
-      + escBlock('',      'Agressiva',    arqAgr.cartRoma  + ' · ' + arqAgr.nom, 'fr-d-agr',  mAgr.mu,  mAgr.sigma,  sAgr,  ddAgr,  pAgr)
+      + escBlock('',      'Conservadora', 'conservador', arqConsId, 'fr-d-cons', mCons.mu, mCons.sigma, sCons, ddCons, pCons)
+      + escBlock(' actiu','Recomanada',   'recomanat',   arqId,     'fr-d-rec',  mCart.mu, mCart.sigma, sCart, ddCart, pRec)
+      + escBlock('',      'Agressiva',    'agressiu',    arqAgrId,  'fr-d-agr',  mAgr.mu,  mAgr.sigma,  sAgr,  ddAgr,  pAgr)
     + '</div>'
     + '<div class="fr-callout" style="margin-top:24px">'
       + '<div class="fr-callout-t">Com llegir aquesta comparativa</div>'
@@ -9172,6 +9504,36 @@ function renderPortalRoadmap(el) {
         if (!c2.fullderuta.notes) c2.fullderuta.notes = {};
         c2.fullderuta.notes.closing = closingNode.innerHTML.trim();
       });
+    }
+
+    // Bindings dades editables (capital, aportació, horitzó)
+    var dadaNodes = document.querySelectorAll('[data-dada-key]');
+    for (var dn = 0; dn < dadaNodes.length; dn++) {
+      (function(node) {
+        node.addEventListener('input', _frMarkDirty);
+        node.addEventListener('keydown', function(ev) {
+          if (ev.key === 'Enter' || ev.key === 'Tab') { ev.preventDefault(); node.blur(); }
+          if (ev.key === 'Escape') { node.blur(); }
+        });
+        node.addEventListener('blur', function() {
+          var key = node.dataset.dadaKey;
+          var raw = node.innerText.trim();
+          var num;
+          if (key === 'horitzo') num = _frParseAnys(raw);
+          else num = _frParseEur(raw);
+          // Determina si és igual al valor original (per a no guardar override innecessari)
+          var origVal;
+          if (key === 'capitalInicial') origVal = capitalOrig;
+          else if (key === 'aportacioMensual') origVal = aportacioOrig;
+          else if (key === 'horitzo') origVal = horitzoOrig;
+          if (num === origVal || num === 0) {
+            _frSetOverride(key, null);
+          } else {
+            _frSetOverride(key, num);
+          }
+          _frRerender();
+        });
+      })(dadaNodes[dn]);
     }
   }
 
