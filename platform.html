@@ -2591,7 +2591,7 @@ function iniciarRefrescPla(email) {
       var fresh = res.data[0];
       var statusMap = { ok:'active', nou:'pending', critic:'review' };
       var newStatus = statusMap[fresh.status] || fresh.status;
-      var newPla    = fresh.pla || 'essencial';
+      var newPla    = (fresh.pla != null && fresh.pla !== '') ? fresh.pla : 'senyal';
 
       var changed = false;
       // Si el pla ha canviat → actualitzar i notificar el client
@@ -2667,7 +2667,7 @@ async function loadAllClientsFromSupabase() {
           return (arq && arq.cartRoma) ? arq.cartRoma : (c.cartera || '—');
         })(),
         scoring: c.scoring || 0,
-        pla: (c.perfil && c.perfil.pla) ? c.perfil.pla : (c.pla || 'senyal'),
+        pla: c.pla || (c.perfil && c.perfil.pla && c.perfil.pla !== 'diagnostic' ? c.perfil.pla : null) || 'senyal',
         status: statusMap[rawStatus] || rawStatus,
         submitted_at: c.submitted_at || null,
         activated_at: c.activated_at || null,
@@ -2781,9 +2781,15 @@ function normalizeClient(raw) {
     nota: raw.nota || '',
     historial: raw.historial || [],
     ter: raw.ter || arq.ter,
-    // pla: raw.pla (columna pròpia de Supabase) té prioritat sobre perfil.pla
-    // que conté 'diagnostic' (valor intern del qüestionari, no el pla comercial).
-    pla: raw.pla || (perfil.pla !== 'diagnostic' ? perfil.pla : null) || 'essencial',
+    // ── Pla comercial ──
+    // Prioritat: columna 'pla' de Supabase (desa l'admin) > perfil.pla (si no és 'diagnostic') > 'senyal'
+    // Usem comprovació explícita per evitar que raw.pla='' (string buit) es tracti com falsy.
+    pla: (raw.pla != null && raw.pla !== '' && raw.pla !== 'diagnostic')
+      ? raw.pla
+      : ((perfil.pla && perfil.pla !== 'diagnostic') ? perfil.pla : 'senyal'),
+    // ── Cartera target personalitzada per l'admin ──
+    // CRÍTIC: ha d'estar aquí perquè es llegeixi de Supabase en cada càrrega.
+    cartera_target_custom: Array.isArray(raw.cartera_target_custom) ? raw.cartera_target_custom : null,
     // New fields (fallback to null if not in Supabase yet)
     moviments: raw.moviments || null,
     evolucio: raw.evolucio || null,
