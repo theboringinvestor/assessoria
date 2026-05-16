@@ -2814,6 +2814,8 @@ function normalizeClient(raw) {
     interview_notes: raw.interview_notes || null,
     // ── Permet re-fer el qüestionari (activat per admin) ──
     allow_retest: raw.allow_retest || false,
+    // ── Full de Ruta v6 (contingut editorial de l'assessor) ──
+    fullderuta: raw.fullderuta || {},
   };
 }
 
@@ -8227,10 +8229,10 @@ function renderPortalEducacio(el) {
 // ══════════════════════════════════════════════════
 
 /* ════════════════════════════════════════════════════════════════════════════
-   FULL DE RUTA v5 INSERIT AUTOMÀTICAMENT · 16 maig 2026
-   Versió funcional per a la generació d'informes de pla d'inversió.
-   v5: 10 plantilles d'objectius pre-definits (compra, jubilació, educació, fons d'emergència,
-       viatge, vehicle, reforma, negoci, patrimoni, personalitzat) accessibles des de dropdown
+   FULL DE RUTA v6 INSERIT AUTOMÀTICAMENT · 16 maig 2026
+   v6: persistència a Supabase (columna fullderuta JSONB) amb fallback localStorage.
+   Requereix migració SQL: ALTER TABLE clients ADD COLUMN fullderuta JSONB.
+   Vegeu migracio_fullderuta.sql.
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -8343,6 +8345,7 @@ function _frDrawDonut(svgEl, actius, opts) {
    ════════════════════════════════════════════════════════════════════════════ */
 var _FR_DIRTY = false;
 var _FR_AUTO_VALUES = {}; // valors calculats per defecte (per a poder restaurar)
+var _FR_SAVING = false;   // estat "desant en curs" per evitar dobles clics
 
 function _frStorageKey() {
   var c = getClient();
@@ -8351,27 +8354,86 @@ function _frStorageKey() {
 }
 
 function _frLoadNotes() {
-  // Carrega notes des de localStorage cap a client.fullderuta
+  // Si Supabase ja ha pujat el camp via normalizeClient, c.fullderuta està
+  // disponible. Aquesta funció és no-op en aquest cas. Si no, intenta carregar
+  // de localStorage com a fallback de migració/demo.
   var c = getClient();
   if (!c) return;
+  // Si ja hi ha contingut (vingut de Supabase), respecta'l
+  if (c.fullderuta && typeof c.fullderuta === 'object' && Object.keys(c.fullderuta).length > 0) {
+    return;
+  }
+  // Fallback: localStorage
   try {
     var raw = localStorage.getItem(_frStorageKey());
     if (raw) {
       var parsed = JSON.parse(raw);
-      c.fullderuta = parsed;
+      c.fullderuta = parsed || {};
+    } else {
+      c.fullderuta = {};
     }
-  } catch (e) { console.warn('[FR] Error carregant notes:', e); }
+  } catch (e) {
+    console.warn('[FR] Error carregant notes:', e);
+    c.fullderuta = {};
+  }
 }
 
-function _frPersist() {
+async function _frPersist() {
+  if (_FR_SAVING) return;
   var c = getClient();
   if (!c) return;
-  try {
-    localStorage.setItem(_frStorageKey(), JSON.stringify(c.fullderuta || {}));
-    _FR_DIRTY = false;
-    _frUpdateSaveBar();
-    _frFlashSaved();
-  } catch (e) { alert('Error desant: ' + e.message); }
+  var data = c.fullderuta || {};
+
+  _FR_SAVING = true;
+  var bar = document.getElementById('fr-save-bar');
+  if (bar) {
+    var statusEl = bar.querySelector('.fr-save-status');
+    var btnEl = bar.querySelector('.fr-save-btn');
+    if (statusEl) statusEl.textContent = 'Desant...';
+    if (btnEl) btnEl.disabled = true;
+  }
+
+  // 1r intent: Supabase (si disponible i client té email)
+  var savedToCloud = false;
+  if (typeof sb !== 'undefined' && sb && c.email) {
+    try {
+      var res = await sb.from('clients')
+        .update({ fullderuta: data })
+        .eq('email', c.email.toLowerCase());
+      if (res && res.error) throw res.error;
+      savedToCloud = true;
+      // Net localStorage si havia un cache pendent (migració exitosa)
+      try { localStorage.removeItem(_frStorageKey()); } catch (e) {}
+    } catch (e) {
+      console.error('[FR] Error desant a Supabase:', e);
+      // Caurà al fallback de localStorage més avall
+    }
+  }
+
+  // 2n intent / fallback: localStorage
+  if (!savedToCloud) {
+    try {
+      localStorage.setItem(_frStorageKey(), JSON.stringify(data));
+    } catch (e) {
+      _FR_SAVING = false;
+      if (bar) {
+        var btnEl2 = bar.querySelector('.fr-save-btn');
+        if (btnEl2) btnEl2.disabled = false;
+        var statusEl2 = bar.querySelector('.fr-save-status');
+        if (statusEl2) statusEl2.textContent = 'Error desant';
+      }
+      alert('Error desant: ' + (e && e.message ? e.message : e));
+      return;
+    }
+  }
+
+  _FR_DIRTY = false;
+  _FR_SAVING = false;
+  if (bar) {
+    var btnEl3 = bar.querySelector('.fr-save-btn');
+    if (btnEl3) btnEl3.disabled = false;
+  }
+  _frFlashSaved(savedToCloud);
 }
 
 function _frMarkDirty() {
@@ -8390,12 +8452,15 @@ function _frUpdateSaveBar() {
   }
 }
 
-function _frFlashSaved() {
+function _frFlashSaved(toCloud) {
   var bar = document.getElementById('fr-save-bar');
   if (!bar) return;
   bar.classList.add('show', 'flash');
-  bar.querySelector('.fr-save-status').textContent = '✓ Desat';
-  setTimeout(function() { bar.classList.remove('show', 'flash'); }, 1800);
+  var statusEl = bar.querySelector('.fr-save-status');
+  if (statusEl) {
+    statusEl.textContent = toCloud ? '✓ Desat al núvol' : '✓ Desat (local · sense núvol)';
+  }
+  setTimeout(function() { bar.classList.remove('show', 'flash'); }, 2200);
 }
 
 function _frBindEditable() {
