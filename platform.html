@@ -8225,7 +8225,1015 @@ function renderPortalEducacio(el) {
 // ══════════════════════════════════════════════════
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
+
+/* ════════════════════════════════════════════════════════════════════════════
+   FULL DE RUTA v3 INSERIT AUTOMÀTICAMENT · 16 maig 2026
+   La funció renderPortalRoadmap original ha estat renombrada a renderPortalRoadmapTracker
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════════════════════
+   FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
+   amb SISTEMA D'EDICIÓ INLINE per a l'assessor + COEXISTÈNCIA amb tracker
+   ════════════════════════════════════════════════════════════════════════════
+
+   INTEGRACIÓ:
+   1. Renombrar al platform.html: 'function renderPortalRoadmap(el) {' → 'function renderPortalRoadmapTracker(el) {'
+      (és l'antiga, a línia 8228)
+   2. Enganxar aquest fitxer sencer just ABANS d'aquella línia.
+
+   CAMPS EDITABLES per a admin (contenteditable, persistits a localStorage):
+   - notes.hero_sub          → subtítol portada
+   - notes.cartera_rationale → callout "per què aquesta cartera"
+   - notes.actius[id]        → comentari personalitzat per actiu
+   - notes.escenaris_comment → callout comparativa escenaris
+   - notes.closing           → missatge final signat
+   - objectius[]             → add/edit/remove
+   - execucio.broker_text    → pas 1 (ja era lliure)
+
+   PERSISTÈNCIA: localStorage 'tbi_fullderuta_<email>' (provisional)
+   Quan afegiu columna JSONB clients.fullderuta a Supabase, substituir
+   _frPersist() per la sincronització remota.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+
+/* ────────────────────────────────────────────────────────────
+   HELPERS MATEMÀTICS · sense canvis vs v2
+   ──────────────────────────────────────────────────────────── */
+function _frCalcCartera(actius) {
+  var totalPes = 0;
+  for (var i = 0; i < actius.length; i++) totalPes += (parseFloat(actius[i].pes) || 0);
+  if (totalPes === 0) totalPes = 100;
+  var mu = 0, varC = 0;
+  for (var j = 0; j < actius.length; j++) {
+    var pes = (parseFloat(actius[j].pes) || 0) / totalPes;
+    mu += pes * (parseFloat(actius[j].mu) || 0);
+    varC += Math.pow(pes, 2) * Math.pow(parseFloat(actius[j].sigma) || 0, 2);
+  }
+  return { mu: mu, sigma: Math.sqrt(varC) };
+}
+function _frSharpe(mu, sigma, rf) { return sigma > 0 ? (mu - rf) / sigma : 0; }
+function _frMaxDD(mu, sigma) { return Math.min(2.33 * sigma + Math.max(0, -mu), 65); }
+function _frRecoveryYrs(mu, dd) {
+  if (mu <= 0) return 99;
+  return Math.log(1 / (1 - dd / 100)) / Math.log(1 + mu / 100);
+}
+function _frVaR95(mu, sigma) { return mu - 1.645 * sigma; }
+function _frProj(capInicial, aportMens, mu, sigma, anys) {
+  var muY = mu / 100, sigY = sigma / 100;
+  var drift = muY - sigY * sigY / 2;
+  var medCap = capInicial * Math.exp(drift * anys);
+  var rMes = Math.exp(drift / 12) - 1;
+  var nMes = anys * 12;
+  var fvAport = Math.abs(rMes) > 1e-9
+    ? aportMens * ((Math.pow(1 + rMes, nMes) - 1) / rMes)
+    : aportMens * nMes;
+  var median = medCap + fvAport;
+  var avgTime = anys / 2 + capInicial / (capInicial + aportMens * nMes) * anys / 2;
+  var sigEff = sigY * Math.sqrt(Math.max(avgTime, 0.5));
+  return {
+    median: median,
+    p5:  median * Math.exp(-1.645 * sigEff),
+    p25: median * Math.exp(-0.674 * sigEff),
+    p75: median * Math.exp( 0.674 * sigEff),
+    p95: median * Math.exp( 1.645 * sigEff),
+  };
+}
+function _frDrawDonut(svgEl, actius, opts) {
+  if (!svgEl) return;
+  opts = opts || {};
+  var size = opts.size || 200;
+  var stroke = opts.stroke || 26;
+  var cx = size / 2, cy = size / 2;
+  var r = (size - stroke) / 2;
+  var circ = 2 * Math.PI * r;
+  svgEl.setAttribute('viewBox', '0 0 ' + size + ' ' + size);
+  svgEl.innerHTML = '';
+  var bg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  bg.setAttribute('cx', cx); bg.setAttribute('cy', cy); bg.setAttribute('r', r);
+  bg.setAttribute('fill', 'none'); bg.setAttribute('stroke', '#F2F1ED');
+  bg.setAttribute('stroke-width', stroke);
+  svgEl.appendChild(bg);
+  var offset = 0, total = 0;
+  for (var k = 0; k < actius.length; k++) total += parseFloat(actius[k].pes) || 0;
+  if (total === 0) return;
+  for (var i = 0; i < actius.length; i++) {
+    var a = actius[i];
+    var pes = parseFloat(a.pes) || 0;
+    if (pes === 0) continue;
+    var frac = pes / total;
+    var dashLen = frac * circ;
+    var seg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    seg.setAttribute('cx', cx); seg.setAttribute('cy', cy); seg.setAttribute('r', r);
+    seg.setAttribute('fill', 'none'); seg.setAttribute('stroke', a.color || '#888');
+    seg.setAttribute('stroke-width', stroke);
+    seg.setAttribute('stroke-dasharray', dashLen + ' ' + (circ - dashLen));
+    seg.setAttribute('stroke-dashoffset', -offset);
+    seg.setAttribute('transform', 'rotate(-90 ' + cx + ' ' + cy + ')');
+    seg.setAttribute('stroke-linecap', 'butt');
+    svgEl.appendChild(seg);
+    offset += dashLen;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SISTEMA D'EDICIÓ INLINE · persistència + UI flotant
+   ════════════════════════════════════════════════════════════════════════════ */
+var _FR_DIRTY = false;
+var _FR_AUTO_VALUES = {}; // valors calculats per defecte (per a poder restaurar)
+
+function _frStorageKey() {
+  var c = getClient();
+  var email = (c && c.email) ? c.email.toLowerCase() : '__demo__';
+  return 'tbi_fullderuta_' + email;
+}
+
+function _frLoadNotes() {
+  // Carrega notes des de localStorage cap a client.fullderuta
+  var c = getClient();
+  if (!c) return;
+  try {
+    var raw = localStorage.getItem(_frStorageKey());
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      c.fullderuta = parsed;
+    }
+  } catch (e) { console.warn('[FR] Error carregant notes:', e); }
+}
+
+function _frPersist() {
+  var c = getClient();
+  if (!c) return;
+  try {
+    localStorage.setItem(_frStorageKey(), JSON.stringify(c.fullderuta || {}));
+    _FR_DIRTY = false;
+    _frUpdateSaveBar();
+    _frFlashSaved();
+  } catch (e) { alert('Error desant: ' + e.message); }
+}
+
+function _frMarkDirty() {
+  _FR_DIRTY = true;
+  _frUpdateSaveBar();
+}
+
+function _frUpdateSaveBar() {
+  var bar = document.getElementById('fr-save-bar');
+  if (!bar) return;
+  if (_FR_DIRTY) {
+    bar.classList.add('show');
+    bar.querySelector('.fr-save-status').textContent = 'Canvis pendents';
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function _frFlashSaved() {
+  var bar = document.getElementById('fr-save-bar');
+  if (!bar) return;
+  bar.classList.add('show', 'flash');
+  bar.querySelector('.fr-save-status').textContent = '✓ Desat';
+  setTimeout(function() { bar.classList.remove('show', 'flash'); }, 1800);
+}
+
+function _frBindEditable() {
+  var nodes = document.querySelectorAll('.fr-edit');
+  for (var i = 0; i < nodes.length; i++) {
+    (function(el) {
+      el.addEventListener('input', function() {
+        _frMarkDirty();
+        // Si tenia badge "auto", treu-lo (l'admin ha personalitzat)
+        var badge = el.parentNode.querySelector('.fr-edit-badge');
+        if (badge && badge.classList.contains('auto')) {
+          badge.classList.remove('auto');
+          badge.classList.add('custom');
+          badge.textContent = 'Personalitzat';
+        }
+      });
+      el.addEventListener('blur', function() {
+        _frSaveField(el);
+      });
+      el.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Enter' && !el.dataset.multiline) {
+          ev.preventDefault();
+          el.blur();
+        }
+        if (ev.key === 'Escape') {
+          el.blur();
+        }
+      });
+    })(nodes[i]);
+  }
+}
+
+function _frSaveField(el) {
+  var key = el.dataset.key;
+  if (!key) return;
+  var c = getClient();
+  if (!c.fullderuta) c.fullderuta = {};
+  if (!c.fullderuta.notes) c.fullderuta.notes = {};
+  var val = el.innerHTML.trim();
+  // Navegació per claus amb punts: 'actius.rv_global'
+  var keys = key.split('.');
+  var target = c.fullderuta.notes;
+  for (var i = 0; i < keys.length - 1; i++) {
+    if (!target[keys[i]]) target[keys[i]] = {};
+    target = target[keys[i]];
+  }
+  // Si l'usuari ha buidat el camp i hi havia un valor auto, no guardem (deixem fallback)
+  var autoVal = _FR_AUTO_VALUES[key];
+  if (autoVal && (val === '' || val === autoVal)) {
+    delete target[keys[keys.length - 1]];
+  } else {
+    target[keys[keys.length - 1]] = val;
+  }
+}
+
+// Helper genèric: renderitza un camp editable
+function _frEdField(text, opts) {
+  // opts: { key, placeholder, multiline, autoVal, tag }
+  opts = opts || {};
+  var isAdmin = APP.role === 'admin';
+  var tag = opts.tag || 'span';
+  var displayText = text || opts.autoVal || '';
+  if (opts.autoVal) _FR_AUTO_VALUES[opts.key] = opts.autoVal;
+  if (!isAdmin) {
+    return '<' + tag + '>' + displayText + '</' + tag + '>';
+  }
+  var isAuto = !text && opts.autoVal;
+  var badgeHtml = '';
+  if (opts.showBadge !== false) {
+    badgeHtml = '<span class="fr-edit-badge ' + (isAuto ? 'auto' : (text ? 'custom' : '')) + '">'
+      + (isAuto ? 'Auto' : (text ? 'Personalitzat' : '')) + '</span>';
+  }
+  return '<' + tag + ' class="fr-edit-wrap">'
+    + '<' + tag + ' class="fr-edit" '
+    +   'contenteditable="true" '
+    +   'data-key="' + opts.key + '" '
+    +   (opts.multiline ? 'data-multiline="1" ' : '')
+    +   'data-placeholder="' + (opts.placeholder || '') + '"'
+    + '>' + displayText + '</' + tag + '>'
+    + badgeHtml
+  + '</' + tag + '>';
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   GESTIÓ D'OBJECTIUS · add/edit/remove inline
+   ════════════════════════════════════════════════════════════════════════════ */
+function _frAddObjectiu() {
+  var c = getClient();
+  if (!c.fullderuta) c.fullderuta = {};
+  if (!Array.isArray(c.fullderuta.objectius)) c.fullderuta.objectius = [];
+  c.fullderuta.objectius.push({
+    icona: '🎯', titol: 'Nou objectiu', meta: 'Descripció breu', import: 10000, termini: '5 anys'
+  });
+  _frMarkDirty();
+  // Re-render
+  var content = document.querySelector('.content-inner').parentElement;
+  if (content) renderPortalRoadmap(content);
+}
+
+function _frRemoveObjectiu(idx) {
+  var c = getClient();
+  if (!c.fullderuta || !Array.isArray(c.fullderuta.objectius)) return;
+  if (!confirm('Eliminar aquest objectiu?')) return;
+  c.fullderuta.objectius.splice(idx, 1);
+  _frMarkDirty();
+  var content = document.querySelector('.content-inner').parentElement;
+  if (content) renderPortalRoadmap(content);
+}
+
+function _frUpdateObjectiu(idx, field, val) {
+  var c = getClient();
+  if (!c.fullderuta || !Array.isArray(c.fullderuta.objectius)) return;
+  var o = c.fullderuta.objectius[idx];
+  if (!o) return;
+  if (field === 'import') {
+    o.import = parseFloat(String(val).replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
+  } else {
+    o[field] = val;
+  }
+  _frMarkDirty();
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   FUNCIÓ PRINCIPAL · renderPortalRoadmap
+   ════════════════════════════════════════════════════════════════════════════ */
 function renderPortalRoadmap(el) {
+  // Carregar notes desades abans de res
+  _frLoadNotes();
+  _FR_AUTO_VALUES = {};
+
+  var c = getClient() || (typeof DEMO_CLIENT !== 'undefined' ? DEMO_CLIENT : {});
+  var arq = getArquetip((c && c.arquetipId) || 'navegant');
+  var isAdmin = APP.role === 'admin';
+  var perfil = c.perfil || {};
+  var fr = c.fullderuta || {};
+  var notes = fr.notes || {};
+  var actiusNotes = notes.actius || {};
+
+  // ── Cartera real ──────────────────────────────────────────
+  var hasCustom = c.cartera_target_custom && c.cartera_target_custom.length > 0;
+  var actiusTarget = hasCustom ? c.cartera_target_custom : (arq.actius || []);
+
+  var cartera = actiusTarget.map(function(a) {
+    var idA = a.id || '';
+    var tax = ACTIUS_TAXONOMY.find(function(t) { return t.id === idA; });
+    var ms = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(idA) : { mu: 6, sigma: 12 };
+    return {
+      id: idA,
+      nom: a.nom || (tax && tax.ca) || idA,
+      pes: parseFloat(a.pct) || parseFloat(a.pes) || 0,
+      color: a.color || (tax && tax.color) || '#888',
+      mu: ms.mu, sigma: ms.sigma,
+      desc: (tax && tax.desc) || '',
+      pros: (tax && tax.pros) || [],
+      contres: (tax && tax.contres) || [],
+    };
+  });
+
+  // ── Dades financeres ──────────────────────────────────────
+  var capital = parseFloat(String(perfil.capitalInicial || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
+  var aportacio = parseFloat(String(perfil.aportacioMensual || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
+  var horitzo = parseFloat(String(perfil.horitzo || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 15;
+  if (capital === 0) capital = 30000;
+  if (aportacio === 0) aportacio = 400;
+  if (horitzo === 0) horitzo = 15;
+  var rf = 2.0;
+
+  // ── Escenaris alternatius ─────────────────────────────────
+  function enriquir(actiusList) {
+    return actiusList.map(function(a) {
+      var ms = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(a.id) : { mu: 6, sigma: 12 };
+      var tax = ACTIUS_TAXONOMY.find(function(t) { return t.id === a.id; });
+      return {
+        id: a.id, nom: a.nom || (tax && tax.ca),
+        pes: parseFloat(a.pct) || 0,
+        color: a.color || (tax && tax.color) || '#888',
+        mu: ms.mu, sigma: ms.sigma,
+      };
+    });
+  }
+  var arqCons = getArquetip('tresorer');
+  var arqAgr  = getArquetip('estoic');
+  var carteraCons = enriquir(arqCons.actius || []);
+  var carteraAgr  = enriquir(arqAgr.actius || []);
+
+  // ── Càlculs ───────────────────────────────────────────────
+  var mCart = _frCalcCartera(cartera);
+  var sCart = _frSharpe(mCart.mu, mCart.sigma, rf);
+  var ddCart = _frMaxDD(mCart.mu, mCart.sigma);
+  var recCart = _frRecoveryYrs(mCart.mu, ddCart);
+  var varCart = _frVaR95(mCart.mu, mCart.sigma);
+
+  function f1(n) { return n.toFixed(1).replace('.', ','); }
+  function fEur(n) { return new Intl.NumberFormat('ca-ES', { maximumFractionDigits: 0 }).format(Math.round(n)) + '€'; }
+  function fEurK(n) { return Math.round(n / 1000) + 'k€'; }
+
+  // ════════════════════════════════════════════════════════════
+  // CSS específic
+  // ════════════════════════════════════════════════════════════
+  var css = '<style>'
+    // Hero
+    + '.fr-hero{background:linear-gradient(160deg,#0A1E35 0%,#1B3A6B 65%,#0F2847 100%);color:#fff;padding:48px 36px 40px;border-radius:14px;margin-bottom:36px;position:relative;overflow:hidden}'
+    + '.fr-hero::after{content:"";position:absolute;right:-150px;top:-80px;width:480px;height:480px;background:radial-gradient(circle,rgba(255,255,255,.04) 0%,rgba(255,255,255,0) 70%);pointer-events:none}'
+    + '.fr-hero-lbl{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:12px}'
+    + '.fr-hero-titol{font-family:var(--fd);font-size:38px;font-weight:300;letter-spacing:-.025em;line-height:1.05;margin-bottom:10px;color:#fff}'
+    + '.fr-hero-titol em{font-style:italic;font-weight:400;color:rgba(255,255,255,.72)}'
+    + '.fr-hero-sub{font-size:13.5px;color:rgba(255,255,255,.65);max-width:560px;line-height:1.6;margin-bottom:32px;min-height:22px}'
+    + '.fr-hero-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding-top:22px;border-top:1px solid rgba(255,255,255,.12)}'
+    + '.fr-hero-meta-lbl{font-family:var(--fm);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:5px}'
+    + '.fr-hero-meta-val{font-family:var(--fd);font-size:15px;font-weight:400;color:#fff}'
+    + '@media(max-width:780px){.fr-hero{padding:32px 22px 28px}.fr-hero-titol{font-size:28px}.fr-hero-meta{grid-template-columns:repeat(2,1fr);gap:14px}}'
+    // Seccions
+    + '.fr-section{margin-bottom:48px}'
+    + '.fr-label{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#1B3A6B;margin-bottom:12px;display:flex;align-items:center;gap:10px}'
+    + '.fr-label::before{content:"";width:24px;height:1px;background:#1B3A6B;display:inline-block}'
+    + '.fr-h2{font-family:var(--fd);font-size:24px;font-weight:400;letter-spacing:-.015em;line-height:1.18;margin-bottom:10px;color:var(--black)}'
+    + '.fr-lead{font-size:13.5px;color:var(--g500);line-height:1.65;max-width:680px;margin-bottom:22px;min-height:20px}'
+    // Chips
+    + '.fr-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}'
+    + '.fr-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:var(--g100);font-size:11.5px;color:var(--g600);font-weight:500}'
+    + '.fr-chip-navy{background:#EBF0FA;color:#0F2847}'
+    + '.fr-chip-gold{background:#FCF3E2;color:#7A4A00}'
+    // Dades
+    + '.fr-dades{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--g200);border-radius:12px;overflow:hidden;margin-top:8px}'
+    + '.fr-dada{padding:16px 18px;border-right:1px solid var(--g200);border-bottom:1px solid var(--g200)}'
+    + '.fr-dada:nth-child(4n){border-right:none}'
+    + '.fr-dada:nth-last-child(-n+4){border-bottom:none}'
+    + '.fr-dada-lbl{font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-bottom:5px}'
+    + '.fr-dada-val{font-family:var(--fd);font-size:18px;font-weight:500;color:var(--black);letter-spacing:-.01em}'
+    + '.fr-dada-sub{font-size:10.5px;color:var(--g500);margin-top:3px}'
+    + '@media(max-width:780px){.fr-dades{grid-template-columns:repeat(2,1fr)}.fr-dada:nth-child(4n){border-right:1px solid var(--g200)}.fr-dada:nth-child(2n){border-right:none}}'
+    // Objectius
+    + '.fr-obj{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px;display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;margin-bottom:10px;position:relative}'
+    + '.fr-obj-ico{width:38px;height:38px;border-radius:9px;background:#EBF0FA;color:#1B3A6B;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}'
+    + '.fr-obj-titol{font-family:var(--fd);font-size:15px;font-weight:500;color:var(--black);margin-bottom:2px;outline:none}'
+    + '.fr-obj-meta{font-size:11px;color:var(--g500);outline:none}'
+    + '.fr-obj-import{text-align:right}'
+    + '.fr-obj-import-val{font-family:var(--fm);font-size:16px;font-weight:500;color:var(--black);letter-spacing:-.02em;outline:none}'
+    + '.fr-obj-import-lbl{font-family:var(--fm);font-size:9px;color:var(--g400);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;outline:none}'
+    + '.fr-obj-del{background:transparent;border:none;color:var(--g400);cursor:pointer;font-size:18px;padding:4px 8px;border-radius:6px;transition:all .15s}'
+    + '.fr-obj-del:hover{background:#FDF0F0;color:#8B1A1A}'
+    + '.fr-obj-add{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1.5px dashed var(--g300);color:var(--g500);font-family:var(--fb);font-size:12px;font-weight:500;padding:10px 18px;border-radius:10px;cursor:pointer;margin-top:6px;transition:all .15s}'
+    + '.fr-obj-add:hover{border-color:#1B3A6B;color:#1B3A6B;background:#EBF0FA}'
+    // Cartera
+    + '.fr-cart-grid{display:grid;grid-template-columns:300px 1fr;gap:28px;align-items:center}'
+    + '@media(max-width:780px){.fr-cart-grid{grid-template-columns:1fr}}'
+    + '.fr-donut-wrap{position:relative;max-width:280px;margin:0 auto}'
+    + '.fr-donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}'
+    + '.fr-donut-cv{font-family:var(--fd);font-size:26px;font-weight:500;letter-spacing:-.015em;line-height:1}'
+    + '.fr-donut-cl{font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-top:5px}'
+    + '.fr-tcart{width:100%;border-collapse:collapse}'
+    + '.fr-tcart th{text-align:left;font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);font-weight:500;padding:0 0 8px 0;border-bottom:1px solid var(--g200)}'
+    + '.fr-tcart th.r,.fr-tcart td.r{text-align:right}'
+    + '.fr-tcart td{padding:10px 0;border-bottom:1px solid var(--g100);vertical-align:middle}'
+    + '.fr-tcart tr:last-child td{border-bottom:none}'
+    + '.fr-tcart .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;vertical-align:middle}'
+    + '.fr-tcart .nm{font-size:12.5px;color:var(--black);font-weight:500}'
+    + '.fr-tcart .pe{font-family:var(--fm);font-size:12.5px;color:var(--black);font-weight:500}'
+    + '.fr-tcart .ms{font-family:var(--fm);font-size:11.5px;color:var(--g500)}'
+    + '.fr-tcart tfoot td{padding-top:12px;font-family:var(--fm);font-size:10.5px;color:var(--g500);border-top:1.5px solid var(--g300);border-bottom:none;letter-spacing:.04em;text-transform:uppercase}'
+    + '.fr-tcart tfoot td.r{font-size:12.5px;color:var(--black);font-weight:500}'
+    // Callout
+    + '.fr-callout{background:#EBF0FA;border-left:3px solid #1B3A6B;padding:16px 20px;border-radius:0 10px 10px 0;margin:14px 0}'
+    + '.fr-callout-t{font-family:var(--fd);font-size:14px;font-weight:500;color:#0F2847;margin-bottom:5px}'
+    + '.fr-callout-x{font-size:12.5px;color:#0F2847;line-height:1.6;outline:none;min-height:20px}'
+    // KPIs
+    + '.fr-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}'
+    + '@media(max-width:780px){.fr-kpis{grid-template-columns:1fr}}'
+    + '.fr-kpi{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 20px}'
+    + '.fr-kpi-lbl{font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--g400);margin-bottom:12px}'
+    + '.fr-kpi-val{font-family:var(--fd);font-size:32px;font-weight:500;color:var(--black);letter-spacing:-.025em;line-height:1;margin-bottom:5px}'
+    + '.fr-kpi-val.neg{color:#8B1A1A}.fr-kpi-val.pos{color:#1A5C3A}.fr-kpi-val.navy{color:#1B3A6B}'
+    + '.fr-kpi-unit{font-family:var(--fm);font-size:12.5px;color:var(--g400);font-weight:400;margin-left:3px}'
+    + '.fr-kpi-desc{font-size:11px;color:var(--g500);line-height:1.55;margin-top:8px}'
+    + '.fr-kpi-bar{margin-top:10px;height:4px;background:var(--g100);border-radius:99px;overflow:hidden}'
+    + '.fr-kpi-bar-fill{height:100%;border-radius:99px;background:#1B3A6B}'
+    // Actiu
+    + '.fr-act{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 20px;margin-bottom:10px}'
+    + '.fr-act-hd{display:flex;align-items:center;gap:12px;margin-bottom:12px}'
+    + '.fr-act-sw{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}'
+    + '.fr-act-nm{flex:1}'
+    + '.fr-act-t{font-family:var(--fd);font-size:15px;font-weight:500;color:var(--black);line-height:1.2}'
+    + '.fr-act-p{font-family:var(--fm);font-size:10.5px;color:var(--g500);letter-spacing:.04em;margin-top:3px}'
+    + '.fr-act-nums{display:flex;gap:12px;align-items:center}'
+    + '.fr-act-n{text-align:right}'
+    + '.fr-act-nv{font-family:var(--fm);font-size:12.5px;color:var(--black);font-weight:500}'
+    + '.fr-act-nl{font-family:var(--fm);font-size:9px;color:var(--g400);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}'
+    + '.fr-act-d{font-size:12.5px;color:var(--g600);line-height:1.6;margin-bottom:8px;padding-left:44px}'
+    + '.fr-act-note{font-size:12.5px;color:#0F2847;line-height:1.6;margin-bottom:12px;padding:10px 14px;margin-left:44px;background:#EBF0FA;border-left:3px solid #1B3A6B;border-radius:0 8px 8px 0;font-style:italic;outline:none;min-height:18px}'
+    + '.fr-act-note.empty{background:transparent;border:1.5px dashed var(--g300);color:var(--g400);font-style:normal}'
+    + '.fr-act-pc{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-left:44px}'
+    + '@media(max-width:780px){.fr-act-d,.fr-act-note,.fr-act-pc{padding-left:0;margin-left:0}.fr-act-pc{grid-template-columns:1fr}}'
+    + '.fr-act-pc-b{padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.55}'
+    + '.fr-act-pc-pros{background:#EAF3DE;color:#1A5C3A}'
+    + '.fr-act-pc-cont{background:#FDF0F0;color:#8B1A1A}'
+    + '.fr-act-pc-ti{font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;opacity:.85}'
+    + '.fr-act-pc ul{list-style:none;padding:0;margin:0}'
+    + '.fr-act-pc li{padding-left:11px;position:relative;margin-bottom:3px}'
+    + '.fr-act-pc li::before{content:"";position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.6}'
+    // Simulació
+    + '.fr-sim{background:var(--g50);border:1px solid var(--g200);border-radius:12px;padding:20px}'
+    + '.fr-sim svg{width:100%;height:auto;display:block}'
+    + '.fr-sim-leg{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--g200);font-size:10.5px;color:var(--g500)}'
+    + '.fr-sim-leg-i{display:flex;align-items:center;gap:5px}'
+    + '.fr-sim-leg-s{display:inline-block;width:13px;height:9px;border-radius:2px}'
+    + '.fr-proj{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:14px;border:1px solid var(--g200);border-radius:10px;overflow:hidden}'
+    + '.fr-proj-c{padding:13px 14px;border-right:1px solid var(--g200);background:#fff}'
+    + '.fr-proj-c:last-child{border-right:none}'
+    + '.fr-proj-a{font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-bottom:7px}'
+    + '.fr-proj-m{font-family:var(--fd);font-size:20px;font-weight:500;color:#1B3A6B;letter-spacing:-.015em;line-height:1}'
+    + '.fr-proj-r{font-family:var(--fm);font-size:10px;color:var(--g500);margin-top:5px;line-height:1.4}'
+    + '@media(max-width:780px){.fr-proj{grid-template-columns:repeat(2,1fr)}.fr-proj-c:nth-child(2n){border-right:none}}'
+    // Escenaris
+    + '.fr-esc-g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}'
+    + '@media(max-width:900px){.fr-esc-g{grid-template-columns:1fr}}'
+    + '.fr-esc{background:#fff;border:1.5px solid var(--g200);border-radius:14px;padding:22px;position:relative}'
+    + '.fr-esc.actiu{border-color:#1B3A6B}'
+    + '.fr-esc.actiu::before{content:"Recomanat";position:absolute;top:-9px;left:22px;background:#1B3A6B;color:#fff;padding:3px 10px;border-radius:99px;font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}'
+    + '.fr-esc-t{font-family:var(--fd);font-size:17px;font-weight:500;color:var(--black);margin-bottom:2px}'
+    + '.fr-esc-s{font-family:var(--fm);font-size:10px;color:var(--g400);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}'
+    + '.fr-esc-d{width:100%;max-width:130px;margin:0 auto 14px;display:block}'
+    + '.fr-esc-k{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}'
+    + '.fr-esc-ki{background:var(--g50);border-radius:7px;padding:9px 11px}'
+    + '.fr-esc-kl{font-family:var(--fm);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);margin-bottom:4px}'
+    + '.fr-esc-kv{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--black)}'
+    + '.fr-esc-r{padding-top:12px;border-top:1px solid var(--g100);text-align:center}'
+    + '.fr-esc-rl{font-family:var(--fm);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);margin-bottom:5px}'
+    + '.fr-esc-rv{font-family:var(--fd);font-size:22px;font-weight:500;color:#1B3A6B;letter-spacing:-.015em;line-height:1}'
+    + '.fr-esc-rg{font-family:var(--fm);font-size:10px;color:var(--g500);margin-top:5px}'
+    // Timeline
+    + '.fr-tl{position:relative;padding-left:30px}'
+    + '.fr-tl::before{content:"";position:absolute;left:10px;top:8px;bottom:8px;width:1px;background:var(--g200)}'
+    + '.fr-tl-s{position:relative;margin-bottom:22px}'
+    + '.fr-tl-s::before{content:"";position:absolute;left:-30px;top:4px;width:21px;height:21px;border-radius:50%;background:#fff;border:1.5px solid #1B3A6B}'
+    + '.fr-tl-n{position:absolute;left:-30px;top:4px;width:21px;height:21px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;font-weight:600;color:#1B3A6B}'
+    + '.fr-tl-t{font-family:var(--fd);font-size:15px;font-weight:500;color:var(--black);margin-bottom:3px}'
+    + '.fr-tl-da{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#D4943A;margin-bottom:6px}'
+    + '.fr-tl-x{font-size:12.5px;color:var(--g600);line-height:1.6;margin-bottom:8px;outline:none;min-height:18px}'
+    + '.fr-tl-to{display:flex;gap:5px;flex-wrap:wrap}'
+    + '.fr-tl-too{font-family:var(--fm);font-size:10px;background:#EBF0FA;color:#0F2847;padding:3px 8px;border-radius:5px}'
+    // Closing
+    + '.fr-closing{background:#fff;border:1px solid var(--g200);border-radius:14px;padding:28px 32px;margin-top:36px;position:relative}'
+    + '.fr-closing::before{content:"";position:absolute;left:32px;top:-1px;width:48px;height:3px;background:#1B3A6B}'
+    + '.fr-closing-lbl{font-family:var(--fm);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#1B3A6B;margin-bottom:14px;margin-top:8px}'
+    + '.fr-closing-text{font-family:var(--fd);font-size:16px;font-weight:400;color:var(--black);line-height:1.65;font-style:italic;outline:none;min-height:24px}'
+    + '.fr-closing-sig{margin-top:20px;padding-top:16px;border-top:1px solid var(--g100);font-family:var(--fm);font-size:11px;color:var(--g500);display:flex;justify-content:space-between;align-items:center}'
+    // Disclaimer
+    + '.fr-disc{padding:24px;background:var(--g50);border:1px solid var(--g100);border-radius:12px;margin-top:24px;font-size:10.5px;color:var(--g500);line-height:1.7}'
+
+    // ─── SISTEMA D'EDICIÓ ───
+    + '.fr-edit-wrap{position:relative;display:inline-block;width:100%}'
+    + '.fr-edit{outline:none;transition:all .15s;border-radius:5px;padding:1px 4px;margin:-1px -4px;cursor:text}'
+    + '.fr-edit:empty::before{content:attr(data-placeholder);color:var(--g400);font-style:italic;opacity:.7}'
+    + '.fr-edit:hover{background:rgba(212,148,58,.07);box-shadow:0 0 0 1px rgba(212,148,58,.4)}'
+    + '.fr-edit:focus{background:#fff;box-shadow:0 0 0 1.5px #1B3A6B}'
+    + '.fr-edit-badge{display:inline-block;font-family:var(--fm);font-size:8.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:99px;margin-left:8px;vertical-align:middle}'
+    + '.fr-edit-badge.auto{background:var(--g100);color:var(--g500)}'
+    + '.fr-edit-badge.custom{background:#FCF3E2;color:#7A4A00}'
+    + '.fr-hero-sub .fr-edit:hover{background:rgba(255,255,255,.06);box-shadow:0 0 0 1px rgba(255,255,255,.3)}'
+    + '.fr-hero-sub .fr-edit:focus{background:rgba(255,255,255,.08);box-shadow:0 0 0 1.5px rgba(255,255,255,.55)}'
+    + '.fr-hero-sub .fr-edit-badge.auto,.fr-hero-sub .fr-edit-badge.custom{display:none}'  // amaga badges sobre hero fosc
+
+    // Save bar flotant
+    + '.fr-save-bar{position:fixed;bottom:24px;right:24px;background:#0F2847;color:#fff;padding:12px 20px;border-radius:99px;display:none;align-items:center;gap:14px;box-shadow:0 4px 24px rgba(0,0,0,.18);z-index:9999;font-family:var(--fb);font-size:12.5px}'
+    + '.fr-save-bar.show{display:inline-flex;animation:frSaveIn .25s ease-out}'
+    + '.fr-save-bar.flash{background:#1A5C3A}'
+    + '@keyframes frSaveIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}'
+    + '.fr-save-status{font-weight:500;letter-spacing:.02em}'
+    + '.fr-save-btn{background:#fff;color:#0F2847;border:none;padding:6px 14px;border-radius:99px;font-family:var(--fb);font-size:11.5px;font-weight:500;cursor:pointer;transition:transform .1s}'
+    + '.fr-save-btn:hover{transform:scale(1.04)}'
+    + '.fr-save-bar.flash .fr-save-btn{display:none}'
+
+    // Tracker plegable (coexistència vertical)
+    + '.fr-tracker-fold{margin-top:36px;padding:0;background:transparent;border:none}'
+    + '.fr-tracker-fold > summary{cursor:pointer;font-family:var(--fd);font-size:18px;font-weight:500;color:var(--black);padding:18px 22px;background:var(--g50);border:1px solid var(--g200);border-radius:12px;list-style:none;display:flex;align-items:center;justify-content:space-between;transition:all .15s}'
+    + '.fr-tracker-fold > summary:hover{background:var(--g100)}'
+    + '.fr-tracker-fold[open] > summary{border-radius:12px 12px 0 0;border-bottom:none}'
+    + '.fr-tracker-fold > summary::after{content:"▾";font-size:14px;color:var(--g400);transition:transform .15s}'
+    + '.fr-tracker-fold[open] > summary::after{transform:rotate(180deg)}'
+    + '.fr-tracker-fold > summary::-webkit-details-marker{display:none}'
+    + '.fr-tracker-mount{padding:0;background:var(--g50);border:1px solid var(--g200);border-top:none;border-radius:0 0 12px 12px}'
+    + '.fr-tracker-mount .content-inner{padding:18px 22px !important}'
+
+    + '</style>';
+
+
+  // ════════════════════════════════════════════════════════════
+  // MUNTATGE HTML
+  // ════════════════════════════════════════════════════════════
+  var html = css + '<div class="content-inner fade-in">';
+
+  // ─── 1. HERO ────────────────────────────────────────────────
+  var dataAvui = new Date().toLocaleDateString('ca-ES', { day:'numeric', month:'long', year:'numeric' });
+  var heroSubAuto = 'El teu pla d\u2019inversi\u00f3 personalitzat. Una cartera dissenyada per al teu perfil, els teus objectius i el temps de qu\u00e8 disposes \u2014 sense soroll, sense modes, sense complicacions innecess\u00e0ries.';
+
+  html += '<div class="fr-hero">'
+    + '<div class="fr-hero-lbl">Document personal · Confidencial</div>'
+    + '<div class="fr-hero-titol">Full de Ruta <em>Financer</em></div>'
+    + '<div class="fr-hero-sub">' + _frEdField(notes.hero_sub, { key:'hero_sub', autoVal:heroSubAuto, multiline:true, placeholder:'Subtítol personalitzat per al client...' }) + '</div>'
+    + '<div class="fr-hero-meta">'
+      + '<div><div class="fr-hero-meta-lbl">Client</div><div class="fr-hero-meta-val">' + (c.nom || 'Client') + '</div></div>'
+      + '<div><div class="fr-hero-meta-lbl">Data</div><div class="fr-hero-meta-val">' + dataAvui + '</div></div>'
+      + '<div><div class="fr-hero-meta-lbl">Assessor</div><div class="fr-hero-meta-val">Guillem Puig · EFA</div></div>'
+      + '<div><div class="fr-hero-meta-lbl">Versi\u00f3</div><div class="fr-hero-meta-val">v1.0</div></div>'
+    + '</div>'
+  + '</div>';
+
+  // ─── 2. PERFIL ──────────────────────────────────────────────
+  html += '<div class="fr-section">'
+    + '<div class="fr-label">01 · El teu perfil inversor</div>'
+    + '<div class="fr-h2">' + arq.nom + ' <em style="font-style:italic;color:var(--g400)"> \u2014 ' + arq.cartRoma + '</em></div>'
+    + '<div class="fr-lead">' + (arq.rationale || '') + '</div>'
+    + '<div class="fr-chips">'
+      + '<span class="fr-chip fr-chip-navy">\uD83C\uDFDB Arquetip ' + arq.nom + '</span>'
+      + '<span class="fr-chip">\u23F3 Horitz\u00f3 ' + horitzo + ' anys</span>'
+      + (perfil.riscFinancer ? '<span class="fr-chip">\uD83D\uDCCA Risc tolerable: ' + perfil.riscFinancer + '</span>' : '')
+      + (perfil.riscEmocional ? '<span class="fr-chip">\uD83D\uDE0C Risc emocional: ' + perfil.riscEmocional + '</span>' : '')
+      + (c.pla ? '<span class="fr-chip fr-chip-gold">\u2699 Pla ' + (getPla(c.pla).nom || c.pla) + '</span>' : '')
+    + '</div>'
+    + '<div class="fr-dades">'
+      + '<div class="fr-dada"><div class="fr-dada-lbl">Capital inicial</div><div class="fr-dada-val">' + fEur(capital) + '</div><div class="fr-dada-sub">Comptes + fons disponible</div></div>'
+      + '<div class="fr-dada"><div class="fr-dada-lbl">Aportaci\u00f3 mensual</div><div class="fr-dada-val">' + fEur(aportacio) + '</div><div class="fr-dada-sub">Domiciliada · revisable</div></div>'
+      + '<div class="fr-dada"><div class="fr-dada-lbl">Horitz\u00f3 d\u2019inversi\u00f3</div><div class="fr-dada-val">' + horitzo + ' anys</div><div class="fr-dada-sub">Termini objectiu</div></div>'
+      + '<div class="fr-dada"><div class="fr-dada-lbl">Total aportat futur</div><div class="fr-dada-val">' + fEur(capital + aportacio * 12 * horitzo) + '</div><div class="fr-dada-sub">Capital + aportacions</div></div>'
+    + '</div>'
+  + '</div>';
+
+  // ─── 3. OBJECTIUS ───────────────────────────────────────────
+  var objectius = (Array.isArray(fr.objectius) && fr.objectius.length > 0) ? fr.objectius : [
+    { icona:'\uD83C\uDFE0', titol:'Entrada de pis', meta:'Compra · prioritat alta', import:60000, termini:'5 anys' },
+    { icona:'\uD83C\uDF05', titol:'Jubilaci\u00f3 complement\u00e0ria', meta:'Pensi\u00f3 p\u00fablica + cartera', import:280000, termini:horitzo + ' anys' },
+    { icona:'\uD83C\uDF93', titol:'Educaci\u00f3 fills', meta:'Universitat · matr\u00edcula + estada', import:45000, termini:'12 anys' },
+  ];
+  // Si admin i no hi ha objectius reals, els movem a c.fullderuta.objectius perquè quedin editables
+  if (isAdmin && (!Array.isArray(fr.objectius) || fr.objectius.length === 0)) {
+    if (!c.fullderuta) c.fullderuta = {};
+    c.fullderuta.objectius = objectius.slice();
+  }
+
+  html += '<div class="fr-section">'
+    + '<div class="fr-label">02 · Els teus objectius</div>'
+    + '<div class="fr-h2">Qu\u00e8 volem aconseguir junts</div>'
+    + '<div class="fr-lead">Els objectius marquen la composici\u00f3 de la cartera. Cada euro invertit t\u00e9 un prop\u00f2sit concret amb una data i un import.</div>';
+
+  for (var oi = 0; oi < objectius.length; oi++) {
+    var o = objectius[oi];
+    var importStr = fEur(o.import || 0);
+    if (isAdmin) {
+      html += '<div class="fr-obj">'
+        + '<div class="fr-obj-ico">' + (o.icona || '\uD83C\uDFAF') + '</div>'
+        + '<div>'
+          + '<div class="fr-obj-titol" contenteditable="true" data-obj-idx="' + oi + '" data-obj-field="titol">' + o.titol + '</div>'
+          + '<div class="fr-obj-meta" contenteditable="true" data-obj-idx="' + oi + '" data-obj-field="meta">' + (o.meta || '') + '</div>'
+        + '</div>'
+        + '<div class="fr-obj-import">'
+          + '<div class="fr-obj-import-val" contenteditable="true" data-obj-idx="' + oi + '" data-obj-field="import">' + importStr + '</div>'
+          + '<div class="fr-obj-import-lbl" contenteditable="true" data-obj-idx="' + oi + '" data-obj-field="termini">En ' + (o.termini || '—') + '</div>'
+        + '</div>'
+        + '<button class="fr-obj-del" onclick="_frRemoveObjectiu(' + oi + ')" title="Eliminar">×</button>'
+      + '</div>';
+    } else {
+      html += '<div class="fr-obj">'
+        + '<div class="fr-obj-ico">' + (o.icona || '\uD83C\uDFAF') + '</div>'
+        + '<div><div class="fr-obj-titol">' + o.titol + '</div><div class="fr-obj-meta">' + (o.meta || '') + '</div></div>'
+        + '<div class="fr-obj-import"><div class="fr-obj-import-val">' + importStr + '</div><div class="fr-obj-import-lbl">En ' + (o.termini || '—') + '</div></div>'
+        + '<div></div>'
+      + '</div>';
+    }
+  }
+  if (isAdmin) {
+    html += '<button class="fr-obj-add" onclick="_frAddObjectiu()">+ Afegir objectiu</button>';
+  }
+  html += '</div>';
+
+  // ─── 4. CARTERA ─────────────────────────────────────────────
+  var rationaleAuto = arq.diff || arq.rationale || 'Cartera ajustada al teu perfil i horitz\u00f3.';
+  html += '<div class="fr-section">'
+    + '<div class="fr-label">03 · La teva cartera recomanada</div>'
+    + '<div class="fr-h2">Cartera ' + arq.cartRoma + '</div>'
+    + '<div class="fr-lead">Aquesta \u00e9s la composici\u00f3 dissenyada per al teu perfil. Cada pe\u00e7a t\u00e9 una funci\u00f3 espec\u00edfica dins de la cartera.</div>'
+    + '<div class="fr-cart-grid" style="margin-top:24px">'
+      + '<div class="fr-donut-wrap"><svg id="fr-donut-pri" style="width:100%;height:auto;display:block"></svg>'
+        + '<div class="fr-donut-center"><div class="fr-donut-cv">100%</div><div class="fr-donut-cl">Cartera</div></div>'
+      + '</div>'
+      + '<table class="fr-tcart">'
+        + '<thead><tr><th>Actiu</th><th class="r">Pes</th><th class="r">\u03BC esperat</th><th class="r">\u03C3 vol.</th></tr></thead>'
+        + '<tbody>';
+  for (var ci = 0; ci < cartera.length; ci++) {
+    var ac = cartera[ci];
+    html += '<tr>'
+      + '<td><span class="sw" style="background:' + ac.color + '"></span><span class="nm">' + ac.nom + '</span></td>'
+      + '<td class="r pe">' + f1(ac.pes) + '%</td>'
+      + '<td class="r ms">' + f1(ac.mu) + '%</td>'
+      + '<td class="r ms">' + f1(ac.sigma) + '%</td>'
+    + '</tr>';
+  }
+  html += '</tbody>'
+    + '<tfoot><tr><td>Cartera global</td><td class="r">100%</td><td class="r">+' + f1(mCart.mu) + '%</td><td class="r">' + f1(mCart.sigma) + '%</td></tr></tfoot>'
+    + '</table>'
+    + '</div>'
+    + '<div class="fr-callout" style="margin-top:26px"><div class="fr-callout-t">Per qu\u00e8 aquesta cartera per a tu?</div>'
+    + '<div class="fr-callout-x">' + _frEdField(notes.cartera_rationale, { key:'cartera_rationale', autoVal:rationaleAuto, multiline:true, placeholder:'Racional personalitzat de la cartera...', tag:'span' }) + '</div></div>'
+  + '</div>';
+
+  // ─── 5. KPIs ────────────────────────────────────────────────
+  html += '<div class="fr-section">'
+    + '<div class="fr-label">04 · M\u00e8triques clau de la cartera</div>'
+    + '<div class="fr-h2">Qu\u00e8 esperar \u2014 i qu\u00e8 no</div>'
+    + '<div class="fr-lead">Aquestes sis m\u00e8triques resumeixen el comportament esperat de la teva cartera. No s\u00f3n promeses; s\u00f3n rangs probabil\u00edstics basats en dades hist\u00f2riques i models matem\u00e0tics est\u00e0ndard.</div>'
+    + '<div class="fr-kpis">'
+      + '<div class="fr-kpi"><div class="fr-kpi-lbl">Rendiment esperat \u03BC</div><div class="fr-kpi-val pos">+' + f1(mCart.mu) + '<span class="fr-kpi-unit">% / any</span></div><div class="fr-kpi-desc">Mitjana anual esperada a llarg termini, calculada com a mitjana ponderada del retorn esperat de cada actiu. <strong>No \u00e9s el que guanyar\u00e0s cada any</strong> \u2014 alguns anys ser\u00e0 m\u00e9s, altres ser\u00e0 negatiu.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(mCart.mu * 10, 100) + '%"></div></div></div>'
+      + '<div class="fr-kpi"><div class="fr-kpi-lbl">Volatilitat \u03C3</div><div class="fr-kpi-val navy">' + f1(mCart.sigma) + '<span class="fr-kpi-unit">% / any</span></div><div class="fr-kpi-desc">Desviaci\u00f3 est\u00e0ndard del retorn anual: mesura com de variable \u00e9s el rendiment any rere any. Aproximadament un 68% dels anys el resultat estar\u00e0 a \u00B1\u03C3 de la mitjana.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(mCart.sigma * 5, 100) + '%;background:#D4943A"></div></div></div>'
+      + '<div class="fr-kpi"><div class="fr-kpi-lbl">R\u00e0tio Sharpe</div><div class="fr-kpi-val navy">' + sCart.toFixed(2).replace('.', ',') + '</div><div class="fr-kpi-desc">Rendiment per unitat de risc, restada la taxa lliure de risc (\u2248 2%). Una cartera amb Sharpe &gt;0,5 \u00e9s bona; &gt;1,0 \u00e9s excel\u00b7lent. Mesura l\u2019efici\u00e8ncia de la cartera.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(Math.max(sCart * 100, 0), 100) + '%"></div></div></div>'
+      + '<div class="fr-kpi"><div class="fr-kpi-lbl">M\u00e0xima caiguda esperada</div><div class="fr-kpi-val neg">\u2212' + Math.round(ddCart) + '<span class="fr-kpi-unit">%</span></div><div class="fr-kpi-desc">Caiguda m\u00e0xima estimada en un escenari de crisi severa (un cop cada 10\u201315 anys). En la crisi del 2008 o el COVID de mar\u00e7 2020 carteres similars van caure entre el 20% i el 30%.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + ddCart + '%;background:#8B1A1A"></div></div></div>'
+      + '<div class="fr-kpi"><div class="fr-kpi-lbl">Temps de recuperaci\u00f3</div><div class="fr-kpi-val navy">~' + recCart.toFixed(1).replace('.', ',') + '<span class="fr-kpi-unit"> anys</span></div><div class="fr-kpi-desc">Temps mig per recuperar el valor previ a una caiguda m\u00e0xima, assumint el rendiment esperat. \u00c9s el motiu clau per qu\u00e8 aquesta cartera necessita horitz\u00f3 llarg.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(recCart * 10, 100) + '%"></div></div></div>'
+      + '<div class="fr-kpi"><div class="fr-kpi-lbl">VaR 95% · 1 any</div><div class="fr-kpi-val neg">' + (varCart < 0 ? '\u2212' : '+') + f1(Math.abs(varCart)) + '<span class="fr-kpi-unit">%</span></div><div class="fr-kpi-desc">P\u00e8rdua m\u00e0xima esperada amb un 95% de confian\u00e7a en qualsevol any. Cada 20 anys, aproximadament 1 any tindr\u00e0 una caiguda m\u00e9s gran que aquesta xifra.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(Math.abs(varCart) * 3, 100) + '%;background:#8B1A1A"></div></div></div>'
+    + '</div>'
+    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Notes metodol\u00f2giques: \u03BC i \u03C3 calculats amb correlaci\u00f3 zero entre actius (model conservador). Sharpe amb rf = 2%. M\u00e0x. caiguda i VaR estimats sota distribuci\u00f3 lognormal. Rendiments passats no garanteixen rendiments futurs.</div>'
+  + '</div>';
+
+  // ─── 6. ANÀLISI ACTIU PER ACTIU ────────────────────────────
+  html += '<div class="fr-section">'
+    + '<div class="fr-label">05 · An\u00e0lisi actiu per actiu</div>'
+    + '<div class="fr-h2">Qu\u00e8 hi ha dins de la teva cartera</div>'
+    + '<div class="fr-lead">Cada pe\u00e7a t\u00e9 un rol espec\u00edfic. Entendre per qu\u00e8 hi \u00e9s et permet mantenir-la quan els mercats es posen dif\u00edcils.</div>';
+  for (var ai = 0; ai < cartera.length; ai++) {
+    var act = cartera[ai];
+    var importInicial = act.pes * capital / 100;
+    var prosHtml = '<ul>' + act.pros.slice(0, 4).map(function(p) { return '<li>' + p + '</li>'; }).join('') + '</ul>';
+    var contHtml = '<ul>' + act.contres.slice(0, 4).map(function(p) { return '<li>' + p + '</li>'; }).join('') + '</ul>';
+    var noteVal = actiusNotes[act.id] || '';
+    var notePlaceholder = 'Nota personalitzada per a aquest actiu (ex: "He pujat el pes d\u2019or al 8% perqu\u00e8 et preocupa la inflaci\u00f3...")';
+    var noteHtml = '';
+    if (isAdmin) {
+      noteHtml = '<div class="fr-act-note' + (noteVal ? '' : ' empty') + '" '
+        + 'contenteditable="true" data-act-id="' + act.id + '" '
+        + 'data-placeholder="' + notePlaceholder + '">' + noteVal + '</div>';
+    } else if (noteVal) {
+      noteHtml = '<div class="fr-act-note">' + noteVal + '</div>';
+    }
+
+    html += '<div class="fr-act">'
+      + '<div class="fr-act-hd">'
+        + '<div class="fr-act-sw" style="background:' + act.color + '22;color:' + act.color + '">\u25CF</div>'
+        + '<div class="fr-act-nm"><div class="fr-act-t">' + act.nom + '</div><div class="fr-act-p">' + f1(act.pes) + '% de la cartera · ' + fEur(importInicial) + ' inicials</div></div>'
+        + '<div class="fr-act-nums">'
+          + '<div class="fr-act-n"><div class="fr-act-nv">' + f1(act.mu) + '%</div><div class="fr-act-nl">\u03BC esperat</div></div>'
+          + '<div class="fr-act-n"><div class="fr-act-nv">' + f1(act.sigma) + '%</div><div class="fr-act-nl">\u03C3 vol.</div></div>'
+        + '</div>'
+      + '</div>'
+      + '<div class="fr-act-d">' + (act.desc || '') + '</div>'
+      + noteHtml
+      + '<div class="fr-act-pc">'
+        + '<div class="fr-act-pc-b fr-act-pc-pros"><div class="fr-act-pc-ti">\u2713 Avantatges</div>' + prosHtml + '</div>'
+        + '<div class="fr-act-pc-b fr-act-pc-cont"><div class="fr-act-pc-ti">\u2717 Riscos</div>' + contHtml + '</div>'
+      + '</div>'
+    + '</div>';
+  }
+  html += '</div>';
+
+  // ─── 7. SIMULACIÓ ──────────────────────────────────────────
+  html += '<div class="fr-section">'
+    + '<div class="fr-label">06 · Simulaci\u00f3 probabil\u00edstica</div>'
+    + '<div class="fr-h2">El futur en rangs, no en prediccions</div>'
+    + '<div class="fr-lead">Aquesta simulaci\u00f3 no et diu qu\u00e8 passar\u00e0. Et diu qu\u00e8 \u00e9s <strong>raonable esperar</strong> en funci\u00f3 dels par\u00e0metres de la cartera.</div>'
+    + '<div class="fr-sim"><svg id="fr-sim-chart" viewBox="0 0 900 340"></svg>'
+      + '<div class="fr-sim-leg">'
+        + '<span class="fr-sim-leg-i"><span class="fr-sim-leg-s" style="background:rgba(27,58,107,.12)"></span>Rang ampli · P5\u2013P95 (90%)</span>'
+        + '<span class="fr-sim-leg-i"><span class="fr-sim-leg-s" style="background:rgba(27,58,107,.28)"></span>Rang estret · P25\u2013P75 (50%)</span>'
+        + '<span class="fr-sim-leg-i"><span class="fr-sim-leg-s" style="background:#1B3A6B;height:3px"></span>Mediana · cas esperat</span>'
+      + '</div>'
+    + '</div>'
+    + '<div class="fr-proj" id="fr-proj-grid"></div>'
+    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Model: Geometric Brownian Motion (lognormal). Cap. inicial ' + fEur(capital) + ' + ' + fEur(aportacio) + '/mes.</div>'
+  + '</div>';
+
+  // ─── 8. ESCENARIS ──────────────────────────────────────────
+  var mCons = _frCalcCartera(carteraCons);
+  var mAgr  = _frCalcCartera(carteraAgr);
+  var sCons = _frSharpe(mCons.mu, mCons.sigma, rf);
+  var sAgr  = _frSharpe(mAgr.mu, mAgr.sigma, rf);
+  var ddCons = _frMaxDD(mCons.mu, mCons.sigma);
+  var ddAgr  = _frMaxDD(mAgr.mu, mAgr.sigma);
+  var pCons = _frProj(capital, aportacio, mCons.mu, mCons.sigma, horitzo);
+  var pRec  = _frProj(capital, aportacio, mCart.mu, mCart.sigma, horitzo);
+  var pAgr  = _frProj(capital, aportacio, mAgr.mu,  mAgr.sigma,  horitzo);
+
+  function escBlock(cls, titol, sub, donutId, mu, sig, sh, dd, proj) {
+    return '<div class="fr-esc' + cls + '">'
+      + '<div class="fr-esc-t">' + titol + '</div>'
+      + '<div class="fr-esc-s">' + sub + '</div>'
+      + '<svg id="' + donutId + '" viewBox="0 0 100 100" class="fr-esc-d"></svg>'
+      + '<div class="fr-esc-k">'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03BC esperat</div><div class="fr-esc-kv" style="color:#1A5C3A">+' + f1(mu) + '%</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03C3 vol.</div><div class="fr-esc-kv">' + f1(sig) + '%</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">Sharpe</div><div class="fr-esc-kv">' + sh.toFixed(2).replace('.', ',') + '</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">M\u00e0x. DD</div><div class="fr-esc-kv" style="color:#8B1A1A">\u2212' + Math.round(dd) + '%</div></div>'
+      + '</div>'
+      + '<div class="fr-esc-r">'
+        + '<div class="fr-esc-rl">Valor a ' + horitzo + ' anys</div>'
+        + '<div class="fr-esc-rv">\u2248 ' + fEur(proj.median) + '</div>'
+        + '<div class="fr-esc-rg">P5: ' + fEurK(proj.p5) + ' · P95: ' + fEurK(proj.p95) + '</div>'
+      + '</div>'
+    + '</div>';
+  }
+
+  // Comentari automàtic dels escenaris (es regenera amb els números reals)
+  var pctOverRec = Math.round((pAgr.median / pRec.median - 1) * 100);
+  var pctUnderRec = Math.round((1 - pCons.median / pRec.median) * 100);
+  var escenarisAuto = 'L\u2019agressiva pot acabar un ' + pctOverRec + '% per sobre de la recomanada \u2014 per\u00f2 tamb\u00e9 pot caure fins a un ' + Math.round(ddAgr) + '% en una crisi i trigar m\u00e9s de ' + _frRecoveryYrs(mAgr.mu, ddAgr).toFixed(1).replace('.',',') + ' anys a recuperar-se. La conservadora redueix les caigudes (' + Math.round(ddCons) + '%) per\u00f2 el cost \u00e9s un ' + pctUnderRec + '% menys de capital final esperat. <strong>La recomanada \u00e9s la que millor s\u2019ajusta al teu horitz\u00f3, els teus objectius i la teva toler\u00e0ncia emocional</strong>.';
+
+  html += '<div class="fr-section">'
+    + '<div class="fr-label">07 · Escenaris alternatius</div>'
+    + '<div class="fr-h2">I si fos m\u00e9s conservadora? I si fos m\u00e9s agressiva?</div>'
+    + '<div class="fr-lead">Cada cartera \u00e9s un trade-off entre rendiment i risc. Aquesta comparativa et permet veure exactament qu\u00e8 guanyes o qu\u00e8 perds si t\u2019inclines per una altra direcci\u00f3.</div>'
+    + '<div class="fr-esc-g">'
+      + escBlock('',      'Conservadora', arqCons.cartRoma + ' · ' + arqCons.nom, 'fr-d-cons', mCons.mu, mCons.sigma, sCons, ddCons, pCons)
+      + escBlock(' actiu','Recomanada',   arq.cartRoma     + ' · ' + arq.nom,    'fr-d-rec',  mCart.mu, mCart.sigma, sCart, ddCart, pRec)
+      + escBlock('',      'Agressiva',    arqAgr.cartRoma  + ' · ' + arqAgr.nom, 'fr-d-agr',  mAgr.mu,  mAgr.sigma,  sAgr,  ddAgr,  pAgr)
+    + '</div>'
+    + '<div class="fr-callout" style="margin-top:24px">'
+      + '<div class="fr-callout-t">Com llegir aquesta comparativa</div>'
+      + '<div class="fr-callout-x">' + _frEdField(notes.escenaris_comment, { key:'escenaris_comment', autoVal:escenarisAuto, multiline:true, placeholder:'Comentari personalitzat sobre la comparativa...', tag:'span' }) + '</div>'
+    + '</div>'
+  + '</div>';
+
+  // ─── 9. PASSOS ─────────────────────────────────────────────
+  var exec = fr.execucio || {};
+  var brokerTextAuto = 'Per al teu perfil i volum d\u2019aportaci\u00f3 recomanem un broker registrat a la CNMV, sense comissi\u00f3 de cust\u00f2dia i amb fons indexats / ETFs de baix cost. <em>L\u2019assessor personalitza aquesta recomanaci\u00f3 segons el teu cas.</em>';
+  var brokerText = exec.broker_text || brokerTextAuto;
+  var brokerTools = Array.isArray(exec.broker_tools) && exec.broker_tools.length > 0
+    ? exec.broker_tools
+    : ['Broker triat per l\u2019assessor', 'DNI + IBAN', '~30 min'];
+
+  var brokerTextHtml;
+  if (isAdmin) {
+    brokerTextHtml = '<span class="fr-edit" contenteditable="true" data-key="execucio_broker" data-multiline="1" data-placeholder="Recomanaci\u00f3 personalitzada del broker...">' + brokerText + '</span>';
+  } else {
+    brokerTextHtml = brokerText;
+  }
+
+  html += '<div class="fr-section">'
+    + '<div class="fr-label">08 · Posada en marxa</div>'
+    + '<div class="fr-h2">Pla d\u2019execuci\u00f3 en 6 passos</div>'
+    + '<div class="fr-lead">Sense complicacions. Cada pas t\u00e9 data prevista, eina recomanada i temps estimat.</div>'
+    + '<div class="fr-tl">'
+      + '<div class="fr-tl-s"><span class="fr-tl-n">1</span><div class="fr-tl-da">Setmana 1</div><div class="fr-tl-t">Obrir el compte al broker</div><div class="fr-tl-x">' + brokerTextHtml + '</div><div class="fr-tl-to">' + brokerTools.map(function(t){ return '<span class="fr-tl-too">' + t + '</span>'; }).join('') + '</div></div>'
+      + '<div class="fr-tl-s"><span class="fr-tl-n">2</span><div class="fr-tl-da">Setmana 2</div><div class="fr-tl-t">Transferir el capital inicial</div><div class="fr-tl-x">Transfer\u00e8ncia SEPA de ' + fEur(capital) + ' del teu compte bancari al broker. Important: <strong>NO compris res encara</strong>. El capital es queda en rep\u00f2s fins al seg\u00fcent pas.</div><div class="fr-tl-to"><span class="fr-tl-too">Transfer\u00e8ncia SEPA</span><span class="fr-tl-too">1\u20132 dies h\u00e0bils</span></div></div>'
+      + '<div class="fr-tl-s"><span class="fr-tl-n">3</span><div class="fr-tl-da">Setmana 3</div><div class="fr-tl-t">Comprar els actius de la cartera</div><div class="fr-tl-x">Comprem els ' + cartera.length + ' actius segons els pesos definits a la cartera ' + arq.cartRoma + '. T\u2019enviar\u00e9 els ISIN concrets i un calendari per <strong>esglaonar l\u2019entrada en 3 tranches</strong> (50% / 25% / 25%) durant tres setmanes.</div><div class="fr-tl-to"><span class="fr-tl-too">Llista d\u2019ISIN</span><span class="fr-tl-too">Compra esglaonada</span></div></div>'
+      + '<div class="fr-tl-s"><span class="fr-tl-n">4</span><div class="fr-tl-da">Mes 1</div><div class="fr-tl-t">Configurar l\u2019aportaci\u00f3 mensual</div><div class="fr-tl-x">Domiciliaci\u00f3 de ' + fEur(aportacio) + ' el dia 5 de cada mes. Compra autom\u00e0tica del fons principal perqu\u00e8 la inversi\u00f3 sigui 100% passiva.</div><div class="fr-tl-to"><span class="fr-tl-too">Ordre permanent</span><span class="fr-tl-too">Auto-compra</span></div></div>'
+      + '<div class="fr-tl-s"><span class="fr-tl-n">5</span><div class="fr-tl-da">Cada trimestre</div><div class="fr-tl-t">Revisi\u00f3 trimestral</div><div class="fr-tl-x">Sessi\u00f3 de 30 minuts: rendiment vs benchmark, desviaci\u00f3 de pesos i canvis macro. <strong>Si algun actiu s\u2019ha desviat &gt;5% del seu pes target, rebalancegem</strong>.</div><div class="fr-tl-to"><span class="fr-tl-too">Portal client TBI</span><span class="fr-tl-too">Informe trimestral</span></div></div>'
+      + '<div class="fr-tl-s"><span class="fr-tl-n">6</span><div class="fr-tl-da">Anualment · setembre</div><div class="fr-tl-t">Revisi\u00f3 integral i fiscal</div><div class="fr-tl-x">Actualitzem el perfil de risc, revisem objectius, optimitzem fiscalitat (compensaci\u00f3 p\u00e8rdues, traspassos), ajustem aportacions.</div><div class="fr-tl-to"><span class="fr-tl-too">Q\u00fcestionari curt</span><span class="fr-tl-too">An\u00e0lisi fiscal</span></div></div>'
+    + '</div>'
+  + '</div>';
+
+  // ─── 10. CLOSING (missatge personal) ───────────────────────
+  var closingVal = notes.closing || '';
+  var closingPlaceholder = 'Missatge final personal per al client \u2014 reconeixement de pas important, expectatives compartides, signatura de confian\u00e7a... (apareix com a tancament del document)';
+  if (isAdmin || closingVal) {
+    html += '<div class="fr-closing">'
+      + '<div class="fr-closing-lbl">Una nota personal</div>'
+      + '<div class="fr-closing-text" '
+      +   (isAdmin ? 'contenteditable="true" data-key="closing" data-multiline="1" data-placeholder="' + closingPlaceholder + '"' : '')
+      +   '>' + (closingVal || (isAdmin ? '' : '')) + '</div>'
+      + '<div class="fr-closing-sig"><span>Guillem Puig · The Boring Investor</span><span>' + dataAvui + '</span></div>'
+    + '</div>';
+  }
+
+  // ─── 11. DISCLAIMER ────────────────────────────────────────
+  html += '<div class="fr-disc">'
+    + '<strong>Disclaimer.</strong> Aquest document \u00e9s una recomanaci\u00f3 personalitzada elaborada amb finalitat informativa i pedag\u00f2gica. The Boring Investor \u00e9s un assessor fee-only independent. Les projeccions s\u00f3n estimacions estad\u00edstiques i no garanteixen rendiments futurs. Tota inversi\u00f3 comporta risc.<br><br>'
+    + '<strong>Nota metodol\u00f2gica.</strong> Els c\u00e0lculs assumeixen <strong>correlaci\u00f3 zero entre actius</strong> \u2014 un model conservador que pot subestimar la volatilitat real en crisis globals. La frontera eficient real (Markowitz) sol situar-se entre un 10% i un 25% per sota de la \u03C3 calculada. Document elaborat sense la consideraci\u00f3 de documentaci\u00f3 regulada MiFID II.'
+  + '</div>';
+
+  // ─── 12. TRACKER PLEGABLE (coexistència vertical) ──────────
+  html += '<details class="fr-tracker-fold">'
+    + '<summary>Seguiment operatiu del pla</summary>'
+    + '<div class="fr-tracker-mount" id="fr-tracker-mount"></div>'
+  + '</details>';
+
+  // ─── 13. SAVE BAR (només admin) ────────────────────────────
+  if (isAdmin) {
+    html += '<div class="fr-save-bar" id="fr-save-bar">'
+      + '<span class="fr-save-status">Canvis pendents</span>'
+      + '<button class="fr-save-btn" onclick="_frPersist()">Desar Full de Ruta</button>'
+    + '</div>';
+  }
+
+  html += '</div>'; // /content-inner
+
+  el.innerHTML = html;
+
+
+  // ════════════════════════════════════════════════════════════
+  // POST-RENDER
+  // ════════════════════════════════════════════════════════════
+  _frDrawDonut(document.getElementById('fr-donut-pri'), cartera, { size:200, stroke:28 });
+  _frDrawDonut(document.getElementById('fr-d-cons'),    carteraCons, { size:100, stroke:14 });
+  _frDrawDonut(document.getElementById('fr-d-rec'),     cartera,     { size:100, stroke:14 });
+  _frDrawDonut(document.getElementById('fr-d-agr'),     carteraAgr,  { size:100, stroke:14 });
+  _frDrawSimChart(document.getElementById('fr-sim-chart'), capital, aportacio, mCart.mu, mCart.sigma, 20);
+
+  // Projecció grid
+  var grid = document.getElementById('fr-proj-grid');
+  if (grid) {
+    var pts = [5, 10, 15, 20];
+    var gh = '';
+    for (var pi = 0; pi < pts.length; pi++) {
+      var yp = pts[pi];
+      var p = _frProj(capital, aportacio, mCart.mu, mCart.sigma, yp);
+      gh += '<div class="fr-proj-c"><div class="fr-proj-a">A ' + yp + ' anys</div><div class="fr-proj-m">' + fEurK(p.median) + '</div><div class="fr-proj-r">P5: ' + fEurK(p.p5) + ' · P95: ' + fEurK(p.p95) + '</div></div>';
+    }
+    grid.innerHTML = gh;
+  }
+
+  // Bindings d'edició
+  if (isAdmin) {
+    _frBindEditable();
+
+    // Bindings específics d'objectius
+    var objNodes = document.querySelectorAll('[data-obj-idx]');
+    for (var on = 0; on < objNodes.length; on++) {
+      (function(node) {
+        node.addEventListener('input', _frMarkDirty);
+        node.addEventListener('blur', function() {
+          var idx = parseInt(node.dataset.objIdx, 10);
+          var field = node.dataset.objField;
+          _frUpdateObjectiu(idx, field, node.innerText.trim());
+        });
+      })(objNodes[on]);
+    }
+
+    // Bindings notes d'actiu
+    var actNotes = document.querySelectorAll('[data-act-id]');
+    for (var an = 0; an < actNotes.length; an++) {
+      (function(node) {
+        node.addEventListener('input', function() {
+          _frMarkDirty();
+          if (node.innerText.trim()) node.classList.remove('empty');
+          else node.classList.add('empty');
+        });
+        node.addEventListener('blur', function() {
+          var actId = node.dataset.actId;
+          var c2 = getClient();
+          if (!c2.fullderuta) c2.fullderuta = {};
+          if (!c2.fullderuta.notes) c2.fullderuta.notes = {};
+          if (!c2.fullderuta.notes.actius) c2.fullderuta.notes.actius = {};
+          var val = node.innerHTML.trim();
+          if (val) c2.fullderuta.notes.actius[actId] = val;
+          else delete c2.fullderuta.notes.actius[actId];
+        });
+      })(actNotes[an]);
+    }
+
+    // Binding broker text
+    var brokerNode = document.querySelector('[data-key="execucio_broker"]');
+    if (brokerNode) {
+      brokerNode.addEventListener('input', _frMarkDirty);
+      brokerNode.addEventListener('blur', function() {
+        var c2 = getClient();
+        if (!c2.fullderuta) c2.fullderuta = {};
+        if (!c2.fullderuta.execucio) c2.fullderuta.execucio = {};
+        c2.fullderuta.execucio.broker_text = brokerNode.innerHTML.trim();
+      });
+    }
+
+    // Binding closing
+    var closingNode = document.querySelector('[data-key="closing"]');
+    if (closingNode) {
+      closingNode.addEventListener('input', _frMarkDirty);
+      closingNode.addEventListener('blur', function() {
+        var c2 = getClient();
+        if (!c2.fullderuta) c2.fullderuta = {};
+        if (!c2.fullderuta.notes) c2.fullderuta.notes = {};
+        c2.fullderuta.notes.closing = closingNode.innerHTML.trim();
+      });
+    }
+  }
+
+  // Tracker plegable
+  var trackerMount = document.getElementById('fr-tracker-mount');
+  if (trackerMount && typeof renderPortalRoadmapTracker === 'function') {
+    // Render lazy: només quan obrim el details
+    var folder = trackerMount.parentElement;
+    folder.addEventListener('toggle', function() {
+      if (folder.open && !trackerMount.dataset.rendered) {
+        renderPortalRoadmapTracker(trackerMount);
+        trackerMount.dataset.rendered = '1';
+      }
+    });
+  }
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   GRÀFIC DE SIMULACIÓ
+   ──────────────────────────────────────────────────────────── */
+function _frDrawSimChart(svg, capital, aportacio, mu, sigma, maxAnys) {
+  if (!svg) return;
+  var W = 900, H = 340, padL = 68, padR = 24, padT = 16, padB = 42;
+  var innerW = W - padL - padR, innerH = H - padT - padB;
+  var series = [];
+  for (var y = 0; y <= maxAnys; y++) {
+    if (y === 0) series.push({ y:0, median:capital, p5:capital, p25:capital, p75:capital, p95:capital });
+    else {
+      var p = _frProj(capital, aportacio, mu, sigma, y);
+      series.push({ y:y, median:p.median, p5:p.p5, p25:p.p25, p75:p.p75, p95:p.p95 });
+    }
+  }
+  var maxVal = 0;
+  for (var i = 0; i < series.length; i++) if (series[i].p95 > maxVal) maxVal = series[i].p95;
+  function xS(y){ return padL + (y / maxAnys) * innerW; }
+  function yS(v){ return padT + innerH - (v / maxVal) * innerH; }
+  function path(key){ var s=''; for (var i=0;i<series.length;i++) s += (i===0?'M':'L') + xS(series[i].y) + ',' + yS(series[i][key]) + ' '; return s; }
+  function area(kHi, kLo){ var t='',b=''; for (var i=0;i<series.length;i++) t += (i===0?'M':'L') + xS(series[i].y) + ',' + yS(series[i][kHi]) + ' '; for (var j=series.length-1;j>=0;j--) b += 'L' + xS(series[j].y) + ',' + yS(series[j][kLo]) + ' '; return t + b + ' Z'; }
+  var h = '';
+  for (var gi = 0; gi <= 5; gi++) {
+    var v = (maxVal * gi) / 5, yy = yS(v);
+    h += '<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#F2F1ED" stroke-width="1"/>';
+    h += '<text x="'+(padL-10)+'" y="'+(yy+4)+'" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="#9A9690">'+(v>=1000?(v/1000).toFixed(0)+'k':v.toFixed(0))+'€</text>';
+  }
+  for (var yt = 0; yt <= maxAnys; yt += 5) {
+    var xx = xS(yt);
+    h += '<line x1="'+xx+'" y1="'+padT+'" x2="'+xx+'" y2="'+(H-padB)+'" stroke="#F2F1ED" stroke-width="1"/>';
+    h += '<text x="'+xx+'" y="'+(H-padB+18)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#9A9690">Any '+yt+'</text>';
+  }
+  h += '<path d="'+area('p95','p5')+'" fill="#1B3A6B" fill-opacity="0.10"/>';
+  h += '<path d="'+area('p75','p25')+'" fill="#1B3A6B" fill-opacity="0.22"/>';
+  h += '<path d="'+path('median')+'" fill="none" stroke="#1B3A6B" stroke-width="2"/>';
+  var aportPath = '';
+  for (var k = 0; k < series.length; k++) aportPath += (k===0?'M':'L') + xS(series[k].y) + ',' + yS(capital + aportacio*12*series[k].y) + ' ';
+  h += '<path d="'+aportPath+'" fill="none" stroke="#9A9690" stroke-width="1.2" stroke-dasharray="4 4"/>';
+  svg.innerHTML = h;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+}
+
+
+function renderPortalRoadmapTracker(el) {
   var c = getClient();
   var client = c || DEMO_CLIENT;
   var arq = getArquetip((client && client.arquetipId) || 'navegant');
