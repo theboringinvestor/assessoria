@@ -2039,8 +2039,8 @@ var PLANS = {
   senyal: {
     nom: 'Senyal', preu: 8, periode: 'mes', color: '#6B6762', bg: '#F4F3F0',
     descripcio: 'Plataforma, perfil inversor i eines financeres bàsiques',
-    inclou: ['Arquetip + cartera recomanada','Anàlisi setmanal de mercat','Calculadora FIRE + Emergència','1 pregunta/setmana (acumulable fins 4)','Glossàri complet','Accés a la comunitat'],
-    restricted: ['portal-assessoria','portal-informes','portal-missatges','portal-turbo']
+    inclou: ['Arquetip + cartera recomanada','Anàlisi setmanal de mercat','Calculadora FIRE + Emergència','2 missatges/mes a l\u2019assessor','Glossàri complet','Accés a la comunitat'],
+    restricted: ['portal-assessoria','portal-informes','portal-turbo']
   },
   bruxola: {
     nom: 'Brúíxola', preu: 29, periode: 'mes', color: '#1B3A6B', bg: '#EBF0FA',
@@ -3252,6 +3252,7 @@ var ADMIN_NAV = [
   {id:'portal-missatges',  icon:'💬', label:'Missatges clients'},
   {id:'admin-preguntes',   icon:'❓', label:'Preguntes', badge:'\u2022'},
   {id:'admin-broadcast',   icon:'📣', label:'Comunicat comunitat'},
+  {id:'admin-assessoria',  icon:'📰', label:'Gestionar anàlisis'},
   {id:'portal-questionnaire', icon:'📋', label:'Q\u00fcestionari client'},
   {section:'Portal Client \u00b7 Preview'},
   {id:'portal-perfil',     icon:'📊', label:'Resum'},
@@ -3264,6 +3265,9 @@ var ADMIN_NAV = [
   {id:'portal-fire',       icon:'🔥', label:'Calculadora FIRE'},
   {id:'portal-turbo',      icon:'🚀', label:'Turbo Estalvi'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emerg\u00e8ncia"},
+  {id:'portal-simulador',  icon:'📊', label:'Simulador d\'actius'},
+  {id:'portal-montecarlo', icon:'🎲', label:'Monte Carlo'},
+  {id:'portal-fiscalitat', icon:'🧾', label:'Calculadora fiscal'},
   {section:'Sistema'},
   {id:'settings',          icon:'⚙️', label:'Configuraci\u00f3'},
 ];
@@ -3280,9 +3284,13 @@ var CLIENT_NAV = [
   {section:'Contingut'},
   {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
   {id:'portal-informes', icon:'📋', label:'Informes'},
+  {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
   {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
   {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
   {section:'Eines'},
+  {id:'portal-simulador', icon:'📊', label:'Simulador d\'actius'},
+  {id:'portal-montecarlo', icon:'🎲', label:'Monte Carlo'},
+  {id:'portal-fiscalitat', icon:'🧾', label:'Calculadora fiscal'},
   {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
   {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
@@ -3372,6 +3380,9 @@ function navigateTo(viewId) {
     'portal-ajuda':    ['Ajuda', 'Com funciona la plataforma'],
     'portal-actius': ['Guia d\'Actius', '21 categories d\'inversió — educació i referència'],
     'portal-fire': APP.role === 'admin' ? ['Portal Client · FIRE', '👁 Previsualització'] : ['Calculadora FIRE', 'Financial Independence, Retire Early'],
+    'portal-simulador': APP.role === 'admin' ? ['Portal Client · Simulador', '👁 Previsualització'] : ['Simulador d\'actius', 'Projecta el rendiment d\'una cartera segons μ i σ'],
+    'portal-montecarlo': APP.role === 'admin' ? ['Portal Client · Monte Carlo', '👁 Previsualització'] : ['Monte Carlo', 'Simula milers d\'escenaris per la teva cartera'],
+    'portal-fiscalitat': APP.role === 'admin' ? ['Portal Client · Fiscalitat', '👁 Previsualització'] : ['Calculadora fiscal', 'Tributació d\'inversions · Espanya 2026'],
     'portal-turbo': APP.role === 'admin' ? ['Portal Client · Turbo Estalvi', '👁 Previsualització · Editable'] : ['Turbo Estalvi', 'Optimitza la teva taxa d\'estalvi'],
     'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', '👁 Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
     'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', '👁 Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
@@ -3384,6 +3395,7 @@ function navigateTo(viewId) {
     'admin-calendari':  ['Calendari de reunions', 'Gestiona totes les cites amb clients'],
     'portal-calendari': ['Les meves reunions', 'Properes cites amb el teu assessor'],
     'admin-broadcast': ['Missatge a la comunitat', 'Envia un comunicat a tots els clients actius'],
+    'admin-assessoria': ['Gestionar anàlisis', 'Crea, edita i publica les anàlisis de mercat'],
     'pending-review': ['Sol·licitud rebuda', 'Esperant validació de l\'assessor'],
     'admin-pendents': ['Sol·licituds pendents', 'Clients esperant validació'],
     'admin-entrevista': ['Entrevista inicial', 'Checklist de la primera reunió amb el client'],
@@ -3446,6 +3458,7 @@ function renderView(viewId) {
     case 'admin-plans': renderAdminPlans(content); break;
     case 'admin-preguntes': renderAdminPreguntes(content); break;
     case 'admin-broadcast': renderAdminBroadcast(content); break;
+    case 'admin-assessoria': renderAdminAssessoria(content); break;
     case 'admin-entrevista': renderAdminEntrevista(content); break;
     case 'admin-pendents': renderAdminPendents(content); break;
     case 'pending-review': renderPendingReview(content); break;
@@ -3462,6 +3475,9 @@ function renderView(viewId) {
     case 'portal-carteres': renderPortalCarteres(content); break;
     case 'portal-actius': renderPortalActius(content); break;
     case 'portal-fire': renderPortalFIRE(content); break;
+    case 'portal-simulador': renderPortalSimulador(content); break;
+    case 'portal-montecarlo': renderPortalMontecarlo(content); break;
+    case 'portal-fiscalitat': renderPortalFiscalitat(content); break;
     case 'portal-turbo': renderPortalTurbo(content); break;
     case 'portal-emergencia': renderPortalEmergencia(content); break;
     case 'portal-educacio': renderPortalEducacio(content); break;
@@ -4843,16 +4859,19 @@ function renderPortalAssessoria(el) {
   getAnalisis().forEach(function(a){
     var cat = cats[a.categoria] || cats.mercat;
     var data = new Date(a.data_pub).toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+    var hasFile = a.file_url && a.file_url.trim();
     html += '<div class="pa-card">'
-      + '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
+      + '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">'
         + '<span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:' + cat.bg + ';color:' + cat.tc + '">' + cat.lbl + '</span>'
         + '<span style="font-size:11px;color:var(--g400)">' + data + '</span>'
-        + (a.destacat ? '<span style="font-size:10px;color:var(--accent)">⭐</span>' : '')
+        + (a.destacat ? '<span style="font-size:10px;color:var(--accent)">\u2b50</span>' : '')
+        + (hasFile ? '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:#EBF0FA;color:#1B3A6B">\ud83d\udcce Document</span>' : '')
       + '</div>'
       + '<div style="font-size:14px;font-weight:500;color:var(--black);margin-bottom:4px">' + a.titol + '</div>'
       + (a.subtitol ? '<div style="font-size:12px;color:var(--g400);font-style:italic;margin-bottom:8px">' + a.subtitol + '</div>' : '')
       + '<div style="font-size:12px;color:var(--g500);line-height:1.6">' + a.resum + '</div>'
       + (a.tags ? '<div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">' + a.tags.map(function(t){return '<span style="font-size:10px;padding:2px 7px;background:var(--g100);border-radius:99px;color:var(--g500)">' + t + '</span>';}).join('') + '</div>' : '')
+      + (hasFile ? '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--g100)"><a href="'+a.file_url+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:#1B3A6B;color:#fff;border-radius:7px;text-decoration:none;font-size:11px;font-weight:500;font-family:var(--fb)">\u2b07 Descarregar document</a></div>' : '')
     + '</div>';
   });
 
@@ -5344,7 +5363,9 @@ function renderPortalCartera(el) {
   var moviments = getMovimentsV2();
 
   // Si no hi ha cap posició, mostrar pantalla d'alta (Wizard)
-  if (posicions.length === 0 && moviments.length === 0) {
+  // EXCEPCIÓ: si l'usuari demana específicament la pestanya 'target', la mostrem
+  // perquè vegi la seva cartera ideal abans de tenir posicions reals.
+  if (posicions.length === 0 && moviments.length === 0 && window._carteraTab !== 'target') {
     renderCarteraOnboarding(el);
     return;
   }
@@ -5357,8 +5378,8 @@ function renderPortalCartera(el) {
   var distReal = calcDistribucioReal();
 
   // Pestanyes
-  var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:24px;background:var(--g50);padding:4px;border-radius:9px;width:fit-content">';
-  [['resum','📊 Resum'],['moviments','📋 Moviments'],['matching','🎯 Matching']].forEach(function(t){
+  var tabHtml = '<div style="display:flex;gap:6px;margin-bottom:24px;background:var(--g50);padding:4px;border-radius:9px;width:fit-content;flex-wrap:wrap">';
+  [['resum','📊 Resum'],['moviments','📋 Moviments'],['matching','🎯 Matching'],['target','🎯 Cartera Target']].forEach(function(t){
     var isActive = tabParam === t[0];
     tabHtml += '<button onclick="window._carteraTab=\''+t[0]+'\';renderPortalCartera(document.getElementById(\'content\'))" '
       + 'style="padding:8px 16px;border-radius:7px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);'
@@ -5540,6 +5561,119 @@ function renderPortalCartera(el) {
     }
   }
 
+  // ── PESTANYA 4: CARTERA TARGET (verificació) ─────────────────────────
+  if (tabParam === 'target') {
+    var hasCustom = c.cartera_target_custom && c.cartera_target_custom.length > 0;
+    var actiusTarget = hasCustom ? c.cartera_target_custom : (arq.actius || []);
+    var totalPct = actiusTarget.reduce(function(s,a){ return s + (parseFloat(a.pct)||0); }, 0);
+    var sumOk = Math.abs(totalPct - 100) < 1;
+
+    // Header amb estat
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:22px 26px;margin-bottom:16px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">'
+        + '<div>'
+          + '<div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:3px">'
+            + '\ud83c\udfaf ' + arq.cartRoma + ' \u00b7 ' + arq.cartNom
+          + '</div>'
+          + '<div style="font-size:12px;color:var(--g500)">La teva cartera ideal segons l\'arquetip <strong>' + arq.nom + '</strong></div>'
+        + '</div>'
+        + '<div>'
+          + (hasCustom 
+              ? '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;background:#EBF0FA;color:#1B3A6B;border-radius:99px;font-size:11px;font-weight:500">\u2728 Personalitzada per l\'assessor</span>'
+              : '<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;background:#F4F3F0;color:#6B6762;border-radius:99px;font-size:11px;font-weight:500">\ud83d\udccb Estàndard de l\'arquetip</span>'
+            )
+        + '</div>'
+      + '</div>'
+      + (APP.role === 'admin' 
+          ? '<div style="padding:10px 14px;background:#FEF5E7;border:1px solid #E8C285;border-radius:8px;font-size:11px;color:#7A4A00;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+            + '<span>\ud83d\udd27 <strong>Mode admin</strong> \u2014 Pots editar els pesos de la cartera target per a aquest client.</span>'
+            + '<button onclick="obrirEditarTargetAdmin(\''+c.email+'\')" style="padding:6px 12px;background:#7A4A00;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)">\u270f\ufe0f Editar pesos</button>'
+          + '</div>'
+          : '')
+      // Info de verificació
+      + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px">'
+        + '<div style="flex:1;min-width:140px;padding:12px 14px;background:var(--g50);border-radius:9px">'
+          + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Suma de pesos</div>'
+          + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:' + (sumOk?'#1A5C3A':'#C0392B') + '">' + totalPct.toFixed(0) + '% ' + (sumOk?'\u2713':'\u26a0') + '</div>'
+        + '</div>'
+        + '<div style="flex:1;min-width:140px;padding:12px 14px;background:var(--g50);border-radius:9px">'
+          + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Categories</div>'
+          + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black)">' + actiusTarget.length + '</div>'
+        + '</div>'
+        + '<div style="flex:1;min-width:140px;padding:12px 14px;background:var(--g50);border-radius:9px">'
+          + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Retorn esperat</div>'
+          + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black)">' + (arq.retorn || '\u2014') + '%</div>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+
+    // Visualització: gràfic donut + taula detall
+    html += '<div style="display:grid;grid-template-columns:300px 1fr;gap:18px;margin-bottom:18px" class="mob-grid">';
+
+    // ── Donut ──
+    var sortedActius = actiusTarget.slice().sort(function(a,b){ return (parseFloat(b.pct)||0) - (parseFloat(a.pct)||0); });
+    var cumulPct = 0;
+    var paths = '';
+    sortedActius.forEach(function(a){
+      var pct = parseFloat(a.pct) || 0;
+      if (pct <= 0) return;
+      var startAngle = cumulPct/100 * 2 * Math.PI - Math.PI/2;
+      cumulPct += pct;
+      var endAngle = cumulPct/100 * 2 * Math.PI - Math.PI/2;
+      var largeArc = pct > 50 ? 1 : 0;
+      var x1 = 100 + 80 * Math.cos(startAngle);
+      var y1 = 100 + 80 * Math.sin(startAngle);
+      var x2 = 100 + 80 * Math.cos(endAngle);
+      var y2 = 100 + 80 * Math.sin(endAngle);
+      var color = a.color || '#888';
+      paths += '<path d="M 100 100 L ' + x1 + ' ' + y1 + ' A 80 80 0 ' + largeArc + ' 1 ' + x2 + ' ' + y2 + ' Z" fill="' + color + '" stroke="#fff" stroke-width="2"/>';
+    });
+
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px;text-align:center">'
+      + '<div style="font-size:11px;color:var(--g500);margin-bottom:12px;text-transform:uppercase;letter-spacing:.07em">Composició</div>'
+      + '<svg viewBox="0 0 200 200" style="width:100%;max-width:240px;height:240px">'
+        + paths
+        + '<circle cx="100" cy="100" r="50" fill="#fff"/>'
+        + '<text x="100" y="95" text-anchor="middle" font-size="11" fill="#9A9690" font-family="var(--fb)">Total</text>'
+        + '<text x="100" y="113" text-anchor="middle" font-size="22" font-weight="500" fill="#0A0A0A" font-family="ui-monospace,monospace">' + totalPct.toFixed(0) + '%</text>'
+      + '</svg>'
+    + '</div>';
+
+    // ── Taula detall ──
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:0;overflow:hidden">'
+      + '<div style="padding:16px 22px;border-bottom:1px solid var(--g100);background:var(--g50);font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.07em;display:grid;grid-template-columns:30px 1fr 80px;gap:12px;align-items:center">'
+        + '<span></span>'
+        + '<span>Categoria</span>'
+        + '<span style="text-align:right">Pes</span>'
+      + '</div>';
+
+    sortedActius.forEach(function(a){
+      var color = a.color || '#888';
+      var pct = parseFloat(a.pct) || 0;
+      html += '<div style="padding:14px 22px;border-bottom:1px solid var(--g100);display:grid;grid-template-columns:30px 1fr 80px;gap:12px;align-items:center">'
+        + '<div style="width:14px;height:14px;border-radius:3px;background:' + color + '"></div>'
+        + '<div>'
+          + '<div style="font-size:13px;font-weight:500;color:var(--black)">' + (a.nom || a.id) + '</div>'
+        + '</div>'
+        + '<div style="text-align:right">'
+          + '<div style="font-family:var(--fm);font-size:14px;font-weight:500;color:var(--black)">' + pct.toFixed(1) + '%</div>'
+          + '<div style="height:4px;background:var(--g100);border-radius:99px;overflow:hidden;margin-top:4px"><div style="height:100%;width:' + Math.min(100, pct) + '%;background:' + color + ';border-radius:99px"></div></div>'
+        + '</div>'
+      + '</div>';
+    });
+    html += '</div>';
+    html += '</div>';
+
+    // ── Bloc de verificació tècnica ──
+    html += '<div style="padding:14px 18px;background:#F4F3F0;border-radius:10px;font-size:11px;color:var(--g500);line-height:1.7;margin-bottom:14px">'
+      + '<strong style="color:var(--g600)">\ud83d\udd0d Verificació de guardat</strong><br>'
+      + 'Origen de les dades: <code style="background:#fff;padding:1px 5px;border-radius:3px;font-family:ui-monospace,monospace">' + (hasCustom ? 'cartera_target_custom' : 'arquetip ' + arq.id) + '</code>'
+      + (hasCustom ? ' \u00b7 emmagatzemat a Supabase' : '')
+      + '<br>'
+      + 'Última modificació: ' + (c.updated_at ? new Date(c.updated_at).toLocaleString('ca-ES') : 'no disponible')
+    + '</div>';
+  }
+
   el.innerHTML = html;
 }
 
@@ -5552,9 +5686,14 @@ function renderCarteraOnboarding(el) {
     + '<div style="font-size:36px;margin-bottom:12px">💼</div>'
     + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;color:#7A4A00;margin-bottom:10px">Comencem la teva cartera</div>'
     + '<div style="font-size:13px;color:#9A6B1F;line-height:1.7;max-width:560px;margin:0 auto 28px">La teva cartera target és <strong>'+arq.cartNom+'</strong>. Importa les posicions que ja tinguis per veure el matching amb la teva cartera ideal.</div>'
-    + '<button onclick="obrirWizardCartera()" style="padding:14px 32px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">'
-      + '📥 Importar posicions actuals →'
-    + '</button>'
+    + '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
+      + '<button onclick="obrirWizardCartera()" style="padding:14px 32px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">'
+        + '📥 Importar posicions actuals →'
+      + '</button>'
+      + '<button onclick="window._carteraTab=\'target\';renderPortalCartera(document.getElementById(\'content\'))" style="padding:14px 24px;background:transparent;color:#7A4A00;border:1.5px solid #E8C285;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">'
+        + '🎯 Veure la meva cartera target'
+      + '</button>'
+    + '</div>'
     + '<div style="margin-top:20px;font-size:11px;color:#9A6B1F;line-height:1.6;max-width:520px;margin-left:auto;margin-right:auto">'
       + '💡 <strong>Encara no tens cap inversió?</strong> Vés al <a href="javascript:navigateTo(\'portal-aportacions\')" style="color:#7A4A00;font-weight:500;text-decoration:underline">Pla d\'aportacions</a> per saber exactament per on començar.'
     + '</div>'
@@ -6488,10 +6627,16 @@ async function renderPortalMissatges(el) {
   _currentThreadEmail = (APP.user && APP.user.email) || null;
   
   var html = '<div class="content-inner fade-in">';
+
+  // Banner de quota Senyal (només si pla Senyal)
+  if (clientHaSenyalPla()) {
+    html += '<div id="senyal-quota-banner" style="padding:10px 16px;border-radius:10px;font-size:12px;margin-bottom:12px;background:#F4F3F0;color:#6B6762">Carregant quota...</div>';
+  }
+
   html += '<div class="card" style="padding:0;overflow:hidden">'
     + '<div style="padding:14px 20px;border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px">'
       + '<div style="width:32px;height:32px;border-radius:8px;background:var(--accent-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--accent)">GP</div>'
-      + '<div><div style="font-size:13px;font-weight:500">Guillem Puig</div><div style="font-size:10px;color:var(--g400)">Assessor financer · Resposta en 48h</div></div>'
+      + '<div><div style="font-size:13px;font-weight:500">Guillem Puig</div><div style="font-size:10px;color:var(--g400)">Assessor financer \u00b7 Resposta en 48h</div></div>'
     + '</div>'
     + '<div style="padding:16px 20px;min-height:300px;max-height:500px;overflow-y:auto;display:flex;flex-direction:column;gap:12px" id="msg-thread">'
       + '<div style="text-align:center;color:var(--g400);font-size:12px;padding:40px 20px">Carregant missatges...</div>'
@@ -6505,6 +6650,11 @@ async function renderPortalMissatges(el) {
   
   await loadThread(_currentThreadEmail);
   subscribeToMessages(_currentThreadEmail);
+
+  // Refrescar banner de quota Senyal després del render
+  if (clientHaSenyalPla()) {
+    refrescarBannerQuotaSenyal();
+  }
 }
 
 async function renderAdminMissatges(el) {
@@ -6652,12 +6802,50 @@ async function loadThread(email) {
   }
 }
 
+// ══════════════════════════════════════════════════
+// QUOTA MISSATGES — Senyal: 2 missatges/mes
+// ══════════════════════════════════════════════════
+var SENYAL_MSG_LIMIT_PER_MONTH = 2;
+
+async function getMonthlyMessageCount(email) {
+  if (!sb || !email) return 0;
+  try {
+    var now = new Date();
+    var firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    var res = await sb.from('messages')
+      .select('id', {count: 'exact', head: true})
+      .eq('client_email', email.toLowerCase())
+      .eq('from_role', 'client')
+      .gte('created_at', firstOfMonth);
+    if (res.error) return 0;
+    return res.count || 0;
+  } catch(e) { return 0; }
+}
+
+function clientHaSenyalPla() {
+  if (APP.role === 'admin') return false;
+  var pla = (APP.clientData && APP.clientData.pla) || 'senyal';
+  if (pla === 'essencial') pla = 'senyal';
+  return pla === 'senyal';
+}
+
 async function enviarMissatge() {
   var input = document.getElementById('msg-input');
   if (!input || !input.value.trim()) return;
   if (!sb) { alert('Supabase no disponible'); return; }
   
   var txt = input.value.trim();
+
+  // QUOTA: Senyal -> 2 missatges/mes
+  if (clientHaSenyalPla()) {
+    var emailQ = APP.user.email.toLowerCase();
+    var usedThisMonth = await getMonthlyMessageCount(emailQ);
+    if (usedThisMonth >= SENYAL_MSG_LIMIT_PER_MONTH) {
+      mostrarModalQuotaSenyal(usedThisMonth);
+      return;
+    }
+  }
+
   input.value = '';
   input.disabled = true;
   
@@ -6676,11 +6864,52 @@ async function enviarMissatge() {
     input.disabled = false;
     input.focus();
     await loadThread(payload.client_email);
+
+    // Si és Senyal, refrescar el banner de quota
+    if (clientHaSenyalPla()) refrescarBannerQuotaSenyal();
   } catch(err) {
     input.disabled = false;
     input.value = txt;
     alert('Error enviant: ' + err.message);
   }
+}
+
+function mostrarModalQuotaSenyal(used) {
+  var old = document.getElementById('modal-quota-senyal');
+  if (old) old.remove();
+  var modal = document.createElement('div');
+  modal.id = 'modal-quota-senyal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:440px;width:100%;padding:32px;text-align:center">'
+    + '<div style="font-size:42px;margin-bottom:12px">\u2709\ufe0f</div>'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:8px">Has arribat al teu l\u00edmit mensual</div>'
+    + '<div style="font-size:13px;color:var(--g500);line-height:1.7;margin-bottom:22px">'
+      + 'El pla <strong style="color:#6B6762">Senyal</strong> inclou <strong>' + SENYAL_MSG_LIMIT_PER_MONTH + ' missatges/mes</strong> a l\u2019assessor. '
+      + 'Ja n\u2019has enviat <strong>' + used + '</strong> aquest mes.<br><br>'
+      + 'Per missatgeria il\u00b7limitada, puja a <strong style="color:#1B3A6B">Br\u00faixola</strong>.'
+    + '</div>'
+    + '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
+      + '<button onclick="document.getElementById(\'modal-quota-senyal\').remove()" style="padding:10px 18px;background:#fff;color:var(--g600);border:1px solid var(--g200);border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb)">Entesos</button>'
+      + '<button onclick="document.getElementById(\'modal-quota-senyal\').remove();navigateTo(\'plans\')" style="padding:10px 22px;background:#1B3A6B;color:#fff;border:none;border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb);font-weight:500">Veure plans \u2192</button>'
+    + '</div>'
+  + '</div>';
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+async function refrescarBannerQuotaSenyal() {
+  var banner = document.getElementById('senyal-quota-banner');
+  if (!banner) return;
+  var email = APP.user && APP.user.email;
+  if (!email) return;
+  var used = await getMonthlyMessageCount(email);
+  var remaining = Math.max(0, SENYAL_MSG_LIMIT_PER_MONTH - used);
+  var color = remaining === 0 ? '#8B1A1A' : (remaining === 1 ? '#7A4A00' : '#1A5C3A');
+  var bg = remaining === 0 ? '#FDF0F0' : (remaining === 1 ? '#FEF5E7' : '#EAF3DE');
+  banner.style.background = bg;
+  banner.style.color = color;
+  banner.innerHTML = '<strong>Pla Senyal</strong> \u00b7 ' + used + '/' + SENYAL_MSG_LIMIT_PER_MONTH + ' missatges aquest mes'
+    + (remaining > 0 ? ' \u00b7 queden <strong>' + remaining + '</strong>' : ' \u00b7 l\u00edmit assolit. <a href="#" onclick="event.preventDefault();navigateTo(\'plans\')" style="color:inherit;text-decoration:underline">Veure plans</a>');
 }
 
 async function markThreadRead(email) {
@@ -6902,13 +7131,18 @@ function obrirEditorInforme(inf) {
   // Camps de metadades
   body += '<div style="background:#fff;border-radius:13px;padding:22px 26px;margin-bottom:20px;border:1px solid #E8E6E1">'
     + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#9A9690;margin-bottom:14px">Metadades de l\'informe</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">'
       + '<div><label style="font-size:11px;font-weight:500;color:#6B6762;display:block;margin-bottom:4px">Títol</label>'
         + '<input id="editor-titol" type="text" value="'+inf.titol.replace(/"/g,'&quot;')+'" oninput="document.getElementById(\'editor-titol-preview\').textContent=this.value" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:13px;font-family:var(--fb)">'
       + '</div>'
       + '<div><label style="font-size:11px;font-weight:500;color:#6B6762;display:block;margin-bottom:4px">Subtítol <span style="color:#AAAAAA;font-weight:400">(opcional)</span></label>'
         + '<input id="editor-subtitol" type="text" value="'+(inf.subtitol||'').replace(/"/g,'&quot;')+'" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:13px;font-family:var(--fb)">'
       + '</div>'
+    + '</div>'
+    // ── Camp URL fitxer adjunt ──
+    + '<div><label style="font-size:11px;font-weight:500;color:#6B6762;display:block;margin-bottom:4px">📎 URL del fitxer adjunt <span style="color:#AAAAAA;font-weight:400">(opcional, p. ex. PDF a Google Drive públic)</span></label>'
+      + '<input id="editor-file-url" type="url" placeholder="https://drive.google.com/file/d/.../view" value="'+(inf.file_url||'').replace(/"/g,'&quot;')+'" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:12px;font-family:var(--fm)">'
+      + '<div style="font-size:10px;color:#9A9690;margin-top:4px;line-height:1.5">El client veurà un botó \u00abDescarregar\u00bb sota l\'informe. Pots usar Google Drive, Dropbox, OneDrive o qualsevol URL pública.</div>'
     + '</div>'
   + '</div>';
 
@@ -6935,8 +7169,10 @@ function recollirDadesEditor() {
   if (!inf) return null;
   var titol = document.getElementById('editor-titol');
   var subtitol = document.getElementById('editor-subtitol');
+  var fileUrl = document.getElementById('editor-file-url');
   if (titol) inf.titol = titol.value.trim() || inf.titol;
   if (subtitol) inf.subtitol = subtitol.value.trim();
+  if (fileUrl) inf.file_url = fileUrl.value.trim();
   var seccDefs = INFORME_SECCIONS_BASE[inf.tipus] || INFORME_SECCIONS_BASE.especial;
   if (!inf.seccions) inf.seccions = {};
   seccDefs.forEach(function(s){
@@ -7026,30 +7262,60 @@ function renderPortalInformes(el) {
 
   var html = '<div class="content-inner fade-in">'
     + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;margin-bottom:6px">Els teus informes</div>'
-    + '<div style="font-size:13px;color:var(--g500);margin-bottom:24px">Documents i anàlisis preparats pel teu assessor.</div>';
+    + '<div style="font-size:13px;color:var(--g500);margin-bottom:24px">Documents i an\u00e0lisis preparats pel teu assessor.</div>';
+
+  // ── CARD ACCÉS QÜESTIONARI INICIAL ──
+  // Sempre visible perquè és part del seu perfil
+  var qrExists = c && c.questionnaire_responses && c.questionnaire_responses.items && c.questionnaire_responses.items.length > 0;
+  var qDate = c && c.questionnaire_date
+    ? new Date(c.questionnaire_date).toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'})
+    : null;
+
+  html += '<div style="background:linear-gradient(135deg,#EBF0FA,#F4F3F0);border:1px solid #1B3A6B22;border-radius:13px;padding:20px 24px;margin-bottom:20px;cursor:pointer;transition:transform .15s" onclick="navigateTo(\'portal-questionnaire\')" onmouseover="this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'
+    + '<div style="display:flex;align-items:center;gap:14px">'
+      + '<div style="width:44px;height:44px;border-radius:10px;background:#1B3A6B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">\ud83d\udccb</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
+          + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:#1B3A6B;color:#fff">Perfil inversor</span>'
+          + (qDate ? '<span style="font-size:10px;color:var(--g500)">Completat el ' + qDate + '</span>' : '<span style="font-size:10px;color:var(--g500)">Pendent</span>')
+        + '</div>'
+        + '<div style="font-size:14px;font-weight:600;color:#0A0A0A;margin-bottom:2px">El meu qu\u00fcestionari inicial</div>'
+        + '<div style="font-size:11px;color:var(--g500)">'
+          + (qrExists ? 'Consulta totes les teves respostes i el scoring per dimensi\u00f3' : 'Encara no l\u2019has completat. Fes-lo per generar la teva cartera.')
+        + '</div>'
+      + '</div>'
+      + '<div style="color:var(--g400);font-size:18px">\u203a</div>'
+    + '</div>'
+  + '</div>';
 
   if (informes.length === 0) {
     html += '<div style="padding:48px;text-align:center;background:#fff;border:1px solid var(--g200);border-radius:14px">'
-      + '<div style="font-size:36px;margin-bottom:12px">📋</div>'
-      + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap informe disponible</div>'
-      + '<div style="font-size:12px;color:var(--g500);line-height:1.7">El teu assessor prepararà el primer informe en breu. Mentre tant, pots consultar el teu perfil inversor a la secció Resum.</div>'
+      + '<div style="font-size:36px;margin-bottom:12px">\ud83d\udccb</div>'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap informe encara</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.7">El teu assessor prepararà el primer informe en breu.</div>'
     + '</div>';
   } else {
     informes.forEach(function(inf){
       var t = INFORME_TIPUS[inf.tipus] || INFORME_TIPUS.especial;
-      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:13px;padding:20px 24px;margin-bottom:12px;cursor:pointer" onclick="veureinformeClient(\''+inf.id+'\')">'
-        + '<div style="display:flex;align-items:center;gap:14px">'
+      var hasFile = inf.file_url && inf.file_url.trim();
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:13px;padding:20px 24px;margin-bottom:12px">'
+        + '<div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="veureinformeClient(\''+inf.id+'\')">'
           + '<div style="width:44px;height:44px;border-radius:10px;background:'+t.bg+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">'+t.emoji+'</div>'
           + '<div style="flex:1;min-width:0">'
-            + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
+            + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">'
               + '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.tc+'">'+t.lbl+'</span>'
               + '<span style="font-size:10px;color:var(--g400)">'+inf.data+'</span>'
+              + (hasFile ? '<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:#EBF0FA;color:#1B3A6B">\ud83d\udcce Adjunt</span>' : '')
             + '</div>'
             + '<div style="font-size:14px;font-weight:600;color:#0A0A0A;margin-bottom:2px">'+inf.titol+'</div>'
             + (inf.subtitol ? '<div style="font-size:11px;color:var(--g500)">'+inf.subtitol+'</div>' : '')
           + '</div>'
-          + '<div style="color:var(--g400);font-size:18px">›</div>'
+          + '<div style="color:var(--g400);font-size:18px">\u203a</div>'
         + '</div>'
+        + (hasFile ? '<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--g100);display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+            + '<a href="'+inf.file_url+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#1B3A6B;color:#fff;border-radius:7px;text-decoration:none;font-size:11px;font-weight:500;font-family:var(--fb)" onclick="event.stopPropagation()">\u2b07 Descarregar fitxer adjunt</a>'
+            + '<span style="font-size:10px;color:var(--g400);line-height:1.5">S\'obre en una nova pestanya</span>'
+          + '</div>' : '')
       + '</div>';
     });
   }
@@ -7099,6 +7365,17 @@ function veureinformeClient(informeId) {
       + '<div style="font-size:14px;color:#0A0A0A;line-height:1.8;white-space:pre-wrap">'+text+'</div>'
     + '</div>';
   });
+  // Botó descarregar si hi ha fitxer adjunt
+  if (inf.file_url && inf.file_url.trim()) {
+    seccsHtml += '<div style="margin-top:8px;padding:16px 20px;background:#EBF0FA;border-radius:11px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'
+      + '<div style="font-size:24px">\ud83d\udcce</div>'
+      + '<div style="flex:1;min-width:200px">'
+        + '<div style="font-size:13px;font-weight:600;color:#1B3A6B;margin-bottom:2px">Fitxer adjunt disponible</div>'
+        + '<div style="font-size:11px;color:#6B6762;line-height:1.5">El teu assessor ha adjuntat un document complementari amb aquest informe.</div>'
+      + '</div>'
+      + '<a href="'+inf.file_url+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:#1B3A6B;color:#fff;border-radius:8px;text-decoration:none;font-size:12px;font-weight:500;font-family:var(--fb)">\u2b07 Descarregar</a>'
+    + '</div>';
+  }
   seccsHtml += '</div>';
 
   panel.innerHTML = headerHtml + seccsHtml;
@@ -7110,154 +7387,461 @@ function veureinformeClient(informeId) {
 // ══════════════════════════════════════════════════════════════════════════
 
 
+
 // ══════════════════════════════════════════════════
-// VIEW: FIRE
+// VIEW: FIRE — Calculadora avançada amb 5 models
+// (Refactor complet · maig 2026)
 // ══════════════════════════════════════════════════
-function renderPortalFIRE(el) {
+
+var FIRE_MODELS = {
+  lean: {
+    nom: 'Lean FIRE',
+    emoji: '🌱',
+    color: '#1A5C3A',
+    bg: '#EAF3DE',
+    descripcio: 'Independència amb vida frugal i despeses minimitzades.',
+    multiplicador: 25,
+    withdrawal: 4,
+    despesesGuide: '12.000 – 24.000 €/any',
+    minDespesa: 12000, maxDespesa: 24000,
+    detall: 'Cobreix l\u2019essencial: habitatge, alimentació i salut. Requereix disciplina i un estil de vida senzill. Avantatge: arribar abans a la llibertat financera.'
+  },
+  regular: {
+    nom: 'Regular FIRE',
+    emoji: '🔥',
+    color: '#1B3A6B',
+    bg: '#EBF0FA',
+    descripcio: 'El model clàssic — vida còmoda mantenint l\u2019estil mitjà.',
+    multiplicador: 25,
+    withdrawal: 4,
+    despesesGuide: '24.000 – 50.000 €/any',
+    minDespesa: 24000, maxDespesa: 50000,
+    detall: 'Model més estès. Despeses similars a la classe mitjana espanyola. Es basa en l\u2019estudi Trinity (regla del 4%).'
+  },
+  fat: {
+    nom: 'Fat FIRE',
+    emoji: '🥩',
+    color: '#7A4A00',
+    bg: '#FEF5E7',
+    descripcio: 'Independència amb un nivell de vida elevat sense restriccions.',
+    multiplicador: 33.33,
+    withdrawal: 3,
+    despesesGuide: '50.000+ €/any',
+    minDespesa: 50000, maxDespesa: 200000,
+    detall: 'Per a perfils que volen mantenir o millorar un estil de vida alt. Taxa del 3% (més conservadora) per cobrir despeses generoses sense risc.'
+  },
+  coast: {
+    nom: 'Coast FIRE',
+    emoji: '🌊',
+    color: '#534AB7',
+    bg: '#EDEAF9',
+    descripcio: 'Capital prou gran avui per a un FIRE futur sense més aportacions.',
+    multiplicador: 25,
+    withdrawal: 4,
+    despesesGuide: 'Igual que Regular',
+    minDespesa: 24000, maxDespesa: 50000,
+    detall: 'Acumules el suficient avui perquè, sense aportacions, el capital creixi fins al FIRE complet a l\u2019edat objectiu.'
+  },
+  barista: {
+    nom: 'Barista FIRE',
+    emoji: '☕',
+    color: '#C0392B',
+    bg: '#FDF0F0',
+    descripcio: 'Cobreixes una part i una feina parcial cobreix la resta.',
+    multiplicador: 25,
+    withdrawal: 4,
+    despesesGuide: 'Cobertura parcial',
+    minDespesa: 12000, maxDespesa: 30000,
+    detall: 'La cartera cobreix una part de les despeses. Una feina parcial (o un negoci de baix estrès) cobreix la resta. Llibertat amb seguretat.'
+  }
+};
+
+var _FIRE_STATE = {
+  modelActiu: 'regular',
+  despesesAnuals: 30000,
+  capitalActual: 0,
+  aportacioMensual: 500,
+  retornEsperat: 6,
+  edatActual: 35,
+  edatObjectiu: 55,
+  feinaPartial: 12000,
+  _init: false
+};
+
+function renderPortalFIRE(el){
   var c = getClient();
-  // Llegir dades guardades (o defaults raonables)
   var f = (c && c.fire) || {};
   var perfil = (c && c.perfil) || {};
   var arq = c ? getArquetip(c.arquetipId) : getArquetip('navegant');
 
-  // Valors actuals de la cartera real (si n'hi ha)
-  var posicions = (c && c.cartera_actual_usuari) || [];
-  var capitalCartera = posicions.reduce(function(s,p){ return s+(parseFloat(p.valor)||0); }, 0);
-
-  // Paràmetres calculadora (prioritat: guardats > calculats > defaults)
-  var objectiuAnual  = f.objectiuAnual  || 0;
-  var capitalActual  = f.capitalActual  || capitalCartera || 0;
-  var aportacioMens  = f.aportacioMensual || parseFloat(String(perfil.aportacioMensual||0).replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
-  var retornEsperat  = f.retornEsperat  || parseFloat(arq.retorn) || 6;
-
-  // Càlcul FIRE
-  function calcFire(objAnual, capital, aportMens, retornPct) {
-    if (!objAnual || objAnual <= 0) return null;
-    var objectiuFIRE = objAnual / 0.04;
-    if (capital >= objectiuFIRE) return { objectiuFIRE:objectiuFIRE, objectiuAnual:objAnual, anysEstimats:0, anyObjectiu:new Date().getFullYear(), progresPct:100, capitalFinal:capital };
-    var r = retornPct / 100 / 12;
-    var mesos = 0;
-    var cap = capital;
-    while (cap < objectiuFIRE && mesos < 600) {
-      cap = cap * (1 + r) + aportMens;
-      mesos++;
-    }
-    var anys = Math.round(mesos / 12 * 10) / 10;
-    var progresPct = Math.min(Math.round(capital / objectiuFIRE * 100), 100);
-    return { objectiuFIRE:Math.round(objectiuFIRE), objectiuAnual:objAnual, anysEstimats:anys, anyObjectiu:new Date().getFullYear()+Math.ceil(anys), progresPct:progresPct, capitalFinal:Math.round(objectiuFIRE) };
+  if (!_FIRE_STATE._init){
+    _FIRE_STATE.modelActiu = f.modelActiu || 'regular';
+    _FIRE_STATE.despesesAnuals = f.despesesAnuals || f.objectiuAnual || 30000;
+    _FIRE_STATE.capitalActual = f.capitalActual || _fireGetCapitalReal(c) || 0;
+    _FIRE_STATE.aportacioMensual = f.aportacioMensual || _fireParsePerfilAport(perfil) || 500;
+    _FIRE_STATE.retornEsperat = f.retornEsperat || parseFloat(arq.retorn) || 6;
+    _FIRE_STATE.edatActual = f.edatActual || _fireEdatPerfil(perfil) || 35;
+    _FIRE_STATE.edatObjectiu = f.edatObjectiu || 55;
+    _FIRE_STATE.feinaPartial = f.feinaPartial || 12000;
+    _FIRE_STATE._init = true;
   }
 
-  var calc = objectiuAnual > 0 ? calcFire(objectiuAnual, capitalActual, aportacioMens, retornEsperat) : null;
-
   var html = '<style>'
-    + '.fire-input-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}'
-    + '.fire-input-label{font-size:12px;color:var(--g600);width:200px;flex-shrink:0}'
-    + '.fire-input{padding:9px 14px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;font-family:var(--fm);color:var(--black);width:140px;text-align:right}'
-    + '.fire-input:focus{outline:none;border-color:var(--black)}'
-    + '.fire-input-unit{font-size:12px;color:var(--g400)}'
+    + '.fire-hero{background:linear-gradient(135deg,#0A0A0A,#1B3A6B);color:#fff;border-radius:16px;padding:28px 32px;margin-bottom:18px;position:relative;overflow:hidden}'
+    + '.fire-hero-val{font-family:var(--fm);font-size:38px;font-weight:500;letter-spacing:-1px;line-height:1.05}'
+    + '.fire-hero-lbl{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}'
+    + '.fire-models-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:18px}'
+    + '.fire-model-card{padding:18px 16px;background:#fff;border:2px solid var(--g200);border-radius:13px;cursor:pointer;transition:all .15s;text-align:left}'
+    + '.fire-model-card:hover{transform:translateY(-2px);border-color:var(--g400)}'
+    + '.fire-model-card.active{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}'
+    + '.fire-card{background:#fff;border:1px solid var(--g200);border-radius:14px;padding:22px 26px;margin-bottom:14px}'
+    + '.fire-input{padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:14px;font-family:var(--fm);width:160px;text-align:right;color:var(--black)}'
+    + '.fire-input:focus{outline:none;border-color:var(--accent)}'
+    + '.fire-unit{font-size:11px;color:var(--g400)}'
+    + '.fire-progress{height:10px;background:var(--g100);border-radius:99px;overflow:hidden}'
+    + '.fire-progress-fill{height:100%;background:linear-gradient(90deg,#FF8E70,#4CAF82);border-radius:99px;transition:width .6s ease}'
+    + '.fire-svg-chart{width:100%;height:300px;display:block}'
+    + '.fire-comparator{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:14px}'
+    + '.fire-comp-cell{padding:12px;background:var(--g50);border-radius:8px;text-align:center;cursor:pointer;transition:all .15s}'
+    + '.fire-comp-cell:hover{transform:translateY(-2px)}'
     + '</style>'
     + '<div class="content-inner fade-in">'
     + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Calculadora FIRE</div>'
-    + '<div style="font-size:12px;color:var(--g500);margin-bottom:24px;line-height:1.7">Financial Independence, Retire Early — calcula quan podries viure dels rendiments de la teva cartera.</div>';
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:24px;line-height:1.7"><strong>F</strong>inancial <strong>I</strong>ndependence, <strong>R</strong>etire <strong>E</strong>arly \u2014 descobreix quan podràs viure dels rendiments del teu patrimoni. Cinc models per cinc estils de vida.</div>';
 
-  // ── RESULTAT (si hi ha dades) ──
-  if (calc) {
-    var progressColor = calc.progresPct >= 75 ? '#1A5C3A' : calc.progresPct >= 40 ? '#D4943A' : '#C0392B';
-    html += '<div style="background:var(--black);border-radius:14px;padding:24px 28px;margin-bottom:20px">'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;flex-wrap:wrap">'
-        + '<div><div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Objectiu FIRE</div><div style="font-family:var(--fm);font-size:26px;font-weight:500;color:#fff">' + calc.objectiuFIRE.toLocaleString('ca-ES') + ' €</div></div>'
-        + '<div><div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Anys estimats</div><div style="font-family:var(--fm);font-size:26px;font-weight:500;color:#4CAF82">' + (calc.anysEstimats === 0 ? '0 🎉' : calc.anysEstimats) + '</div></div>'
-        + '<div><div style="font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Any estimat</div><div style="font-family:var(--fm);font-size:26px;font-weight:500;color:rgba(255,255,255,.7)">' + calc.anyObjectiu + '</div></div>'
+  html += '<div style="font-size:13px;font-weight:500;margin-bottom:10px;color:var(--g600)">Tria el teu model FIRE</div>'
+    + '<div class="fire-models-wrap">'
+    + Object.keys(FIRE_MODELS).map(function(k){
+        var m = FIRE_MODELS[k];
+        var active = _FIRE_STATE.modelActiu === k;
+        return '<div class="fire-model-card' + (active?' active':'') + '" onclick="fireSetModel(\'' + k + '\')" style="background:'+(active?m.bg:'#fff')+';border-color:'+(active?m.color:'var(--g200)')+'">'
+          + '<div style="font-size:24px;margin-bottom:6px">' + m.emoji + '</div>'
+          + '<div style="font-size:13px;font-weight:600;color:'+(active?m.color:'var(--black)')+';margin-bottom:3px">' + m.nom + '</div>'
+          + '<div style="font-size:10px;color:var(--g500);line-height:1.5">' + m.despesesGuide + '</div>'
+        + '</div>';
+      }).join('')
+    + '</div>';
+
+  var modelInfo = FIRE_MODELS[_FIRE_STATE.modelActiu];
+  html += '<div class="fire-card">'
+    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--g100)">'
+      + '<div style="width:42px;height:42px;border-radius:10px;background:' + modelInfo.bg + ';color:' + modelInfo.color + ';display:flex;align-items:center;justify-content:center;font-size:22px">' + modelInfo.emoji + '</div>'
+      + '<div style="flex:1">'
+        + '<div style="font-size:14px;font-weight:600;color:var(--black)">' + modelInfo.nom + '</div>'
+        + '<div style="font-size:11px;color:var(--g500);line-height:1.6">' + modelInfo.detall + '</div>'
       + '</div>'
-      + '<div style="margin-top:20px">'
-        + '<div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px"><span>Progrés cap a FIRE</span><span>' + calc.progresPct + '%</span></div>'
-        + '<div style="height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden"><div style="height:100%;width:' + calc.progresPct + '%;background:linear-gradient(90deg,var(--accent),#4CAF82);border-radius:99px;transition:width .5s ease"></div></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">'
+      + _fireInput('Despeses anuals desitjades', 'fire-desp', _FIRE_STATE.despesesAnuals, '€/any', 0, null, 500)
+      + _fireInput('Capital actual invertit', 'fire-cap', _FIRE_STATE.capitalActual, '€', 0, null, 1000)
+      + _fireInput('Aportació mensual', 'fire-apor', _FIRE_STATE.aportacioMensual, '€/mes', 0, null, 50)
+      + _fireInput('Retorn anual esperat', 'fire-ret', _FIRE_STATE.retornEsperat, '%', 0, 30, 0.5)
+      + _fireInput('Edat actual', 'fire-edat', _FIRE_STATE.edatActual, 'anys', 18, 85, 1)
+      + (_FIRE_STATE.modelActiu === 'coast' ? _fireInput('Edat objectiu (Coast)', 'fire-eobj', _FIRE_STATE.edatObjectiu, 'anys', _FIRE_STATE.edatActual+1, 80, 1) : '')
+      + (_FIRE_STATE.modelActiu === 'barista' ? _fireInput('Ingressos feina parcial', 'fire-fp', _FIRE_STATE.feinaPartial, '€/any', 0, null, 500) : '')
+    + '</div>'
+    + '<div style="margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
+      + '<button onclick="fireRecalc()" style="padding:11px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Calcular</button>'
+      + '<button onclick="fireGuardar()" style="padding:11px 18px;background:#fff;color:var(--g600);border:1px solid var(--g200);border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb)">💾 Desar resultat</button>'
+      + '<span id="fire-save-msg" style="font-size:11px;color:var(--g400)"></span>'
+    + '</div>'
+  + '</div>';
+
+  html += '<div id="fire-resultats"></div>';
+
+  html += '<div class="fire-card">'
+    + '<div style="font-size:13px;font-weight:600;margin-bottom:12px">📊 Comparació entre models</div>'
+    + '<div style="font-size:11px;color:var(--g500);margin-bottom:12px;line-height:1.6">Mateixos paràmetres aplicats a cada model (despeses adaptades al rang típic de cada un). La taxa de retirada varia: 4% per Lean/Regular/Coast/Barista, 3% per Fat.</div>'
+    + '<div id="fire-comp"></div>'
+  + '</div>';
+
+  html += '<div style="font-size:10px;color:var(--g400);line-height:1.6;padding:8px 4px">Disclaimer: estimacions simplificades sense inflació, impostos ni variabilitat de mercat. Per a un pla personalitzat consulta amb el teu assessor.</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+  fireRecalc();
+}
+
+function _fireInput(label, id, val, unit, min, max, step){
+  return '<div style="display:flex;flex-direction:column;gap:5px">'
+    + '<label style="font-size:11px;color:var(--g500);font-weight:500">' + label + '</label>'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<input class="fire-input" id="' + id + '" type="number" value="' + val + '"'
+        + (min!==undefined && min!==null ? ' min="' + min + '"' : '')
+        + (max!==undefined && max!==null ? ' max="' + max + '"' : '')
+        + (step!==undefined && step!==null ? ' step="' + step + '"' : ' step="100"')
+        + ' style="flex:1">'
+      + '<span class="fire-unit">' + unit + '</span>'
+    + '</div>'
+  + '</div>';
+}
+
+function _fireGetCapitalReal(c){
+  var positions = (c && c.cartera_actual_usuari) || [];
+  return positions.reduce(function(s,p){ return s+(parseFloat(p.valor)||0); }, 0);
+}
+function _fireParsePerfilAport(perfil){
+  if (!perfil || !perfil.aportacioMensual) return 0;
+  var v = parseFloat(String(perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.'));
+  return isFinite(v) ? v : 0;
+}
+function _fireEdatPerfil(perfil){
+  if (!perfil || !perfil.edat) return 0;
+  var v = parseInt(String(perfil.edat).replace(/[^0-9]/g,''));
+  return isFinite(v) ? v : 0;
+}
+
+function fireSetModel(modelId){
+  _FIRE_STATE.modelActiu = modelId;
+  renderView('portal-fire');
+}
+
+function fireRecalc(){
+  var d = parseFloat(document.getElementById('fire-desp').value) || 0;
+  var c = parseFloat(document.getElementById('fire-cap').value) || 0;
+  var a = parseFloat(document.getElementById('fire-apor').value) || 0;
+  var r = parseFloat(document.getElementById('fire-ret').value) || 6;
+  var e = parseInt(document.getElementById('fire-edat').value) || 35;
+
+  _FIRE_STATE.despesesAnuals = d;
+  _FIRE_STATE.capitalActual = c;
+  _FIRE_STATE.aportacioMensual = a;
+  _FIRE_STATE.retornEsperat = r;
+  _FIRE_STATE.edatActual = e;
+
+  var eObj = document.getElementById('fire-eobj');
+  if (eObj) _FIRE_STATE.edatObjectiu = parseInt(eObj.value) || 55;
+  var fp = document.getElementById('fire-fp');
+  if (fp) _FIRE_STATE.feinaPartial = parseFloat(fp.value) || 0;
+
+  var resultats = {};
+  Object.keys(FIRE_MODELS).forEach(function(k){
+    resultats[k] = _fireCalcModel(k, d, c, a, r, e);
+  });
+
+  _fireRenderResultats(resultats[_FIRE_STATE.modelActiu], _FIRE_STATE.modelActiu);
+  _fireRenderComparador(resultats);
+}
+
+function _fireCalcModel(modelId, despeses, capital, aportMens, retornPct, edat){
+  var m = FIRE_MODELS[modelId];
+  if (!m) return null;
+  var rMens = retornPct/100/12;
+
+  if (modelId === 'coast'){
+    var edatObj = _FIRE_STATE.edatObjectiu;
+    var anysFins = Math.max(1, edatObj - edat);
+    var objectiuFinal = despeses * m.multiplicador;
+    var capitalNecCoast = objectiuFinal / Math.pow(1 + retornPct/100, anysFins);
+    var anysCoast = _firePmtSearch(capitalNecCoast, capital, aportMens, rMens);
+    return {
+      modelId: modelId, objectiuFIRE: objectiuFinal, capitalNecAvui: capitalNecCoast,
+      anysFinsObjectiu: anysFins, anysCoast: anysCoast,
+      progresPct: Math.min(100, capital/capitalNecCoast*100),
+      taxaRetirada: m.withdrawal, assolit: capital >= capitalNecCoast
+    };
+  }
+
+  if (modelId === 'barista'){
+    var fp = _FIRE_STATE.feinaPartial || 0;
+    var necCartera = Math.max(0, despeses - fp);
+    var objectiu = necCartera * m.multiplicador;
+    var anys = _firePmtSearch(objectiu, capital, aportMens, rMens);
+    return {
+      modelId: modelId, objectiuFIRE: objectiu,
+      despesesCobertesCartera: necCartera, despesesCobertesFeina: fp,
+      anysEstimats: anys, progresPct: Math.min(100, capital/objectiu*100),
+      taxaRetirada: m.withdrawal, assolit: capital >= objectiu
+    };
+  }
+
+  var obj = despeses * m.multiplicador;
+  var anys2 = _firePmtSearch(obj, capital, aportMens, rMens);
+  return {
+    modelId: modelId, objectiuFIRE: obj, anysEstimats: anys2,
+    progresPct: Math.min(100, capital/obj*100),
+    taxaRetirada: m.withdrawal, assolit: capital >= obj
+  };
+}
+
+function _firePmtSearch(objectiu, capital, aportMens, rMens){
+  if (capital >= objectiu) return 0;
+  if (rMens <= 0 && aportMens <= 0) return Infinity;
+  var cap = capital, mesos = 0;
+  while (cap < objectiu && mesos < 720){
+    cap = cap * (1+rMens) + aportMens;
+    mesos++;
+  }
+  if (mesos >= 720) return Infinity;
+  return Math.round(mesos/12*10)/10;
+}
+
+function _fireRenderResultats(r, modelId){
+  var el = document.getElementById('fire-resultats');
+  if (!el || !r) return;
+  var m = FIRE_MODELS[modelId];
+  var anysVal = r.anysEstimats !== undefined ? r.anysEstimats : r.anysCoast;
+  var anyObj = new Date().getFullYear() + (anysVal === Infinity ? 99 : Math.ceil(anysVal||0));
+  var edatObj = _FIRE_STATE.edatActual + (anysVal === Infinity ? 99 : Math.ceil(anysVal||0));
+
+  var heroHtml = '<div class="fire-hero">'
+    + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">'
+      + '<div style="font-size:32px">' + m.emoji + '</div>'
+      + '<div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">' + m.nom + ' \u00b7 Regla del ' + m.withdrawal + '%</div>'
+        + '<div style="font-size:14px;font-weight:500;margin-top:2px">' + m.descripcio + '</div>'
       + '</div>'
     + '</div>';
+
+  if (modelId === 'coast'){
+    heroHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px">'
+      + '<div><div class="fire-hero-lbl">Capital necessari avui</div><div class="fire-hero-val">' + _fmtEur(r.capitalNecAvui) + '</div></div>'
+      + '<div><div class="fire-hero-lbl">FIRE final a edat ' + _FIRE_STATE.edatObjectiu + '</div><div class="fire-hero-val" style="color:#4CAF82">' + _fmtEur(r.objectiuFIRE) + '</div></div>'
+      + '<div><div class="fire-hero-lbl">Anys per arribar al Coast</div><div class="fire-hero-val" style="color:rgba(255,255,255,.85)">' + (r.assolit?'0 \u2728':(r.anysCoast===Infinity?'\u221e':r.anysCoast)) + '</div></div>'
+    + '</div>';
+  } else if (modelId === 'barista'){
+    heroHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px">'
+      + '<div><div class="fire-hero-lbl">Cartera cobreix</div><div class="fire-hero-val" style="font-size:28px">' + _fmtEur(r.despesesCobertesCartera) + '/any</div></div>'
+      + '<div><div class="fire-hero-lbl">Objectiu de capital</div><div class="fire-hero-val">' + _fmtEur(r.objectiuFIRE) + '</div></div>'
+      + '<div><div class="fire-hero-lbl">Anys</div><div class="fire-hero-val" style="color:#4CAF82">' + (r.assolit?'0 \u2728':(r.anysEstimats===Infinity?'\u221e':r.anysEstimats)) + '</div></div>'
+    + '</div>';
   } else {
-    html += '<div style="padding:20px;background:#FEF3E0;border-radius:12px;border:1px solid #E8C285;margin-bottom:20px;text-align:center">'
-      + '<div style="font-size:20px;margin-bottom:8px">🔥</div>'
-      + '<div style="font-size:13px;font-weight:500;color:#7A4A00;margin-bottom:4px">Introdueix les dades per calcular el teu FIRE</div>'
-      + '<div style="font-size:12px;color:#9A6B1F">Emplena els camps de sota i clica "Calcular" per veure quan podries ser financerament independent.</div>'
+    heroHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px">'
+      + '<div><div class="fire-hero-lbl">Objectiu FIRE</div><div class="fire-hero-val">' + _fmtEur(r.objectiuFIRE) + '</div></div>'
+      + '<div><div class="fire-hero-lbl">Anys per arribar</div><div class="fire-hero-val" style="color:#4CAF82">' + (r.assolit?'0 \u2728':(r.anysEstimats===Infinity?'\u221e':r.anysEstimats)) + '</div></div>'
+      + '<div><div class="fire-hero-lbl">Any \u00b7 Edat objectiu</div><div class="fire-hero-val" style="color:rgba(255,255,255,.85);font-size:28px">' + (anysVal===Infinity?'\u2014':anyObj) + (anysVal===Infinity?'':'<span style="font-size:13px;color:rgba(255,255,255,.5)"> \u00b7 ' + edatObj + 'a</span>') + '</div></div>'
     + '</div>';
   }
 
-  // ── CALCULADORA INTERACTIVA ──
-  html += '<div class="card" style="padding:24px">'
-    + '<div style="font-family:var(--fd);font-size:16px;margin-bottom:20px">Paràmetres del càlcul</div>'
-    + '<div class="fire-input-row">'
-      + '<label class="fire-input-label" for="fire-obj-anual">Despeses anuals necessàries</label>'
-      + '<input class="fire-input" id="fire-obj-anual" type="number" min="0" step="1000" placeholder="24000" value="' + (objectiuAnual||'') + '">'
-      + '<span class="fire-input-unit">€/any</span>'
-    + '</div>'
-    + '<div class="fire-input-row">'
-      + '<label class="fire-input-label" for="fire-capital">Capital actual invertit</label>'
-      + '<input class="fire-input" id="fire-capital" type="number" min="0" step="1000" placeholder="0" value="' + (capitalActual||'') + '">'
-      + '<span class="fire-input-unit">€</span>'
-      + (capitalCartera > 0 ? '<span style="font-size:10px;color:var(--g400)">(cartera real: ' + capitalCartera.toLocaleString('ca-ES') + '€)</span>' : '')
-    + '</div>'
-    + '<div class="fire-input-row">'
-      + '<label class="fire-input-label" for="fire-aportacio">Aportació mensual</label>'
-      + '<input class="fire-input" id="fire-aportacio" type="number" min="0" step="50" placeholder="300" value="' + (aportacioMens||'') + '">'
-      + '<span class="fire-input-unit">€/mes</span>'
-    + '</div>'
-    + '<div class="fire-input-row">'
-      + '<label class="fire-input-label" for="fire-retorn">Retorn anual esperat</label>'
-      + '<input class="fire-input" id="fire-retorn" type="number" min="0" max="30" step="0.5" placeholder="6" value="' + retornEsperat + '">'
-      + '<span class="fire-input-unit">%</span>'
-    + '</div>'
-    + '<div style="font-size:11px;color:var(--g400);margin-bottom:20px;line-height:1.6">La <strong>regla del 4%</strong>: si tens 25x les teves despeses anuals invertides, pots retirar el 4% indefinidament sense esgotar el capital (basada en dades histèriques del mercat).</div>'
-    + '<div style="display:flex;gap:10px;flex-wrap:wrap">'
-      + '<button onclick="calcularIGuardarFire()" style="padding:11px 24px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">🔥 Calcular i guardar</button>'
-      + '<div id="fire-msg" style="font-size:12px;color:var(--g400);padding:10px 0;display:none"></div>'
-    + '</div>'
-  + '</div>'
-  + '<div style="margin-top:14px;font-size:11px;color:var(--g400);line-height:1.6;padding:0 4px">'
-    + 'Nota: estimació simplificada. No té en compte inflació, impostos ni variabilitat del mercat. Consulta amb el teu assessor per a un pla personalitzat.'
+  heroHtml += '<div style="margin-top:22px">'
+    + '<div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.5);margin-bottom:6px"><span>Progrés cap a l\u2019objectiu</span><span>' + r.progresPct.toFixed(1) + '%</span></div>'
+    + '<div class="fire-progress" style="background:rgba(255,255,255,.1)"><div class="fire-progress-fill" style="width:' + r.progresPct + '%"></div></div>'
   + '</div>'
   + '</div>';
 
-  el.innerHTML = html;
+  var insightsHtml = '<div class="fire-card">'
+    + '<div style="font-size:13px;font-weight:600;margin-bottom:14px">Trajectòria del capital</div>'
+    + _fireDrawTrajectoria(r, modelId)
+  + '</div>';
+
+  el.innerHTML = heroHtml + insightsHtml;
 }
 
-async function calcularIGuardarFire() {
-  var objAnual   = parseFloat(document.getElementById('fire-obj-anual').value) || 0;
-  var capital    = parseFloat(document.getElementById('fire-capital').value) || 0;
-  var aportMens  = parseFloat(document.getElementById('fire-aportacio').value) || 0;
-  var retornPct  = parseFloat(document.getElementById('fire-retorn').value) || 6;
+function _fireDrawTrajectoria(r, modelId){
+  var anysObj = r.anysEstimats !== undefined ? r.anysEstimats : r.anysCoast;
+  var T = Math.max(1, Math.ceil(anysObj === Infinity ? 30 : anysObj || 20));
+  T = Math.min(T+3, 60);  // mostrem una mica més enllà
+  var rPct = _FIRE_STATE.retornEsperat/100;
+  var rMens = rPct/12;
+  var cap = _FIRE_STATE.capitalActual;
+  var aportMens = _FIRE_STATE.aportacioMensual;
+  var snapshots = [{any:0, cap:cap}];
+  for (var y = 1; y <= T; y++){
+    for (var m = 0; m < 12; m++) cap = cap*(1+rMens) + aportMens;
+    snapshots.push({any:y, cap:cap});
+  }
 
-  if (objAnual <= 0) { toast('Introdueix les despeses anuals per calcular'); return; }
+  var obj = (modelId === 'coast') ? r.capitalNecAvui : r.objectiuFIRE;
+  var maxY = Math.max(snapshots[snapshots.length-1].cap, obj) * 1.08;
+  var minY = 0;
 
-  var objectiuFIRE = Math.round(objAnual / 0.04);
-  var r = retornPct / 100 / 12;
-  var mesos = 0, cap = capital;
-  while (cap < objectiuFIRE && mesos < 600) { cap = cap*(1+r)+aportMens; mesos++; }
-  var anys = Math.round(mesos/12*10)/10;
-  var anyObj = new Date().getFullYear() + Math.ceil(anys);
-  var progresPct = Math.min(Math.round(capital/objectiuFIRE*100),100);
+  var W = 760, H = 280, padL = 70, padR = 24, padT = 18, padB = 36;
+  var iW = W-padL-padR, iH = H-padT-padB;
+  function X(t){ return padL + t/T*iW; }
+  function Y(v){ return padT + (1 - (v-minY)/(maxY-minY))*iH; }
 
-  var fireData = { objectiuAnual:objAnual, capitalActual:capital, aportacioMensual:aportMens, retornEsperat:retornPct, objectiuFIRE:objectiuFIRE, anysEstimats:anys, anyObjectiu:anyObj, progresPct:progresPct };
+  function fmt(v){ if (v >= 1e6) return (v/1e6).toFixed(1)+'M€'; if (v >= 1e3) return (v/1e3).toFixed(0)+'k€'; return Math.round(v)+'€'; }
 
-  var msg = document.getElementById('fire-msg');
-  if (msg) { msg.style.display='block'; msg.textContent='Guardant...'; msg.style.color='var(--g400)'; }
+  var path = 'M ' + X(snapshots[0].any) + ' ' + Y(snapshots[0].cap);
+  for (var i = 1; i < snapshots.length; i++) path += ' L ' + X(snapshots[i].any) + ' ' + Y(snapshots[i].cap);
+  var area = path + ' L ' + X(T) + ' ' + Y(0) + ' L ' + X(0) + ' ' + Y(0) + ' Z';
 
-  if (sb && APP.user && APP.user.email) {
+  var snapCreua = snapshots.find(function(s){ return s.cap >= obj && s.any > 0; });
+  
+  var xt = (T <= 10) ? 1 : (T <= 25 ? 5 : 10);
+  var xTicks = [];
+  for (var t = 0; t <= T; t += xt) xTicks.push(t);
+  if (xTicks[xTicks.length-1] !== T) xTicks.push(T);
+  var yTicks = [];
+  for (var k = 0; k <= 5; k++) yTicks.push(minY + (maxY-minY)*k/5);
+
+  var modelColor = FIRE_MODELS[modelId].color;
+  var svgHtml = '<svg class="fire-svg-chart" viewBox="0 0 ' + W + ' ' + H + '">'
+    + '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#fff"/>'
+    + yTicks.map(function(v){
+        return '<line x1="' + padL + '" y1="' + Y(v) + '" x2="' + (W-padR) + '" y2="' + Y(v) + '" stroke="#eee"/>'
+          + '<text x="' + (padL-8) + '" y="' + (Y(v)+4) + '" text-anchor="end" font-size="10" fill="#666" font-family="ui-monospace,monospace">' + fmt(v) + '</text>';
+      }).join('')
+    + xTicks.map(function(t){
+        return '<text x="' + X(t) + '" y="' + (H-12) + '" text-anchor="middle" font-size="10" fill="#666">' + t + ' anys</text>';
+      }).join('')
+    + '<line x1="' + padL + '" y1="' + Y(obj) + '" x2="' + (W-padR) + '" y2="' + Y(obj) + '" stroke="' + modelColor + '" stroke-width="1.5" stroke-dasharray="6 4"/>'
+    + '<text x="' + (W-padR-4) + '" y="' + (Y(obj)-6) + '" text-anchor="end" font-size="11" fill="' + modelColor + '" font-weight="600">Objectiu: ' + fmt(obj) + '</text>'
+    + '<path d="' + area + '" fill="' + modelColor + '15" stroke="none"/>'
+    + '<path d="' + path + '" fill="none" stroke="' + modelColor + '" stroke-width="2.5"/>'
+    + (snapCreua ? '<circle cx="' + X(snapCreua.any) + '" cy="' + Y(snapCreua.cap) + '" r="6" fill="#4CAF82" stroke="#fff" stroke-width="2"/><text x="' + X(snapCreua.any) + '" y="' + (Y(snapCreua.cap)-12) + '" text-anchor="middle" font-size="11" font-weight="600" fill="#1A5C3A">\u2728 FIRE</text>' : '')
+    + '<line x1="' + padL + '" y1="' + (H-padB) + '" x2="' + (W-padR) + '" y2="' + (H-padB) + '" stroke="#222"/>'
+    + '<line x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (H-padB) + '" stroke="#222"/>'
+  + '</svg>';
+  return svgHtml;
+}
+
+function _fireRenderComparador(allRes){
+  var el = document.getElementById('fire-comp');
+  if (!el) return;
+  el.innerHTML = '<div class="fire-comparator">'
+    + Object.keys(allRes).map(function(k){
+        var r = allRes[k];
+        var m = FIRE_MODELS[k];
+        var anysV = (k === 'coast') ? r.anysCoast : r.anysEstimats;
+        var anys = r.assolit ? '0 \u2728' : (anysV === Infinity ? '\u221e' : anysV);
+        var active = _FIRE_STATE.modelActiu === k;
+        var obj = (k === 'coast') ? r.capitalNecAvui : r.objectiuFIRE;
+        return '<div class="fire-comp-cell" style="' + (active ? 'background:' + m.bg + ';border:2px solid ' + m.color : 'border:2px solid transparent') + '" onclick="fireSetModel(\'' + k + '\')">'
+          + '<div style="font-size:18px;margin-bottom:4px">' + m.emoji + '</div>'
+          + '<div style="font-size:11px;font-weight:600;color:' + m.color + ';margin-bottom:6px">' + m.nom + '</div>'
+          + '<div style="font-size:13px;font-family:var(--fm);font-weight:500;color:var(--black)">' + _fmtEur(obj) + '</div>'
+          + '<div style="font-size:9px;color:var(--g500);text-transform:uppercase;letter-spacing:.05em;margin-top:1px">objectiu</div>'
+          + '<div style="font-size:13px;font-family:var(--fm);font-weight:500;color:var(--black);margin-top:8px">' + anys + '</div>'
+          + '<div style="font-size:9px;color:var(--g500);text-transform:uppercase;letter-spacing:.05em">anys</div>'
+        + '</div>';
+      }).join('')
+  + '</div>';
+}
+
+async function fireGuardar(){
+  var c = getClient();
+  var msg = document.getElementById('fire-save-msg');
+  if (msg) msg.textContent = 'Desant...';
+  var fireData = {
+    modelActiu: _FIRE_STATE.modelActiu,
+    despesesAnuals: _FIRE_STATE.despesesAnuals,
+    capitalActual: _FIRE_STATE.capitalActual,
+    aportacioMensual: _FIRE_STATE.aportacioMensual,
+    retornEsperat: _FIRE_STATE.retornEsperat,
+    edatActual: _FIRE_STATE.edatActual,
+    edatObjectiu: _FIRE_STATE.edatObjectiu,
+    feinaPartial: _FIRE_STATE.feinaPartial,
+    objectiuAnual: _FIRE_STATE.despesesAnuals,
+    actualitzat: new Date().toISOString()
+  };
+  if (sb && APP.user && APP.user.email && APP.role !== 'admin'){
     try {
       var res = await sb.from('clients').update({ fire: fireData }).eq('email', APP.user.email.toLowerCase());
       if (res.error) throw res.error;
       if (APP.clientData) APP.clientData.fire = fireData;
-      toast('🔥 FIRE calculat: ' + anys + ' anys → any ' + anyObj);
-      setTimeout(function(){ renderView('portal-fire'); }, 800);
-    } catch(e) {
-      if (msg) { msg.textContent='Error: '+(e.message||e); msg.style.color='#C0392B'; }
+      if (msg) { msg.textContent = '\u2713 Desat'; msg.style.color = '#1A5C3A'; }
+    } catch(e){
+      if (msg) { msg.textContent = 'Error: ' + (e.message||e); msg.style.color = '#C0392B'; }
     }
   } else {
-    // Mode demo o sense Supabase: mostrar resultat sense guardar
     if (APP.clientData) APP.clientData.fire = fireData;
-    toast('🔥 Resultat: ' + anys + ' anys → any ' + anyObj);
-    setTimeout(function(){ renderView('portal-fire'); }, 800);
+    if (msg) { msg.textContent = '\u2713 Desat localment'; msg.style.color = '#1A5C3A'; }
   }
 }
+
+async function calcularIGuardarFire(){ return fireGuardar(); }
+
 
   // ══════════════════════════════════════════════════
   // VIEW: FONS D'EMERGÈNCIA & CONTROL DE LIQUIDITAT
@@ -11427,6 +12011,1323 @@ async function diagDesarPortalAmbId(clientId) {
 }
 
 
+
+// ══════════════════════════════════════════════════════════════════════════
+// ███ EINES NOVES: SIMULADOR · MONTE CARLO · FISCALITAT ESPANYA 2026 ███
+// ══════════════════════════════════════════════════════════════════════════
+
+// ── Utilitats compartides: normal CDF/invCDF (Acklam), GBM lognormal ──
+function _erf(x){
+  var sign = x >= 0 ? 1 : -1;
+  x = Math.abs(x);
+  var a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429;
+  var p=0.3275911;
+  var t = 1/(1+p*x);
+  var y = 1 - ((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-x*x);
+  return sign*y;
+}
+function _normCdf(z){ return 0.5*(1 + _erf(z/Math.SQRT2)); }
+function _normInv(p){
+  if (p <= 0) return -Infinity;
+  if (p >= 1) return Infinity;
+  var a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+  var b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+  var c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+  var d = [ 7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+  var plow = 0.02425, phigh = 1 - plow;
+  var q, r;
+  if (p < plow){
+    q = Math.sqrt(-2*Math.log(p));
+    return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+           ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+  if (p > phigh){
+    q = Math.sqrt(-2*Math.log(1-p));
+    return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) /
+            ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+  q = p - 0.5;
+  r = q*q;
+  return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q /
+         (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+}
+
+// GBM: percentil del rendiment acumulat (sobre capital 1)
+function _gbmReturn(mu, sigma, t, p){
+  if (t <= 0) return 0;
+  var z = _normInv(p);
+  var drift = (mu - 0.5*sigma*sigma)*t;
+  var vol = sigma*Math.sqrt(t);
+  return Math.exp(drift + vol*z) - 1;
+}
+
+// Random normal (Box-Muller)
+function _randn(){
+  var u1 = Math.random() || 1e-12;
+  var u2 = Math.random();
+  return Math.sqrt(-2*Math.log(u1)) * Math.cos(2*Math.PI*u2);
+}
+
+function _fmtEur(x){
+  if (!isFinite(x)) return '—';
+  return Math.round(x).toLocaleString('ca-ES') + ' €';
+}
+function _fmtPct(x, d){
+  d = (d===undefined) ? 1 : d;
+  return (x*100).toFixed(d) + '%';
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// EINA #1 — SIMULADOR D'ACTIUS (fan chart amb múltiples actius + cartera)
+// ══════════════════════════════════════════════════════════════════════════
+
+var _SIM_STATE = {
+  actius: [
+    {nom:'RV Global Indexada', mu:7.5, sigma:18, pes:60, color:'#1B3A6B'},
+    {nom:'RF Governamental',    mu:2.5, sigma:5,  pes:30, color:'#1A5C3A'},
+    {nom:'Or i Metalls',        mu:5.0, sigma:15, pes:10, color:'#C0392B'},
+  ],
+  horitzo: 20,
+  showAssets: true
+};
+
+var _SIM_COLORS = ['#1B3A6B','#1A5C3A','#C0392B','#7A4A00','#534AB7','#0F6E56','#8B6914','#1F6FAB','#2E7D32','#D4943A'];
+
+function renderPortalSimulador(el){
+  // Restaurar pesos si client té cartera (només la primera vegada en aquesta sessió)
+  if (!_SIM_STATE._fromClient) {
+    var c = getClient();
+    if (c) {
+      var arq = getArquetip(c.arquetipId || 'navegant');
+      if (arq && arq.actius && arq.actius.length > 0) {
+        // Mapegem els actius de l'arquetip a μ/σ raonables segons grup
+        _SIM_STATE.actius = arq.actius.slice(0,6).map(function(a, i){
+          var defaults = _muSigmaPerActiu(a.id);
+          return {
+            nom: a.nom,
+            mu: defaults.mu,
+            sigma: defaults.sigma,
+            pes: parseFloat(a.pct) || 0,
+            color: a.color || _SIM_COLORS[i % _SIM_COLORS.length]
+          };
+        });
+        _SIM_STATE._fromClient = true;
+      }
+    }
+  }
+
+  var html = '<style>'
+    + '.sim-card{background:#fff;border:1px solid var(--g200);border-radius:14px;padding:20px 22px;margin-bottom:16px}'
+    + '.sim-row{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--g100)}'
+    + '.sim-row:last-child{border-bottom:none}'
+    + '.sim-color{width:14px;height:14px;border-radius:4px;flex-shrink:0}'
+    + '.sim-input{padding:7px 10px;border:1px solid var(--g200);border-radius:7px;font-size:13px;font-family:var(--fm);width:80px;text-align:right}'
+    + '.sim-input:focus{outline:none;border-color:var(--accent)}'
+    + '.sim-input-nom{flex:1;min-width:140px;padding:7px 10px;border:1px solid var(--g200);border-radius:7px;font-size:13px}'
+    + '.sim-input-nom:focus{outline:none;border-color:var(--accent)}'
+    + '.sim-lbl{font-size:10px;color:var(--g500);text-align:center;display:block;margin-bottom:2px}'
+    + '.sim-btn{padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500;transition:transform .1s}'
+    + '.sim-btn:hover{transform:translateY(-1px)}'
+    + '.sim-btn-primary{background:var(--black);color:#fff}'
+    + '.sim-btn-ghost{background:transparent;color:var(--g500);border:1px solid var(--g200)}'
+    + '.sim-btn-danger{background:#FDF0F0;color:#8B1A1A;border:1px solid #F1C9C9;padding:6px 10px;font-size:11px}'
+    + '.sim-kpi{background:var(--g50);border-radius:10px;padding:12px 14px}'
+    + '.sim-kpi-val{font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black)}'
+    + '.sim-kpi-lbl{font-size:11px;color:var(--g500);margin-top:2px}'
+    + '.sim-pes-warn{font-size:11px;padding:6px 10px;border-radius:6px;margin-top:10px}'
+    + '.sim-pes-ok{background:#EAF3DE;color:#1A5C3A}'
+    + '.sim-pes-err{background:#FDF0F0;color:#8B1A1A}'
+    + '@media(max-width:680px){.sim-row{flex-wrap:wrap}.sim-input-nom{flex-basis:100%}}'
+    + '</style>'
+    + '<div class="content-inner fade-in">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Simulador d\'actius i carteres</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.7">Defineix actius amb el seu rendiment esperat (μ) i volatilitat (σ), assigna pesos, i visualitza la projecció probabilística a futur. La cartera combinada es calcula assumint correlació zero entre actius.</div>';
+
+  // Llista d'actius
+  html += '<div class="sim-card">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+      + '<div style="font-size:14px;font-weight:500">Composició de la cartera</div>'
+      + '<button class="sim-btn sim-btn-ghost" onclick="simAddActiu()">+ Afegir actiu</button>'
+    + '</div>'
+    + '<div style="display:flex;gap:12px;align-items:center;padding:0 4px 8px 4px;border-bottom:1px solid var(--g200);margin-bottom:6px;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em">'
+      + '<span style="width:14px"></span>'
+      + '<span style="flex:1;min-width:140px">Actiu</span>'
+      + '<span style="width:80px;text-align:right">μ anual</span>'
+      + '<span style="width:80px;text-align:right">σ anual</span>'
+      + '<span style="width:80px;text-align:right">Pes</span>'
+      + '<span style="width:60px"></span>'
+    + '</div>'
+    + '<div id="sim-actius-list">' + _renderSimActiusList() + '</div>'
+    + '<div id="sim-pes-warn" style="margin-top:10px"></div>'
+  + '</div>';
+
+  // Horitzó
+  html += '<div class="sim-card">'
+    + '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'
+      + '<div style="font-size:13px;color:var(--g600);min-width:140px">Horitzó temporal</div>'
+      + '<input type="range" id="sim-horitzo" min="1" max="50" step="1" value="' + _SIM_STATE.horitzo + '" style="flex:1;min-width:200px" oninput="simSetHoritzo(this.value)">'
+      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black);min-width:80px;text-align:right"><span id="sim-horitzo-lbl">' + _SIM_STATE.horitzo + '</span> anys</div>'
+    + '</div>'
+    + '<div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--g500)">'
+      + '<input type="checkbox" id="sim-show-assets" ' + (_SIM_STATE.showAssets?'checked':'') + ' onchange="simToggleShowAssets()">'
+      + '<label for="sim-show-assets" style="cursor:pointer">Mostrar línies per cada actiu individualment</label>'
+    + '</div>'
+  + '</div>';
+
+  // KPIs cartera
+  html += '<div id="sim-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:16px"></div>';
+
+  // Gràfic
+  html += '<div class="sim-card">'
+    + '<div style="font-size:14px;font-weight:500;margin-bottom:10px">Projecció probabilística — rendiment acumulat (%)</div>'
+    + '<svg id="sim-chart" viewBox="0 0 900 400" style="width:100%;height:400px;display:block"></svg>'
+    + '<div style="margin-top:10px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--g500)">'
+      + '<span><span style="display:inline-block;width:14px;height:10px;background:rgba(27,58,107,.14);border-radius:2px;vertical-align:middle"></span> Cartera P5–P95</span>'
+      + '<span><span style="display:inline-block;width:14px;height:10px;background:rgba(27,58,107,.32);border-radius:2px;vertical-align:middle"></span> Cartera P25–P75</span>'
+      + '<span><span style="display:inline-block;width:14px;height:3px;background:#1B3A6B;border-radius:2px;vertical-align:middle"></span> Cartera P50 (mediana)</span>'
+      + '<span style="color:var(--g400)">— línia 0% sempre centrada</span>'
+    + '</div>'
+  + '</div>';
+
+  html += '<div style="font-size:11px;color:var(--g400);line-height:1.6;padding:6px 4px">'
+    + 'Model: lognormal (Geometric Brownian Motion). Els percentils P5/P25/P50/P75/P95 representen rangs probabilístics — no garanties. La cartera combinada usa μ ponderat i σ amb correlació zero (diversificació plena). Aquest simulador és una eina pedagògica.'
+  + '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+  simDraw();
+}
+
+function _muSigmaPerActiu(id){
+  // Defaults raonables per la taxonomia interna
+  var M = {
+    rv_global:    {mu:7.5, sigma:18},
+    rv_growth:    {mu:8.5, sigma:22},
+    rv_dividend:  {mu:6.0, sigma:14},
+    rv_emergent:  {mu:8.0, sigma:24},
+    rv_reits:     {mu:5.5, sigma:18},
+    rv_value:     {mu:7.0, sigma:16},
+    rv_smallcap:  {mu:8.0, sigma:22},
+    rv_quality:   {mu:7.0, sigma:16},
+    rf_gov:       {mu:2.5, sigma:5},
+    rf_gov_curt:  {mu:2.0, sigma:3},
+    rf_corp:      {mu:3.5, sigma:7},
+    rf_corp_hy:   {mu:5.5, sigma:11},
+    rf_emerg:     {mu:5.0, sigma:12},
+    rf_monetari:  {mu:2.0, sigma:1},
+    or_metalls:   {mu:5.0, sigma:15},
+    crypto:       {mu:15,  sigma:65},
+    crowdlending: {mu:6.0, sigma:8},
+    pe_startups:  {mu:9.0, sigma:25},
+    altres:       {mu:5.0, sigma:12},
+  };
+  return M[id] || {mu:6, sigma:12};
+}
+
+function _renderSimActiusList(){
+  return _SIM_STATE.actius.map(function(a, idx){
+    return '<div class="sim-row">'
+      + '<span class="sim-color" style="background:' + a.color + '"></span>'
+      + '<input class="sim-input-nom" type="text" value="' + (a.nom||'') + '" oninput="simSetField(' + idx + ',\'nom\',this.value)">'
+      + '<div style="display:flex;flex-direction:column;align-items:end"><input class="sim-input" type="number" step="0.1" value="' + a.mu + '" oninput="simSetField(' + idx + ',\'mu\',this.value);simDraw()"><span style="font-size:9px;color:var(--g400);margin-top:2px">% anual</span></div>'
+      + '<div style="display:flex;flex-direction:column;align-items:end"><input class="sim-input" type="number" step="0.1" min="0" value="' + a.sigma + '" oninput="simSetField(' + idx + ',\'sigma\',this.value);simDraw()"><span style="font-size:9px;color:var(--g400);margin-top:2px">% anual</span></div>'
+      + '<div style="display:flex;flex-direction:column;align-items:end"><input class="sim-input" type="number" step="1" min="0" max="100" value="' + a.pes + '" oninput="simSetField(' + idx + ',\'pes\',this.value);simDraw()"><span style="font-size:9px;color:var(--g400);margin-top:2px">%</span></div>'
+      + '<div style="width:60px;text-align:right">' + (_SIM_STATE.actius.length > 1 ? '<button class="sim-btn sim-btn-danger" onclick="simRemoveActiu(' + idx + ')">×</button>' : '') + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function simAddActiu(){
+  var i = _SIM_STATE.actius.length;
+  _SIM_STATE.actius.push({
+    nom: 'Actiu ' + (i+1),
+    mu: 6, sigma: 12, pes: 0,
+    color: _SIM_COLORS[i % _SIM_COLORS.length]
+  });
+  document.getElementById('sim-actius-list').innerHTML = _renderSimActiusList();
+  simDraw();
+}
+
+function simRemoveActiu(idx){
+  if (_SIM_STATE.actius.length <= 1) return;
+  _SIM_STATE.actius.splice(idx, 1);
+  document.getElementById('sim-actius-list').innerHTML = _renderSimActiusList();
+  simDraw();
+}
+
+function simSetField(idx, k, v){
+  if (k === 'nom') _SIM_STATE.actius[idx][k] = v;
+  else _SIM_STATE.actius[idx][k] = parseFloat(v) || 0;
+}
+
+function simSetHoritzo(v){
+  _SIM_STATE.horitzo = parseInt(v) || 20;
+  document.getElementById('sim-horitzo-lbl').textContent = _SIM_STATE.horitzo;
+  simDraw();
+}
+
+function simToggleShowAssets(){
+  _SIM_STATE.showAssets = document.getElementById('sim-show-assets').checked;
+  simDraw();
+}
+
+function simDraw(){
+  var T = _SIM_STATE.horitzo;
+  var actius = _SIM_STATE.actius;
+  var sumPes = actius.reduce(function(s,a){ return s + (parseFloat(a.pes)||0); }, 0);
+
+  // Banner pesos
+  var warn = document.getElementById('sim-pes-warn');
+  if (warn){
+    if (Math.abs(sumPes - 100) < 0.1){
+      warn.innerHTML = '<div class="sim-pes-warn sim-pes-ok">\u2713 Pesos sumen 100%</div>';
+    } else {
+      warn.innerHTML = '<div class="sim-pes-warn sim-pes-err">\u26a0 Pesos sumen ' + sumPes.toFixed(1) + '% \u2014 ajusta perquè la cartera sigui vàlida</div>';
+    }
+  }
+
+  // Càlcul cartera (correlació 0 → σ_p = sqrt(Σ w_i² σ_i²))
+  var wTot = sumPes > 0 ? sumPes/100 : 1;
+  var muP = 0, varP = 0;
+  actius.forEach(function(a){
+    var w = (parseFloat(a.pes)||0) / 100;
+    var mu = (parseFloat(a.mu)||0) / 100;
+    var s  = (parseFloat(a.sigma)||0) / 100;
+    muP += w * mu;
+    varP += w*w * s*s;
+  });
+  var sigmaP = Math.sqrt(varP);
+
+  // Sèries percentils (cartera)
+  var n = Math.max(80, T*8);
+  var ts = [];
+  for (var i = 0; i <= n; i++) ts.push(T*i/n);
+  function _series(mu, sigma, p){ return ts.map(function(t){ return _gbmReturn(mu, sigma, t, p); }); }
+  var p05 = _series(muP, sigmaP, 0.05);
+  var p25 = _series(muP, sigmaP, 0.25);
+  var p50 = _series(muP, sigmaP, 0.50);
+  var p75 = _series(muP, sigmaP, 0.75);
+  var p95 = _series(muP, sigmaP, 0.95);
+
+  // KPIs
+  var kpis = document.getElementById('sim-kpis');
+  if (kpis){
+    var endIdx = ts.length - 1;
+    kpis.innerHTML = ''
+      + '<div class="sim-kpi"><div class="sim-kpi-val">' + _fmtPct(muP) + '</div><div class="sim-kpi-lbl">μ cartera (anual)</div></div>'
+      + '<div class="sim-kpi"><div class="sim-kpi-val">' + _fmtPct(sigmaP) + '</div><div class="sim-kpi-lbl">σ cartera (anual)</div></div>'
+      + '<div class="sim-kpi"><div class="sim-kpi-val" style="color:#1B3A6B">' + _fmtPct(p50[endIdx]) + '</div><div class="sim-kpi-lbl">Mediana final (P50)</div></div>'
+      + '<div class="sim-kpi"><div class="sim-kpi-val" style="font-size:13px">' + _fmtPct(p05[endIdx]) + ' → ' + _fmtPct(p95[endIdx]) + '</div><div class="sim-kpi-lbl">Rang final (P5–P95, 90%)</div></div>';
+  }
+
+  // SVG
+  var svg = document.getElementById('sim-chart');
+  if (!svg) return;
+  var W = 900, H = 400, padL = 60, padR = 20, padT = 18, padB = 40;
+  var innerW = W - padL - padR, innerH = H - padT - padB;
+
+  // Sèries per actiu (per pintar mediana de cada actiu si actiu)
+  var assetSeries = [];
+  if (_SIM_STATE.showAssets){
+    actius.forEach(function(a){
+      var mu = (parseFloat(a.mu)||0)/100;
+      var s  = (parseFloat(a.sigma)||0)/100;
+      assetSeries.push({color: a.color, nom: a.nom, p50: _series(mu, s, 0.5)});
+    });
+  }
+
+  // Calcular yMin/yMax tenint en compte cartera + actius individuals si actiu
+  var allMin = Math.min.apply(null, p05);
+  var allMax = Math.max.apply(null, p95);
+  assetSeries.forEach(function(as){
+    allMin = Math.min(allMin, Math.min.apply(null, as.p50));
+    allMax = Math.max(allMax, Math.max.apply(null, as.p50));
+  });
+
+  // ── CLAU: 0% sempre centrat verticalment ──
+  var maxAbs = Math.max(Math.abs(allMin), Math.abs(allMax), 0.1);
+  // Arrodonir cap a múltiples de 0.05 (5%) per ticks més nets
+  maxAbs = Math.ceil(maxAbs * 20) / 20;
+  var yMin = -maxAbs;
+  var yMax =  maxAbs;
+
+  function X(t){ return padL + (T <= 0 ? 0 : (t/T)*innerW); }
+  function Y(y){ return padT + (1 - (y-yMin)/(yMax-yMin))*innerH; }
+
+  function pathLine(series){
+    var d = 'M ' + X(ts[0]) + ' ' + Y(series[0]);
+    for (var i = 1; i < ts.length; i++) d += ' L ' + X(ts[i]) + ' ' + Y(series[i]);
+    return d;
+  }
+  function pathBand(lo, hi){
+    var d = 'M ' + X(ts[0]) + ' ' + Y(hi[0]);
+    for (var i = 1; i < ts.length; i++) d += ' L ' + X(ts[i]) + ' ' + Y(hi[i]);
+    for (var j = ts.length-1; j >= 0; j--) d += ' L ' + X(ts[j]) + ' ' + Y(lo[j]);
+    return d + ' Z';
+  }
+
+  // X-ticks
+  var xStep = (T <= 10) ? 1 : (T <= 25 ? 5 : 10);
+  var xTicks = [];
+  for (var tx = 0; tx <= T; tx += xStep) xTicks.push(tx);
+  if (xTicks[xTicks.length-1] !== T) xTicks.push(T);
+
+  // Y-ticks: múltiples de 5% (o més grans si maxAbs gran)
+  var yStepPct;
+  if (maxAbs <= 0.25) yStepPct = 0.05;
+  else if (maxAbs <= 1.0) yStepPct = 0.20;
+  else if (maxAbs <= 2.0) yStepPct = 0.50;
+  else yStepPct = 1.0;
+  var yTicks = [];
+  for (var yt = -maxAbs; yt <= maxAbs + 0.0001; yt += yStepPct) yTicks.push(yt);
+
+  var iEnd = ts.length - 1;
+
+  var svgHtml = ''
+    + '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#fff"/>'
+    // Grid Y + labels
+    + yTicks.map(function(v){
+        var isZero = Math.abs(v) < 1e-9;
+        return '<line x1="' + padL + '" y1="' + Y(v) + '" x2="' + (W-padR) + '" y2="' + Y(v) + '" stroke="' + (isZero?'#0A0A0A':'#eee') + '" stroke-width="' + (isZero?'1.4':'1') + '" ' + (isZero?'':'') + '/>'
+          + '<text x="' + (padL-8) + '" y="' + (Y(v)+4) + '" text-anchor="end" font-size="10" fill="' + (isZero?'#0A0A0A':'#666') + '" font-family="ui-monospace,monospace" font-weight="' + (isZero?'600':'400') + '">' + (v*100).toFixed(0) + '%</text>';
+      }).join('')
+    // Grid X + labels
+    + xTicks.map(function(t){
+        return '<line x1="' + X(t) + '" y1="' + padT + '" x2="' + X(t) + '" y2="' + (H-padB) + '" stroke="#f3f3f3"/>'
+          + '<text x="' + X(t) + '" y="' + (H-12) + '" text-anchor="middle" font-size="10" fill="#666">' + t + '</text>';
+      }).join('')
+    // Bandes cartera
+    + '<path d="' + pathBand(p05, p95) + '" fill="rgba(27,58,107,0.14)" stroke="none"/>'
+    + '<path d="' + pathBand(p25, p75) + '" fill="rgba(27,58,107,0.32)" stroke="none"/>'
+    + '<path d="' + pathLine(p50) + '" fill="none" stroke="#1B3A6B" stroke-width="2.6"/>'
+    // Sèries individuals
+    + assetSeries.map(function(as){
+        return '<path d="' + pathLine(as.p50) + '" fill="none" stroke="' + as.color + '" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.85"/>';
+      }).join('')
+    // Axis
+    + '<line x1="' + padL + '" y1="' + (H-padB) + '" x2="' + (W-padR) + '" y2="' + (H-padB) + '" stroke="#222"/>'
+    + '<line x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (H-padB) + '" stroke="#222"/>'
+    // Etiquetes finals
+    + '<text x="' + (W-padR-4) + '" y="' + (Y(p95[iEnd])-4) + '" text-anchor="end" font-size="11" fill="#1B3A6B" font-family="ui-monospace,monospace">P95 ' + _fmtPct(p95[iEnd],1) + '</text>'
+    + '<text x="' + (W-padR-4) + '" y="' + (Y(p50[iEnd])-4) + '" text-anchor="end" font-size="11" fill="#1B3A6B" font-family="ui-monospace,monospace" font-weight="600">P50 ' + _fmtPct(p50[iEnd],1) + '</text>'
+    + '<text x="' + (W-padR-4) + '" y="' + (Y(p05[iEnd])+12) + '" text-anchor="end" font-size="11" fill="#1B3A6B" font-family="ui-monospace,monospace">P5 ' + _fmtPct(p05[iEnd],1) + '</text>'
+    // Eixos
+    + '<text x="' + (padL+4) + '" y="14" font-size="11" fill="#555">rendiment acumulat</text>'
+    + '<text x="' + (W-padR) + '" y="' + (H-2) + '" font-size="11" fill="#555" text-anchor="end">temps (anys)</text>';
+
+  svg.innerHTML = svgHtml;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// EINA #2 — MONTE CARLO (simulació de N escenaris per cartera)
+// ══════════════════════════════════════════════════════════════════════════
+
+var _MC_STATE = {
+  font: 'recomanada',  // 'real' | 'recomanada' | 'arquetip'
+  arquetipId: 'navegant',
+  capitalInicial: 10000,
+  aportacioMensual: 300,
+  horitzo: 20,
+  numSims: 1000,
+  objectiu: 0,
+  _lastResult: null
+};
+
+function renderPortalMontecarlo(el){
+  var c = getClient();
+  var arq = c ? getArquetip(c.arquetipId || 'navegant') : getArquetip('navegant');
+
+  // Capital inicial + aportació per defecte
+  if (!_MC_STATE._loaded){
+    var posicions = (c && c.cartera_actual_usuari) || [];
+    var capCartera = posicions.reduce(function(s,p){ return s+(parseFloat(p.valor)||0); }, 0);
+    if (capCartera > 0) _MC_STATE.capitalInicial = Math.round(capCartera);
+    var perfil = c && c.perfil;
+    if (perfil && perfil.aportacioMensual){
+      var v = parseFloat(String(perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.'));
+      if (isFinite(v) && v > 0) _MC_STATE.aportacioMensual = v;
+    }
+    _MC_STATE.arquetipId = (c && c.arquetipId) || 'navegant';
+    _MC_STATE._loaded = true;
+  }
+
+  var html = '<style>'
+    + '.mc-card{background:#fff;border:1px solid var(--g200);border-radius:14px;padding:20px 22px;margin-bottom:14px}'
+    + '.mc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}'
+    + '.mc-fld{display:flex;flex-direction:column;gap:5px}'
+    + '.mc-fld label{font-size:11px;color:var(--g500);font-weight:500}'
+    + '.mc-input{padding:9px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)}'
+    + '.mc-input:focus{outline:none;border-color:var(--accent)}'
+    + '.mc-select{padding:9px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;background:#fff;cursor:pointer}'
+    + '.mc-btn{padding:12px 24px;border-radius:9px;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)}'
+    + '.mc-btn-go{background:var(--black);color:#fff}'
+    + '.mc-btn-go:hover{background:var(--accent)}'
+    + '.mc-kpi{background:var(--g50);border-radius:10px;padding:14px 16px}'
+    + '.mc-kpi-val{font-family:var(--fm);font-size:22px;font-weight:500;color:var(--black)}'
+    + '.mc-kpi-lbl{font-size:11px;color:var(--g500);margin-top:3px}'
+    + '.mc-prob-bar{height:8px;background:var(--g200);border-radius:99px;overflow:hidden;margin-top:6px}'
+    + '.mc-prob-fill{height:100%;background:linear-gradient(90deg,#1B3A6B,#4CAF82);border-radius:99px;transition:width .4s}'
+    + '</style>'
+    + '<div class="content-inner fade-in">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Simulació Monte Carlo</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.7">Genera milers d\'escenaris possibles per a una cartera per veure el rang de resultats probable. Inclou aportacions mensuals i parteix del capital inicial.</div>';
+
+  // ── 1. SELECCIÓ DE CARTERA ──
+  html += '<div class="mc-card">'
+    + '<div style="font-size:14px;font-weight:500;margin-bottom:12px">Origen de la cartera</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">'
+      + _mcRadioCard('recomanada', '✨ La meva recomanada', 'Cartera assignada al teu arquetip', _MC_STATE.font === 'recomanada')
+      + _mcRadioCard('real', '💼 La meva cartera real', 'Posicions reals declarades', _MC_STATE.font === 'real')
+      + _mcRadioCard('arquetip', '🗂 Cartera d\'altre arquetip', 'Compara amb una altra cartera', _MC_STATE.font === 'arquetip')
+    + '</div>';
+
+  if (_MC_STATE.font === 'arquetip'){
+    html += '<div class="mc-fld" style="max-width:300px">'
+      + '<label>Tria una cartera per simular</label>'
+      + '<select class="mc-select" onchange="_MC_STATE.arquetipId=this.value;simMcRenderCartera()">'
+        + ARQUETIPS_CARTERES.map(function(ar){
+          return '<option value="' + ar.id + '" ' + (_MC_STATE.arquetipId === ar.id ? 'selected' : '') + '>' + ar.cartNom + ' \u2014 ' + ar.nom + '</option>';
+        }).join('')
+      + '</select>'
+    + '</div>';
+  }
+
+  html += '<div id="mc-cartera-preview" style="margin-top:12px"></div>';
+  html += '</div>';
+
+  // ── 2. PARÀMETRES ──
+  html += '<div class="mc-card">'
+    + '<div style="font-size:14px;font-weight:500;margin-bottom:12px">Paràmetres de la simulació</div>'
+    + '<div class="mc-grid">'
+      + '<div class="mc-fld"><label>Capital inicial</label><input class="mc-input" id="mc-cap" type="number" min="0" step="100" value="' + _MC_STATE.capitalInicial + '"></div>'
+      + '<div class="mc-fld"><label>Aportació mensual (€)</label><input class="mc-input" id="mc-apo" type="number" min="0" step="50" value="' + _MC_STATE.aportacioMensual + '"></div>'
+      + '<div class="mc-fld"><label>Horitzó (anys)</label><input class="mc-input" id="mc-hor" type="number" min="1" max="50" step="1" value="' + _MC_STATE.horitzo + '"></div>'
+      + '<div class="mc-fld"><label>Núm. de simulacions</label><select class="mc-select" id="mc-num"><option value="500" ' + (_MC_STATE.numSims===500?'selected':'') + '>500 (ràpid)</option><option value="1000" ' + (_MC_STATE.numSims===1000?'selected':'') + '>1000 (recomanat)</option><option value="2500" ' + (_MC_STATE.numSims===2500?'selected':'') + '>2500 (precís)</option><option value="5000" ' + (_MC_STATE.numSims===5000?'selected':'') + '>5000 (lent)</option></select></div>'
+      + '<div class="mc-fld"><label>Objectiu de capital (opcional)</label><input class="mc-input" id="mc-obj" type="number" min="0" step="1000" placeholder="ex: 250000" value="' + (_MC_STATE.objectiu || '') + '"></div>'
+    + '</div>'
+    + '<div style="margin-top:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
+      + '<button class="mc-btn mc-btn-go" onclick="simMcRun()">▶ Executar simulació</button>'
+      + '<div id="mc-status" style="font-size:12px;color:var(--g500)"></div>'
+    + '</div>'
+  + '</div>';
+
+  html += '<div id="mc-resultats"></div>';
+
+  html += '<div style="font-size:11px;color:var(--g400);line-height:1.6;padding:6px 4px">'
+    + 'El model assumeix retorns lognormals (GBM) amb μ i σ derivats de l\'arquetip. No modelitza crisis severes, correlacions canviants o flux fiscal. Aquesta eina és educativa.'
+  + '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+  simMcRenderCartera();
+}
+
+function _mcRadioCard(val, titol, sub, selected){
+  return '<div onclick="_MC_STATE.font=\'' + val + '\';renderView(\'portal-montecarlo\')" style="flex:1;min-width:200px;padding:14px 16px;border:1.5px solid ' + (selected?'#1B3A6B':'var(--g200)') + ';background:' + (selected?'#EBF0FA':'#fff') + ';border-radius:11px;cursor:pointer;transition:all .15s">'
+    + '<div style="font-size:13px;font-weight:500;margin-bottom:3px;color:' + (selected?'#1B3A6B':'#0A0A0A') + '">' + titol + '</div>'
+    + '<div style="font-size:11px;color:var(--g500);line-height:1.5">' + sub + '</div>'
+  + '</div>';
+}
+
+function _mcGetCarteraActius(){
+  var c = getClient();
+  if (_MC_STATE.font === 'real'){
+    // Agrupar posicions per categoria
+    var positions = (c && c.cartera_actual_usuari) || [];
+    var total = positions.reduce(function(s,p){ return s + (parseFloat(p.valor)||0); }, 0);
+    if (total <= 0){
+      // Fallback a recomanada
+      var ar = c ? getArquetip(c.arquetipId||'navegant') : getArquetip('navegant');
+      return {actius: ar.actius || [], font:'recomanada', fallback:true, nom: ar.cartNom};
+    }
+    var map = {};
+    positions.forEach(function(p){
+      var cat = p.cat || p.id || 'altres';
+      var v = parseFloat(p.valor) || 0;
+      if (!map[cat]) map[cat] = {id:cat, nom: p.nom_categoria || cat, pct:0, color: p.color || '#888', valor:0};
+      map[cat].valor += v;
+    });
+    var arr = Object.keys(map).map(function(k){
+      map[k].pct = map[k].valor/total*100;
+      return map[k];
+    });
+    return {actius: arr, font:'real', nom: 'Cartera real declarada'};
+  }
+  if (_MC_STATE.font === 'arquetip'){
+    var ar2 = getArquetip(_MC_STATE.arquetipId);
+    return {actius: ar2.actius || [], font:'arquetip', nom: ar2.cartNom};
+  }
+  // recomanada
+  var ar3 = c ? getArquetip(c.arquetipId||'navegant') : getArquetip('navegant');
+  return {actius: ar3.actius || [], font:'recomanada', nom: ar3.cartNom};
+}
+
+function simMcRenderCartera(){
+  var el = document.getElementById('mc-cartera-preview');
+  if (!el) return;
+  var info = _mcGetCarteraActius();
+  if (!info.actius || info.actius.length === 0){
+    el.innerHTML = '<div style="font-size:12px;color:#8B1A1A;padding:10px;background:#FDF0F0;border-radius:8px">No hi ha cartera disponible. Tria una altra opció.</div>';
+    return;
+  }
+
+  // Càlcul μ/σ ponderat amb correlació 0
+  var muP = 0, varP = 0, sumW = 0;
+  info.actius.forEach(function(a){
+    var w = (parseFloat(a.pct)||0)/100;
+    sumW += w;
+    var def = _muSigmaPerActiu(a.id);
+    muP += w * (def.mu/100);
+    varP += w*w * Math.pow(def.sigma/100, 2);
+  });
+  var sigmaP = Math.sqrt(varP);
+
+  el.innerHTML = '<div style="background:var(--g50);border-radius:10px;padding:14px 16px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">'
+      + '<div style="font-size:13px;font-weight:500">' + info.nom + (info.fallback?' <span style="font-size:10px;color:var(--g400)">(sense cartera real \u2014 usant recomanada)</span>':'') + '</div>'
+      + '<div style="font-size:11px;color:var(--g500)">μ \u2248 ' + _fmtPct(muP,1) + ' \u00b7 σ \u2248 ' + _fmtPct(sigmaP,1) + '</div>'
+    + '</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+      + info.actius.map(function(a){
+          var col = a.color || '#888';
+          return '<div style="font-size:11px;padding:4px 9px;background:#fff;border:1px solid ' + col + '33;border-radius:99px;color:var(--g600)"><span style="display:inline-block;width:8px;height:8px;background:' + col + ';border-radius:99px;vertical-align:middle;margin-right:4px"></span>' + a.nom + ' ' + (parseFloat(a.pct)||0).toFixed(0) + '%</div>';
+        }).join('')
+    + '</div>'
+  + '</div>';
+}
+
+function simMcRun(){
+  // Llegir paràmetres
+  _MC_STATE.capitalInicial = parseFloat(document.getElementById('mc-cap').value) || 0;
+  _MC_STATE.aportacioMensual = parseFloat(document.getElementById('mc-apo').value) || 0;
+  _MC_STATE.horitzo = parseInt(document.getElementById('mc-hor').value) || 20;
+  _MC_STATE.numSims = parseInt(document.getElementById('mc-num').value) || 1000;
+  _MC_STATE.objectiu = parseFloat(document.getElementById('mc-obj').value) || 0;
+
+  // Calcular μ/σ
+  var info = _mcGetCarteraActius();
+  var muP = 0, varP = 0;
+  info.actius.forEach(function(a){
+    var w = (parseFloat(a.pct)||0)/100;
+    var def = _muSigmaPerActiu(a.id);
+    muP += w * (def.mu/100);
+    varP += w*w * Math.pow(def.sigma/100, 2);
+  });
+  var sigmaP = Math.sqrt(varP);
+
+  var status = document.getElementById('mc-status');
+  status.textContent = 'Simulant ' + _MC_STATE.numSims + ' escenaris...';
+
+  // Execució asíncrona perquè no bloquegi UI
+  setTimeout(function(){
+    var result = _executeMonteCarlo(muP, sigmaP, _MC_STATE.capitalInicial, _MC_STATE.aportacioMensual, _MC_STATE.horitzo, _MC_STATE.numSims, _MC_STATE.objectiu);
+    _MC_STATE._lastResult = result;
+    status.textContent = '\u2713 Completat — ' + _MC_STATE.numSims + ' escenaris generats';
+    _renderMcResults(result, info);
+  }, 50);
+}
+
+function _executeMonteCarlo(mu, sigma, cap0, aportMens, T, N, objectiu){
+  // Mensualitzem: μ_m = μ/12, σ_m = σ/sqrt(12)
+  var dt = 1/12;
+  var sqrtDt = Math.sqrt(dt);
+  var nMesos = T * 12;
+
+  // Cada simulació: capital final + path complet (per percentils per any)
+  var finals = new Array(N);
+  // Per percentils per any, guardem snapshot anual
+  // pathsAnnual[sim] = [cap_year_0, cap_year_1, ..., cap_year_T]
+  var pathsAnnual = new Array(N);
+
+  for (var s = 0; s < N; s++){
+    var cap = cap0;
+    var snapshots = [cap0];
+    for (var m = 1; m <= nMesos; m++){
+      var z = _randn();
+      var growth = Math.exp((mu - 0.5*sigma*sigma)*dt + sigma*sqrtDt*z);
+      cap = cap * growth + aportMens;
+      if (m % 12 === 0) snapshots.push(cap);
+    }
+    finals[s] = cap;
+    pathsAnnual[s] = snapshots;
+  }
+
+  // Percentils per any
+  var nYears = T;
+  var pct = [5, 10, 25, 50, 75, 90, 95];
+  var perYear = {};
+  pct.forEach(function(p){ perYear[p] = new Array(nYears+1); });
+
+  for (var y = 0; y <= nYears; y++){
+    var vals = pathsAnnual.map(function(snap){ return snap[y]; });
+    vals.sort(function(a,b){ return a-b; });
+    pct.forEach(function(p){
+      var idx = Math.floor((p/100) * (N-1));
+      perYear[p][y] = vals[idx];
+    });
+  }
+
+  // Estadístiques globals
+  var sortedFinals = finals.slice().sort(function(a,b){ return a-b; });
+  var stats = {
+    p5:  sortedFinals[Math.floor(0.05*(N-1))],
+    p25: sortedFinals[Math.floor(0.25*(N-1))],
+    p50: sortedFinals[Math.floor(0.50*(N-1))],
+    p75: sortedFinals[Math.floor(0.75*(N-1))],
+    p95: sortedFinals[Math.floor(0.95*(N-1))],
+    mean: finals.reduce(function(s,x){return s+x;}, 0) / N,
+    min: sortedFinals[0],
+    max: sortedFinals[N-1],
+    capInvertit: cap0 + aportMens * nMesos,
+    probObjectiu: objectiu > 0 ? (finals.filter(function(f){return f >= objectiu;}).length / N) * 100 : null,
+    probPerdua: (finals.filter(function(f){ return f < (cap0 + aportMens * nMesos); }).length / N) * 100,
+    perYear: perYear,
+    T: T,
+    mu: mu, sigma: sigma
+  };
+  return stats;
+}
+
+function _renderMcResults(r, info){
+  var el = document.getElementById('mc-resultats');
+  if (!el) return;
+
+  var html = '<div class="mc-card">'
+    + '<div style="font-size:14px;font-weight:500;margin-bottom:14px">Resultats — ' + _MC_STATE.numSims + ' escenaris</div>'
+    // KPIs
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px">'
+      + '<div class="mc-kpi"><div class="mc-kpi-val" style="color:#8B1A1A">' + _fmtEur(r.p5) + '</div><div class="mc-kpi-lbl">Escenari dolent (P5)</div></div>'
+      + '<div class="mc-kpi"><div class="mc-kpi-val" style="color:#7A4A00">' + _fmtEur(r.p25) + '</div><div class="mc-kpi-lbl">Pessimista (P25)</div></div>'
+      + '<div class="mc-kpi"><div class="mc-kpi-val" style="color:#1B3A6B">' + _fmtEur(r.p50) + '</div><div class="mc-kpi-lbl">Mediana (P50)</div></div>'
+      + '<div class="mc-kpi"><div class="mc-kpi-val" style="color:#1A5C3A">' + _fmtEur(r.p75) + '</div><div class="mc-kpi-lbl">Optimista (P75)</div></div>'
+      + '<div class="mc-kpi"><div class="mc-kpi-val" style="color:#1A5C3A">' + _fmtEur(r.p95) + '</div><div class="mc-kpi-lbl">Molt bo (P95)</div></div>'
+    + '</div>';
+
+  // Capital invertit vs mediana
+  var multiple = r.p50 / r.capInvertit;
+  html += '<div style="background:#F4F3F0;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12px;line-height:1.7">'
+    + '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">'
+      + '<div>Capital total invertit: <strong>' + _fmtEur(r.capInvertit) + '</strong></div>'
+      + '<div>Mediana / Invertit: <strong style="color:' + (multiple>=1?'#1A5C3A':'#8B1A1A') + '">×' + multiple.toFixed(2) + '</strong></div>'
+      + '<div>Probabilitat de perdre capital: <strong>' + r.probPerdua.toFixed(1) + '%</strong></div>'
+    + '</div>'
+  + '</div>';
+
+  // Objectiu
+  if (r.probObjectiu !== null){
+    var coba = r.probObjectiu >= 75 ? '#1A5C3A' : (r.probObjectiu >= 50 ? '#7A4A00' : '#8B1A1A');
+    html += '<div style="background:#fff;border:1.5px solid ' + coba + '33;border-radius:11px;padding:14px 18px;margin-bottom:16px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">'
+        + '<div><div style="font-size:11px;color:var(--g500);margin-bottom:2px">Probabilitat d\'assolir ' + _fmtEur(_MC_STATE.objectiu) + '</div><div style="font-family:var(--fm);font-size:26px;font-weight:500;color:' + coba + '">' + r.probObjectiu.toFixed(1) + '%</div></div>'
+        + '<div style="flex:1;min-width:200px"><div class="mc-prob-bar"><div class="mc-prob-fill" style="width:' + r.probObjectiu + '%"></div></div></div>'
+      + '</div>'
+    + '</div>';
+  }
+
+  // Gràfic distribució per any
+  html += '<div style="font-size:13px;font-weight:500;margin-bottom:8px">Evolució del capital — distribució de tots els escenaris</div>'
+    + '<svg id="mc-chart" viewBox="0 0 900 380" style="width:100%;height:380px;display:block"></svg>'
+    + '<div style="font-size:11px;color:var(--g500);margin-top:8px;display:flex;gap:14px;flex-wrap:wrap">'
+      + '<span><span style="display:inline-block;width:14px;height:10px;background:rgba(27,58,107,.12);border-radius:2px;vertical-align:middle"></span> P5–P95</span>'
+      + '<span><span style="display:inline-block;width:14px;height:10px;background:rgba(27,58,107,.28);border-radius:2px;vertical-align:middle"></span> P25–P75</span>'
+      + '<span><span style="display:inline-block;width:14px;height:3px;background:#1B3A6B;border-radius:2px;vertical-align:middle"></span> Mediana</span>'
+      + '<span><span style="display:inline-block;width:14px;height:3px;background:#0A0A0A;border-radius:2px;vertical-align:middle;border-top:1.5px dashed #0A0A0A"></span> Capital invertit acumulat</span>'
+    + '</div>'
+  + '</div>';
+
+  el.innerHTML = html;
+  _drawMcChart(r);
+}
+
+function _drawMcChart(r){
+  var svg = document.getElementById('mc-chart');
+  if (!svg) return;
+
+  var W = 900, H = 380, padL = 80, padR = 20, padT = 18, padB = 36;
+  var innerW = W - padL - padR, innerH = H - padT - padB;
+  var T = r.T;
+
+  var ys = r.perYear;
+  var allMax = Math.max.apply(null, ys[95]);
+  var allMin = Math.min.apply(null, ys[5]);
+  // Inversió acumulada per any (per superposar)
+  var aportAcum = [];
+  for (var y = 0; y <= T; y++) aportAcum.push(_MC_STATE.capitalInicial + _MC_STATE.aportacioMensual * 12 * y);
+  allMax = Math.max(allMax, aportAcum[T]);
+  allMin = Math.min(allMin, 0);
+
+  // Padding y
+  var yMin = Math.max(0, allMin * 0.95);
+  var yMax = allMax * 1.05;
+
+  function X(t){ return padL + (T <= 0 ? 0 : (t/T)*innerW); }
+  function Y(v){ return padT + (1 - (v-yMin)/(yMax-yMin))*innerH; }
+
+  function pathL(arr){
+    var d = 'M ' + X(0) + ' ' + Y(arr[0]);
+    for (var i = 1; i < arr.length; i++) d += ' L ' + X(i) + ' ' + Y(arr[i]);
+    return d;
+  }
+  function pathB(lo, hi){
+    var d = 'M ' + X(0) + ' ' + Y(hi[0]);
+    for (var i = 1; i < hi.length; i++) d += ' L ' + X(i) + ' ' + Y(hi[i]);
+    for (var j = lo.length-1; j >= 0; j--) d += ' L ' + X(j) + ' ' + Y(lo[j]);
+    return d + ' Z';
+  }
+
+  // X ticks
+  var xStep = T <= 10 ? 1 : (T <= 25 ? 5 : 10);
+  var xTicks = [];
+  for (var t = 0; t <= T; t += xStep) xTicks.push(t);
+  if (xTicks[xTicks.length-1] !== T) xTicks.push(T);
+
+  // Y ticks (5)
+  var yTicks = [];
+  for (var k = 0; k <= 5; k++) yTicks.push(yMin + (yMax-yMin)*k/5);
+
+  function fmt(v){
+    if (v >= 1e6) return (v/1e6).toFixed(1) + 'M€';
+    if (v >= 1e3) return (v/1e3).toFixed(0) + 'k€';
+    return Math.round(v) + '€';
+  }
+
+  var html = '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#fff"/>'
+    + yTicks.map(function(v){
+        return '<line x1="' + padL + '" y1="' + Y(v) + '" x2="' + (W-padR) + '" y2="' + Y(v) + '" stroke="#eee"/>'
+          + '<text x="' + (padL-8) + '" y="' + (Y(v)+4) + '" text-anchor="end" font-size="10" fill="#666" font-family="ui-monospace,monospace">' + fmt(v) + '</text>';
+      }).join('')
+    + xTicks.map(function(t){
+        return '<line x1="' + X(t) + '" y1="' + padT + '" x2="' + X(t) + '" y2="' + (H-padB) + '" stroke="#f3f3f3"/>'
+          + '<text x="' + X(t) + '" y="' + (H-12) + '" text-anchor="middle" font-size="10" fill="#666">' + t + '</text>';
+      }).join('')
+    + '<path d="' + pathB(ys[5], ys[95]) + '" fill="rgba(27,58,107,0.12)" stroke="none"/>'
+    + '<path d="' + pathB(ys[25], ys[75]) + '" fill="rgba(27,58,107,0.28)" stroke="none"/>'
+    + '<path d="' + pathL(ys[50]) + '" fill="none" stroke="#1B3A6B" stroke-width="2.4"/>'
+    + '<path d="' + pathL(aportAcum) + '" fill="none" stroke="#0A0A0A" stroke-width="1.5" stroke-dasharray="5 4" opacity="0.7"/>'
+    + '<line x1="' + padL + '" y1="' + (H-padB) + '" x2="' + (W-padR) + '" y2="' + (H-padB) + '" stroke="#222"/>'
+    + '<line x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + (H-padB) + '" stroke="#222"/>'
+    + '<text x="' + (padL+4) + '" y="14" font-size="11" fill="#555">capital (€)</text>'
+    + '<text x="' + (W-padR) + '" y="' + (H-2) + '" font-size="11" fill="#555" text-anchor="end">temps (anys)</text>';
+
+  svg.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// EINA #3 — CALCULADORA FISCAL ESPANYA 2026
+// ══════════════════════════════════════════════════════════════════════════
+
+// Trams Base Imponible del Estalvi — Espanya 2026
+// Font: AEAT (estatal + autonòmica agregada per residents)
+var TRAMS_AHORRO_2026 = [
+  {fins: 6000,   tipus: 0.19},
+  {fins: 50000,  tipus: 0.21},
+  {fins: 200000, tipus: 0.23},
+  {fins: 300000, tipus: 0.27},
+  {fins: Infinity, tipus: 0.30},  // actualitzat 2025: 28% → 30%
+];
+
+function _calcImpostAhorro(base){
+  if (base <= 0) return {total:0, trams:[]};
+  var restant = base;
+  var pagat = 0;
+  var anterior = 0;
+  var trams = [];
+  for (var i = 0; i < TRAMS_AHORRO_2026.length; i++){
+    var t = TRAMS_AHORRO_2026[i];
+    var ample = t.fins - anterior;
+    var aplicar = Math.min(restant, ample);
+    if (aplicar <= 0) break;
+    var quota = aplicar * t.tipus;
+    trams.push({
+      desde: anterior, fins: anterior + aplicar,
+      tipus: t.tipus, base: aplicar, quota: quota
+    });
+    pagat += quota;
+    restant -= aplicar;
+    anterior = t.fins;
+    if (restant <= 0) break;
+  }
+  return {total: pagat, trams: trams};
+}
+
+var _FISC_STATE = {
+  // Guanys i pèrdues patrimonials (vendes)
+  vendes_guany: 0,
+  vendes_perdua: 0,
+  // Rendiments capital mobiliari (dividends, interessos)
+  rcm_positiu: 0,
+  rcm_negatiu: 0,
+  // Pèrdues pendents (anys anteriors, fins 4 anys)
+  perdues_pendents_gpp: 0,
+  perdues_pendents_rcm: 0,
+};
+
+function renderPortalFiscalitat(el){
+  var html = '<style>'
+    + '.fis-card{background:#fff;border:1px solid var(--g200);border-radius:14px;padding:22px 24px;margin-bottom:14px}'
+    + '.fis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}'
+    + '.fis-fld{display:flex;flex-direction:column;gap:6px}'
+    + '.fis-fld label{font-size:11px;color:var(--g500);font-weight:500;line-height:1.5}'
+    + '.fis-fld .fis-sub{font-size:10px;color:var(--g400);font-weight:400}'
+    + '.fis-input{padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:14px;font-family:var(--fm);text-align:right}'
+    + '.fis-input:focus{outline:none;border-color:var(--accent)}'
+    + '.fis-sec-title{font-size:13px;font-weight:600;color:var(--black);margin-bottom:10px;display:flex;align-items:center;gap:8px}'
+    + '.fis-sec-title:before{content:"";width:4px;height:14px;background:#1B3A6B;border-radius:2px}'
+    + '.fis-trams-table{width:100%;border-collapse:collapse;font-size:13px}'
+    + '.fis-trams-table th{font-weight:500;text-align:left;padding:8px 10px;font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--g200)}'
+    + '.fis-trams-table td{padding:8px 10px;border-bottom:1px solid var(--g100);font-family:var(--fm)}'
+    + '.fis-trams-table tr.active td{background:#EBF0FA;font-weight:500}'
+    + '.fis-resultat{background:linear-gradient(135deg,#1B3A6B,#0A0A0A);color:#fff;border-radius:13px;padding:24px 28px}'
+    + '.fis-resultat-val{font-family:var(--fm);font-size:38px;font-weight:500;letter-spacing:-1px}'
+    + '.fis-resultat-lbl{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em}'
+    + '.fis-info{background:#FEF5E7;border-left:3px solid #D4943A;padding:10px 14px;border-radius:6px;font-size:12px;color:#7A4A00;line-height:1.6;margin-top:10px}'
+    + '.fis-toggle{display:inline-flex;gap:4px;padding:3px;background:var(--g100);border-radius:9px;margin-bottom:12px}'
+    + '.fis-toggle button{padding:6px 12px;border-radius:7px;border:none;background:transparent;font-size:12px;cursor:pointer;color:var(--g500);font-family:var(--fb)}'
+    + '.fis-toggle button.active{background:#fff;color:var(--black);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.06)}'
+    + '</style>'
+    + '<div class="content-inner fade-in">'
+    + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Calculadora fiscal d\'inversions</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.7">Calcula la fiscalitat dels rendiments d\'inversió segons els tipus del IRPF Estalvi a Espanya 2026 (19%–30% progressiu).</div>';
+
+  // ── Toggle vista: Simple / Avançada ──
+  html += '<div class="fis-toggle" id="fis-toggle">'
+    + '<button class="active" onclick="fisToggleMode(\'simple\')">Simple</button>'
+    + '<button onclick="fisToggleMode(\'avancada\')">Avançada (compensacions)</button>'
+  + '</div>';
+
+  // ── Input forms ──
+  html += '<div class="fis-card">'
+    + '<div class="fis-sec-title">Guanys i pèrdues patrimonials</div>'
+    + '<div class="fis-fld" style="margin-bottom:14px">'
+      + '<label>Benefici de la venda d\'actius<span class="fis-sub"> · accions, fons, ETFs, immobles, criptos (positiu net del període)</span></label>'
+      + '<input class="fis-input" type="number" min="0" step="100" id="fis-vg" value="' + _FISC_STATE.vendes_guany + '" oninput="_FISC_STATE.vendes_guany=parseFloat(this.value)||0;fisCalc()">'
+    + '</div>'
+    + '<div class="fis-fld" id="fis-vp-row">'
+      + '<label>Pèrdues de venda d\'actius el mateix any<span class="fis-sub"> · compensen amb els guanys del mateix tipus</span></label>'
+      + '<input class="fis-input" type="number" min="0" step="100" id="fis-vp" value="' + _FISC_STATE.vendes_perdua + '" oninput="_FISC_STATE.vendes_perdua=parseFloat(this.value)||0;fisCalc()">'
+    + '</div>'
+  + '</div>';
+
+  html += '<div class="fis-card">'
+    + '<div class="fis-sec-title">Rendiments del capital mobiliari</div>'
+    + '<div class="fis-fld" style="margin-bottom:14px">'
+      + '<label>Dividends, interessos, cupons<span class="fis-sub"> · brut, abans de retencions</span></label>'
+      + '<input class="fis-input" type="number" min="0" step="100" id="fis-rp" value="' + _FISC_STATE.rcm_positiu + '" oninput="_FISC_STATE.rcm_positiu=parseFloat(this.value)||0;fisCalc()">'
+    + '</div>'
+    + '<div class="fis-fld" id="fis-rn-row">'
+      + '<label>Rendiments negatius del capital mobiliari<span class="fis-sub"> · poc habituals (p. ex. comissions)</span></label>'
+      + '<input class="fis-input" type="number" min="0" step="100" id="fis-rn" value="' + _FISC_STATE.rcm_negatiu + '" oninput="_FISC_STATE.rcm_negatiu=parseFloat(this.value)||0;fisCalc()">'
+    + '</div>'
+  + '</div>';
+
+  // ── Avançat: pèrdues pendents ──
+  html += '<div class="fis-card" id="fis-avancat" style="display:none">'
+    + '<div class="fis-sec-title">Pèrdues pendents d\'anys anteriors</div>'
+    + '<div style="font-size:11px;color:var(--g500);margin-bottom:14px;line-height:1.7">Les pèrdues no compensades de l\'any anterior es poden compensar fins a 4 anys després. Indica els saldos pendents.</div>'
+    + '<div class="fis-grid">'
+      + '<div class="fis-fld"><label>Pèrdues patrimonials pendents</label><input class="fis-input" type="number" min="0" step="100" id="fis-pp-gpp" value="' + _FISC_STATE.perdues_pendents_gpp + '" oninput="_FISC_STATE.perdues_pendents_gpp=parseFloat(this.value)||0;fisCalc()"></div>'
+      + '<div class="fis-fld"><label>Rendiments negatius pendents</label><input class="fis-input" type="number" min="0" step="100" id="fis-pp-rcm" value="' + _FISC_STATE.perdues_pendents_rcm + '" oninput="_FISC_STATE.perdues_pendents_rcm=parseFloat(this.value)||0;fisCalc()"></div>'
+    + '</div>'
+    + '<div class="fis-info">💡 Regla del 25%: si després de compensar guanys i pèrdues entre el mateix tipus encara queda saldo positiu d\'un tipus i negatiu de l\'altre, es poden compensar entre tipus fins a un 25% del saldo positiu.</div>'
+  + '</div>';
+
+  html += '<div id="fis-resultat"></div>';
+
+  html += '<div class="fis-card">'
+    + '<div class="fis-sec-title">Trams aplicats — Base Imponible de l\'Estalvi 2026</div>'
+    + '<table class="fis-trams-table" id="fis-trams">'
+      + '<thead><tr><th>Tram</th><th style="text-align:right">Tipus</th><th style="text-align:right">Base</th><th style="text-align:right">Quota</th></tr></thead>'
+      + '<tbody></tbody>'
+    + '</table>'
+    + '<div class="fis-info" style="background:#EBF0FA;border-left-color:#1B3A6B;color:#1B3A6B"><strong>Important:</strong> Aquesta calculadora és educativa i correspon als tipus generals de la base imponible de l\'estalvi (article 25 LIRPF, modificat amb efectes 2025+). No inclou particularitats autonòmiques no aplicables a la base de l\'estalvi, ni casos especials (PIAS, SIALP, plans de pensions, etc.). Consulta amb un fiscalista per a la teva situació concreta.</div>'
+  + '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+  fisCalc();
+}
+
+function fisToggleMode(mode){
+  var btns = document.querySelectorAll('#fis-toggle button');
+  btns.forEach(function(b){ b.classList.remove('active'); });
+  btns[mode==='simple'?0:1].classList.add('active');
+  document.getElementById('fis-avancat').style.display = mode==='simple' ? 'none' : 'block';
+  // En mode simple, posar pèrdues pendents a 0
+  if (mode === 'simple'){
+    _FISC_STATE.perdues_pendents_gpp = 0;
+    _FISC_STATE.perdues_pendents_rcm = 0;
+    var a = document.getElementById('fis-pp-gpp'); if (a) a.value = 0;
+    var b = document.getElementById('fis-pp-rcm'); if (b) b.value = 0;
+    fisCalc();
+  }
+}
+
+function fisCalc(){
+  // 1. Saldo net per tipus (mateix grup)
+  // Grup GPP: vendes_guany - vendes_perdua - perdues_pendents_gpp
+  // Grup RCM: rcm_positiu - rcm_negatiu - perdues_pendents_rcm
+  var gppSaldo = _FISC_STATE.vendes_guany - _FISC_STATE.vendes_perdua - _FISC_STATE.perdues_pendents_gpp;
+  var rcmSaldo = _FISC_STATE.rcm_positiu - _FISC_STATE.rcm_negatiu - _FISC_STATE.perdues_pendents_rcm;
+
+  // 2. Compensació creuada (regla del 25%)
+  // Si un saldo és positiu i l'altre negatiu, es pot compensar fins al 25% del positiu
+  var gppPos = Math.max(0, gppSaldo), gppNeg = Math.max(0, -gppSaldo);
+  var rcmPos = Math.max(0, rcmSaldo), rcmNeg = Math.max(0, -rcmSaldo);
+
+  var compensRcmAGpp = 0, compensGppARcm = 0;
+  if (gppPos > 0 && rcmNeg > 0){
+    compensRcmAGpp = Math.min(rcmNeg, 0.25 * gppPos);
+    gppPos -= compensRcmAGpp;
+    rcmNeg -= compensRcmAGpp;
+  }
+  if (rcmPos > 0 && gppNeg > 0){
+    compensGppARcm = Math.min(gppNeg, 0.25 * rcmPos);
+    rcmPos -= compensGppARcm;
+    gppNeg -= compensGppARcm;
+  }
+
+  // 3. Base imponible de l'estalvi
+  var baseEstalvi = gppPos + rcmPos;
+  var perduesRemanents = gppNeg + rcmNeg;
+
+  // 4. Càlcul impost
+  var calc = _calcImpostAhorro(baseEstalvi);
+
+  // 5. Tipus marginal
+  var marginal = 0;
+  for (var i = 0; i < TRAMS_AHORRO_2026.length; i++){
+    if (baseEstalvi > (i === 0 ? 0 : TRAMS_AHORRO_2026[i-1].fins)){
+      marginal = TRAMS_AHORRO_2026[i].tipus;
+    }
+  }
+  if (baseEstalvi <= 0) marginal = 0;
+
+  // 6. Tipus efectiu
+  var efectiu = baseEstalvi > 0 ? (calc.total / baseEstalvi) : 0;
+
+  // ── Render resultat ──
+  var elR = document.getElementById('fis-resultat');
+  if (elR){
+    elR.innerHTML = '<div class="fis-card">'
+      + '<div class="fis-resultat">'
+        + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:24px">'
+          + '<div><div class="fis-resultat-lbl">Base imposable</div><div class="fis-resultat-val">' + _fmtEur(baseEstalvi) + '</div></div>'
+          + '<div><div class="fis-resultat-lbl">Quota a pagar</div><div class="fis-resultat-val" style="color:#FF8E70">' + _fmtEur(calc.total) + '</div></div>'
+          + '<div><div class="fis-resultat-lbl">Net després d\'impostos</div><div class="fis-resultat-val" style="color:#4CAF82">' + _fmtEur(baseEstalvi - calc.total) + '</div></div>'
+        + '</div>'
+        + '<div style="margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;font-size:11px;color:rgba(255,255,255,.6)">'
+          + '<div>Tipus efectiu: <strong style="color:#fff;font-family:var(--fm)">' + (efectiu*100).toFixed(2) + '%</strong></div>'
+          + '<div>Tipus marginal: <strong style="color:#fff;font-family:var(--fm)">' + (marginal*100).toFixed(0) + '%</strong></div>'
+        + '</div>'
+      + '</div>'
+      + (compensRcmAGpp + compensGppARcm > 0 ? '<div class="fis-info" style="background:#EAF3DE;border-left-color:#1A5C3A;color:#1A5C3A">\u2713 Compensació creuada aplicada (regla del 25%): ' + _fmtEur(compensRcmAGpp + compensGppARcm) + ' compensat entre grups.</div>' : '')
+      + (perduesRemanents > 0 ? '<div class="fis-info">📌 Et queden ' + _fmtEur(perduesRemanents) + ' de pèrdues per compensar als propers 4 anys.</div>' : '')
+    + '</div>';
+  }
+
+  // ── Render trams ──
+  var tbody = document.querySelector('#fis-trams tbody');
+  if (tbody){
+    if (calc.trams.length === 0){
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--g400);padding:20px">Sense base imposable (sense impost a pagar)</td></tr>';
+    } else {
+      tbody.innerHTML = TRAMS_AHORRO_2026.map(function(t, idx){
+        var aplica = calc.trams[idx];
+        var anterior = idx === 0 ? 0 : TRAMS_AHORRO_2026[idx-1].fins;
+        var lbl = anterior.toLocaleString('ca-ES') + '€ – ' + (t.fins === Infinity ? '∞' : t.fins.toLocaleString('ca-ES') + '€');
+        return '<tr' + (aplica?' class="active"':'') + '>'
+          + '<td style="font-family:inherit">' + lbl + '</td>'
+          + '<td style="text-align:right">' + (t.tipus*100).toFixed(0) + '%</td>'
+          + '<td style="text-align:right">' + (aplica ? _fmtEur(aplica.base) : '—') + '</td>'
+          + '<td style="text-align:right;font-weight:' + (aplica?'500':'400') + '">' + (aplica ? _fmtEur(aplica.quota) : '—') + '</td>'
+        + '</tr>';
+      }).join('');
+    }
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// ███ ADMIN: GESTIONAR ANÀLISIS DE MERCAT ███
+// ══════════════════════════════════════════════════════════════════════════
+
+var _ADMIN_ANALISIS_STATE = {
+  list: null,
+  editing: null,  // l'anàlisi que s'edita (null = no editant)
+  isNew: false
+};
+
+var _ANALISIS_CATS = {
+  mercat:    {lbl:'Mercat',    bg:'#EBF0FA', tc:'#1B3A6B'},
+  sectorial: {lbl:'Sectorial', bg:'#EAF3DE', tc:'#1A5C3A'},
+  value:     {lbl:'Value',     bg:'#FEF5E7', tc:'#7A4A00'},
+  macro:     {lbl:'Macro',     bg:'#FDF0F0', tc:'#8B1A1A'},
+  cartera:   {lbl:'Cartera',   bg:'#EDEAF9', tc:'#534AB7'},
+  setmanal:  {lbl:'Setmanal',  bg:'#F4F3F0', tc:'#6B6762'}
+};
+
+async function renderAdminAssessoria(el){
+  el.innerHTML = '<div class="content-inner"><div style="padding:60px;text-align:center;color:var(--g400)">Carregant anàlisis...</div></div>';
+
+  // Carregar des de Supabase (sense filtre de visible_portal, perquè admin vol veure-ho tot)
+  var lista = null;
+  if (sb){
+    try {
+      var res = await sb.from('analisis').select('*').order('data_pub', {ascending: false});
+      if (!res.error) lista = res.data || [];
+    } catch(e){ console.error(e); }
+  }
+  if (!lista) lista = APP.analisis || [];
+  _ADMIN_ANALISIS_STATE.list = lista;
+
+  var html = '<style>'
+    + '.aa-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px}'
+    + '.aa-btn-new{padding:10px 20px;background:#0A0A0A;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)}'
+    + '.aa-card{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 22px;margin-bottom:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}'
+    + '.aa-card-meta{flex:1;min-width:240px}'
+    + '.aa-meta-row{display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap}'
+    + '.aa-cat-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px}'
+    + '.aa-title{font-size:14px;font-weight:600;color:var(--black)}'
+    + '.aa-resum{font-size:11px;color:var(--g500);line-height:1.5;margin-top:4px}'
+    + '.aa-actions{display:flex;gap:6px;flex-wrap:wrap}'
+    + '.aa-btn{padding:7px 12px;border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);border:none}'
+    + '.aa-btn-edit{background:#1B3A6B;color:#fff}'
+    + '.aa-btn-toggle{background:#EAF3DE;color:#1A5C3A}'
+    + '.aa-btn-toggle.off{background:#F4F3F0;color:#6B6762}'
+    + '.aa-btn-del{background:#FDF0F0;color:#8B1A1A;border:1px solid #F1C9C9}'
+    + '</style>'
+    + '<div class="content-inner fade-in">'
+    + '<div class="aa-toolbar">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:22px;font-weight:400">Gestionar anàlisis</div>'
+        + '<div style="font-size:11px;color:var(--g500);margin-top:2px">' + lista.length + ' anàlisi' + (lista.length===1?'':'s') + ' creades</div>'
+      + '</div>'
+      + '<button class="aa-btn-new" onclick="aaCrearNova()">+ Nova anàlisi</button>'
+    + '</div>';
+
+  if (lista.length === 0){
+    html += '<div style="padding:60px;text-align:center;background:#fff;border:1px solid var(--g200);border-radius:14px">'
+      + '<div style="font-size:36px;margin-bottom:12px">📰</div>'
+      + '<div style="font-size:14px;font-weight:500;margin-bottom:6px">Cap anàlisi encara</div>'
+      + '<div style="font-size:12px;color:var(--g500)">Crea la primera anàlisi clicant el botó superior. Es publicaran automàticament al portal del client si tenen <em>visible_portal</em> activat.</div>'
+    + '</div>';
+  } else {
+    lista.forEach(function(a){
+      var cat = _ANALISIS_CATS[a.categoria] || _ANALISIS_CATS.mercat;
+      var data = a.data_pub ? new Date(a.data_pub).toLocaleDateString('ca-ES', {day:'numeric',month:'long',year:'numeric'}) : '—';
+      var hasFile = a.file_url && a.file_url.trim();
+      var visible = a.visible_portal;
+      html += '<div class="aa-card">'
+        + '<div class="aa-card-meta">'
+          + '<div class="aa-meta-row">'
+            + '<span class="aa-cat-pill" style="background:' + cat.bg + ';color:' + cat.tc + '">' + cat.lbl + '</span>'
+            + '<span style="font-size:11px;color:var(--g400)">' + data + '</span>'
+            + (a.destacat ? '<span style="font-size:11px">⭐</span>' : '')
+            + (hasFile ? '<span class="aa-cat-pill" style="background:#EBF0FA;color:#1B3A6B">📎 Adjunt</span>' : '')
+            + (visible ? '<span class="aa-cat-pill" style="background:#EAF3DE;color:#1A5C3A">✓ Visible</span>' : '<span class="aa-cat-pill" style="background:#F4F3F0;color:#6B6762">Ocult</span>')
+          + '</div>'
+          + '<div class="aa-title">' + (a.titol||'(sense títol)') + '</div>'
+          + (a.subtitol ? '<div style="font-size:11px;color:var(--g500);font-style:italic;margin-top:2px">' + a.subtitol + '</div>' : '')
+          + (a.resum ? '<div class="aa-resum">' + a.resum.slice(0,180) + (a.resum.length>180?'…':'') + '</div>' : '')
+        + '</div>'
+        + '<div class="aa-actions">'
+          + '<button class="aa-btn aa-btn-edit" onclick="aaEditar(\'' + a.id + '\')">✏️ Editar</button>'
+          + '<button class="aa-btn aa-btn-toggle' + (visible?'':' off') + '" onclick="aaToggleVisible(\'' + a.id + '\')">' + (visible ? '✓ Publicada' : 'Publicar') + '</button>'
+          + '<button class="aa-btn aa-btn-del" onclick="aaEliminar(\'' + a.id + '\')">×</button>'
+        + '</div>'
+      + '</div>';
+    });
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function aaCrearNova(){
+  var nova = {
+    id: 'an_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+    titol: '',
+    subtitol: '',
+    categoria: 'mercat',
+    resum: '',
+    tags: [],
+    destacat: false,
+    visible_portal: false,
+    file_url: '',
+    data_pub: new Date().toISOString().slice(0,10),
+    _isNew: true
+  };
+  _ADMIN_ANALISIS_STATE.editing = nova;
+  _ADMIN_ANALISIS_STATE.isNew = true;
+  aaObrirEditor();
+}
+
+function aaEditar(id){
+  var a = (_ADMIN_ANALISIS_STATE.list||[]).find(function(x){ return x.id === id; });
+  if (!a) return;
+  _ADMIN_ANALISIS_STATE.editing = JSON.parse(JSON.stringify(a));
+  _ADMIN_ANALISIS_STATE.isNew = false;
+  aaObrirEditor();
+}
+
+function aaObrirEditor(){
+  var a = _ADMIN_ANALISIS_STATE.editing;
+  if (!a) return;
+  var old = document.getElementById('modal-aa-editor');
+  if (old) old.remove();
+  var modal = document.createElement('div');
+  modal.id = 'modal-aa-editor';
+  modal.style.cssText = 'position:fixed;inset:0;background:#F4F3F0;z-index:9999;display:flex;flex-direction:column;overflow:hidden';
+
+  var topbar = '<div style="background:#fff;border-bottom:1px solid #E8E6E1;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
+    + '<div style="display:flex;align-items:center;gap:12px">'
+      + '<button onclick="aaCancelarEdicio()" style="background:none;border:none;cursor:pointer;color:var(--g500);font-size:13px;padding:6px 10px;border-radius:6px;font-family:var(--fb)">← Tornar</button>'
+      + '<div style="width:1px;height:20px;background:#E8E6E1"></div>'
+      + '<span style="font-size:13px;font-weight:500;color:#0A0A0A">' + (_ADMIN_ANALISIS_STATE.isNew ? 'Nova anàlisi' : 'Edició d\'anàlisi') + '</span>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px">'
+      + '<button onclick="aaDesar(false)" style="padding:8px 16px;background:#F4F3F0;color:#0A0A0A;border:1.5px solid #DEDBD6;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar com a esborrany</button>'
+      + '<button onclick="aaDesar(true)" style="padding:8px 18px;background:#0A0A0A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar i publicar ✓</button>'
+    + '</div>'
+  + '</div>';
+
+  var body = '<div style="flex:1;overflow-y:auto;padding:32px 0">'
+    + '<div style="max-width:760px;margin:0 auto;padding:0 24px">';
+
+  // Metadades
+  body += '<div style="background:#fff;border-radius:13px;padding:22px 26px;margin-bottom:14px;border:1px solid #E8E6E1">'
+    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#9A9690;margin-bottom:14px">Metadades</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">'
+      + '<div><label style="font-size:11px;color:#6B6762;font-weight:500;display:block;margin-bottom:4px">Categoria</label>'
+        + '<select id="aa-cat" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:13px;background:#fff">'
+          + Object.keys(_ANALISIS_CATS).map(function(k){
+              return '<option value="' + k + '"' + (a.categoria===k?' selected':'') + '>' + _ANALISIS_CATS[k].lbl + '</option>';
+            }).join('')
+        + '</select>'
+      + '</div>'
+      + '<div><label style="font-size:11px;color:#6B6762;font-weight:500;display:block;margin-bottom:4px">Data publicació</label>'
+        + '<input id="aa-data" type="date" value="' + (a.data_pub||'').slice(0,10) + '" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:13px">'
+      + '</div>'
+    + '</div>'
+    + '<div style="margin-bottom:14px"><label style="font-size:11px;color:#6B6762;font-weight:500;display:block;margin-bottom:4px">Títol</label>'
+      + '<input id="aa-titol" type="text" value="' + (a.titol||'').replace(/"/g,'&quot;') + '" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:14px;font-family:var(--fb)" placeholder="Ex: Anàlisi setmanal — 12 maig 2026">'
+    + '</div>'
+    + '<div style="margin-bottom:14px"><label style="font-size:11px;color:#6B6762;font-weight:500;display:block;margin-bottom:4px">Subtítol <span style="color:#AAAAAA;font-weight:400">(opcional)</span></label>'
+      + '<input id="aa-subtitol" type="text" value="' + (a.subtitol||'').replace(/"/g,'&quot;') + '" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:13px">'
+    + '</div>'
+    + '<div style="margin-bottom:14px"><label style="font-size:11px;color:#6B6762;font-weight:500;display:block;margin-bottom:4px">Tags <span style="color:#AAAAAA;font-weight:400">(separats per comes)</span></label>'
+      + '<input id="aa-tags" type="text" value="' + ((a.tags||[]).join(', ')).replace(/"/g,'&quot;') + '" style="width:100%;padding:9px 12px;border:1.5px solid #E8E6E1;border-radius:8px;font-size:12px" placeholder="Ex: macro, renda fixa, FED">'
+    + '</div>'
+    + '<div style="display:flex;gap:18px;align-items:center;font-size:12px;color:#6B6762">'
+      + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input id="aa-destacat" type="checkbox" ' + (a.destacat?'checked':'') + '> ⭐ Destacat</label>'
+      + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input id="aa-visible" type="checkbox" ' + (a.visible_portal?'checked':'') + '> Visible al portal client</label>'
+    + '</div>'
+  + '</div>';
+
+  // Resum
+  body += '<div style="background:#fff;border-radius:13px;padding:22px 26px;margin-bottom:14px;border:1px solid #E8E6E1">'
+    + '<div style="font-size:13px;font-weight:600;margin-bottom:12px">Resum / contingut</div>'
+    + '<textarea id="aa-resum" placeholder="Resum o contingut visible al portal del client..." style="width:100%;min-height:200px;padding:12px 14px;border:1.5px solid #E8E6E1;border-radius:9px;font-size:13px;font-family:var(--fb);line-height:1.7;resize:vertical;color:#0A0A0A">' + (a.resum||'') + '</textarea>'
+  + '</div>';
+
+  // URL fitxer adjunt
+  body += '<div style="background:#fff;border-radius:13px;padding:22px 26px;margin-bottom:14px;border:1px solid #E8E6E1">'
+    + '<div style="font-size:13px;font-weight:600;margin-bottom:6px">📎 Fitxer adjunt <span style="font-weight:400;color:#9A9690;font-size:11px">(opcional)</span></div>'
+    + '<div style="font-size:11px;color:#9A9690;margin-bottom:10px;line-height:1.6">El client veurà un botó \u00abDescarregar document\u00bb sota l\'anàlisi. Pots usar Google Drive públic, Dropbox, OneDrive o qualsevol URL accessible.</div>'
+    + '<input id="aa-file-url" type="url" value="' + (a.file_url||'').replace(/"/g,'&quot;') + '" placeholder="https://drive.google.com/file/d/.../view" style="width:100%;padding:10px 14px;border:1.5px solid #E8E6E1;border-radius:9px;font-size:12px;font-family:var(--fm)">'
+  + '</div>';
+
+  body += '</div></div>';
+  modal.innerHTML = topbar + body;
+  document.body.appendChild(modal);
+}
+
+function aaCancelarEdicio(){
+  if (!confirm('Vols cancel\u00b7lar l\'edició? Es perdran els canvis no desats.')) return;
+  document.getElementById('modal-aa-editor').remove();
+  _ADMIN_ANALISIS_STATE.editing = null;
+}
+
+function aaRecollirEditor(){
+  var a = _ADMIN_ANALISIS_STATE.editing;
+  if (!a) return null;
+  a.categoria = document.getElementById('aa-cat').value || 'mercat';
+  a.data_pub = document.getElementById('aa-data').value || new Date().toISOString().slice(0,10);
+  a.titol = document.getElementById('aa-titol').value.trim();
+  a.subtitol = document.getElementById('aa-subtitol').value.trim();
+  var tagsStr = document.getElementById('aa-tags').value.trim();
+  a.tags = tagsStr ? tagsStr.split(',').map(function(s){return s.trim();}).filter(Boolean) : [];
+  a.destacat = !!document.getElementById('aa-destacat').checked;
+  a.visible_portal = !!document.getElementById('aa-visible').checked;
+  a.resum = document.getElementById('aa-resum').value;
+  a.file_url = document.getElementById('aa-file-url').value.trim();
+  return a;
+}
+
+async function aaDesar(publicar){
+  var a = aaRecollirEditor();
+  if (!a) return;
+  if (!a.titol){ alert('Posa un títol abans de desar.'); return; }
+  if (publicar) a.visible_portal = true;
+
+  // Netejar flags interns
+  var payload = JSON.parse(JSON.stringify(a));
+  delete payload._isNew;
+
+  if (!sb){
+    alert('Supabase no disponible. Els canvis no es desaran.');
+    return;
+  }
+
+  try {
+    var res;
+    if (_ADMIN_ANALISIS_STATE.isNew){
+      res = await sb.from('analisis').insert(payload);
+    } else {
+      var id = payload.id;
+      delete payload.id;  // No actualitzar la PK
+      res = await sb.from('analisis').update(payload).eq('id', id);
+    }
+    if (res.error) throw res.error;
+    document.getElementById('modal-aa-editor').remove();
+    _ADMIN_ANALISIS_STATE.editing = null;
+    // Recarregar llistat global (perquè renderPortalAssessoria també l'usa)
+    APP.analisis = await loadAnalisisFromSupabase();
+    toast('✓ Anàlisi ' + (_ADMIN_ANALISIS_STATE.isNew ? 'creada' : 'desada'));
+    renderView('admin-assessoria');
+  } catch(e){
+    alert('Error desant: ' + (e.message||e));
+  }
+}
+
+async function aaToggleVisible(id){
+  if (!sb) return;
+  var a = (_ADMIN_ANALISIS_STATE.list||[]).find(function(x){ return x.id === id; });
+  if (!a) return;
+  var nouVal = !a.visible_portal;
+  try {
+    var res = await sb.from('analisis').update({visible_portal: nouVal}).eq('id', id);
+    if (res.error) throw res.error;
+    a.visible_portal = nouVal;
+    APP.analisis = await loadAnalisisFromSupabase();
+    renderView('admin-assessoria');
+  } catch(e){
+    alert('Error: ' + (e.message||e));
+  }
+}
+
+async function aaEliminar(id){
+  if (!confirm('Eliminar aquesta anàlisi? Aquesta acció no es pot desfer.')) return;
+  if (!sb) return;
+  try {
+    var res = await sb.from('analisis').delete().eq('id', id);
+    if (res.error) throw res.error;
+    APP.analisis = await loadAnalisisFromSupabase();
+    toast('Anàlisi eliminada');
+    renderView('admin-assessoria');
+  } catch(e){
+    alert('Error: ' + (e.message||e));
+  }
+}
 
 </script>
 </body>

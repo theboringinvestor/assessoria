@@ -836,9 +836,6 @@ const QS = [
       {sym:'●',lbl:'Fonamental',txt:'Molt important. Puc sacrificar retorn pels valors.',s:4},
     ]},
 
-  {type:'cartera',id:'cartera',dim:'Cartera actual',dn:8,
-    text:'Tens alguna inversió o estalvi en marxa? Afegeix el que tens (opcional).'},
-
   // ── D8 · EDAT I RETIR ──
   {type:'choice',id:'D8P1',dim:'D8 · Edat i Retir',dn:8,
     text:'Quina és la teva etapa vital actual?',
@@ -1807,18 +1804,9 @@ async function guardarASupabase() {
     return { nom: a.n, pct: a.p, target: a.p, actual: a.p, valor: 0, color: '' };
   });
   
-  // Cartera actual introduïda per l'usuari (amb categories macro)
-  var carteraActualUsuari = actius
-    .filter(function(a){ return a.cat && parseFloat(a.pct)>0; })
-    .map(function(a){
-      var cat = ACTIU_CATEGORIES.find(function(c){ return c.id===a.cat; });
-      return {
-        cat: a.cat,
-        nom: cat ? (ONB_LANG==='es' ? cat.es : cat.ca) : a.cat,
-        emoji: cat ? cat.emoji : '📦',
-        pct: parseFloat(a.pct)||0
-      };
-    });
+  // Cartera actual: ja no es demana al qüestionari (eliminada maig 2026).
+  // S'inicialitza buida; el client podrà declarar posicions reals des del portal si vol.
+  var carteraActualUsuari = [];
   
   // Build the client record
   var clientData = {
@@ -1862,7 +1850,7 @@ async function guardarASupabase() {
       return { ok: false, error: 'Email no vàlid' };
     }
 
-    var existing = await sbClient.from('clients').select('id').eq('email', email).limit(1);
+    var existing = await sbClient.from('clients').select('id,cartera_target_custom,informes,reunions,nota,historial,pla,status,activated_at').eq('email', email).limit(1);
     if (existing.error) {
       console.error('Error consultant existència:', existing.error);
       return { ok: false, error: 'Lectura: ' + existing.error.message };
@@ -1870,14 +1858,39 @@ async function guardarASupabase() {
 
     var action;
     if (existing.data && existing.data.length > 0) {
-      // Update existing client
+      // ── REFER QÜESTIONARI ──
+      // Preservem TOTS els camps que l'admin/usuari han generat al llarg del temps:
+      // - cartera_target_custom: cartera target editada per admin (no es perd!)
+      // - informes: informes publicats per l'admin
+      // - reunions: reunions agendades
+      // - nota: nota de l'assessor
+      // - historial: registre històric (s'hi afegeix una nova entrada, no es sobreescriu)
+      // - pla, status, activated_at: ja gestionats per l'admin
+      var prev = existing.data[0];
+
+      // Eliminar de clientData els camps que no s'han de sobreescriure
+      delete clientData.nota;        // mantenim la nota anterior
+      delete clientData.status;      // mantenim el status actual (no tornem a 'pending')
+
+      // Fusionar historial: la nova entrada + les anteriors
+      var prevHist = Array.isArray(prev.historial) ? prev.historial : [];
+      var nouEvent = clientData.historial[0] || null;
+      if (nouEvent) {
+        nouEvent.titol = (ONB_LANG === 'es' ? 'Cuestionario actualizado' : 'Qüestionari actualitzat');
+        nouEvent.desc  = (ONB_LANG === 'es' ? 'Cuestionario rehecho. Nuevo arquetipo: ' : 'Qüestionari refet. Nou arquetip: ') + ar.nom + '. Score: ' + pct + '/100.';
+        clientData.historial = [nouEvent].concat(prevHist);
+      } else {
+        clientData.historial = prevHist;
+      }
+
+      // Update existing client (preservant els camps no presents a clientData)
       var resU = await sbClient.from('clients').update(clientData).eq('email', email);
       if (resU.error) {
         console.error('Error update Supabase:', resU.error);
         return { ok: false, error: 'Update: ' + resU.error.message };
       }
       action = 'update';
-      console.log('Client actualitzat a Supabase:', email);
+      console.log('Client actualitzat (qüestionari refet, target preservat):', email);
     } else {
       // Insert new client
       var resI = await sbClient.from('clients').insert(clientData);
