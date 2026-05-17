@@ -8235,7 +8235,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* === FULL DE RUTA v11 === */
+/* === FULL DE RUTA v12 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -8778,14 +8778,31 @@ function renderPortalRoadmap(el) {
   var arq = getArquetip(arqId);
 
   // ── Cartera real ──────────────────────────────────────────
-  // Si l'override d'arquetip està actiu, ignorem cartera_target_custom (no aplica a un arquetip diferent)
-  var hasCustom = !overrides.arquetipId && c.cartera_target_custom && c.cartera_target_custom.length > 0;
+  // hasCustom: usar cartera_target_custom TRET QUE l'admin hagi canviat l'arquetip explícitament
+  // overrides.arquetipId == null captura undefined i null (doble igual)
+  var hasCustom = (overrides.arquetipId == null)
+    && Array.isArray(c.cartera_target_custom)
+    && c.cartera_target_custom.length > 0;
   var actiusTarget = hasCustom ? c.cartera_target_custom : (arq.actius || []);
 
-  var cartera = actiusTarget.map(function(a) {
+  // Enriquim amb taxonomia + μ/σ
+  // IMPORTANT: cartera_target_custom guarda {nom, pct, color} sense camp 'id'
+  //   → busquem l'id a ACTIUS_TAXONOMY per nom per recuperar μ/σ correctes
+  function resolveActiu(a) {
     var idA = a.id || '';
-    var tax = ACTIUS_TAXONOMY.find(function(t) { return t.id === idA; });
-    var ms = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(idA) : { mu: 6, sigma: 12 };
+    var tax = null;
+    if (typeof ACTIUS_TAXONOMY !== 'undefined' && Array.isArray(ACTIUS_TAXONOMY)) {
+      tax = ACTIUS_TAXONOMY.find(function(t) {
+        return t.id === idA
+          || t.ca === a.nom
+          || (idA && (t.id === idA.toLowerCase()));
+      });
+      if (!idA && tax) idA = tax.id;
+    }
+    if (!tax && typeof ACTIUS_TAXONOMY !== 'undefined') {
+      tax = ACTIUS_TAXONOMY.find(function(t) { return t.id === idA; });
+    }
+    var ms = (typeof _muSigmaPerActiu === 'function' && idA) ? _muSigmaPerActiu(idA) : { mu: 6, sigma: 12 };
     // Aplicar μ/σ personalitzats per l'assessor si existeixen
     var muSigOvr = overrides.muSigmaPersonalitzat;
     if (muSigOvr && muSigOvr[idA]) {
@@ -8793,16 +8810,19 @@ function renderPortalRoadmap(el) {
       if (muSigOvr[idA].sigma != null) ms.sigma = muSigOvr[idA].sigma;
     }
     return {
-      id: idA,
-      nom: a.nom || (tax && tax.ca) || idA,
-      pes: parseFloat(a.pct) || parseFloat(a.pes) || 0,
-      color: a.color || (tax && tax.color) || '#888',
-      mu: ms.mu, sigma: ms.sigma,
-      desc: (tax && tax.desc) || '',
-      pros: (tax && tax.pros) || [],
+      id:      idA,
+      nom:     a.nom || (tax && tax.ca) || idA,
+      pes:     parseFloat(a.pct) || parseFloat(a.pes) || 0,
+      color:   a.color || (tax && tax.color) || '#888',
+      mu:      ms.mu,
+      sigma:   ms.sigma,
+      desc:    (tax && tax.desc)    || '',
+      pros:    (tax && tax.pros)    || [],
       contres: (tax && tax.contres) || [],
     };
-  });
+  }
+
+  var cartera = actiusTarget.map(resolveActiu);
 
   // ── Dades financeres (amb override) ───────────────────────
   var capitalOrig = parseFloat(String(perfil.capitalInicial || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
@@ -8856,7 +8876,15 @@ function renderPortalRoadmap(el) {
       for (var mi = 0; mi < overrides.carteraPersonalitzada.length; mi++) {
         if (overrides.carteraPersonalitzada[mi].id === a.id) { match = overrides.carteraPersonalitzada[mi]; break; }
       }
-      return match ? Object.assign({}, a, { pes: match.pes }) : a;
+      // Aplicar pesos i μ/σ personalitzats
+      if (match) {
+        return Object.assign({}, a,
+          { pes: match.pes != null ? match.pes : a.pes },
+          match.mu    != null ? { mu:    match.mu    } : {},
+          match.sigma != null ? { sigma: match.sigma } : {}
+        );
+      }
+      return a;
     });
   }
 
@@ -9256,7 +9284,11 @@ function renderPortalRoadmap(el) {
   html += '<div class="fr-section">'
     + '<div class="fr-label">01 · El teu perfil inversor</div>'
     + adminPanel
-    + '<div class="fr-h2">' + arq.nom + ' <em style="font-style:italic;color:var(--g400)"> \u2014 ' + arq.cartRoma + '</em></div>'
+    + '<div class="fr-h2">'
+      + _frEdField(notes.arquetip_nom, { key:'arquetip_nom', autoVal:arq.nom, placeholder:'Nom de l\u2019arquetip...', tag:'span', showBadge:false })
+      + ' <em style="font-style:italic;color:var(--g400)"> \u2014 '
+      + _frEdField(notes.cartera_ref, { key:'cartera_ref', autoVal:arq.cartRoma, placeholder:'Ref. cartera...', tag:'span', showBadge:false })
+      + '</em></div>'
     + '<div class="fr-lead">' + (arq.rationale || '') + '</div>'
     + '<div class="fr-chips">'
       + chipArquetipHtml()
@@ -9345,6 +9377,9 @@ function renderPortalRoadmap(el) {
   // ─── 4. CARTERA ─────────────────────────────────────────────
   var rationaleAuto = arq.diff || arq.rationale || 'Cartera ajustada al teu perfil i horitz\u00f3.';
   var carteraTitolAuto = 'Cartera ' + arq.cartRoma;
+  var carteraOriginBadge = hasCustom
+    ? '<span style="font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:#EAF3DE;color:#1A5C3A;padding:2px 8px;border-radius:99px;margin-left:10px;vertical-align:middle">Personalitzada</span>'
+    : '<span style="font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:var(--g100);color:var(--g500);padding:2px 8px;border-radius:99px;margin-left:10px;vertical-align:middle">Est\u00e0ndard \u00b7 ' + arq.cartRoma + '</span>';
 
   // Guia de personalització per a admin
   var guiaCartera = '';
@@ -9363,7 +9398,7 @@ function renderPortalRoadmap(el) {
   html += '<div class="fr-section">'
     + '<div class="fr-label">03 · La teva cartera recomanada</div>'
     + guiaCartera
-    + '<div class="fr-h2">' + _frEdField(notes.cartera_titol, { key:'cartera_titol', autoVal:carteraTitolAuto, placeholder:'Nom personalitzat de la cartera...', tag:'span' }) + '</div>'
+    + '<div class="fr-h2">' + _frEdField(notes.cartera_titol, { key:'cartera_titol', autoVal:carteraTitolAuto, placeholder:'Nom personalitzat de la cartera...', tag:'span' }) + carteraOriginBadge + '</div>'
     + '<div class="fr-lead">Aquesta \u00e9s la composici\u00f3 dissenyada per al teu perfil. Cada pe\u00e7a t\u00e9 una funci\u00f3 espec\u00edfica dins de la cartera.</div>'
     + '<div class="fr-cart-grid" style="margin-top:24px">'
       + '<div class="fr-donut-wrap"><svg id="fr-donut-pri" style="width:100%;height:auto;display:block"></svg>'
