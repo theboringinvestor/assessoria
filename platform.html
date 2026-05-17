@@ -2814,7 +2814,6 @@ function normalizeClient(raw) {
     interview_notes: raw.interview_notes || null,
     // ── Permet re-fer el qüestionari (activat per admin) ──
     allow_retest: raw.allow_retest || false,
-    // ── Full de Ruta v6 (contingut editorial de l'assessor) ──
     fullderuta: raw.fullderuta || {},
   };
 }
@@ -8228,12 +8227,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* ════════════════════════════════════════════════════════════════════════════
-   FULL DE RUTA v6 INSERIT AUTOMÀTICAMENT · 16 maig 2026
-   v6: persistència a Supabase (columna fullderuta JSONB) amb fallback localStorage.
-   Requereix migració SQL: ALTER TABLE clients ADD COLUMN fullderuta JSONB.
-   Vegeu migracio_fullderuta.sql.
-   ════════════════════════════════════════════════════════════════════════════ */
+/* === FULL DE RUTA v8 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -8671,16 +8665,14 @@ function _frSetOverride(key, value) {
 
 // Llista de tots els arquetips disponibles (per als selectors)
 function _frListArquetips() {
-  var ids;
-  if (typeof ARQUETIPS_CARTERES !== 'undefined' && ARQUETIPS_CARTERES) {
-    ids = Object.keys(ARQUETIPS_CARTERES);
-  } else {
-    ids = ['estoic','explorador','navegant','arquitecte','tresorer','cronista','alquimista','ermita','pionier','renda'];
+  var llista = [];
+  if (typeof ARQUETIPS_CARTERES !== 'undefined' && Array.isArray(ARQUETIPS_CARTERES)) {
+    for (var i = 0; i < ARQUETIPS_CARTERES.length; i++) {
+      var a = ARQUETIPS_CARTERES[i];
+      if (a && a.id) llista.push({ id: a.id, nom: a.nom, cartRoma: a.cartRoma });
+    }
   }
-  return ids.map(function(id) {
-    var a = getArquetip(id);
-    return { id: id, nom: a.nom || id, cartRoma: a.cartRoma || '' };
-  });
+  return llista;
 }
 
 // Obre/tanca un dropdown d'arquetips
@@ -8829,8 +8821,14 @@ function renderPortalRoadmap(el) {
   var arqAgrId  = overrides.arquetipAgressiu    || 'estoic';
   var arqCons = getArquetip(arqConsId);
   var arqAgr  = getArquetip(arqAgrId);
-  var carteraCons = enriquir(arqCons.actius || []);
-  var carteraAgr  = enriquir(arqAgr.actius || []);
+
+  // Carteres d'escenaris: si hi ha pesos personalitzats a overrides, usar-los
+  var carteraCons = overrides.escenariCons
+    ? enriquir(overrides.escenariCons.map(function(a){ return { id: a.id, pct: a.pes }; }))
+    : enriquir(arqCons.actius || []);
+  var carteraAgr = overrides.escenariAgr
+    ? enriquir(overrides.escenariAgr.map(function(a){ return { id: a.id, pct: a.pes }; }))
+    : enriquir(arqAgr.actius || []);
 
   // ── Càlculs ───────────────────────────────────────────────
   var mCart = _frCalcCartera(cartera);
@@ -9074,6 +9072,43 @@ function renderPortalRoadmap(el) {
     + '.fr-arq-opt.actiu{background:#EBF0FA;color:#0F2847;font-weight:500}'
     + '.fr-arq-opt-roma{font-family:var(--fm);font-size:10px;color:var(--g500);letter-spacing:.06em;flex-shrink:0;min-width:64px}'
 
+    + '.fr-esc-editor{margin-top:12px;border:1px dashed var(--g200);border-radius:8px;overflow:hidden}'
+    + '.fr-esc-editor > summary{cursor:pointer;font-family:var(--fm);font-size:9.5px;font-weight:500;letter-spacing:.08em;color:var(--g500);padding:8px 12px;list-style:none;display:flex;align-items:center;gap:6px;transition:background .1s}'
+    + '.fr-esc-editor > summary:hover{background:var(--g50);color:var(--black)}'
+    + '.fr-esc-editor > summary::-webkit-details-marker{display:none}'
+    + '.fr-esc-editor[open] > summary{background:var(--g50);border-bottom:1px dashed var(--g200)}'
+    + '.fr-esc-editor > div{padding:0 10px 10px}'
+    + '.fr-esc-peso-input{width:52px;padding:3px 6px;border:1px solid var(--g200);border-radius:5px;font-family:var(--fm);font-size:11px;color:var(--black);background:#fff;text-align:right;-moz-appearance:textfield;transition:border-color .15s}'
+    + '.fr-esc-peso-input::-webkit-outer-spin-button,.fr-esc-peso-input::-webkit-inner-spin-button{-webkit-appearance:none}'
+    + '.fr-esc-peso-input:focus{outline:none;border-color:#1B3A6B;box-shadow:0 0 0 2px rgba(27,58,107,.12)}'
+    + '.fr-esc-badge-custom{font-family:var(--fm);font-size:8px;background:#FCF3E2;color:#7A4A00;padding:2px 6px;border-radius:99px;margin-left:6px;letter-spacing:.06em}'
+
+    + '.fr-tl-t[contenteditable],.fr-tl-da[contenteditable],.fr-tl-x[contenteditable]{outline:none;border-radius:5px;padding:1px 4px;margin:-1px -4px;transition:all .15s;cursor:text}'
+    + '.fr-tl-t[contenteditable]:hover,.fr-tl-da[contenteditable]:hover,.fr-tl-x[contenteditable]:hover{background:rgba(212,148,58,.07);box-shadow:0 0 0 1px rgba(212,148,58,.4)}'
+    + '.fr-tl-t[contenteditable]:focus,.fr-tl-da[contenteditable]:focus,.fr-tl-x[contenteditable]:focus{background:#fff;box-shadow:0 0 0 1.5px #1B3A6B}'
+    + '.fr-tl-too-wrap{display:inline-flex;align-items:center;gap:2px;margin-right:4px}'
+    + '.fr-tl-too-edit{outline:none;cursor:text;min-width:20px}'
+    + '.fr-tl-too-edit:hover{background:rgba(27,58,107,.1)}'
+    + '.fr-tl-too-edit:focus{background:#EBF0FA;box-shadow:0 0 0 1px #1B3A6B}'
+    + '.fr-tl-too-del{background:transparent;border:none;cursor:pointer;color:rgba(15,40,71,.5);padding:0 3px;font-size:13px;line-height:1;border-radius:3px;transition:all .1s}'
+    + '.fr-tl-too-del:hover{background:#FDF0F0;color:#8B1A1A}'
+    + '.fr-tl-add-tool{background:transparent;border:1.5px dashed var(--g300);color:var(--g500);font-family:var(--fm);font-size:10px;padding:2px 8px;border-radius:5px;cursor:pointer;transition:all .15s}'
+    + '.fr-tl-add-tool:hover{border-color:#1B3A6B;color:#1B3A6B}'
+    + '.fr-tl-del-pas{display:inline-flex;align-items:center;gap:4px;margin-top:10px;background:transparent;border:1px dashed var(--g300);color:var(--g400);font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;padding:4px 10px;border-radius:6px;cursor:pointer;transition:all .15s}'
+    + '.fr-tl-del-pas:hover{border-color:#8B1A1A;color:#8B1A1A;background:#FDF0F0}'
+    + '.fr-tl-add-pas{display:flex;align-items:center;gap:8px;margin-top:18px;background:transparent;border:1.5px dashed var(--g300);color:var(--g500);font-family:var(--fb);font-size:12px;font-weight:500;padding:12px 20px;border-radius:10px;cursor:pointer;transition:all .15s;width:100%}'
+    + '.fr-tl-add-pas:hover{border-color:#1B3A6B;color:#1B3A6B;background:#EBF0FA}'
+
+    // Guia de personalització
+    + '.fr-guia{border:1px solid var(--g200);border-radius:10px;overflow:hidden}'
+    + '.fr-guia-s{cursor:pointer;font-family:var(--fm);font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);padding:10px 16px;list-style:none;display:flex;align-items:center;gap:6px;background:var(--g50)}'
+    + '.fr-guia-s:hover{background:var(--g100)}'
+    + '.fr-guia-s::-webkit-details-marker{display:none}'
+    + '.fr-guia[open] .fr-guia-s{border-bottom:1px solid var(--g200)}'
+    + '.fr-guia-b{padding:12px 16px;display:flex;flex-direction:column;gap:10px}'
+    + '.fr-guia-row{display:flex;align-items:flex-start;gap:10px;font-size:11.5px;color:var(--g600);line-height:1.5}'
+    + '.fr-guia-ic{font-size:14px;flex-shrink:0;width:22px;text-align:center}'
+
     + '</style>';
 
 
@@ -9248,9 +9283,26 @@ function renderPortalRoadmap(el) {
 
   // ─── 4. CARTERA ─────────────────────────────────────────────
   var rationaleAuto = arq.diff || arq.rationale || 'Cartera ajustada al teu perfil i horitz\u00f3.';
+  var carteraTitolAuto = 'Cartera ' + arq.cartRoma;
+
+  // Guia de personalització per a admin
+  var guiaCartera = '';
+  if (isAdmin) {
+    guiaCartera = '<details class="fr-guia" style="margin-bottom:18px">'
+      + '<summary class="fr-guia-s">ℹ Com personalitzar la cartera d\u2019aquest informe</summary>'
+      + '<div class="fr-guia-b">'
+        + '<div class="fr-guia-row"><span class="fr-guia-ic">🏛</span><div><strong>Canviar d\u2019arquetip</strong> &mdash; usa el chip "Arquetip ___" a la secci\u00f3 "El teu perfil". Recalcula tots els KPIs, la simulaci\u00f3 i la cartera autom\u00e0ticament.</div></div>'
+        + '<div class="fr-guia-row"><span class="fr-guia-ic">⚖</span><div><strong>Editar pesos exactes de la cartera principal</strong> &mdash; ves al panell admin del client → pesta\u00f1a "Cartera" → editor de composici\u00f3. Els canvis es reflectiran aqu\u00ed autom\u00e0ticament (cartera_target_custom).</div></div>'
+        + '<div class="fr-guia-row"><span class="fr-guia-ic">📊</span><div><strong>Editar carteres dels escenaris comparatius</strong> &mdash; desplega "Personalitzar pesos" dins de cada targeta d\u2019escenari (a la secci\u00f3 07). Canvia els percentatges i els KPIs es recalculen en temps real.</div></div>'
+        + '<div class="fr-guia-row"><span class="fr-guia-ic">✏</span><div><strong>Text lliure</strong> &mdash; tous els callouts (racional, comentari d\u2019escenaris, missatge final) s\u00f3n editables per cl\u00e0ica directa (vora gold en hover).</div></div>'
+      + '</div>'
+    + '</details>';
+  }
+
   html += '<div class="fr-section">'
     + '<div class="fr-label">03 · La teva cartera recomanada</div>'
-    + '<div class="fr-h2">Cartera ' + arq.cartRoma + '</div>'
+    + guiaCartera
+    + '<div class="fr-h2">' + _frEdField(notes.cartera_titol, { key:'cartera_titol', autoVal:carteraTitolAuto, placeholder:'Nom personalitzat de la cartera...', tag:'span' }) + '</div>'
     + '<div class="fr-lead">Aquesta \u00e9s la composici\u00f3 dissenyada per al teu perfil. Cada pe\u00e7a t\u00e9 una funci\u00f3 espec\u00edfica dins de la cartera.</div>'
     + '<div class="fr-cart-grid" style="margin-top:24px">'
       + '<div class="fr-donut-wrap"><svg id="fr-donut-pri" style="width:100%;height:auto;display:block"></svg>'
@@ -9359,6 +9411,67 @@ function renderPortalRoadmap(el) {
   var pRec  = _frProj(capital, aportacio, mCart.mu, mCart.sigma, horitzo);
   var pAgr  = _frProj(capital, aportacio, mAgr.mu,  mAgr.sigma,  horitzo);
 
+  // Helper: editor de pesos inline per a admin
+  function escEditorHtml(target, actius, hasCustom) {
+    if (!isAdmin) return '';
+    var rows = '';
+    var totalPes = 0;
+    for (var ri = 0; ri < actius.length; ri++) {
+      var a = actius[ri];
+      totalPes += a.pes;
+      rows += '<tr>'
+        + '<td style="display:flex;align-items:center;gap:7px"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></span><span style="font-size:11px">' + a.nom + '</span></td>'
+        + '<td style="width:70px;padding:0 0 0 8px"><input '
+          + 'class="fr-esc-peso-input" '
+          + 'type="number" min="0" max="100" step="1" '
+          + 'value="' + a.pes + '" '
+          + 'data-esc-target="' + target + '" '
+          + 'data-act-id="' + a.id + '" '
+          + 'data-act-nom="' + a.nom + '" '
+          + 'data-act-color="' + a.color + '" '
+          + 'data-act-mu="' + a.mu + '" '
+          + 'data-act-sigma="' + a.sigma + '" '
+          + 'oninput="_frRecalcEscenari(\'' + target + '\')" '
+        + '></td>'
+      + '</tr>';
+    }
+    var totalOk = Math.abs(totalPes - 100) < 0.5;
+    var badgeCustom = hasCustom ? '<span class="fr-esc-badge-custom">Personalitzat</span>' : '';
+    return '<details class="fr-esc-editor">'
+      + '<summary>✏ Personalitzar pesos ' + badgeCustom + '</summary>'
+      + '<div style="padding:12px 0 4px">'
+        + '<table style="width:100%;border-collapse:collapse">' + rows + '</table>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--g100)">'
+          + '<span style="font-family:var(--fm);font-size:10px;color:var(--g500)">Total:</span>'
+          + '<span class="fr-esc-total" id="fr-esc-total-' + target + '" style="font-family:var(--fm);font-size:12px;font-weight:600;color:' + (totalOk ? '#1A5C3A' : '#8B1A1A') + '">' + totalPes.toFixed(0) + '%</span>'
+          + (hasCustom ? '<button onclick="_frResetEscenari(\'' + target + '\')" style="font-family:var(--fm);font-size:9px;background:transparent;border:none;cursor:pointer;color:var(--g400);text-decoration:underline">Restablir</button>' : '<span></span>')
+        + '</div>'
+      + '</div>'
+    + '</details>';
+  }
+
+  function escBlock(cls, titol, target, currentArqId, donutId, actius, mu, sig, sh, dd, proj) {
+    var hasCustomPesos = (target === 'cons' && !!overrides.escenariCons)
+                      || (target === 'agr'  && !!overrides.escenariAgr);
+    return '<div class="fr-esc' + cls + '">'
+      + '<div class="fr-esc-t">' + titol + '</div>'
+      + '<div class="fr-esc-s">' + escSubHtml(target, currentArqId) + '</div>'
+      + '<svg id="' + donutId + '" viewBox="0 0 100 100" class="fr-esc-d"></svg>'
+      + '<div class="fr-esc-k">'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03BC esperat</div><div class="fr-esc-kv" style="color:#1A5C3A" id="fr-esc-kv-' + target + '-mu">+' + f1(mu) + '%</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03C3 vol.</div><div class="fr-esc-kv" id="fr-esc-kv-' + target + '-sig">' + f1(sig) + '%</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">Sharpe</div><div class="fr-esc-kv" id="fr-esc-kv-' + target + '-sh">' + sh.toFixed(2).replace('.', ',') + '</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">M\u00e0x. DD</div><div class="fr-esc-kv" style="color:#8B1A1A" id="fr-esc-kv-' + target + '-dd">\u2212' + Math.round(dd) + '%</div></div>'
+      + '</div>'
+      + escEditorHtml(target, actius, hasCustomPesos)
+      + '<div class="fr-esc-r">'
+        + '<div class="fr-esc-rl">Valor a ' + horitzo + ' anys</div>'
+        + '<div class="fr-esc-rv" id="fr-esc-rv-' + target + '">\u2248 ' + fEur(proj.median) + '</div>'
+        + '<div class="fr-esc-rg" id="fr-esc-rg-' + target + '">P5: ' + fEurK(proj.p5) + ' · P95: ' + fEurK(proj.p95) + '</div>'
+      + '</div>'
+    + '</div>';
+  }
+
   // Helper: render del subtítol d'escenari (clickable per a admin)
   function escSubHtml(target, currentArqId) {
     var curArq = getArquetip(currentArqId);
@@ -9380,25 +9493,6 @@ function renderPortalRoadmap(el) {
     + '</span>';
   }
 
-  function escBlock(cls, titol, target, currentArqId, donutId, mu, sig, sh, dd, proj) {
-    return '<div class="fr-esc' + cls + '">'
-      + '<div class="fr-esc-t">' + titol + '</div>'
-      + '<div class="fr-esc-s">' + escSubHtml(target, currentArqId) + '</div>'
-      + '<svg id="' + donutId + '" viewBox="0 0 100 100" class="fr-esc-d"></svg>'
-      + '<div class="fr-esc-k">'
-        + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03BC esperat</div><div class="fr-esc-kv" style="color:#1A5C3A">+' + f1(mu) + '%</div></div>'
-        + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03C3 vol.</div><div class="fr-esc-kv">' + f1(sig) + '%</div></div>'
-        + '<div class="fr-esc-ki"><div class="fr-esc-kl">Sharpe</div><div class="fr-esc-kv">' + sh.toFixed(2).replace('.', ',') + '</div></div>'
-        + '<div class="fr-esc-ki"><div class="fr-esc-kl">M\u00e0x. DD</div><div class="fr-esc-kv" style="color:#8B1A1A">\u2212' + Math.round(dd) + '%</div></div>'
-      + '</div>'
-      + '<div class="fr-esc-r">'
-        + '<div class="fr-esc-rl">Valor a ' + horitzo + ' anys</div>'
-        + '<div class="fr-esc-rv">\u2248 ' + fEur(proj.median) + '</div>'
-        + '<div class="fr-esc-rg">P5: ' + fEurK(proj.p5) + ' · P95: ' + fEurK(proj.p95) + '</div>'
-      + '</div>'
-    + '</div>';
-  }
-
   // Comentari automàtic dels escenaris (es regenera amb els números reals)
   var pctOverRec = Math.round((pAgr.median / pRec.median - 1) * 100);
   var pctUnderRec = Math.round((1 - pCons.median / pRec.median) * 100);
@@ -9409,9 +9503,9 @@ function renderPortalRoadmap(el) {
     + '<div class="fr-h2">I si fos m\u00e9s conservadora? I si fos m\u00e9s agressiva?</div>'
     + '<div class="fr-lead">Cada cartera \u00e9s un trade-off entre rendiment i risc. Aquesta comparativa et permet veure exactament qu\u00e8 guanyes o qu\u00e8 perds si t\u2019inclines per una altra direcci\u00f3.</div>'
     + '<div class="fr-esc-g">'
-      + escBlock('',      'Conservadora', 'conservador', arqConsId, 'fr-d-cons', mCons.mu, mCons.sigma, sCons, ddCons, pCons)
-      + escBlock(' actiu','Recomanada',   'recomanat',   arqId,     'fr-d-rec',  mCart.mu, mCart.sigma, sCart, ddCart, pRec)
-      + escBlock('',      'Agressiva',    'agressiu',    arqAgrId,  'fr-d-agr',  mAgr.mu,  mAgr.sigma,  sAgr,  ddAgr,  pAgr)
+      + escBlock('',      'Conservadora', 'conservador', arqConsId, 'fr-d-cons', carteraCons, mCons.mu, mCons.sigma, sCons, ddCons, pCons)
+      + escBlock(' actiu','Recomanada',   'recomanat',   arqId,     'fr-d-rec',  cartera,     mCart.mu, mCart.sigma, sCart, ddCart, pRec)
+      + escBlock('',      'Agressiva',    'agressiu',    arqAgrId,  'fr-d-agr',  carteraAgr,  mAgr.mu,  mAgr.sigma,  sAgr,  ddAgr,  pAgr)
     + '</div>'
     + '<div class="fr-callout" style="margin-top:24px">'
       + '<div class="fr-callout-t">Com llegir aquesta comparativa</div>'
@@ -9421,31 +9515,69 @@ function renderPortalRoadmap(el) {
 
   // ─── 9. PASSOS ─────────────────────────────────────────────
   var exec = fr.execucio || {};
-  var brokerTextAuto = 'Per al teu perfil i volum d\u2019aportaci\u00f3 recomanem un broker registrat a la CNMV, sense comissi\u00f3 de cust\u00f2dia i amb fons indexats / ETFs de baix cost. <em>L\u2019assessor personalitza aquesta recomanaci\u00f3 segons el teu cas.</em>';
-  var brokerText = exec.broker_text || brokerTextAuto;
-  var brokerTools = Array.isArray(exec.broker_tools) && exec.broker_tools.length > 0
-    ? exec.broker_tools
-    : ['Broker triat per l\u2019assessor', 'DNI + IBAN', '~30 min'];
 
-  var brokerTextHtml;
-  if (isAdmin) {
-    brokerTextHtml = '<span class="fr-edit" contenteditable="true" data-key="execucio_broker" data-multiline="1" data-placeholder="Recomanaci\u00f3 personalitzada del broker...">' + brokerText + '</span>';
+  // Carregar passos: personalitzats o default
+  var passos;
+  if (Array.isArray(exec.passos) && exec.passos.length > 0) {
+    passos = exec.passos;
   } else {
-    brokerTextHtml = brokerText;
+    passos = JSON.parse(JSON.stringify(_FR_PASSOS_DEFAULT));
+    // Si admin, els inicialitzem a fullderuta perquè l'edició funcioni
+    if (isAdmin) {
+      if (!c.fullderuta) c.fullderuta = {};
+      if (!c.fullderuta.execucio) c.fullderuta.execucio = {};
+      c.fullderuta.execucio.passos = passos;
+    }
   }
 
+  // Render d'un tool chip
+  function toolChipHtml(t, pasIdx, toolIdx) {
+    if (isAdmin) {
+      return '<span class="fr-tl-too-wrap">'
+        + '<span class="fr-tl-too fr-tl-too-edit" '
+          + 'contenteditable="true" '
+          + 'data-pas-field="tool" '
+          + 'data-pas-idx="' + pasIdx + '" '
+          + 'data-tool-idx="' + toolIdx + '" '
+          + 'spellcheck="false">' + t + '</span>'
+        + '<button class="fr-tl-too-del" onclick="_frRemoveTool(' + pasIdx + ',' + toolIdx + ')" title="Eliminar">&times;</button>'
+      + '</span>';
+    }
+    return '<span class="fr-tl-too">' + t + '</span>';
+  }
+
+  // Render de tots els passos
+  var passosHtml = '';
+  for (var pi = 0; pi < passos.length; pi++) {
+    var p = passos[pi];
+    var tools = Array.isArray(p.tools) ? p.tools : [];
+    var toolsHtml = tools.map(function(t, ti) { return toolChipHtml(t, pi, ti); }).join('');
+    if (isAdmin) toolsHtml += '<button class="fr-tl-add-tool" onclick="_frAddTool(' + pi + ')" title="Afegir eina">+</button>';
+
+    passosHtml += '<div class="fr-tl-s">'
+      + '<span class="fr-tl-n">' + (pi + 1) + '</span>'
+      + (isAdmin
+          ? '<div class="fr-tl-da" contenteditable="true" data-pas-field="data" data-pas-idx="' + pi + '" spellcheck="false">' + (p.data || 'Temps') + '</div>'
+          : '<div class="fr-tl-da">' + (p.data || '') + '</div>')
+      + (isAdmin
+          ? '<div class="fr-tl-t" contenteditable="true" data-pas-field="titol" data-pas-idx="' + pi + '" spellcheck="false">' + (p.titol || 'Títol') + '</div>'
+          : '<div class="fr-tl-t">' + (p.titol || '') + '</div>')
+      + (isAdmin
+          ? '<div class="fr-tl-x" contenteditable="true" data-pas-field="text" data-pas-idx="' + pi + '" data-multiline="1" spellcheck="false">' + (p.text || '') + '</div>'
+          : '<div class="fr-tl-x">' + (p.text || '') + '</div>')
+      + '<div class="fr-tl-to">' + toolsHtml + '</div>'
+      + (isAdmin ? '<button class="fr-tl-del-pas" onclick="_frRemovePas(' + pi + ')" title="Eliminar pas">\u00d7 Eliminar pas</button>' : '')
+    + '</div>';
+  }
+
+  if (isAdmin) passosHtml += '<button class="fr-tl-add-pas" onclick="_frAddPas()">\uFF0B Afegir pas</button>';
+
+  var nPassos = passos.length;
   html += '<div class="fr-section">'
     + '<div class="fr-label">08 · Posada en marxa</div>'
-    + '<div class="fr-h2">Pla d\u2019execuci\u00f3 en 6 passos</div>'
-    + '<div class="fr-lead">Sense complicacions. Cada pas t\u00e9 data prevista, eina recomanada i temps estimat.</div>'
-    + '<div class="fr-tl">'
-      + '<div class="fr-tl-s"><span class="fr-tl-n">1</span><div class="fr-tl-da">Setmana 1</div><div class="fr-tl-t">Obrir el compte al broker</div><div class="fr-tl-x">' + brokerTextHtml + '</div><div class="fr-tl-to">' + brokerTools.map(function(t){ return '<span class="fr-tl-too">' + t + '</span>'; }).join('') + '</div></div>'
-      + '<div class="fr-tl-s"><span class="fr-tl-n">2</span><div class="fr-tl-da">Setmana 2</div><div class="fr-tl-t">Transferir el capital inicial</div><div class="fr-tl-x">Transfer\u00e8ncia SEPA de ' + fEur(capital) + ' del teu compte bancari al broker. Important: <strong>NO compris res encara</strong>. El capital es queda en rep\u00f2s fins al seg\u00fcent pas.</div><div class="fr-tl-to"><span class="fr-tl-too">Transfer\u00e8ncia SEPA</span><span class="fr-tl-too">1\u20132 dies h\u00e0bils</span></div></div>'
-      + '<div class="fr-tl-s"><span class="fr-tl-n">3</span><div class="fr-tl-da">Setmana 3</div><div class="fr-tl-t">Comprar els actius de la cartera</div><div class="fr-tl-x">Comprem els ' + cartera.length + ' actius segons els pesos definits a la cartera ' + arq.cartRoma + '. T\u2019enviar\u00e9 els ISIN concrets i un calendari per <strong>esglaonar l\u2019entrada en 3 tranches</strong> (50% / 25% / 25%) durant tres setmanes.</div><div class="fr-tl-to"><span class="fr-tl-too">Llista d\u2019ISIN</span><span class="fr-tl-too">Compra esglaonada</span></div></div>'
-      + '<div class="fr-tl-s"><span class="fr-tl-n">4</span><div class="fr-tl-da">Mes 1</div><div class="fr-tl-t">Configurar l\u2019aportaci\u00f3 mensual</div><div class="fr-tl-x">Domiciliaci\u00f3 de ' + fEur(aportacio) + ' el dia 5 de cada mes. Compra autom\u00e0tica del fons principal perqu\u00e8 la inversi\u00f3 sigui 100% passiva.</div><div class="fr-tl-to"><span class="fr-tl-too">Ordre permanent</span><span class="fr-tl-too">Auto-compra</span></div></div>'
-      + '<div class="fr-tl-s"><span class="fr-tl-n">5</span><div class="fr-tl-da">Cada trimestre</div><div class="fr-tl-t">Revisi\u00f3 trimestral</div><div class="fr-tl-x">Sessi\u00f3 de 30 minuts: rendiment vs benchmark, desviaci\u00f3 de pesos i canvis macro. <strong>Si algun actiu s\u2019ha desviat &gt;5% del seu pes target, rebalancegem</strong>.</div><div class="fr-tl-to"><span class="fr-tl-too">Portal client TBI</span><span class="fr-tl-too">Informe trimestral</span></div></div>'
-      + '<div class="fr-tl-s"><span class="fr-tl-n">6</span><div class="fr-tl-da">Anualment · setembre</div><div class="fr-tl-t">Revisi\u00f3 integral i fiscal</div><div class="fr-tl-x">Actualitzem el perfil de risc, revisem objectius, optimitzem fiscalitat (compensaci\u00f3 p\u00e8rdues, traspassos), ajustem aportacions.</div><div class="fr-tl-to"><span class="fr-tl-too">Q\u00fcestionari curt</span><span class="fr-tl-too">An\u00e0lisi fiscal</span></div></div>'
-    + '</div>'
+    + '<div class="fr-h2">Pla d\u2019execuci\u00f3 en ' + nPassos + ' pas' + (nPassos !== 1 ? 'sos' : '') + '</div>'
+    + '<div class="fr-lead">Cada pas t\u00e9 data prevista, descripci\u00f3 i eines recomanades.' + (isAdmin ? ' Clica qualsevol camp per editar-lo.' : '') + '</div>'
+    + '<div class="fr-tl">' + passosHtml + '</div>'
   + '</div>';
 
   // ─── 10. CLOSING (missatge personal) ───────────────────────
@@ -9489,6 +9621,9 @@ function renderPortalRoadmap(el) {
   // ════════════════════════════════════════════════════════════
   // POST-RENDER
   // ════════════════════════════════════════════════════════════
+  // Guardar estat per a _frRecalcEscenari (funcions globals)
+  window._FR_STATE = { capital: capital, aportacio: aportacio, horitzo: horitzo };
+
   _frDrawDonut(document.getElementById('fr-donut-pri'), cartera, { size:200, stroke:28 });
   _frDrawDonut(document.getElementById('fr-d-cons'),    carteraCons, { size:100, stroke:14 });
   _frDrawDonut(document.getElementById('fr-d-rec'),     cartera,     { size:100, stroke:14 });
@@ -9511,6 +9646,7 @@ function renderPortalRoadmap(el) {
   // Bindings d'edició
   if (isAdmin) {
     _frBindEditable();
+    _frBindPassos();
 
     // Bindings específics d'objectius
     var objNodes = document.querySelectorAll('[data-obj-idx]');
@@ -9620,6 +9756,241 @@ function renderPortalRoadmap(el) {
 /* ────────────────────────────────────────────────────────────
    GRÀFIC DE SIMULACIÓ
    ──────────────────────────────────────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════════
+   PLA D'EXECUCIÓ · passos completament editables
+   ════════════════════════════════════════════════════════════════════════════ */
+
+var _FR_PASSOS_DEFAULT = [
+  {
+    titol: 'Obrir el compte al broker',
+    data: 'Setmana 1',
+    text: 'Per al teu perfil i volum d\u2019aportaci\u00f3 recomanem un broker registrat a la CNMV, sense comissi\u00f3 de cust\u00f2dia i amb fons indexats / ETFs de baix cost.',
+    tools: ['Broker recomanat per l\u2019assessor', 'DNI + IBAN', '~30 min']
+  },
+  {
+    titol: 'Transferir el capital inicial',
+    data: 'Setmana 2',
+    text: 'Transfer\u00e8ncia SEPA del capital inicial disponible al broker. Important: NO compris res encara. El capital es queda en rep\u00f2s fins al seg\u00fcent pas.',
+    tools: ['Transfer\u00e8ncia SEPA', '1\u20132 dies h\u00e0bils']
+  },
+  {
+    titol: 'Comprar els actius de la cartera',
+    data: 'Setmana 3',
+    text: 'Comprem els actius de la cartera en 3 tranches (50% / 25% / 25%) durant tres setmanes per mitigar el risc de timing. T\u2019enviar\u00e9 els ISIN concrets de cada fons/ETF.',
+    tools: ['Llista d\u2019ISIN', 'Compra esglaonada', '~1h total']
+  },
+  {
+    titol: 'Configurar l\u2019aportaci\u00f3 mensual',
+    data: 'Mes 1',
+    text: 'Domiciliaci\u00f3 mensual el dia 5 de cada mes. Configurarem la compra autom\u00e0tica del fons principal perqu\u00e8 la inversi\u00f3 sigui 100% passiva.',
+    tools: ['Ordre permanent', 'Auto-compra']
+  },
+  {
+    titol: 'Revisi\u00f3 trimestral',
+    data: 'Cada trimestre',
+    text: 'Sessi\u00f3 de 30 minuts per revisar rendiment vs benchmark, desviaci\u00f3 de pesos i canvis macro rellevants. Si algun actiu s\u2019ha desviat m\u00e9s d\u2019un 5% del seu pes target, rebalancegem.',
+    tools: ['Portal client TBI', 'Informe trimestral']
+  },
+  {
+    titol: 'Revisi\u00f3 integral i fiscal',
+    data: 'Anualment',
+    text: 'Actualitzem el perfil de risc, revisem objectius, optimitzem fiscalitat (compensaci\u00f3 de p\u00e8rdues, traspassos entre fons) i ajustem aportacions si han canviat els teus ingressos.',
+    tools: ['Q\u00fcestionari curt', 'An\u00e0lisi fiscal', '~1,5h']
+  },
+];
+
+function _frAddPas() {
+  var c = getClient();
+  if (!c.fullderuta) c.fullderuta = {};
+  if (!c.fullderuta.execucio) c.fullderuta.execucio = {};
+  if (!Array.isArray(c.fullderuta.execucio.passos)) {
+    c.fullderuta.execucio.passos = JSON.parse(JSON.stringify(_FR_PASSOS_DEFAULT));
+  }
+  c.fullderuta.execucio.passos.push({
+    titol: 'Nou pas',
+    data: 'Temps',
+    text: 'Descripci\u00f3 del pas...',
+    tools: ['Eina']
+  });
+  _frMarkDirty();
+  _frRerender();
+}
+
+function _frRemovePas(idx) {
+  var c = getClient();
+  if (!c.fullderuta || !c.fullderuta.execucio || !Array.isArray(c.fullderuta.execucio.passos)) return;
+  if (!confirm('Eliminar aquest pas?')) return;
+  c.fullderuta.execucio.passos.splice(idx, 1);
+  _frMarkDirty();
+  _frRerender();
+}
+
+function _frAddTool(pasIdx) {
+  var c = getClient();
+  if (!c.fullderuta || !c.fullderuta.execucio || !Array.isArray(c.fullderuta.execucio.passos)) return;
+  var pas = c.fullderuta.execucio.passos[pasIdx];
+  if (!pas) return;
+  if (!Array.isArray(pas.tools)) pas.tools = [];
+  pas.tools.push('Eina');
+  _frMarkDirty();
+  _frRerender();
+}
+
+function _frRemoveTool(pasIdx, toolIdx) {
+  var c = getClient();
+  if (!c.fullderuta || !c.fullderuta.execucio || !Array.isArray(c.fullderuta.execucio.passos)) return;
+  var pas = c.fullderuta.execucio.passos[pasIdx];
+  if (!pas || !Array.isArray(pas.tools)) return;
+  pas.tools.splice(toolIdx, 1);
+  _frMarkDirty();
+  _frRerender();
+}
+
+function _frBindPassos() {
+  // Títols de passos
+  var titols = document.querySelectorAll('[data-pas-field="titol"]');
+  for (var i = 0; i < titols.length; i++) {
+    (function(el) {
+      el.addEventListener('input', _frMarkDirty);
+      el.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+      });
+      el.addEventListener('blur', function() {
+        var c = getClient(); var idx = parseInt(el.dataset.pasIdx, 10);
+        if (c.fullderuta && c.fullderuta.execucio && c.fullderuta.execucio.passos[idx]) {
+          c.fullderuta.execucio.passos[idx].titol = el.innerText.trim();
+        }
+      });
+    })(titols[i]);
+  }
+  // Dates de passos
+  var dates = document.querySelectorAll('[data-pas-field="data"]');
+  for (var j = 0; j < dates.length; j++) {
+    (function(el) {
+      el.addEventListener('input', _frMarkDirty);
+      el.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+      });
+      el.addEventListener('blur', function() {
+        var c = getClient(); var idx = parseInt(el.dataset.pasIdx, 10);
+        if (c.fullderuta && c.fullderuta.execucio && c.fullderuta.execucio.passos[idx]) {
+          c.fullderuta.execucio.passos[idx].data = el.innerText.trim();
+        }
+      });
+    })(dates[j]);
+  }
+  // Textos de passos
+  var textos = document.querySelectorAll('[data-pas-field="text"]');
+  for (var k = 0; k < textos.length; k++) {
+    (function(el) {
+      el.addEventListener('input', _frMarkDirty);
+      el.addEventListener('blur', function() {
+        var c = getClient(); var idx = parseInt(el.dataset.pasIdx, 10);
+        if (c.fullderuta && c.fullderuta.execucio && c.fullderuta.execucio.passos[idx]) {
+          c.fullderuta.execucio.passos[idx].text = el.innerHTML.trim();
+        }
+      });
+    })(textos[k]);
+  }
+  // Tools (chips editables)
+  var tools = document.querySelectorAll('[data-pas-field="tool"]');
+  for (var t = 0; t < tools.length; t++) {
+    (function(el) {
+      el.addEventListener('input', _frMarkDirty);
+      el.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); }
+      });
+      el.addEventListener('blur', function() {
+        var c = getClient();
+        var pasIdx = parseInt(el.dataset.pasIdx, 10);
+        var toolIdx = parseInt(el.dataset.toolIdx, 10);
+        if (c.fullderuta && c.fullderuta.execucio && c.fullderuta.execucio.passos[pasIdx]) {
+          c.fullderuta.execucio.passos[pasIdx].tools[toolIdx] = el.innerText.trim();
+        }
+      });
+    })(tools[t]);
+  }
+}
+window._FR_STATE = {}; // { capital, aportacio, horitzo } — guardat al post-render de renderPortalRoadmap
+
+function _frRecalcEscenari(target) {
+  var inputs = document.querySelectorAll('[data-esc-target="' + target + '"]');
+  if (!inputs || inputs.length === 0) return;
+
+  var actius = [];
+  var totalPes = 0;
+  for (var i = 0; i < inputs.length; i++) {
+    var inp = inputs[i];
+    var pes = parseFloat(inp.value) || 0;
+    totalPes += pes;
+    actius.push({
+      id:    inp.dataset.actId,
+      nom:   inp.dataset.actNom,
+      color: inp.dataset.actColor,
+      pes:   pes,
+      mu:    parseFloat(inp.dataset.actMu)    || 0,
+      sigma: parseFloat(inp.dataset.actSigma) || 0,
+    });
+  }
+
+  // Actualitzar indicador total
+  var totalEl = document.getElementById('fr-esc-total-' + target);
+  if (totalEl) {
+    var totalOk = Math.abs(totalPes - 100) < 0.5;
+    totalEl.textContent = totalPes.toFixed(0) + '%';
+    totalEl.style.color = totalOk ? '#1A5C3A' : '#8B1A1A';
+  }
+
+  // Recalcular mètriques
+  var m  = _frCalcCartera(actius);
+  var sh = _frSharpe(m.mu, m.sigma, 2);
+  var dd = _frMaxDD(m.mu, m.sigma);
+  var f1 = function(n) { return n.toFixed(1).replace('.', ','); };
+
+  // Actualitzar KPI cells
+  var pfx = 'fr-esc-kv-' + target + '-';
+  var muEl  = document.getElementById(pfx + 'mu');
+  var sigEl = document.getElementById(pfx + 'sig');
+  var shEl  = document.getElementById(pfx + 'sh');
+  var ddEl  = document.getElementById(pfx + 'dd');
+  if (muEl)  muEl.textContent  = '+' + f1(m.mu);
+  if (sigEl) sigEl.textContent = f1(m.sigma) + '%';
+  if (shEl)  shEl.textContent  = sh.toFixed(2).replace('.', ',');
+  if (ddEl)  ddEl.textContent  = '\u2212' + Math.round(dd) + '%';
+
+  // Actualitzar valor final i rang
+  var st  = window._FR_STATE || {};
+  var cap = st.capital    || 30000;
+  var apr = st.aportacio  || 400;
+  var hor = st.horitzo    || 15;
+  if (!isNaN(cap) && !isNaN(apr) && !isNaN(hor) && m.sigma > 0) {
+    var proj = _frProj(cap, apr, m.mu, m.sigma, hor);
+    var rvEl = document.getElementById('fr-esc-rv-' + target);
+    var rgEl = document.getElementById('fr-esc-rg-' + target);
+    var fEur = function(n) { return new Intl.NumberFormat('ca-ES', { maximumFractionDigits:0 }).format(Math.round(n)) + '\u20AC'; };
+    var fEurK = function(n) { return Math.round(n/1000) + 'k\u20AC'; };
+    if (rvEl) rvEl.textContent = '\u2248 ' + fEur(proj.median);
+    if (rgEl) rgEl.textContent = 'P5: ' + fEurK(proj.p5) + ' \u00B7 P95: ' + fEurK(proj.p95);
+  }
+
+  // Actualitzar donut
+  var donutId = 'fr-d-' + target;
+  var donutSvg = document.getElementById(donutId);
+  if (donutSvg) _frDrawDonut(donutSvg, actius, { size: 100, stroke: 14 });
+
+  // Guardar a overrides i marcar dirty
+  var key = target === 'cons' ? 'escenariCons' : 'escenariAgr';
+  _frSetOverride(key, actius);
+  _frMarkDirty();
+}
+
+function _frResetEscenari(target) {
+  var key = target === 'cons' ? 'escenariCons' : 'escenariAgr';
+  _frSetOverride(key, null);
+  _frMarkDirty();
+  _frRerender();
+}
+
 function _frDrawSimChart(svg, capital, aportacio, mu, sigma, maxAnys) {
   if (!svg) return;
   var W = 900, H = 340, padL = 68, padR = 24, padT = 16, padB = 42;
