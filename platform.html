@@ -8235,7 +8235,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* === FULL DE RUTA v12 === */
+/* === FULL DE RUTA v13 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -8694,9 +8694,22 @@ function _frToggleArqMenu(btn) {
 }
 
 // Selecciona un arquetip per a un target ('principal' / 'conservador' / 'agressiu')
+// Cas especial: arqId === '__custom__' a target='principal' activa la cartera personalitzada del client
 function _frSelectArq(arqId, target) {
+  if (target === 'principal' && arqId === '__custom__') {
+    // Activar cartera personalitzada del client
+    _frSetOverride('useCustomCartera', true);
+    _frSetOverride('arquetipId', null);
+    _frSetOverride('carteraPersonalitzada', null);  // netejar overrides de pesos del FR (cust ja té els seus)
+    _frRerender();
+    return;
+  }
   var key;
-  if (target === 'principal')   key = 'arquetipId';
+  if (target === 'principal') {
+    key = 'arquetipId';
+    // En triar un arquetip, desactivar la cartera personalitzada
+    _frSetOverride('useCustomCartera', null);
+  }
   else if (target === 'conservador') key = 'arquetipConservador';
   else if (target === 'agressiu')    key = 'arquetipAgressiu';
   else return;
@@ -8721,6 +8734,16 @@ function _frResetOverride(key) {
   var c = getClient();
   if (!c.fullderuta || !c.fullderuta.overrides) return;
   delete c.fullderuta.overrides[key];
+  _frMarkDirty();
+  _frRerender();
+}
+
+// Netejar TOTS els overrides (preserva notes/objectius/passos)
+function _frClearOverrides() {
+  if (!confirm('Esborrar tots els overrides d\u2019aquest Full de Ruta?\n\nEs mantindran les notes, objectius i passos editats, però es restablirà:\n- Arquetip al del perfil del client\n- Capital, aportació i horitzó als del qüestionari\n- Cartera personalitzada / pesos / μ/σ d\u2019actius\n- Arquetips d\u2019escenaris comparatius')) return;
+  var c = getClient();
+  if (!c.fullderuta) c.fullderuta = {};
+  c.fullderuta.overrides = {};
   _frMarkDirty();
   _frRerender();
 }
@@ -8778,11 +8801,22 @@ function renderPortalRoadmap(el) {
   var arq = getArquetip(arqId);
 
   // ── Cartera real ──────────────────────────────────────────
-  // hasCustom: usar cartera_target_custom TRET QUE l'admin hagi canviat l'arquetip explícitament
-  // overrides.arquetipId == null captura undefined i null (doble igual)
-  var hasCustom = (overrides.arquetipId == null)
-    && Array.isArray(c.cartera_target_custom)
-    && c.cartera_target_custom.length > 0;
+  // Prioritat de decisió:
+  //   1. overrides.useCustomCartera === true  → usar cartera_target_custom (admin l'ha triat explícitament)
+  //   2. overrides.arquetipId existeix         → usar arquetip seleccionat (override d'arquetip pren prioritat)
+  //   3. cartera_target_custom existeix       → fallback automàtic (cartera personalitzada del client)
+  //   4. arquetip estàndard del client        → opció per defecte
+  var custDisponible = Array.isArray(c.cartera_target_custom) && c.cartera_target_custom.length > 0;
+  var hasCustom;
+  if (overrides.useCustomCartera === true && custDisponible) {
+    hasCustom = true;
+  } else if (overrides.arquetipId != null) {
+    hasCustom = false;
+  } else if (custDisponible) {
+    hasCustom = true;
+  } else {
+    hasCustom = false;
+  }
   var actiusTarget = hasCustom ? c.cartera_target_custom : (arq.actius || []);
 
   // Enriquim amb taxonomia + μ/σ
@@ -9220,19 +9254,42 @@ function renderPortalRoadmap(el) {
     if (!isAdmin) {
       return '<span class="fr-chip fr-chip-navy">\uD83C\uDFDB Arquetip ' + arq.nom + '</span>';
     }
-    // Admin: dropdown
     var llista = _frListArquetips();
     var optsHtml = '';
+
+    // Opció especial "Cartera personalitzada del client" si existeix
+    if (custDisponible) {
+      var nCust = c.cartera_target_custom.length;
+      var isCustActiva = hasCustom && (overrides.useCustomCartera === true || overrides.arquetipId == null);
+      optsHtml += '<div class="fr-arq-opt fr-arq-opt-custom' + (isCustActiva ? ' actiu' : '') + '" '
+        + 'onclick="_frSelectArq(\'__custom__\', \'principal\')" '
+        + 'style="border-bottom:1px solid var(--g100);margin-bottom:4px;padding-bottom:10px">'
+        + '<span class="fr-arq-opt-roma" style="color:#1A5C3A">\u2605</span>'
+        + '<div style="flex:1"><div style="font-weight:500">Cartera personalitzada del client</div>'
+          + '<div style="font-size:10px;color:var(--g500);margin-top:2px">' + nCust + ' actius desats al perfil</div></div>'
+      + '</div>';
+    }
+
     for (var li = 0; li < llista.length; li++) {
       var op = llista[li];
-      optsHtml += '<div class="fr-arq-opt' + (op.id === arqId ? ' actiu' : '') + '" '
+      var esActiu = (overrides.arquetipId == null && !custDisponible && op.id === arqId)
+                 || (overrides.arquetipId === op.id);
+      optsHtml += '<div class="fr-arq-opt' + (esActiu ? ' actiu' : '') + '" '
         + 'onclick="_frSelectArq(\'' + op.id + '\', \'principal\')">'
         + '<span class="fr-arq-opt-roma">' + op.cartRoma + '</span><span>' + op.nom + '</span>'
       + '</div>';
     }
-    var modIndicator = overrides.arquetipId ? ' <span style="font-size:10px;color:#7A4A00;font-weight:500">●</span>' : '';
+
+    // Indicador visual de l'estat actual
+    var labelActual;
+    if (hasCustom) {
+      labelActual = '<span style="color:#1A5C3A">\u2605 Personalitzada</span>';
+    } else {
+      labelActual = arq.nom;
+    }
+    var modIndicator = (overrides.arquetipId || overrides.useCustomCartera) ? ' <span style="font-size:10px;color:#7A4A00;font-weight:500">●</span>' : '';
     return '<span class="fr-chip fr-chip-navy fr-arq-wrap" style="padding:4px 8px">'
-      + '\uD83C\uDFDB Arquetip <button type="button" class="fr-arq-btn" onclick="_frToggleArqMenu(this)">' + arq.nom + modIndicator + '</button>'
+      + '\uD83C\uDFDB Arquetip <button type="button" class="fr-arq-btn" onclick="_frToggleArqMenu(this)">' + labelActual + modIndicator + '</button>'
       + '<div class="fr-arq-menu">' + optsHtml + '</div>'
     + '</span>';
   }
@@ -9270,14 +9327,35 @@ function renderPortalRoadmap(el) {
   // Panell d'ajuda admin
   var adminPanel = '';
   if (isAdmin) {
+    // Diagnòstic d'estat de dades del client
+    var custStateBadge;
+    if (custDisponible) {
+      custStateBadge = '<span style="background:#EAF3DE;color:#1A5C3A;padding:1px 6px;border-radius:99px;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.06em">CARREGADA · ' + c.cartera_target_custom.length + ' actius</span>';
+    } else if (Array.isArray(c.cartera_target_custom)) {
+      custStateBadge = '<span style="background:#FDF0F0;color:#8B1A1A;padding:1px 6px;border-radius:99px;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.06em">BUIDA · 0 actius</span>';
+    } else {
+      custStateBadge = '<span style="background:var(--g100);color:var(--g500);padding:1px 6px;border-radius:99px;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.06em">NO CARREGADA</span>';
+    }
+    var fontActualBadge;
+    if (hasCustom) {
+      fontActualBadge = '<span style="background:#EAF3DE;color:#1A5C3A;padding:1px 6px;border-radius:99px;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.06em">Cartera personalitzada</span>';
+    } else {
+      fontActualBadge = '<span style="background:var(--g100);color:var(--g500);padding:1px 6px;border-radius:99px;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.06em">Arquetip ' + arq.cartRoma + '</span>';
+    }
+    var overridesActius = Object.keys(overrides || {}).length;
+
     adminPanel = '<div class="fr-admin-panel">'
-      + '<div class="fr-admin-panel-t">Per a l\u2019assessor · com funciona aquest document</div>'
-      + 'Tots els camps editables (hover amb vora gold) modifiquen el document <strong>sense afectar les dades del client a Supabase</strong>. \u00daltil per a provar escenaris o personalitzar el report. Els canvis es guarden localment (botó "Desar Full de Ruta") i es persistiran al núvol quan integrem la columna <code>clients.fullderuta</code>.'
-      + '<table><tr><td>Arquetip</td><td>de <code>c.arquetipId</code> \u2192 clica el chip per canviar-lo</td></tr>'
-      + '<tr><td>Capital / aportació / horitzó</td><td>de <code>c.perfil.*</code> (qüestionari) \u2192 edita els valors directament</td></tr>'
-      + '<tr><td>Total aportat futur</td><td>calculat: capital + aportació × 12 × horitzó</td></tr>'
-      + '<tr><td>Objectius</td><td>plantilles ràpides (compra de pis, jubilació, educació...) o personalitzat \u2192 afegeix sota la secció 02</td></tr>'
-      + '<tr><td>Escenaris alternatius</td><td>arquetips de referència \u2192 clica el subtítol per canviar-los</td></tr></table>'
+      + '<div class="fr-admin-panel-t">Per a l\u2019assessor · estat del document</div>'
+      + '<table style="margin-bottom:10px">'
+        + '<tr><td>Font de la cartera actual</td><td>' + fontActualBadge + '</td></tr>'
+        + '<tr><td><code>cartera_target_custom</code></td><td>' + custStateBadge + (custDisponible ? ' \u2192 disponible al dropdown d\u2019arquetip com a "\u2605 Cartera personalitzada del client"' : '') + '</td></tr>'
+        + '<tr><td>Overrides actius (Full de Ruta)</td><td>' + overridesActius + ' camp' + (overridesActius !== 1 ? 's' : '')
+          + (overridesActius > 0 ? ' \u00b7 <button onclick="_frClearOverrides()" style="background:transparent;border:1px solid #8B1A1A;color:#8B1A1A;padding:1px 8px;border-radius:5px;cursor:pointer;font-family:var(--fm);font-size:9px;font-weight:500">Netejar overrides</button>' : '')
+        + '</td></tr>'
+      + '</table>'
+      + '<div style="font-size:10.5px;color:#5C3D0A;line-height:1.6">'
+        + 'Tots els camps editables (hover amb vora gold) modifiquen el document <strong>sense afectar les dades del client a Supabase</strong>. Si la cartera no es carrega correctament, prova el botó "Netejar overrides" per a tornar a l\u2019estat per defecte.'
+      + '</div>'
     + '</div>';
   }
 
