@@ -8235,7 +8235,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* === FULL DE RUTA v10 === */
+/* === FULL DE RUTA v11 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -8786,6 +8786,12 @@ function renderPortalRoadmap(el) {
     var idA = a.id || '';
     var tax = ACTIUS_TAXONOMY.find(function(t) { return t.id === idA; });
     var ms = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(idA) : { mu: 6, sigma: 12 };
+    // Aplicar μ/σ personalitzats per l'assessor si existeixen
+    var muSigOvr = overrides.muSigmaPersonalitzat;
+    if (muSigOvr && muSigOvr[idA]) {
+      if (muSigOvr[idA].mu    != null) ms.mu    = muSigOvr[idA].mu;
+      if (muSigOvr[idA].sigma != null) ms.sigma = muSigOvr[idA].sigma;
+    }
     return {
       id: idA,
       nom: a.nom || (tax && tax.ca) || idA,
@@ -9106,6 +9112,11 @@ function renderPortalRoadmap(el) {
     + '.fr-esc-peso-input{width:52px;padding:3px 6px;border:1px solid var(--g200);border-radius:5px;font-family:var(--fm);font-size:11px;color:var(--black);background:#fff;text-align:right;-moz-appearance:textfield;transition:border-color .15s}'
     + '.fr-esc-peso-input::-webkit-outer-spin-button,.fr-esc-peso-input::-webkit-inner-spin-button{-webkit-appearance:none}'
     + '.fr-esc-peso-input:focus{outline:none;border-color:#1B3A6B;box-shadow:0 0 0 2px rgba(27,58,107,.12)}'
+    + '.fr-cart-mu-input,.fr-cart-sig-input{width:52px;padding:3px 6px;border:1px solid rgba(212,148,58,.5);border-radius:5px;font-family:var(--fm);font-size:11px;color:var(--black);background:#FFF9F0;text-align:right;-moz-appearance:textfield;transition:all .15s}'
+    + '.fr-cart-mu-input::-webkit-outer-spin-button,.fr-cart-mu-input::-webkit-inner-spin-button,.fr-cart-sig-input::-webkit-outer-spin-button,.fr-cart-sig-input::-webkit-inner-spin-button{-webkit-appearance:none}'
+    + '.fr-cart-mu-input:focus,.fr-cart-sig-input:focus{outline:none;border-color:#D4943A;box-shadow:0 0 0 2px rgba(212,148,58,.18)}'
+    + '.fr-cart-input-mod{border-color:#D4943A;background:#FCF3E2}'
+    + '.fr-tcart-hint{font-family:var(--fm);font-size:8px;font-weight:400;color:var(--g400);letter-spacing:.05em;margin-left:4px;text-transform:none}'
     + '.fr-esc-badge-custom{font-family:var(--fm);font-size:8px;background:#FCF3E2;color:#7A4A00;padding:2px 6px;border-radius:99px;margin-left:6px;letter-spacing:.06em}'
 
     + '.fr-tl-t[contenteditable],.fr-tl-da[contenteditable],.fr-tl-x[contenteditable]{outline:none;border-radius:5px;padding:1px 4px;margin:-1px -4px;transition:all .15s;cursor:text}'
@@ -9359,10 +9370,18 @@ function renderPortalRoadmap(el) {
         + '<div class="fr-donut-center"><div class="fr-donut-cv">100%</div><div class="fr-donut-cl">Cartera</div></div>'
       + '</div>'
       + '<table class="fr-tcart">'
-        + '<thead><tr><th>Actiu</th><th class="r">Pes</th><th class="r">\u03BC esperat</th><th class="r">\u03C3 vol.</th></tr></thead>'
+        + '<thead><tr><th>Actiu</th><th class="r">Pes ' + (isAdmin?'<span class="fr-tcart-hint">%</span>':'') + '</th><th class="r">\u03BC esperat ' + (isAdmin?'<span class="fr-tcart-hint">% editable</span>':'') + '</th><th class="r">\u03C3 vol. ' + (isAdmin?'<span class="fr-tcart-hint">% editable</span>':'') + '</th></tr></thead>'
         + '<tbody>';
+  // Llegir μ/σ personalitzats si existeixen
+  var muSigOverrides = (overrides.muSigmaPersonalitzat && typeof overrides.muSigmaPersonalitzat === 'object')
+    ? overrides.muSigmaPersonalitzat : {};
+
   for (var ci = 0; ci < cartera.length; ci++) {
     var ac = cartera[ci];
+    var muEfec  = (muSigOverrides[ac.id] && muSigOverrides[ac.id].mu  != null) ? muSigOverrides[ac.id].mu  : ac.mu;
+    var sigEfec = (muSigOverrides[ac.id] && muSigOverrides[ac.id].sigma != null) ? muSigOverrides[ac.id].sigma : ac.sigma;
+    var muMod   = (muSigOverrides[ac.id] != null);
+
     if (isAdmin) {
       html += '<tr>'
         + '<td><span class="sw" style="background:' + ac.color + '"></span><span class="nm">' + ac.nom + '</span></td>'
@@ -9373,20 +9392,34 @@ function renderPortalRoadmap(el) {
             + 'data-act-id="' + ac.id + '" '
             + 'data-act-nom="' + ac.nom + '" '
             + 'data-act-color="' + ac.color + '" '
-            + 'data-act-mu="' + ac.mu + '" '
-            + 'data-act-sigma="' + ac.sigma + '" '
+            + 'data-act-mu="' + muEfec + '" '
+            + 'data-act-sigma="' + sigEfec + '" '
             + 'oninput="_frRecalcCartPri()" '
           + '><span style="font-family:var(--fm);font-size:10px;color:var(--g400)">%</span>'
         + '</td>'
-        + '<td class="r ms">' + f1(ac.mu) + '%</td>'
-        + '<td class="r ms">' + f1(ac.sigma) + '%</td>'
+        + '<td class="r" style="width:90px">'
+          + '<input class="fr-cart-mu-input' + (muMod?' fr-cart-input-mod':'') + '" type="number" min="-10" max="30" step="0.1" '
+            + 'value="' + muEfec + '" '
+            + 'data-cart-mu="' + ac.id + '" '
+            + 'oninput="_frRecalcCartPri()" '
+            + 'title="Rendiment mig anual esperat per a ' + ac.nom + '"'
+          + '><span style="font-family:var(--fm);font-size:10px;color:var(--g400)">%</span>'
+        + '</td>'
+        + '<td class="r" style="width:90px">'
+          + '<input class="fr-cart-sig-input' + (muMod?' fr-cart-input-mod':'') + '" type="number" min="0" max="80" step="0.1" '
+            + 'value="' + sigEfec + '" '
+            + 'data-cart-sig="' + ac.id + '" '
+            + 'oninput="_frRecalcCartPri()" '
+            + 'title="Volatilitat anual esperada per a ' + ac.nom + '"'
+          + '><span style="font-family:var(--fm);font-size:10px;color:var(--g400)">%</span>'
+        + '</td>'
       + '</tr>';
     } else {
       html += '<tr>'
         + '<td><span class="sw" style="background:' + ac.color + '"></span><span class="nm">' + ac.nom + '</span></td>'
         + '<td class="r pe">' + f1(ac.pes) + '%</td>'
-        + '<td class="r ms">' + f1(ac.mu) + '%</td>'
-        + '<td class="r ms">' + f1(ac.sigma) + '%</td>'
+        + '<td class="r ms">' + f1(muEfec) + '%</td>'
+        + '<td class="r ms">' + f1(sigEfec) + '%</td>'
       + '</tr>';
     }
   }
@@ -9992,32 +10025,61 @@ function _frBindPassos() {
 }
 window._FR_STATE = {};
 
-// Recalcula KPIs de la cartera principal sense re-render complet
-function _frRecalcCartPri() {
-  var inputs = document.querySelectorAll('[data-esc-target="cart-pri"]');
-  if (!inputs || inputs.length === 0) return;
-  var actius = [], totalPes = 0;
-  for (var i = 0; i < inputs.length; i++) {
-    var inp = inputs[i], pes = parseFloat(inp.value) || 0;
-    totalPes += pes;
-    actius.push({ id:inp.dataset.actId, pes:pes, mu:parseFloat(inp.dataset.actMu)||0, sigma:parseFloat(inp.dataset.actSigma)||0, color:inp.dataset.actColor });
+// Llegeix pes, μ i σ des dels inputs del DOM
+function _frGetActiusFromInputs() {
+  var pesInputs = document.querySelectorAll('[data-esc-target="cart-pri"]');
+  var actius = [];
+  for (var i = 0; i < pesInputs.length; i++) {
+    var inp = pesInputs[i], id = inp.dataset.actId;
+    var muInp  = document.querySelector('[data-cart-mu="' + id + '"]');
+    var sigInp = document.querySelector('[data-cart-sig="' + id + '"]');
+    var mu  = muInp  ? (parseFloat(muInp.value)  || 0) : (parseFloat(inp.dataset.actMu)    || 0);
+    var sig = sigInp ? (parseFloat(sigInp.value) || 0) : (parseFloat(inp.dataset.actSigma) || 0);
+    actius.push({ id:id, pes:parseFloat(inp.value)||0, mu:mu, sigma:sig, color:inp.dataset.actColor });
   }
+  return actius;
+}
+
+// Recalcula TOTS els KPIs de la cartera principal en temps real (sense re-render)
+function _frRecalcCartPri() {
+  var actius = _frGetActiusFromInputs();
+  if (!actius.length) return;
+  var totalPes = actius.reduce(function(s,a){ return s+a.pes; }, 0);
   var totEl = document.getElementById('fr-cart-pri-total');
-  if (totEl) { var ok=Math.abs(totalPes-100)<0.5; totEl.textContent=totalPes.toFixed(0)+'%'; totEl.style.color=ok?'#1A5C3A':'#8B1A1A'; }
-  var m = _frCalcCartera(actius), sh = _frSharpe(m.mu, m.sigma, 2);
+  if (totEl) {
+    var ok = Math.abs(totalPes-100) < 0.5;
+    totEl.textContent = totalPes.toFixed(0) + '%';
+    totEl.style.color = ok ? '#1A5C3A' : '#8B1A1A';
+  }
+  var m   = _frCalcCartera(actius);
+  var sh  = _frSharpe(m.mu, m.sigma, 2);
+  var dd  = _frMaxDD(m.mu, m.sigma);
+  var rec = _frRecoveryYrs(m.mu, dd);
+  var v95 = _frVaR95(m.mu, m.sigma);
   var fx = function(n){ return n.toFixed(1).replace('.',','); };
-  var muEl = document.getElementById('fr-cart-pri-mu');
+  // Fila totals taula
+  var muEl  = document.getElementById('fr-cart-pri-mu');
   var sigEl = document.getElementById('fr-cart-pri-sig');
-  if (muEl)  muEl.textContent  = '+' + fx(m.mu)    + '%';
+  if (muEl)  muEl.textContent  = '+' + fx(m.mu) + '%';
   if (sigEl) sigEl.textContent = fx(m.sigma) + '%';
+  // 6 KPI cards de la seccio 04
   var kpiPos = document.querySelector('.fr-kpi-val.pos');
   var navys  = document.querySelectorAll('.fr-kpi-val.navy');
-  if (kpiPos)  kpiPos.innerHTML  = '+' + fx(m.mu) + '<span class="fr-kpi-unit">% / any</span>';
+  var negs   = document.querySelectorAll('.fr-kpi-val.neg');
+  if (kpiPos)   kpiPos.innerHTML   = '+' + fx(m.mu)   + '<span class="fr-kpi-unit">% / any</span>';
   if (navys[0]) navys[0].innerHTML = fx(m.sigma) + '<span class="fr-kpi-unit">% / any</span>';
   if (navys[1]) navys[1].textContent = sh.toFixed(2).replace('.',',');
+  if (negs[0])  negs[0].innerHTML  = '−' + Math.round(dd)  + '<span class="fr-kpi-unit">%</span>';
+  if (navys[2]) navys[2].innerHTML = '~' + rec.toFixed(1).replace('.',',') + '<span class="fr-kpi-unit"> anys</span>';
+  if (negs[1])  negs[1].innerHTML  = (v95<0?'−':'+') + fx(Math.abs(v95)) + '<span class="fr-kpi-unit">%</span>';
+  // Donut
   var donut = document.getElementById('fr-donut-pri');
   if (donut) _frDrawDonut(donut, actius, { size:200, stroke:28 });
+  // Guardar pesos + mu/sigma personalitzats
+  var muSigSnap = {};
+  actius.forEach(function(a){ muSigSnap[a.id] = { mu:a.mu, sigma:a.sigma }; });
   _frSetOverride('carteraPersonalitzada', actius);
+  _frSetOverride('muSigmaPersonalitzat', muSigSnap);
   _frMarkDirty();
 }
 
