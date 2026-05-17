@@ -2804,6 +2804,8 @@ function normalizeClient(raw) {
     // tipus pot ser: 'compra', 'venda', 'dividend', 'comissio'
     posicions: Array.isArray(raw.posicions) ? raw.posicions : [],
     moviments_posicions: Array.isArray(raw.moviments_posicions) ? raw.moviments_posicions : [],
+    // Alias per compatibilitat: algunes funcions llegeixen cartera_actual_usuari
+    cartera_actual_usuari: Array.isArray(raw.posicions) ? raw.posicions : [],
     informes: Array.isArray(raw.informes) ? raw.informes : [],
     snapshots_cartera: Array.isArray(raw.snapshots_cartera) ? raw.snapshots_cartera : [],
     reunions: Array.isArray(raw.reunions) ? raw.reunions : [],
@@ -2840,12 +2842,18 @@ function getInitials(name) {
 // ── DATA ACCESSORS (real or demo fallback) ──
 
 function getClient() {
-  // En mode demo retornem DEMO_CLIENT com a fallback. En mode real, NO:
-  // si APP.clientData és null és perquè el client encara no està validat
-  // (no té fila a Supabase amb scoring), i el codi que ho cridi ha de
-  // tractar el cas null abans de renderitzar res.
   if (APP.isDemo) return APP.clientData || DEMO_CLIENT;
   return APP.clientData || null;
+}
+
+// Retorna l'email CORRECTE per a un UPDATE a Supabase.
+// Quan admin fa "Vista client" per a un altre usuari, APP.user.email és
+// l'email de l'admin, NO el del client → usem APP.clientData.email.
+function getClientEmail() {
+  if (APP.role === 'admin' && APP.clientData && APP.clientData.email) {
+    return APP.clientData.email.toLowerCase();
+  }
+  return (APP.user && APP.user.email) ? APP.user.email.toLowerCase() : '';
 }
 
 function getClientsList() {
@@ -5795,7 +5803,7 @@ async function wizGuardar() {
     if (sb && APP.user && APP.user.email) {
       var res = await sb.from('clients')
         .update({ posicions: posicions, moviments_posicions: moviments })
-        .eq('email', APP.user.email.toLowerCase())
+        .eq('email', getClientEmail())
         .select('email');
       if (res.error) throw res.error;
     }
@@ -5911,7 +5919,7 @@ async function guardarMoviment() {
     if (sb && APP.user && APP.user.email) {
       var res = await sb.from('clients')
         .update({ moviments_posicions: moviments })
-        .eq('email', APP.user.email.toLowerCase())
+        .eq('email', getClientEmail())
         .select('email');
       if (res.error) throw res.error;
     }
@@ -5929,7 +5937,7 @@ async function esborrarMovimentV2(movId) {
   var moviments = getMovimentsV2().filter(function(m){ return m.id !== movId; });
   try {
     if (sb && APP.user && APP.user.email) {
-      await sb.from('clients').update({ moviments_posicions: moviments }).eq('email', APP.user.email.toLowerCase());
+      await sb.from('clients').update({ moviments_posicions: moviments }).eq('email', getClientEmail());
     }
     if (APP.clientData) APP.clientData.moviments_posicions = moviments;
     toast('✓ Moviment esborrat');
@@ -6038,7 +6046,7 @@ async function guardarPosicioNova() {
     if (sb && APP.user && APP.user.email) {
       var res = await sb.from('clients')
         .update({ posicions: posicions, moviments_posicions: moviments })
-        .eq('email', APP.user.email.toLowerCase())
+        .eq('email', getClientEmail())
         .select('email');
       if (res.error) throw res.error;
     }
@@ -6067,7 +6075,7 @@ async function esborrarPosicioV2(posId) {
   var nous_mov = moviments.filter(function(m){return m.posicio_id!==posId;});
   try {
     if (sb && APP.user && APP.user.email) {
-      await sb.from('clients').update({ posicions: noves_pos, moviments_posicions: nous_mov }).eq('email', APP.user.email.toLowerCase());
+      await sb.from('clients').update({ posicions: noves_pos, moviments_posicions: nous_mov }).eq('email', getClientEmail());
     }
     if (APP.clientData) {
       APP.clientData.posicions = noves_pos;
@@ -6152,7 +6160,7 @@ async function guardarValorsActualitzats() {
 
   try {
     if (sb && APP.user && APP.user.email) {
-      await sb.from('clients').update({ posicions: posicions, snapshots_cartera: snapshots }).eq('email', APP.user.email.toLowerCase());
+      await sb.from('clients').update({ posicions: posicions, snapshots_cartera: snapshots }).eq('email', getClientEmail());
     }
     if (APP.clientData) {
       APP.clientData.posicions = posicions;
@@ -6402,7 +6410,7 @@ async function guardarSnapshotManual() {
   snapshots.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
   try {
     if (sb && APP.user && APP.user.email) {
-      await sb.from('clients').update({ snapshots_cartera: snapshots }).eq('email', APP.user.email.toLowerCase());
+      await sb.from('clients').update({ snapshots_cartera: snapshots }).eq('email', getClientEmail());
     }
     if (APP.clientData) APP.clientData.snapshots_cartera = snapshots;
     toast('\u2713 Snapshot ' + mes + ' desat: ' + kpis.valor_total.toLocaleString('ca-ES') + '\u20ac');
@@ -6495,7 +6503,7 @@ async function _guardarAportacioMensual(valor) {
   try {
     var res = await sb.from('clients')
       .update({ perfil: nouPerfil })
-      .eq('email', APP.user.email.toLowerCase());
+      .eq('email', getClientEmail());
     if (res.error) throw res.error;
     APP.clientData.perfil = nouPerfil;
     toast('✓ Aportació mensual actualitzada: ' + valor.toLocaleString('ca-ES') + ' €/mes');
@@ -7834,7 +7842,7 @@ async function fireGuardar(){
   };
   if (sb && APP.user && APP.user.email && APP.role !== 'admin'){
     try {
-      var res = await sb.from('clients').update({ fire: fireData }).eq('email', APP.user.email.toLowerCase());
+      var res = await sb.from('clients').update({ fire: fireData }).eq('email', getClientEmail());
       if (res.error) throw res.error;
       if (APP.clientData) APP.clientData.fire = fireData;
       if (msg) { msg.textContent = '\u2713 Desat'; msg.style.color = '#1A5C3A'; }
@@ -8012,7 +8020,7 @@ async function guardarLiquiditat() {
 async function _guardarEmergenciaData(data) {
   if(APP.clientData) APP.clientData.fons_emergencia = data;
   if(!sb||!APP.user||!APP.user.email) return;
-  try { await sb.from('clients').update({fons_emergencia: data}).eq('email', APP.user.email.toLowerCase()); }
+  try { await sb.from('clients').update({fons_emergencia: data}).eq('email', getClientEmail()); }
   catch(e){ toast('Error guardant: '+(e.message||e)); }
 }
 
@@ -8227,7 +8235,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* === FULL DE RUTA v8 === */
+/* === FULL DE RUTA v9 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -8798,11 +8806,16 @@ function renderPortalRoadmap(el) {
   var capital = (overrides.capitalInicial != null) ? overrides.capitalInicial : capitalOrig;
   var aportacio = (overrides.aportacioMensual != null) ? overrides.aportacioMensual : aportacioOrig;
   var horitzo = (overrides.horitzo != null) ? overrides.horitzo : horitzoOrig;
+  // Aportació inicial única (lump sum addicional al T=0, no es repeteix)
+  var aportacioInicial = (overrides.aportacioInicial != null) ? overrides.aportacioInicial : 0;
 
   if (capital === 0) capital = 30000;
   if (aportacio === 0) aportacio = 400;
   if (horitzo === 0) horitzo = 15;
   var rf = 2.0;
+
+  // Capital efectiu de simulació = patrimoni actual + aportació inicial extra
+  var capitalSim = capital + aportacioInicial;
 
   // ── Escenaris alternatius (amb override d'arquetip) ───────
   function enriquir(actiusList) {
@@ -8868,14 +8881,15 @@ function renderPortalRoadmap(el) {
     + '.fr-chip-navy{background:#EBF0FA;color:#0F2847}'
     + '.fr-chip-gold{background:#FCF3E2;color:#7A4A00}'
     // Dades
-    + '.fr-dades{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--g200);border-radius:12px;overflow:hidden;margin-top:8px}'
+    + '.fr-dades{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid var(--g200);border-radius:12px;overflow:hidden;margin-top:8px}'
     + '.fr-dada{padding:16px 18px;border-right:1px solid var(--g200);border-bottom:1px solid var(--g200)}'
-    + '.fr-dada:nth-child(4n){border-right:none}'
-    + '.fr-dada:nth-last-child(-n+4){border-bottom:none}'
+    + '.fr-dada:nth-child(5n){border-right:none}'
+    + '.fr-dada:nth-last-child(-n+5){border-bottom:none}'
     + '.fr-dada-lbl{font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-bottom:5px}'
     + '.fr-dada-val{font-family:var(--fd);font-size:18px;font-weight:500;color:var(--black);letter-spacing:-.01em}'
     + '.fr-dada-sub{font-size:10.5px;color:var(--g500);margin-top:3px}'
-    + '@media(max-width:780px){.fr-dades{grid-template-columns:repeat(2,1fr)}.fr-dada:nth-child(4n){border-right:1px solid var(--g200)}.fr-dada:nth-child(2n){border-right:none}}'
+    + '@media(max-width:900px){.fr-dades{grid-template-columns:repeat(3,1fr)}.fr-dada:nth-child(5n){border-right:1px solid var(--g200)}.fr-dada:nth-child(3n){border-right:none}}'
+    + '@media(max-width:600px){.fr-dades{grid-template-columns:repeat(2,1fr)}.fr-dada:nth-child(3n){border-right:1px solid var(--g200)}.fr-dada:nth-child(2n){border-right:none}}'
     // Objectius
     + '.fr-obj{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px;display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;margin-bottom:10px;position:relative}'
     + '.fr-obj-ico{width:38px;height:38px;border-radius:9px;background:#EBF0FA;color:#1B3A6B;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}'
@@ -9212,11 +9226,12 @@ function renderPortalRoadmap(el) {
       + (perfil.riscEmocional ? '<span class="fr-chip">\uD83D\uDE0C Risc emocional: ' + perfil.riscEmocional + '</span>' : '')
       + (c.pla ? '<span class="fr-chip fr-chip-gold">\u2699 Pla ' + (getPla(c.pla).nom || c.pla) + '</span>' : '')
     + '</div>'
-    + '<div class="fr-dades">'
-      + dadaCellHtml('capitalInicial',    'Capital inicial',       fEur(capital),                            'Comptes + fons disponible', capOrigin, overrides.capitalInicial != null)
-      + dadaCellHtml('aportacioMensual',  'Aportaci\u00f3 mensual', fEur(aportacio),                          'Domiciliada · revisable',   aprOrigin, overrides.aportacioMensual != null)
-      + dadaCellHtml('horitzo',           'Horitz\u00f3 d\u2019inversi\u00f3', horitzo + ' anys',              'Termini objectiu',           horOrigin, overrides.horitzo != null)
-      + dadaCellHtml(null,                'Total aportat futur',   fEur(capital + aportacio * 12 * horitzo), 'Capital + aportacions',     'Calculat automàticament', false)
+    + '<div class="fr-dades" style="grid-template-columns:repeat(5,1fr)">'
+      + dadaCellHtml('capitalInicial',    'Capital inicial',           fEur(capital),                     'Patrimoni actual invertible',    capOrigin,  overrides.capitalInicial    != null)
+      + dadaCellHtml('aportacioInicial',  'Aportaci\u00f3 inicial \u00fanica', aportacioInicial > 0 ? fEur(aportacioInicial) : '—', 'Lump sum addicional al T=0', 'Origen: cap · introdueix import', overrides.aportacioInicial != null)
+      + dadaCellHtml('aportacioMensual',  'Aportaci\u00f3 mensual',        fEur(aportacio),                   'Domiciliada · revisable',        aprOrigin,  overrides.aportacioMensual  != null)
+      + dadaCellHtml('horitzo',           'Horitz\u00f3 d\u2019inversi\u00f3',   horitzo + ' anys',                 'Termini objectiu',               horOrigin,  overrides.horitzo           != null)
+      + dadaCellHtml(null,                'Capital total T=0',         fEur(capitalSim),                  'Capital + aportaci\u00f3 inicial',  'Calculat autom\u00e0ticament',  false)
     + '</div>'
   + '</div>';
 
@@ -9397,7 +9412,7 @@ function renderPortalRoadmap(el) {
       + '</div>'
     + '</div>'
     + '<div class="fr-proj" id="fr-proj-grid"></div>'
-    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Model: Geometric Brownian Motion (lognormal). Cap. inicial ' + fEur(capital) + ' + ' + fEur(aportacio) + '/mes.</div>'
+    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Model: Geometric Brownian Motion (lognormal). Capital inicial en simulaci\u00f3: ' + fEur(capitalSim) + (aportacioInicial > 0 ? ' (' + fEur(capital) + ' patrimoni + ' + fEur(aportacioInicial) + ' aportaci\u00f3 inicial \u00fanica)' : '') + ' + ' + fEur(aportacio) + '/mes.</div>'
   + '</div>';
 
   // ─── 8. ESCENARIS ──────────────────────────────────────────
@@ -9407,9 +9422,9 @@ function renderPortalRoadmap(el) {
   var sAgr  = _frSharpe(mAgr.mu, mAgr.sigma, rf);
   var ddCons = _frMaxDD(mCons.mu, mCons.sigma);
   var ddAgr  = _frMaxDD(mAgr.mu, mAgr.sigma);
-  var pCons = _frProj(capital, aportacio, mCons.mu, mCons.sigma, horitzo);
-  var pRec  = _frProj(capital, aportacio, mCart.mu, mCart.sigma, horitzo);
-  var pAgr  = _frProj(capital, aportacio, mAgr.mu,  mAgr.sigma,  horitzo);
+  var pCons = _frProj(capitalSim, aportacio, mCons.mu, mCons.sigma, horitzo);
+  var pRec  = _frProj(capitalSim, aportacio, mCart.mu, mCart.sigma, horitzo);
+  var pAgr  = _frProj(capitalSim, aportacio, mAgr.mu,  mAgr.sigma,  horitzo);
 
   // Helper: editor de pesos inline per a admin
   function escEditorHtml(target, actius, hasCustom) {
@@ -9622,13 +9637,13 @@ function renderPortalRoadmap(el) {
   // POST-RENDER
   // ════════════════════════════════════════════════════════════
   // Guardar estat per a _frRecalcEscenari (funcions globals)
-  window._FR_STATE = { capital: capital, aportacio: aportacio, horitzo: horitzo };
+  window._FR_STATE = { capital: capitalSim, aportacio: aportacio, horitzo: horitzo };
 
   _frDrawDonut(document.getElementById('fr-donut-pri'), cartera, { size:200, stroke:28 });
   _frDrawDonut(document.getElementById('fr-d-cons'),    carteraCons, { size:100, stroke:14 });
   _frDrawDonut(document.getElementById('fr-d-rec'),     cartera,     { size:100, stroke:14 });
   _frDrawDonut(document.getElementById('fr-d-agr'),     carteraAgr,  { size:100, stroke:14 });
-  _frDrawSimChart(document.getElementById('fr-sim-chart'), capital, aportacio, mCart.mu, mCart.sigma, 20);
+  _frDrawSimChart(document.getElementById('fr-sim-chart'), capitalSim, aportacio, mCart.mu, mCart.sigma, 20);
 
   // Projecció grid
   var grid = document.getElementById('fr-proj-grid');
@@ -9637,7 +9652,7 @@ function renderPortalRoadmap(el) {
     var gh = '';
     for (var pi = 0; pi < pts.length; pi++) {
       var yp = pts[pi];
-      var p = _frProj(capital, aportacio, mCart.mu, mCart.sigma, yp);
+      var p = _frProj(capitalSim, aportacio, mCart.mu, mCart.sigma, yp);
       gh += '<div class="fr-proj-c"><div class="fr-proj-a">A ' + yp + ' anys</div><div class="fr-proj-m">' + fEurK(p.median) + '</div><div class="fr-proj-r">P5: ' + fEurK(p.p5) + ' · P95: ' + fEurK(p.p95) + '</div></div>';
     }
     grid.innerHTML = gh;
@@ -9722,12 +9737,12 @@ function renderPortalRoadmap(el) {
           var num;
           if (key === 'horitzo') num = _frParseAnys(raw);
           else num = _frParseEur(raw);
-          // Determina si és igual al valor original (per a no guardar override innecessari)
           var origVal;
-          if (key === 'capitalInicial') origVal = capitalOrig;
-          else if (key === 'aportacioMensual') origVal = aportacioOrig;
-          else if (key === 'horitzo') origVal = horitzoOrig;
-          if (num === origVal || num === 0) {
+          if (key === 'capitalInicial')    origVal = capitalOrig;
+          else if (key === 'aportacioMensual')  origVal = aportacioOrig;
+          else if (key === 'aportacioInicial')  origVal = 0;
+          else if (key === 'horitzo')      origVal = horitzoOrig;
+          if (num === origVal || (key === 'aportacioInicial' && num === 0)) {
             _frSetOverride(key, null);
           } else {
             _frSetOverride(key, num);
@@ -9999,7 +10014,7 @@ function _frDrawSimChart(svg, capital, aportacio, mu, sigma, maxAnys) {
   for (var y = 0; y <= maxAnys; y++) {
     if (y === 0) series.push({ y:0, median:capital, p5:capital, p25:capital, p75:capital, p95:capital });
     else {
-      var p = _frProj(capital, aportacio, mu, sigma, y);
+      var p = _frProj(capitalSim, aportacio, mu, sigma, y);
       series.push({ y:y, median:p.median, p5:p.p5, p25:p.p25, p75:p.p75, p95:p.p95 });
     }
   }
@@ -10292,7 +10307,7 @@ async function guardarDadesTurbo() {
   };
   if (sb && APP.user && APP.user.email) {
     try {
-      await sb.from('clients').update({ savings_plan: plan }).eq('email', APP.user.email.toLowerCase());
+      await sb.from('clients').update({ savings_plan: plan }).eq('email', getClientEmail());
       if (APP.clientData) APP.clientData.savings_plan = plan;
       toast('✓ Turbo Estalvi activat!');
       renderView('portal-turbo');
@@ -12164,7 +12179,7 @@ async function guardarRetestComInforme(jaActualitzatPerfil) {
   var informes = Array.isArray(c.informes) ? c.informes.slice() : [];
   informes.unshift(informe);
   try {
-    await sb.from('clients').update({ informes: informes }).eq('email', APP.user.email.toLowerCase());
+    await sb.from('clients').update({ informes: informes }).eq('email', getClientEmail());
     if (APP.clientData) APP.clientData.informes = informes;
     if (!jaActualitzatPerfil) {
       toast('📄 Resultat guardat com a informe a "Informes"');
