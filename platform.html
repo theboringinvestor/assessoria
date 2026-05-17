@@ -8235,7 +8235,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* === FULL DE RUTA v9 === */
+/* === FULL DE RUTA v10 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -8843,6 +8843,17 @@ function renderPortalRoadmap(el) {
     ? enriquir(overrides.escenariAgr.map(function(a){ return { id: a.id, pct: a.pes }; }))
     : enriquir(arqAgr.actius || []);
 
+  // Si l'assessor ha personalitzat pesos directament al FR, aplicar-los
+  if (overrides.carteraPersonalitzada && Array.isArray(overrides.carteraPersonalitzada)) {
+    cartera = cartera.map(function(a) {
+      var match = null;
+      for (var mi = 0; mi < overrides.carteraPersonalitzada.length; mi++) {
+        if (overrides.carteraPersonalitzada[mi].id === a.id) { match = overrides.carteraPersonalitzada[mi]; break; }
+      }
+      return match ? Object.assign({}, a, { pes: match.pes }) : a;
+    });
+  }
+
   // ── Càlculs ───────────────────────────────────────────────
   var mCart = _frCalcCartera(cartera);
   var sCart = _frSharpe(mCart.mu, mCart.sigma, rf);
@@ -9113,6 +9124,23 @@ function renderPortalRoadmap(el) {
     + '.fr-tl-add-pas{display:flex;align-items:center;gap:8px;margin-top:18px;background:transparent;border:1.5px dashed var(--g300);color:var(--g500);font-family:var(--fb);font-size:12px;font-weight:500;padding:12px 20px;border-radius:10px;cursor:pointer;transition:all .15s;width:100%}'
     + '.fr-tl-add-pas:hover{border-color:#1B3A6B;color:#1B3A6B;background:#EBF0FA}'
 
+    // Botó exportar PDF
+    + '.fr-pdf-btn{display:inline-flex;align-items:center;gap:7px;background:#0F2847;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-family:var(--fb);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}'
+    + '.fr-pdf-btn:hover{background:#1B3A6B}'
+
+    // Print: amaga tot l'entorn i mostra només el document
+    + '@media print{'
+    + '  body{background:#fff !important}'
+    + '  .sidebar,.top-bar,.client-header,.fr-save-bar,.fr-tracker-fold,.fr-admin-panel,.fr-guia,.fr-pdf-bar{display:none !important}'
+    + '  .content-wrap,.main-area,.content-panel{margin:0 !important;padding:0 !important;border:none !important;box-shadow:none !important}'
+    + '  .fr-section{page-break-inside:avoid}'
+    + '  .fr-hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    + '  .fr-kpis,.fr-esc-g{grid-template-columns:repeat(3,1fr) !important}'
+    + '  .fr-esc-editor{display:none !important}'
+    + '  [contenteditable]{outline:none !important;box-shadow:none !important;border:none !important}'
+    + '  .fr-edit-badge,.fr-dada-origin,.fr-obj-del,.fr-tl-del-pas,.fr-tl-add-pas,.fr-obj-add,.fr-arq-wrap button::after{display:none !important}'
+    + '}'
+
     // Guia de personalització
     + '.fr-guia{border:1px solid var(--g200);border-radius:10px;overflow:hidden}'
     + '.fr-guia-s{cursor:pointer;font-family:var(--fm);font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);padding:10px 16px;list-style:none;display:flex;align-items:center;gap:6px;background:var(--g50)}'
@@ -9223,7 +9251,14 @@ function renderPortalRoadmap(el) {
       + chipArquetipHtml()
       + '<span class="fr-chip">\u23F3 Horitz\u00f3 ' + horitzo + ' anys</span>'
       + (perfil.riscFinancer ? '<span class="fr-chip">\uD83D\uDCCA Risc tolerable: ' + perfil.riscFinancer + '</span>' : '')
-      + (perfil.riscEmocional ? '<span class="fr-chip">\uD83D\uDE0C Risc emocional: ' + perfil.riscEmocional + '</span>' : '')
+      + (perfil.riscEmocional
+          ? '<span class="fr-chip">\uD83D\uDE0C Risc emocional: '
+            + (isAdmin
+                ? '<span class="fr-edit" contenteditable="true" data-key="riscEmocional" spellcheck="false">'
+                  + (notes.riscEmocional || overrides.riscEmocional || perfil.riscEmocional) + '</span>'
+                : (notes.riscEmocional || overrides.riscEmocional || perfil.riscEmocional))
+            + '</span>'
+          : '')
       + (c.pla ? '<span class="fr-chip fr-chip-gold">\u2699 Pla ' + (getPla(c.pla).nom || c.pla) + '</span>' : '')
     + '</div>'
     + '<div class="fr-dades" style="grid-template-columns:repeat(5,1fr)">'
@@ -9328,15 +9363,38 @@ function renderPortalRoadmap(el) {
         + '<tbody>';
   for (var ci = 0; ci < cartera.length; ci++) {
     var ac = cartera[ci];
-    html += '<tr>'
-      + '<td><span class="sw" style="background:' + ac.color + '"></span><span class="nm">' + ac.nom + '</span></td>'
-      + '<td class="r pe">' + f1(ac.pes) + '%</td>'
-      + '<td class="r ms">' + f1(ac.mu) + '%</td>'
-      + '<td class="r ms">' + f1(ac.sigma) + '%</td>'
-    + '</tr>';
+    if (isAdmin) {
+      html += '<tr>'
+        + '<td><span class="sw" style="background:' + ac.color + '"></span><span class="nm">' + ac.nom + '</span></td>'
+        + '<td class="r pe" style="width:80px">'
+          + '<input class="fr-esc-peso-input" type="number" min="0" max="100" step="1" '
+            + 'value="' + ac.pes + '" '
+            + 'data-esc-target="cart-pri" '
+            + 'data-act-id="' + ac.id + '" '
+            + 'data-act-nom="' + ac.nom + '" '
+            + 'data-act-color="' + ac.color + '" '
+            + 'data-act-mu="' + ac.mu + '" '
+            + 'data-act-sigma="' + ac.sigma + '" '
+            + 'oninput="_frRecalcCartPri()" '
+          + '><span style="font-family:var(--fm);font-size:10px;color:var(--g400)">%</span>'
+        + '</td>'
+        + '<td class="r ms">' + f1(ac.mu) + '%</td>'
+        + '<td class="r ms">' + f1(ac.sigma) + '%</td>'
+      + '</tr>';
+    } else {
+      html += '<tr>'
+        + '<td><span class="sw" style="background:' + ac.color + '"></span><span class="nm">' + ac.nom + '</span></td>'
+        + '<td class="r pe">' + f1(ac.pes) + '%</td>'
+        + '<td class="r ms">' + f1(ac.mu) + '%</td>'
+        + '<td class="r ms">' + f1(ac.sigma) + '%</td>'
+      + '</tr>';
+    }
   }
+  var totalPriLabel = isAdmin
+    ? '<span id="fr-cart-pri-total" style="font-family:var(--fm);font-size:11px;font-weight:600;color:' + (Math.abs(cartera.reduce(function(s,a){return s+a.pes;},0)-100)<0.5?'#1A5C3A':'#8B1A1A') + '">' + cartera.reduce(function(s,a){return s+a.pes;},0).toFixed(0) + '%</span>'
+    : '100%';
   html += '</tbody>'
-    + '<tfoot><tr><td>Cartera global</td><td class="r">100%</td><td class="r">+' + f1(mCart.mu) + '%</td><td class="r">' + f1(mCart.sigma) + '%</td></tr></tfoot>'
+    + '<tfoot><tr><td>Cartera global</td><td class="r">' + totalPriLabel + '</td><td class="r" id="fr-cart-pri-mu">+' + f1(mCart.mu) + '%</td><td class="r" id="fr-cart-pri-sig">' + f1(mCart.sigma) + '%</td></tr></tfoot>'
     + '</table>'
     + '</div>'
     + '<div class="fr-callout" style="margin-top:26px"><div class="fr-callout-t">Per qu\u00e8 aquesta cartera per a tu?</div>'
@@ -9404,7 +9462,7 @@ function renderPortalRoadmap(el) {
     + '<div class="fr-label">06 · Simulaci\u00f3 probabil\u00edstica</div>'
     + '<div class="fr-h2">El futur en rangs, no en prediccions</div>'
     + '<div class="fr-lead">Aquesta simulaci\u00f3 no et diu qu\u00e8 passar\u00e0. Et diu qu\u00e8 \u00e9s <strong>raonable esperar</strong> en funci\u00f3 dels par\u00e0metres de la cartera.</div>'
-    + '<div class="fr-sim"><svg id="fr-sim-chart" viewBox="0 0 900 340"></svg>'
+    + '<div class="fr-sim"><svg id="fr-sim-chart" width="100%" viewBox="0 0 900 340" style="display:block"></svg>'
       + '<div class="fr-sim-leg">'
         + '<span class="fr-sim-leg-i"><span class="fr-sim-leg-s" style="background:rgba(27,58,107,.12)"></span>Rang ampli · P5\u2013P95 (90%)</span>'
         + '<span class="fr-sim-leg-i"><span class="fr-sim-leg-s" style="background:rgba(27,58,107,.28)"></span>Rang estret · P25\u2013P75 (50%)</span>'
@@ -9609,6 +9667,12 @@ function renderPortalRoadmap(el) {
   }
 
   // ─── 11. DISCLAIMER ────────────────────────────────────────
+  if (isAdmin) {
+    html += '<div class="fr-pdf-bar" style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-top:1px solid var(--g200);margin-top:8px">'
+      + '<div style="font-size:11.5px;color:var(--g500)">Informe llest · Desa els canvis abans d\u2019exportar</div>'
+      + '<button class="fr-pdf-btn" onclick="window.print()">⬇ Exportar PDF</button>'
+    + '</div>';
+  }
   html += '<div class="fr-disc">'
     + '<strong>Disclaimer.</strong> Aquest document \u00e9s una recomanaci\u00f3 personalitzada elaborada amb finalitat informativa i pedag\u00f2gica. The Boring Investor \u00e9s un assessor fee-only independent. Les projeccions s\u00f3n estimacions estad\u00edstiques i no garanteixen rendiments futurs. Tota inversi\u00f3 comporta risc.<br><br>'
     + '<strong>Nota metodol\u00f2gica.</strong> Els c\u00e0lculs assumeixen <strong>correlaci\u00f3 zero entre actius</strong> \u2014 un model conservador que pot subestimar la volatilitat real en crisis globals. La frontera eficient real (Markowitz) sol situar-se entre un 10% i un 25% per sota de la \u03C3 calculada. Document elaborat sense la consideraci\u00f3 de documentaci\u00f3 regulada MiFID II.'
@@ -9926,7 +9990,36 @@ function _frBindPassos() {
     })(tools[t]);
   }
 }
-window._FR_STATE = {}; // { capital, aportacio, horitzo } — guardat al post-render de renderPortalRoadmap
+window._FR_STATE = {};
+
+// Recalcula KPIs de la cartera principal sense re-render complet
+function _frRecalcCartPri() {
+  var inputs = document.querySelectorAll('[data-esc-target="cart-pri"]');
+  if (!inputs || inputs.length === 0) return;
+  var actius = [], totalPes = 0;
+  for (var i = 0; i < inputs.length; i++) {
+    var inp = inputs[i], pes = parseFloat(inp.value) || 0;
+    totalPes += pes;
+    actius.push({ id:inp.dataset.actId, pes:pes, mu:parseFloat(inp.dataset.actMu)||0, sigma:parseFloat(inp.dataset.actSigma)||0, color:inp.dataset.actColor });
+  }
+  var totEl = document.getElementById('fr-cart-pri-total');
+  if (totEl) { var ok=Math.abs(totalPes-100)<0.5; totEl.textContent=totalPes.toFixed(0)+'%'; totEl.style.color=ok?'#1A5C3A':'#8B1A1A'; }
+  var m = _frCalcCartera(actius), sh = _frSharpe(m.mu, m.sigma, 2);
+  var fx = function(n){ return n.toFixed(1).replace('.',','); };
+  var muEl = document.getElementById('fr-cart-pri-mu');
+  var sigEl = document.getElementById('fr-cart-pri-sig');
+  if (muEl)  muEl.textContent  = '+' + fx(m.mu)    + '%';
+  if (sigEl) sigEl.textContent = fx(m.sigma) + '%';
+  var kpiPos = document.querySelector('.fr-kpi-val.pos');
+  var navys  = document.querySelectorAll('.fr-kpi-val.navy');
+  if (kpiPos)  kpiPos.innerHTML  = '+' + fx(m.mu) + '<span class="fr-kpi-unit">% / any</span>';
+  if (navys[0]) navys[0].innerHTML = fx(m.sigma) + '<span class="fr-kpi-unit">% / any</span>';
+  if (navys[1]) navys[1].textContent = sh.toFixed(2).replace('.',',');
+  var donut = document.getElementById('fr-donut-pri');
+  if (donut) _frDrawDonut(donut, actius, { size:200, stroke:28 });
+  _frSetOverride('carteraPersonalitzada', actius);
+  _frMarkDirty();
+}
 
 function _frRecalcEscenari(target) {
   var inputs = document.querySelectorAll('[data-esc-target="' + target + '"]');
@@ -10010,39 +10103,78 @@ function _frDrawSimChart(svg, capital, aportacio, mu, sigma, maxAnys) {
   if (!svg) return;
   var W = 900, H = 340, padL = 68, padR = 24, padT = 16, padB = 42;
   var innerW = W - padL - padR, innerH = H - padT - padB;
+
+  // Protecció: valors invàlids → missatge explicatiu
+  if (isNaN(mu) || isNaN(sigma) || isNaN(capital) || sigma < 0) {
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('width', '100%');
+    svg.innerHTML = '<text x="450" y="175" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" fill="#9A9690">No hi ha dades suficients per generar la simulaci\u00f3</text>';
+    return;
+  }
+
+  var capEff   = capital > 0 ? capital : 1000;
+  var muEff    = isNaN(mu)    ? 5   : mu;
+  var sigmaEff = isNaN(sigma) || sigma <= 0 ? 8 : sigma;
+
   var series = [];
   for (var y = 0; y <= maxAnys; y++) {
-    if (y === 0) series.push({ y:0, median:capital, p5:capital, p25:capital, p75:capital, p95:capital });
-    else {
-      var p = _frProj(capitalSim, aportacio, mu, sigma, y);
+    if (y === 0) {
+      series.push({ y:0, median:capEff, p5:capEff, p25:capEff, p75:capEff, p95:capEff });
+    } else {
+      var p = _frProj(capEff, aportacio, muEff, sigmaEff, y);
+      if (!p || isNaN(p.median)) p = { median:capEff, p5:capEff, p25:capEff, p75:capEff, p95:capEff };
       series.push({ y:y, median:p.median, p5:p.p5, p25:p.p25, p75:p.p75, p95:p.p95 });
     }
   }
+
   var maxVal = 0;
-  for (var i = 0; i < series.length; i++) if (series[i].p95 > maxVal) maxVal = series[i].p95;
-  function xS(y){ return padL + (y / maxAnys) * innerW; }
-  function yS(v){ return padT + innerH - (v / maxVal) * innerH; }
-  function path(key){ var s=''; for (var i=0;i<series.length;i++) s += (i===0?'M':'L') + xS(series[i].y) + ',' + yS(series[i][key]) + ' '; return s; }
-  function area(kHi, kLo){ var t='',b=''; for (var i=0;i<series.length;i++) t += (i===0?'M':'L') + xS(series[i].y) + ',' + yS(series[i][kHi]) + ' '; for (var j=series.length-1;j>=0;j--) b += 'L' + xS(series[j].y) + ',' + yS(series[j][kLo]) + ' '; return t + b + ' Z'; }
+  for (var i = 0; i < series.length; i++) {
+    if (!isNaN(series[i].p95) && series[i].p95 > maxVal) maxVal = series[i].p95;
+  }
+  if (maxVal <= 0) maxVal = capEff * 3;
+
+  function xS(y) { return padL + (y / maxAnys) * innerW; }
+  function yS(v) {
+    if (maxVal === 0) return padT + innerH / 2;
+    var r = padT + innerH - (Math.max(0, v) / maxVal) * innerH;
+    return isNaN(r) ? padT + innerH : r;
+  }
+  function toFx(n) { return isNaN(n) ? '0' : n.toFixed(1); }
+  function path(key) {
+    var s = '';
+    for (var i = 0; i < series.length; i++) s += (i === 0 ? 'M' : 'L') + toFx(xS(series[i].y)) + ',' + toFx(yS(series[i][key])) + ' ';
+    return s;
+  }
+  function area(kHi, kLo) {
+    var t = '', b = '';
+    for (var i = 0; i < series.length; i++) t += (i === 0 ? 'M' : 'L') + toFx(xS(series[i].y)) + ',' + toFx(yS(series[i][kHi])) + ' ';
+    for (var j = series.length - 1; j >= 0; j--) b += 'L' + toFx(xS(series[j].y)) + ',' + toFx(yS(series[j][kLo])) + ' ';
+    return t + b + ' Z';
+  }
+
   var h = '';
   for (var gi = 0; gi <= 5; gi++) {
-    var v = (maxVal * gi) / 5, yy = yS(v);
-    h += '<line x1="'+padL+'" y1="'+yy+'" x2="'+(W-padR)+'" y2="'+yy+'" stroke="#F2F1ED" stroke-width="1"/>';
-    h += '<text x="'+(padL-10)+'" y="'+(yy+4)+'" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="#9A9690">'+(v>=1000?(v/1000).toFixed(0)+'k':v.toFixed(0))+'€</text>';
+    var gv = (maxVal * gi) / 5, gyy = toFx(yS(gv));
+    h += '<line x1="'+padL+'" y1="'+gyy+'" x2="'+(W-padR)+'" y2="'+gyy+'" stroke="#F2F1ED" stroke-width="1"/>';
+    h += '<text x="'+(padL-10)+'" y="'+(parseFloat(gyy)+4)+'" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="#9A9690">'+(gv>=1000?(gv/1000).toFixed(0)+'k':gv.toFixed(0))+'€</text>';
   }
   for (var yt = 0; yt <= maxAnys; yt += 5) {
-    var xx = xS(yt);
-    h += '<line x1="'+xx+'" y1="'+padT+'" x2="'+xx+'" y2="'+(H-padB)+'" stroke="#F2F1ED" stroke-width="1"/>';
-    h += '<text x="'+xx+'" y="'+(H-padB+18)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#9A9690">Any '+yt+'</text>';
+    var gxx = toFx(xS(yt));
+    h += '<line x1="'+gxx+'" y1="'+padT+'" x2="'+gxx+'" y2="'+(H-padB)+'" stroke="#F2F1ED" stroke-width="1"/>';
+    h += '<text x="'+gxx+'" y="'+(H-padB+18)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#9A9690">Any '+yt+'</text>';
   }
   h += '<path d="'+area('p95','p5')+'" fill="#1B3A6B" fill-opacity="0.10"/>';
   h += '<path d="'+area('p75','p25')+'" fill="#1B3A6B" fill-opacity="0.22"/>';
-  h += '<path d="'+path('median')+'" fill="none" stroke="#1B3A6B" stroke-width="2"/>';
+  h += '<path d="'+path('median')+'" fill="none" stroke="#1B3A6B" stroke-width="2.5"/>';
   var aportPath = '';
-  for (var k = 0; k < series.length; k++) aportPath += (k===0?'M':'L') + xS(series[k].y) + ',' + yS(capital + aportacio*12*series[k].y) + ' ';
+  for (var k = 0; k < series.length; k++) {
+    aportPath += (k===0?'M':'L') + toFx(xS(series[k].y)) + ',' + toFx(yS(capEff + aportacio*12*series[k].y)) + ' ';
+  }
   h += '<path d="'+aportPath+'" fill="none" stroke="#9A9690" stroke-width="1.2" stroke-dasharray="4 4"/>';
-  svg.innerHTML = h;
+
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('width', '100%');
+  svg.innerHTML = h;
 }
 
 
