@@ -8235,7 +8235,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* === FULL DE RUTA v13 === */
+/* === FULL DE RUTA v14 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -8794,6 +8794,7 @@ function renderPortalRoadmap(el) {
   var notes = fr.notes || {};
   var overrides = fr.overrides || {};
   var actiusNotes = notes.actius || {};
+  var actiusDesc  = notes.actius_desc || {};
 
   // ── Arquetip principal (amb override) ─────────────────────
   var arqIdOrig = c.arquetipId || 'navegant';
@@ -9367,11 +9368,18 @@ function renderPortalRoadmap(el) {
       + ' <em style="font-style:italic;color:var(--g400)"> \u2014 '
       + _frEdField(notes.cartera_ref, { key:'cartera_ref', autoVal:arq.cartRoma, placeholder:'Ref. cartera...', tag:'span', showBadge:false })
       + '</em></div>'
-    + '<div class="fr-lead">' + (arq.rationale || '') + '</div>'
+    + '<div class="fr-lead">' + _frEdField(notes.perfil_desc, { key:'perfil_desc', autoVal: arq.rationale || '', multiline:true, placeholder:'Descripci\u00f3 del perfil inversor...', tag:'span' }) + '</div>'
     + '<div class="fr-chips">'
       + chipArquetipHtml()
       + '<span class="fr-chip">\u23F3 Horitz\u00f3 ' + horitzo + ' anys</span>'
-      + (perfil.riscFinancer ? '<span class="fr-chip">\uD83D\uDCCA Risc tolerable: ' + perfil.riscFinancer + '</span>' : '')
+      + (perfil.riscFinancer
+          ? '<span class="fr-chip">\uD83D\uDCCA Risc tolerable: '
+            + (isAdmin
+                ? '<span class="fr-edit" contenteditable="true" data-key="riscFinancer" spellcheck="false">'
+                  + (notes.riscFinancer || perfil.riscFinancer) + '</span>'
+                : (notes.riscFinancer || perfil.riscFinancer))
+            + '</span>'
+          : '')
       + (perfil.riscEmocional
           ? '<span class="fr-chip">\uD83D\uDE0C Risc emocional: '
             + (isAdmin
@@ -9593,7 +9601,16 @@ function renderPortalRoadmap(el) {
           + '<div class="fr-act-n"><div class="fr-act-nv">' + f1(act.sigma) + '%</div><div class="fr-act-nl">\u03C3 vol.</div></div>'
         + '</div>'
       + '</div>'
-      + '<div class="fr-act-d">' + (act.desc || '') + '</div>'
+      + '<div class="fr-act-d">'
+        + (isAdmin
+            ? '<span class="fr-edit" contenteditable="true" '
+              + 'data-key="actius_desc.' + act.id + '" '
+              + 'data-multiline="1" '
+              + 'data-placeholder="Descripci\u00f3 de l\u2019actiu per al client...">'
+              + (actiusDesc[act.id] || act.desc || '')
+              + '</span>'
+            : (actiusDesc[act.id] || act.desc || ''))
+      + '</div>'
       + noteHtml
       + '<div class="fr-act-pc">'
         + '<div class="fr-act-pc-b fr-act-pc-pros"><div class="fr-act-pc-ti">\u2713 Avantatges</div>' + prosHtml + '</div>'
