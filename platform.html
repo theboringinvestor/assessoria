@@ -8235,7 +8235,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* === FULL DE RUTA v15 === */
+/* === FULL DE RUTA v16 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -9655,13 +9655,45 @@ function renderPortalRoadmap(el) {
       var a = actius[ri];
       totalPes += a.pes;
       rows += '<tr style="border-bottom:1px solid var(--g100)">';
-      rows += '<td style="padding:4px 0;display:flex;align-items:center;gap:6px;min-width:110px">';
-      rows += '<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></span>';
-      rows += '<span style="font-size:10px">' + a.nom + '</span></td>';
-      rows += '<td style="width:60px;padding:4px 3px"><input class="fr-esc-peso-input" type="number" min="0" max="100" step="1" value="' + a.pes + '" data-esc-target="' + target + '" data-act-id="' + a.id + '" data-act-nom="' + a.nom + '" data-act-color="' + a.color + '" data-act-mu="' + a.mu + '" data-act-sigma="' + a.sigma + '" oninput="_frRecalcEscenari(\'' + target + '\')" title="Pes %"><span style="font-size:9px;color:var(--g400)">%</span></td>';
-      rows += '<td style="width:56px;padding:4px 3px"><input class="fr-cart-mu-input" type="number" min="-10" max="30" step="0.1" value="' + a.mu + '" data-esc-mu-target="' + target + '" data-esc-act-id="' + a.id + '" oninput="_frRecalcEscenari(\'' + target + '\')" title="μ esperat %"><span style="font-size:9px;color:var(--g400)">%</span></td>';
-      rows += '<td style="width:56px;padding:4px 3px"><input class="fr-cart-sig-input" type="number" min="0" max="80" step="0.1" value="' + a.sigma + '" data-esc-sig-target="' + target + '" data-esc-act-id="' + a.id + '" oninput="_frRecalcEscenari(\'' + target + '\')" title="σ volatilitat %"></td>';
+      rows += '<td style="padding:4px 0;display:flex;align-items:center;gap:6px;min-width:100px">'
+        + '<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></span>'
+        + '<span style="font-size:10px">' + a.nom + '</span>'
+      + '</td>';
+      rows += '<td style="width:60px;padding:4px 3px"><input class="fr-esc-peso-input" type="number" min="0" max="100" step="1" '
+        + 'value="' + a.pes + '" data-esc-target="' + target + '" data-act-id="' + a.id + '" data-act-nom="' + a.nom + '" '
+        + 'data-act-color="' + a.color + '" data-act-mu="' + a.mu + '" data-act-sigma="' + a.sigma + '" '
+        + 'oninput="_frRecalcEscenari(\'' + target + '\')">'
+        + '<span style="font-size:9px;color:var(--g400)">%</span></td>';
+      rows += '<td style="width:56px;padding:4px 3px"><input class="fr-cart-mu-input" type="number" min="-10" max="30" step="0.1" '
+        + 'value="' + a.mu + '" data-esc-mu-target="' + target + '" data-esc-act-id="' + a.id + '" '
+        + 'oninput="_frRecalcEscenari(\'' + target + '\')">'
+        + '<span style="font-size:9px;color:var(--g400)">%</span></td>';
+      rows += '<td style="width:52px;padding:4px 3px"><input class="fr-cart-sig-input" type="number" min="0" max="80" step="0.1" '
+        + 'value="' + a.sigma + '" data-esc-sig-target="' + target + '" data-esc-act-id="' + a.id + '" '
+        + 'oninput="_frRecalcEscenari(\'' + target + '\')"></td>';
+      rows += '<td style="width:24px;padding:4px 0 4px 3px">'
+        + '<button onclick="_frRemoveActiuEscenari(\'' + target + '\', \'' + a.id + '\')" '
+          + 'style="background:transparent;border:none;cursor:pointer;color:var(--g400);font-size:14px;padding:0;line-height:1;border-radius:3px" '
+          + 'title="Eliminar actiu">×</button>'
+      + '</td>';
       rows += '</tr>';
+    }
+    // Dropdown afegir actiu (actius disponibles que no estan ja a la llista)
+    var addSelectHtml = '';
+    if (typeof ACTIUS_TAXONOMY !== 'undefined' && Array.isArray(ACTIUS_TAXONOMY)) {
+      var actiusActuals = actius.map(function(a) { return a.id; });
+      var disponibles = ACTIUS_TAXONOMY.filter(function(t) { return actiusActuals.indexOf(t.id) < 0; });
+      if (disponibles.length > 0) {
+        var opts = disponibles.map(function(t) {
+          return '<option value="' + t.id + '">' + t.ca + '</option>';
+        }).join('');
+        addSelectHtml = '<select class="fr-add-actiu-select" '
+          + 'onchange="_frAddActiuEscenari(\'' + target + '\', this.value); this.value=\'\'" '
+          + 'style="margin-top:8px;width:100%;font-family:var(--fb);font-size:11px;padding:5px 8px;border:1.5px dashed var(--g300);border-radius:7px;background:#fff;color:var(--g600);cursor:pointer">'
+          + '<option value="">+ Afegir actiu al escenari...</option>'
+          + opts
+        + '</select>';
+      }
     }
     var totalOk = Math.abs(totalPes - 100) < 0.5;
     var badgeCustom = hasCustom ? '<span class="fr-esc-badge-custom">Personalitzat</span>' : '';
@@ -9670,11 +9702,13 @@ function renderPortalRoadmap(el) {
       + '<th style="font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);padding-bottom:5px">Pes</th>'
       + '<th style="font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);padding-bottom:5px">\u03BC</th>'
       + '<th style="font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);padding-bottom:5px">\u03C3</th>'
+      + '<th></th>'
       + '</tr></thead>';
     return '<details class="fr-esc-editor">'
       + '<summary>\u270F Personalitzar pesos \u00b7 \u03BC \u00b7 \u03C3 ' + badgeCustom + '</summary>'
       + '<div style="padding:8px 0 4px">'
         + '<table style="width:100%;border-collapse:collapse">' + hdr + '<tbody>' + rows + '</tbody></table>'
+        + addSelectHtml
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--g100)">'
           + '<span style="font-family:var(--fm);font-size:10px;color:var(--g500)">Total:</span>'
           + '<span class="fr-esc-total" id="fr-esc-total-' + target + '" style="font-family:var(--fm);font-size:12px;font-weight:600;color:' + (totalOk ? '#1A5C3A' : '#8B1A1A') + '">' + totalPes.toFixed(0) + '%</span>'
@@ -10323,6 +10357,63 @@ function _frRecalcEscenari(target) {
 function _frResetEscenari(target) {
   var key = target === 'cons' ? 'escenariCons' : 'escenariAgr';
   _frSetOverride(key, null);
+  _frMarkDirty();
+  _frRerender();
+}
+
+// Helper intern: obté els actius actuals d'un escenari (override o arquetip de fallback)
+function _frGetActiusEscenari(target) {
+  var c = getClient();
+  var ovKey = target === 'cons' ? 'escenariCons' : 'escenariAgr';
+  var arqKey = target === 'cons' ? 'arquetipConservador' : 'arquetipAgressiu';
+  var overrides = (c.fullderuta && c.fullderuta.overrides) || {};
+
+  if (overrides[ovKey] && Array.isArray(overrides[ovKey]) && overrides[ovKey].length > 0) {
+    return overrides[ovKey].slice();
+  }
+  // Fallback: arquetip de referència
+  var arqId = overrides[arqKey] || (target === 'cons' ? 'tresorer' : 'estoic');
+  var arq = getArquetip(arqId);
+  return (arq.actius || []).map(function(a) {
+    var ms = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(a.id || '') : { mu: 6, sigma: 12 };
+    var tax = (typeof ACTIUS_TAXONOMY !== 'undefined') ? ACTIUS_TAXONOMY.find(function(t) { return t.id === a.id; }) : null;
+    return {
+      id: a.id || '', nom: (tax && tax.ca) || a.nom || a.id || '',
+      pes: parseFloat(a.pct) || parseFloat(a.pes) || 0,
+      mu: ms.mu, sigma: ms.sigma,
+      color: a.color || (tax && tax.color) || '#888',
+    };
+  });
+}
+
+// Afegir un actiu nou a un escenari comparatiu
+function _frAddActiuEscenari(target, actId) {
+  if (!actId) return;
+  var actius = _frGetActiusEscenari(target);
+  // Evitar duplicats
+  for (var i = 0; i < actius.length; i++) if (actius[i].id === actId) return;
+  // Obtenir dades del catàleg
+  var tax = (typeof ACTIUS_TAXONOMY !== 'undefined') ? ACTIUS_TAXONOMY.find(function(t) { return t.id === actId; }) : null;
+  var ms  = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(actId) : { mu: 6, sigma: 12 };
+  actius.push({
+    id: actId,
+    nom: (tax && tax.ca) || actId,
+    pes: 0,
+    mu: ms.mu, sigma: ms.sigma,
+    color: (tax && tax.color) || '#888',
+  });
+  var ovKey = target === 'cons' ? 'escenariCons' : 'escenariAgr';
+  _frSetOverride(ovKey, actius);
+  _frMarkDirty();
+  _frRerender();
+}
+
+// Eliminar un actiu d'un escenari comparatiu
+function _frRemoveActiuEscenari(target, actId) {
+  var actius = _frGetActiusEscenari(target);
+  actius = actius.filter(function(a) { return a.id !== actId; });
+  var ovKey = target === 'cons' ? 'escenariCons' : 'escenariAgr';
+  _frSetOverride(ovKey, actius);
   _frMarkDirty();
   _frRerender();
 }
