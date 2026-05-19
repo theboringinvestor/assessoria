@@ -9400,7 +9400,9 @@ function _frToggleArqMenu(btn) {
 }
 
 // Selecciona un arquetip per a un target ('principal' / 'conservador' / 'agressiu')
-// Cas especial: arqId === '__custom__' a target='principal' activa la cartera personalitzada del client
+// Cas especial: arqId === '__custom__'
+//   - target='principal' → activa la cartera personalitzada del client
+//   - target='conservador'/'agressiu' → activa cartera buida (sense cartera model)
 function _frSelectArq(arqId, target) {
   if (target === 'principal' && arqId === '__custom__') {
     // Activar cartera personalitzada del client
@@ -9410,14 +9412,30 @@ function _frSelectArq(arqId, target) {
     _frRerender();
     return;
   }
+  // Cartera personalitzada (buida) per a escenaris comparatius
+  if ((target === 'conservador' || target === 'agressiu') && arqId === '__custom__') {
+    var arqKey = target === 'conservador' ? 'arquetipConservador' : 'arquetipAgressiu';
+    var ovKey  = target === 'conservador' ? 'escenariCons' : 'escenariAgr';
+    _frSetOverride(arqKey, '__custom__');
+    _frSetOverride(ovKey, []);  // cartera buida → l'usuari afegeix actius
+    _frRerender();
+    return;
+  }
   var key;
   if (target === 'principal') {
     key = 'arquetipId';
     // En triar un arquetip, desactivar la cartera personalitzada
     _frSetOverride('useCustomCartera', null);
   }
-  else if (target === 'conservador') key = 'arquetipConservador';
-  else if (target === 'agressiu')    key = 'arquetipAgressiu';
+  else if (target === 'conservador') {
+    key = 'arquetipConservador';
+    // En triar un arquetip estàndard, netejar override d'escenari custom previ
+    _frSetOverride('escenariCons', null);
+  }
+  else if (target === 'agressiu') {
+    key = 'arquetipAgressiu';
+    _frSetOverride('escenariAgr', null);
+  }
   else return;
   _frSetOverride(key, arqId);
   _frRerender();
@@ -9599,16 +9617,33 @@ function renderPortalRoadmap(el) {
   }
   var arqConsId = overrides.arquetipConservador || 'tresorer';
   var arqAgrId  = overrides.arquetipAgressiu    || 'estoic';
-  var arqCons = getArquetip(arqConsId);
-  var arqAgr  = getArquetip(arqAgrId);
+  var isCustomCons = arqConsId === '__custom__';
+  var isCustomAgr  = arqAgrId  === '__custom__';
+  var arqCons = isCustomCons ? null : getArquetip(arqConsId);
+  var arqAgr  = isCustomAgr  ? null : getArquetip(arqAgrId);
 
   // Carteres d'escenaris: si hi ha pesos personalitzats a overrides, usar-los
-  var carteraCons = overrides.escenariCons
-    ? enriquir(overrides.escenariCons.map(function(a){ return { id: a.id, pct: a.pes }; }))
-    : enriquir(arqCons.actius || []);
-  var carteraAgr = overrides.escenariAgr
-    ? enriquir(overrides.escenariAgr.map(function(a){ return { id: a.id, pct: a.pes }; }))
-    : enriquir(arqAgr.actius || []);
+  // En mode "personalitzada" (__custom__), sempre usar l'override (encara que sigui buit)
+  var carteraCons;
+  if (isCustomCons) {
+    carteraCons = Array.isArray(overrides.escenariCons)
+      ? enriquir(overrides.escenariCons.map(function(a){ return { id: a.id, pct: a.pes }; }))
+      : [];
+  } else {
+    carteraCons = overrides.escenariCons
+      ? enriquir(overrides.escenariCons.map(function(a){ return { id: a.id, pct: a.pes }; }))
+      : enriquir(arqCons.actius || []);
+  }
+  var carteraAgr;
+  if (isCustomAgr) {
+    carteraAgr = Array.isArray(overrides.escenariAgr)
+      ? enriquir(overrides.escenariAgr.map(function(a){ return { id: a.id, pct: a.pes }; }))
+      : [];
+  } else {
+    carteraAgr = overrides.escenariAgr
+      ? enriquir(overrides.escenariAgr.map(function(a){ return { id: a.id, pct: a.pes }; }))
+      : enriquir(arqAgr.actius || []);
+  }
 
   // Si l'assessor ha personalitzat pesos directament al FR, aplicar-los
   if (overrides.carteraPersonalitzada && Array.isArray(overrides.carteraPersonalitzada)) {
@@ -9909,16 +9944,22 @@ function renderPortalRoadmap(el) {
     + '.fr-pdf-btn:hover{background:#1B3A6B}'
 
     // Print: amaga tot l'entorn i mostra només el document
+    // IMPORTANT: cal sobreescriure la regla global @media print que amaga .content
     + '@media print{'
-    + '  body{background:#fff !important}'
-    + '  .sidebar,.top-bar,.client-header,.fr-save-bar,.fr-tracker-fold,.fr-admin-panel,.fr-guia,.fr-pdf-bar{display:none !important}'
-    + '  .content-wrap,.main-area,.content-panel{margin:0 !important;padding:0 !important;border:none !important;box-shadow:none !important}'
-    + '  .fr-section{page-break-inside:avoid}'
-    + '  .fr-hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    + '  html,body{height:auto !important;overflow:visible !important;background:#fff !important}'
+    + '  #app-shell{display:block !important;height:auto !important;overflow:visible !important}'
+    + '  .main{display:block !important;overflow:visible !important;height:auto !important}'
+    + '  .content{display:block !important;overflow:visible !important;height:auto !important;padding:0 !important}'
+    + '  .sidebar,.topbar,.top-bar,.client-header,.preview-banner,.sidebar-overlay,.fr-save-bar,.fr-tracker-fold,.fr-admin-panel,.fr-guia,.fr-pdf-bar,.wa-fab-onb{display:none !important}'
+    + '  .content-inner{max-width:none !important;margin:0 !important;padding:0 !important;border:none !important;box-shadow:none !important}'
+    + '  .fr-section{page-break-inside:avoid;break-inside:avoid}'
+    + '  .fr-hero,.fr-chip-navy,.fr-callout,.fr-esc{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}'
     + '  .fr-kpis,.fr-esc-g{grid-template-columns:repeat(3,1fr) !important}'
-    + '  .fr-esc-editor{display:none !important}'
+    + '  .fr-esc-editor,.fr-add-actiu-select,.fr-tl-too-del,.fr-tl-add-tool{display:none !important}'
     + '  [contenteditable]{outline:none !important;box-shadow:none !important;border:none !important}'
-    + '  .fr-edit-badge,.fr-dada-origin,.fr-obj-del,.fr-tl-del-pas,.fr-tl-add-pas,.fr-obj-add,.fr-arq-wrap button::after{display:none !important}'
+    + '  .fr-edit-badge,.fr-dada-origin,.fr-obj-del,.fr-tl-del-pas,.fr-tl-add-pas,.fr-obj-add,.fr-arq-wrap button::after,.fr-arq-menu{display:none !important}'
+    + '  .fr-arq-btn{pointer-events:none;background:transparent !important;border:none !important;padding:0 !important;color:inherit !important;font:inherit !important}'
+    + '  @page{margin:12mm;size:A4}'
     + '}'
 
     // Guia de personalització
@@ -10425,8 +10466,8 @@ function renderPortalRoadmap(el) {
   }
 
   function escBlock(cls, titol, target, currentArqId, donutId, actius, mu, sig, sh, dd, proj) {
-    var hasCustomPesos = (target === 'cons' && !!overrides.escenariCons)
-                      || (target === 'agr'  && !!overrides.escenariAgr);
+    var hasCustomPesos = (target === 'conservador' && !!overrides.escenariCons)
+                      || (target === 'agressiu'    && !!overrides.escenariAgr);
 
     // Nom editable per a admin (conservadora / agressiva)
     var titolKey = target === 'conservador' ? 'esc_cons_titol' : (target === 'agressiu' ? 'esc_agr_titol' : null);
@@ -10470,12 +10511,23 @@ function renderPortalRoadmap(el) {
 
   // Helper: render del subtítol d'escenari (clickable per a admin)
   function escSubHtml(target, currentArqId) {
-    var curArq = getArquetip(currentArqId);
-    var displayText = curArq.cartRoma + ' · ' + curArq.nom;
+    var esCustom = currentArqId === '__custom__';
+    var curArq = esCustom ? null : getArquetip(currentArqId);
+    var displayText = esCustom
+      ? '★ Personalitzada · sense cartera model'
+      : (curArq.cartRoma + ' · ' + curArq.nom);
     if (!isAdmin || target === 'recomanat') return displayText;
     // Admin: dropdown per a 'conservador' o 'agressiu'
     var llista = _frListArquetips();
     var optsHtml = '';
+    // Opció especial "Personalitzada" (cartera buida sense cartera model)
+    optsHtml += '<div class="fr-arq-opt fr-arq-opt-custom' + (esCustom ? ' actiu' : '') + '" '
+      + 'onclick="_frSelectArq(\'__custom__\', \'' + target + '\')" '
+      + 'style="border-bottom:1px solid var(--g100);margin-bottom:4px;padding-bottom:10px">'
+      + '<span class="fr-arq-opt-roma" style="color:#1A5C3A">\u2605</span>'
+      + '<div style="flex:1"><div style="font-weight:500">Personalitzada</div>'
+        + '<div style="font-size:10px;color:var(--g500);margin-top:2px">Cartera buida \u2014 afegeix actius lliurement</div></div>'
+    + '</div>';
     for (var li = 0; li < llista.length; li++) {
       var op = llista[li];
       optsHtml += '<div class="fr-arq-opt' + (op.id === currentArqId ? ' actiu' : '') + '" '
@@ -10975,6 +11027,28 @@ function _frRecalcCartPri() {
   _frMarkDirty();
 }
 
+// Helpers de normalització: el target pot venir com a 'cons'/'conservador' o 'agr'/'agressiu'
+function _frEscOvKey(target) {
+  if (target === 'cons' || target === 'conservador') return 'escenariCons';
+  if (target === 'agr'  || target === 'agressiu')    return 'escenariAgr';
+  return null;
+}
+function _frEscArqKey(target) {
+  if (target === 'cons' || target === 'conservador') return 'arquetipConservador';
+  if (target === 'agr'  || target === 'agressiu')    return 'arquetipAgressiu';
+  return null;
+}
+function _frEscDonutId(target) {
+  if (target === 'cons' || target === 'conservador') return 'fr-d-cons';
+  if (target === 'agr'  || target === 'agressiu')    return 'fr-d-agr';
+  if (target === 'rec'  || target === 'recomanat')   return 'fr-d-rec';
+  return null;
+}
+function _frEscDefaultArq(target) {
+  if (target === 'cons' || target === 'conservador') return 'tresorer';
+  return 'estoic';
+}
+
 function _frRecalcEscenari(target) {
   var inputs = document.querySelectorAll('[data-esc-target="' + target + '"]');
   if (!inputs || inputs.length === 0) return;
@@ -11049,20 +11123,25 @@ function _frRecalcEscenari(target) {
     if (baEl) baEl.textContent = 'Sobre ' + fEurLoc(totalAp) + ' aportats';
   }
 
-  // Actualitzar donut
-  var donutId = 'fr-d-' + target;
-  var donutSvg = document.getElementById(donutId);
+  // Actualitzar donut (usa l'ID curt 'fr-d-cons' / 'fr-d-agr' / 'fr-d-rec')
+  var donutId = _frEscDonutId(target);
+  var donutSvg = donutId ? document.getElementById(donutId) : null;
   if (donutSvg) _frDrawDonut(donutSvg, actius, { size: 100, stroke: 14 });
 
   // Guardar a overrides i marcar dirty
-  var key = target === 'cons' ? 'escenariCons' : 'escenariAgr';
-  _frSetOverride(key, actius);
+  var key = _frEscOvKey(target);
+  if (key) _frSetOverride(key, actius);
   _frMarkDirty();
 }
 
 function _frResetEscenari(target) {
-  var key = target === 'cons' ? 'escenariCons' : 'escenariAgr';
-  _frSetOverride(key, null);
+  var key = _frEscOvKey(target);
+  if (key) _frSetOverride(key, null);
+  // També netejar la marca de cartera "personalitzada" si l'havia activat
+  var arqKey = _frEscArqKey(target);
+  var c = getClient();
+  var ov = (c.fullderuta && c.fullderuta.overrides) || {};
+  if (arqKey && ov[arqKey] === '__custom__') _frSetOverride(arqKey, null);
   _frMarkDirty();
   _frRerender();
 }
@@ -11070,15 +11149,22 @@ function _frResetEscenari(target) {
 // Helper intern: obté els actius actuals d'un escenari (override o arquetip de fallback)
 function _frGetActiusEscenari(target) {
   var c = getClient();
-  var ovKey = target === 'cons' ? 'escenariCons' : 'escenariAgr';
-  var arqKey = target === 'cons' ? 'arquetipConservador' : 'arquetipAgressiu';
+  var ovKey  = _frEscOvKey(target);
+  var arqKey = _frEscArqKey(target);
+  if (!ovKey || !arqKey) return [];
   var overrides = (c.fullderuta && c.fullderuta.overrides) || {};
+
+  // Cas especial: cartera personalitzada (sense cartera model)
+  // → retornar només l'override (encara que sigui buit)
+  if (overrides[arqKey] === '__custom__') {
+    return (Array.isArray(overrides[ovKey]) ? overrides[ovKey].slice() : []);
+  }
 
   if (overrides[ovKey] && Array.isArray(overrides[ovKey]) && overrides[ovKey].length > 0) {
     return overrides[ovKey].slice();
   }
   // Fallback: arquetip de referència
-  var arqId = overrides[arqKey] || (target === 'cons' ? 'tresorer' : 'estoic');
+  var arqId = overrides[arqKey] || _frEscDefaultArq(target);
   var arq = getArquetip(arqId);
   return (arq.actius || []).map(function(a) {
     var ms = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(a.id || '') : { mu: 6, sigma: 12 };
@@ -11095,6 +11181,8 @@ function _frGetActiusEscenari(target) {
 // Afegir un actiu nou a un escenari comparatiu
 function _frAddActiuEscenari(target, actId) {
   if (!actId) return;
+  var ovKey = _frEscOvKey(target);
+  if (!ovKey) return;
   var actius = _frGetActiusEscenari(target);
   // Evitar duplicats
   for (var i = 0; i < actius.length; i++) if (actius[i].id === actId) return;
@@ -11108,7 +11196,6 @@ function _frAddActiuEscenari(target, actId) {
     mu: ms.mu, sigma: ms.sigma,
     color: (tax && tax.color) || '#888',
   });
-  var ovKey = target === 'cons' ? 'escenariCons' : 'escenariAgr';
   _frSetOverride(ovKey, actius);
   _frMarkDirty();
   _frRerender();
@@ -11116,9 +11203,12 @@ function _frAddActiuEscenari(target, actId) {
 
 // Eliminar un actiu d'un escenari comparatiu
 function _frRemoveActiuEscenari(target, actId) {
+  var ovKey = _frEscOvKey(target);
+  if (!ovKey) return;
   var actius = _frGetActiusEscenari(target);
   actius = actius.filter(function(a) { return a.id !== actId; });
-  var ovKey = target === 'cons' ? 'escenariCons' : 'escenariAgr';
+  // Si la llista queda buida, igualment cal desar-la (no fallback a arquetip)
+  // _frSetOverride no esborra arrays buits, així que [] es desa correctament.
   _frSetOverride(ovKey, actius);
   _frMarkDirty();
   _frRerender();
