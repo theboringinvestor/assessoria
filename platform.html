@@ -8235,7 +8235,7 @@ function renderPortalEducacio(el) {
 // VIEW: FULL DE RUTA — híbrid (base arquetip + fites admin)
 // ══════════════════════════════════════════════════
 
-/* === FULL DE RUTA v14 === */
+/* === FULL DE RUTA v15 === */
 
 /* ════════════════════════════════════════════════════════════════════════════
    FULL DE RUTA FINANCER · v3.0 · estil BlackRock × The Boring Investor
@@ -9647,37 +9647,35 @@ function renderPortalRoadmap(el) {
   var pRec  = _frProj(capitalSim, aportacio, mCart.mu, mCart.sigma, horitzo);
   var pAgr  = _frProj(capitalSim, aportacio, mAgr.mu,  mAgr.sigma,  horitzo);
 
-  // Helper: editor de pesos inline per a admin
+  // Helper: editor de pesos + μ + σ inline per a admin
   function escEditorHtml(target, actius, hasCustom) {
     if (!isAdmin) return '';
-    var rows = '';
-    var totalPes = 0;
+    var rows = '', totalPes = 0;
     for (var ri = 0; ri < actius.length; ri++) {
       var a = actius[ri];
       totalPes += a.pes;
-      rows += '<tr>'
-        + '<td style="display:flex;align-items:center;gap:7px"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></span><span style="font-size:11px">' + a.nom + '</span></td>'
-        + '<td style="width:70px;padding:0 0 0 8px"><input '
-          + 'class="fr-esc-peso-input" '
-          + 'type="number" min="0" max="100" step="1" '
-          + 'value="' + a.pes + '" '
-          + 'data-esc-target="' + target + '" '
-          + 'data-act-id="' + a.id + '" '
-          + 'data-act-nom="' + a.nom + '" '
-          + 'data-act-color="' + a.color + '" '
-          + 'data-act-mu="' + a.mu + '" '
-          + 'data-act-sigma="' + a.sigma + '" '
-          + 'oninput="_frRecalcEscenari(\'' + target + '\')" '
-        + '></td>'
-      + '</tr>';
+      rows += '<tr style="border-bottom:1px solid var(--g100)">';
+      rows += '<td style="padding:4px 0;display:flex;align-items:center;gap:6px;min-width:110px">';
+      rows += '<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:' + a.color + ';flex-shrink:0"></span>';
+      rows += '<span style="font-size:10px">' + a.nom + '</span></td>';
+      rows += '<td style="width:60px;padding:4px 3px"><input class="fr-esc-peso-input" type="number" min="0" max="100" step="1" value="' + a.pes + '" data-esc-target="' + target + '" data-act-id="' + a.id + '" data-act-nom="' + a.nom + '" data-act-color="' + a.color + '" data-act-mu="' + a.mu + '" data-act-sigma="' + a.sigma + '" oninput="_frRecalcEscenari(\'' + target + '\')" title="Pes %"><span style="font-size:9px;color:var(--g400)">%</span></td>';
+      rows += '<td style="width:56px;padding:4px 3px"><input class="fr-cart-mu-input" type="number" min="-10" max="30" step="0.1" value="' + a.mu + '" data-esc-mu-target="' + target + '" data-esc-act-id="' + a.id + '" oninput="_frRecalcEscenari(\'' + target + '\')" title="μ esperat %"><span style="font-size:9px;color:var(--g400)">%</span></td>';
+      rows += '<td style="width:56px;padding:4px 3px"><input class="fr-cart-sig-input" type="number" min="0" max="80" step="0.1" value="' + a.sigma + '" data-esc-sig-target="' + target + '" data-esc-act-id="' + a.id + '" oninput="_frRecalcEscenari(\'' + target + '\')" title="σ volatilitat %"></td>';
+      rows += '</tr>';
     }
     var totalOk = Math.abs(totalPes - 100) < 0.5;
     var badgeCustom = hasCustom ? '<span class="fr-esc-badge-custom">Personalitzat</span>' : '';
+    var hdr = '<thead><tr>'
+      + '<th style="text-align:left;font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);padding-bottom:5px">Actiu</th>'
+      + '<th style="font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);padding-bottom:5px">Pes</th>'
+      + '<th style="font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);padding-bottom:5px">\u03BC</th>'
+      + '<th style="font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);padding-bottom:5px">\u03C3</th>'
+      + '</tr></thead>';
     return '<details class="fr-esc-editor">'
-      + '<summary>✏ Personalitzar pesos ' + badgeCustom + '</summary>'
-      + '<div style="padding:12px 0 4px">'
-        + '<table style="width:100%;border-collapse:collapse">' + rows + '</table>'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--g100)">'
+      + '<summary>\u270F Personalitzar pesos \u00b7 \u03BC \u00b7 \u03C3 ' + badgeCustom + '</summary>'
+      + '<div style="padding:8px 0 4px">'
+        + '<table style="width:100%;border-collapse:collapse">' + hdr + '<tbody>' + rows + '</tbody></table>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--g100)">'
           + '<span style="font-family:var(--fm);font-size:10px;color:var(--g500)">Total:</span>'
           + '<span class="fr-esc-total" id="fr-esc-total-' + target + '" style="font-family:var(--fm);font-size:12px;font-weight:600;color:' + (totalOk ? '#1A5C3A' : '#8B1A1A') + '">' + totalPes.toFixed(0) + '%</span>'
           + (hasCustom ? '<button onclick="_frResetEscenari(\'' + target + '\')" style="font-family:var(--fm);font-size:9px;background:transparent;border:none;cursor:pointer;color:var(--g400);text-decoration:underline">Restablir</button>' : '<span></span>')
@@ -9689,8 +9687,23 @@ function renderPortalRoadmap(el) {
   function escBlock(cls, titol, target, currentArqId, donutId, actius, mu, sig, sh, dd, proj) {
     var hasCustomPesos = (target === 'cons' && !!overrides.escenariCons)
                       || (target === 'agr'  && !!overrides.escenariAgr);
+
+    // Nom editable per a admin (conservadora / agressiva)
+    var titolKey = target === 'conservador' ? 'esc_cons_titol' : (target === 'agressiu' ? 'esc_agr_titol' : null);
+    var titolDisplay = (titolKey && notes[titolKey]) ? notes[titolKey] : titol;
+    var titolHtml = (isAdmin && titolKey)
+      ? '<span contenteditable="true" class="fr-edit" data-key="' + titolKey + '" spellcheck="false" style="font-family:var(--fd);font-size:17px">' + titolDisplay + '</span>'
+      : titolDisplay;
+
+    // Benefici total: valor mediana - total aportat
+    var totalAportat = capitalSim + aportacio * 12 * horitzo;
+    var beneficiMedian = proj.median - totalAportat;
+    var pctBenefici = totalAportat > 0 ? (beneficiMedian / totalAportat * 100) : 0;
+    var beneficiColor = beneficiMedian >= 0 ? '#1A5C3A' : '#8B1A1A';
+    var beneficiSign = beneficiMedian >= 0 ? '+' : '';
+
     return '<div class="fr-esc' + cls + '">'
-      + '<div class="fr-esc-t">' + titol + '</div>'
+      + '<div class="fr-esc-t">' + titolHtml + '</div>'
       + '<div class="fr-esc-s">' + escSubHtml(target, currentArqId) + '</div>'
       + '<svg id="' + donutId + '" viewBox="0 0 100 100" class="fr-esc-d"></svg>'
       + '<div class="fr-esc-k">'
@@ -9704,6 +9717,13 @@ function renderPortalRoadmap(el) {
         + '<div class="fr-esc-rl">Valor a ' + horitzo + ' anys</div>'
         + '<div class="fr-esc-rv" id="fr-esc-rv-' + target + '">\u2248 ' + fEur(proj.median) + '</div>'
         + '<div class="fr-esc-rg" id="fr-esc-rg-' + target + '">P5: ' + fEurK(proj.p5) + ' · P95: ' + fEurK(proj.p95) + '</div>'
+        + '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--g100)">'
+          + '<div class="fr-esc-rl">Benefici estimat (mediana)</div>'
+          + '<div class="fr-esc-rv" id="fr-esc-bv-' + target + '" style="font-size:17px;color:' + beneficiColor + '">'
+            + beneficiSign + fEur(Math.abs(beneficiMedian)) + ' <span style="font-size:11px;font-family:var(--fm);font-weight:400">(' + beneficiSign + Math.round(pctBenefici) + '%)</span>'
+          + '</div>'
+          + '<div class="fr-esc-rg" id="fr-esc-ba-' + target + '" style="margin-top:3px">Sobre ' + fEur(totalAportat) + ' aportats</div>'
+        + '</div>'
       + '</div>'
     + '</div>';
   }
@@ -9865,6 +9885,8 @@ function renderPortalRoadmap(el) {
   // ════════════════════════════════════════════════════════════
   // Guardar estat per a _frRecalcEscenari (funcions globals)
   window._FR_STATE = { capital: capitalSim, aportacio: aportacio, horitzo: horitzo };
+  // Guardar total aportat per als calculs de benefici als escenaris
+  window._FR_STATE.totalAportat = capitalSim + aportacio * 12 * horitzo;
 
   _frDrawDonut(document.getElementById('fr-donut-pri'), cartera, { size:200, stroke:28 });
   _frDrawDonut(document.getElementById('fr-d-cons'),    carteraCons, { size:100, stroke:14 });
@@ -10221,15 +10243,17 @@ function _frRecalcEscenari(target) {
   var totalPes = 0;
   for (var i = 0; i < inputs.length; i++) {
     var inp = inputs[i];
+    var id = inp.dataset.actId;
     var pes = parseFloat(inp.value) || 0;
     totalPes += pes;
+    // Llegir μ i σ dels inputs separats si existeixen (editor nou amb columnes)
+    var muInp  = document.querySelector('[data-esc-mu-target="' + target + '"][data-esc-act-id="' + id + '"]');
+    var sigInp = document.querySelector('[data-esc-sig-target="' + target + '"][data-esc-act-id="' + id + '"]');
+    var mu  = muInp  ? (parseFloat(muInp.value)  || 0) : (parseFloat(inp.dataset.actMu)    || 0);
+    var sig = sigInp ? (parseFloat(sigInp.value) || 0) : (parseFloat(inp.dataset.actSigma) || 0);
     actius.push({
-      id:    inp.dataset.actId,
-      nom:   inp.dataset.actNom,
-      color: inp.dataset.actColor,
-      pes:   pes,
-      mu:    parseFloat(inp.dataset.actMu)    || 0,
-      sigma: parseFloat(inp.dataset.actSigma) || 0,
+      id: id, nom: inp.dataset.actNom, color: inp.dataset.actColor,
+      pes: pes, mu: mu, sigma: sig,
     });
   }
 
@@ -10267,10 +10291,22 @@ function _frRecalcEscenari(target) {
     var proj = _frProj(cap, apr, m.mu, m.sigma, hor);
     var rvEl = document.getElementById('fr-esc-rv-' + target);
     var rgEl = document.getElementById('fr-esc-rg-' + target);
-    var fEur = function(n) { return new Intl.NumberFormat('ca-ES', { maximumFractionDigits:0 }).format(Math.round(n)) + '\u20AC'; };
-    var fEurK = function(n) { return Math.round(n/1000) + 'k\u20AC'; };
-    if (rvEl) rvEl.textContent = '\u2248 ' + fEur(proj.median);
-    if (rgEl) rgEl.textContent = 'P5: ' + fEurK(proj.p5) + ' \u00B7 P95: ' + fEurK(proj.p95);
+    var fEurLoc = function(n) { return new Intl.NumberFormat('ca-ES', { maximumFractionDigits:0 }).format(Math.round(n)) + '\u20AC'; };
+    var fEurKLoc = function(n) { return Math.round(n/1000) + 'k\u20AC'; };
+    if (rvEl) rvEl.textContent = '\u2248 ' + fEurLoc(proj.median);
+    if (rgEl) rgEl.textContent = 'P5: ' + fEurKLoc(proj.p5) + ' \u00B7 P95: ' + fEurKLoc(proj.p95);
+    // Benefici total (mediana - total aportat)
+    var totalAp = (st.totalAportat != null) ? st.totalAportat : (cap + apr * 12 * hor);
+    var benef = proj.median - totalAp;
+    var pctB  = totalAp > 0 ? (benef / totalAp * 100) : 0;
+    var bSign = benef >= 0 ? '+' : '';
+    var bvEl = document.getElementById('fr-esc-bv-' + target);
+    var baEl = document.getElementById('fr-esc-ba-' + target);
+    if (bvEl) {
+      bvEl.style.color = benef >= 0 ? '#1A5C3A' : '#8B1A1A';
+      bvEl.innerHTML = bSign + fEurLoc(Math.abs(benef)) + ' <span style="font-size:11px;font-family:var(--fm);font-weight:400">(' + bSign + Math.round(pctB) + '%)</span>';
+    }
+    if (baEl) baEl.textContent = 'Sobre ' + fEurLoc(totalAp) + ' aportats';
   }
 
   // Actualitzar donut
