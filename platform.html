@@ -2335,11 +2335,11 @@ async function doRegister() {
     var res = await sb.auth.signUp({ email: email, password: pass });
     if (res.error) throw res.error;
 
-    // 2. Crear el registre a la taula clients (amb pla essencial per defecte)
+    // 2. Crear el registre a la taula clients (amb pla Senyal per defecte)
     await sb.from('clients').upsert({
       email: email,
       nom: nom,
-      pla: 'essencial',
+      pla: 'senyal',
       perfil: { capitalInicial: '—', aportacioMensual: '—', horitzo: '—', objectiu: '—', riscFinancer: '—', riscEmocional: '—' }
     }, { onConflict: 'email' });
 
@@ -2542,8 +2542,11 @@ async function enterApp(role, email, isDemo) {
   if (role === 'admin') {
     setTimeout(function() {
       try { actualitzarBadgePendents(); } catch(e) {}
+      try { actualitzarBadgeMissatgesAdmin(); } catch(e) {}
     }, 800);
   }
+  // Subscripció realtime global per mantenir els badges actualitzats
+  setTimeout(function(){ try { subscribeToBadgeUpdates(); } catch(e) { console.warn(e); } }, 1000);
 }
 
 // ── DETECCIÓ DE CLIENT NOU ──
@@ -2651,7 +2654,7 @@ async function loadClientFromSupabase(email) {
 async function loadAllClientsFromSupabase() {
   if (!sb) return null;
   try {
-    var res = await sb.from('clients').select('nom,email,arquetip,cartera,scoring,pla,perfil,status,estat,submitted_at,activated_at').order('nom');
+    var res = await sb.from('clients').select('nom,email,arquetip,cartera,scoring,pla,perfil,status,estat,submitted_at,activated_at,darrer_pagament,proper_pagament,nota_pagament').order('nom');
     if (res.error || !res.data) return null;
     var statusMap = { ok:'active', nou:'pending', critic:'review' };
     return res.data.map(function(c) {
@@ -2671,6 +2674,10 @@ async function loadAllClientsFromSupabase() {
         status: statusMap[rawStatus] || rawStatus,
         submitted_at: c.submitted_at || null,
         activated_at: c.activated_at || null,
+        // Camps de pagament (nous, poden ser null si encara no s'ha aplicat la migració)
+        darrer_pagament: c.darrer_pagament || null,
+        proper_pagament: c.proper_pagament || null,
+        nota_pagament: c.nota_pagament || null,
       };
     });
   } catch(e) {
@@ -3265,7 +3272,7 @@ var ADMIN_NAV = [
   {id:'admin-pendents',    icon:'⏳', label:'Sol\u00b7licituds pendents'},
   {id:'admin-entrevista',  icon:'📋', label:'Entrevista inicial'},
   {id:'portal-missatges',  icon:'💬', label:'Missatges clients'},
-  {id:'admin-preguntes',   icon:'❓', label:'Preguntes', badge:'\u2022'},
+  {id:'admin-preguntes',   icon:'❓', label:'Preguntes'},
   {id:'admin-broadcast',   icon:'📣', label:'Comunicat comunitat'},
   {id:'admin-assessoria',  icon:'📰', label:'Gestionar anàlisis'},
   {id:'portal-questionnaire', icon:'📋', label:'Q\u00fcestionari client'},
@@ -3280,6 +3287,7 @@ var ADMIN_NAV = [
   {id:'portal-fire',       icon:'🔥', label:'Calculadora FIRE'},
   {id:'portal-turbo',      icon:'🚀', label:'Turbo Estalvi'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emerg\u00e8ncia"},
+  {id:'portal-notificacions', icon:'🔔', label:'Notificacions'},
   {id:'portal-simulador',  icon:'📊', label:'Simulador d\'actius'},
   {id:'portal-montecarlo', icon:'🎲', label:'Monte Carlo'},
   {id:'portal-fiscalitat', icon:'🧾', label:'Calculadora fiscal'},
@@ -3312,6 +3320,7 @@ var CLIENT_NAV = [
   {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
   {section:'Suport'},
   {id:'portal-calendari', icon:'📆', label:'Reunions'},
+  {id:'portal-notificacions', icon:'🔔', label:'Notificacions'},
   {id:'portal-ajuda', icon:'❓', label:'Ajuda'},
 ];
 
@@ -3400,6 +3409,7 @@ function navigateTo(viewId) {
     'portal-fiscalitat': APP.role === 'admin' ? ['Portal Client · Fiscalitat', '👁 Previsualització'] : ['Calculadora fiscal', 'Tributació d\'inversions · Espanya 2026'],
     'portal-turbo': APP.role === 'admin' ? ['Portal Client · Turbo Estalvi', '👁 Previsualització · Editable'] : ['Turbo Estalvi', 'Optimitza la teva taxa d\'estalvi'],
     'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', '👁 Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
+    'portal-notificacions': APP.role === 'admin' ? ['Portal Client · Notificacions', '👁 Previsualització'] : ['Notificacions', 'Gestiona les alertes per correu electrònic'],
     'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', '👁 Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
     'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', '👁 Previsualització'] : ['El meu qüestionari', 'Les teves respostes del perfil inversor'],
     'settings': ['Configuració', 'Gestió del sistema'],
@@ -3496,6 +3506,7 @@ function renderView(viewId) {
     case 'portal-turbo': renderPortalTurbo(content); break;
     case 'portal-emergencia': renderPortalEmergencia(content); break;
     case 'portal-educacio': renderPortalEducacio(content); break;
+    case 'portal-notificacions': renderPortalNotificacions(content); break;
     case 'portal-ajuda': renderPortalAjuda(content); break;
     case 'portal-questionnaire': renderPortalQuestionnaire(content); break;
     case 'settings': renderSettings(content); break;
@@ -3552,6 +3563,15 @@ function toggleSidebar() {
 // ══════════════════════════════════════════════════
 function renderHub(el) {
   var totalValor = getCarteraActual().reduce(function(s,a){return s+a.valor;},0);
+
+  // Mètriques dinàmiques (es refresquen després via refrescarHubStats)
+  var clientsList = APP.clientsList || [];
+  var numClientsActius = clientsList.filter(function(c){ return c.status === 'active'; }).length || clientsList.length;
+  var scorings = clientsList.map(function(c){ return c.scoring || 0; }).filter(function(s){ return s>0; });
+  var scoringMig = scorings.length > 0
+    ? Math.round(scorings.reduce(function(a,b){return a+b;},0) / scorings.length)
+    : 0;
+
   el.innerHTML = '<div class="content-inner fade-in">'
     + '<div style="margin-bottom:28px">'
       + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Bon dia, Guillem 👋</div>'
@@ -3561,12 +3581,15 @@ function renderHub(el) {
     // Banner d'alerta sol·licituds pendents (només si n'hi ha urgents)
     + renderHubAlertaPendents()
 
+    // Banner d'alerta pagaments (vençuts o propers a vèncer)
+    + renderHubAlertaPagaments()
+
     // Stats
     + '<div class="hub-stats">'
-      + '<div class="hub-stat"><div class="hub-stat-val">5</div><div class="hub-stat-lbl">Clients actius</div></div>'
-      + '<div class="hub-stat"><div class="hub-stat-val">67</div><div class="hub-stat-lbl">Scoring mig</div></div>'
-      + '<div class="hub-stat"><div class="hub-stat-val" style="color:var(--accent)">' + totalValor.toLocaleString('ca-ES') + '€</div><div class="hub-stat-lbl">AUM total (demo)</div></div>'
-      + '<div class="hub-stat"><div class="hub-stat-val" style="color:#7A4A00">2</div><div class="hub-stat-lbl">Missatges pendents</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" id="hub-stat-clients">' + numClientsActius + '</div><div class="hub-stat-lbl">Clients actius</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" id="hub-stat-scoring">' + scoringMig + '</div><div class="hub-stat-lbl">Scoring mig</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:var(--accent)" id="hub-stat-aum">' + totalValor.toLocaleString('ca-ES') + '€</div><div class="hub-stat-lbl">AUM total (demo)</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:#7A4A00" id="hub-stat-msgs">—</div><div class="hub-stat-lbl">Missatges pendents</div></div>'
     + '</div>'
 
     // Quick actions
@@ -3586,7 +3609,7 @@ function renderHub(el) {
       + '</div>'
       + '<div class="hub-card" onclick="navigateTo(\'portal-missatges\')" style="border-color:var(--amber)">'
         + '<div class="hub-card-icon">💬</div>'
-        + '<div class="hub-card-title">Missatges <span style="font-size:11px;color:var(--amber);font-weight:600">(2)</span></div>'
+        + '<div class="hub-card-title">Missatges <span id="hub-card-msgs-count" style="font-size:11px;color:var(--amber);font-weight:600"></span></div>'
         + '<div class="hub-card-desc">Revisa i respon els missatges dels clients.</div>'
         + '<div class="hub-card-arrow">→</div>'
       + '</div>'
@@ -3617,6 +3640,51 @@ function renderHub(el) {
       + linkCard('📄','Pack Legal','pack_legal_pre_efa.html')
     + '</div>'
   + '</div>';
+
+  // Càrrega asíncrona dels comptadors reals
+  setTimeout(refrescarHubStats, 100);
+}
+
+// Refresca els comptadors dinàmics del Hub (missatges pendents + clients actius)
+async function refrescarHubStats() {
+  if (APP.role !== 'admin' || !sb) return;
+
+  // 1. Comptador de missatges pendents (clients que han escrit i admin no ha llegit)
+  try {
+    var resMsgs = await sb.from('messages')
+      .select('*', { count:'exact', head: true })
+      .eq('from_role', 'client')
+      .eq('read_by_admin', false);
+    if (!resMsgs.error) {
+      var n = resMsgs.count || 0;
+      var elMsg = document.getElementById('hub-stat-msgs');
+      if (elMsg) elMsg.textContent = n;
+      var elCard = document.getElementById('hub-card-msgs-count');
+      if (elCard) elCard.textContent = n > 0 ? '(' + n + ')' : '';
+    }
+  } catch(e) { console.warn('[refrescarHubStats] msgs', e); }
+
+  // 2. Clients actius reals
+  try {
+    var resC = await sb.from('clients')
+      .select('id,nom,email,scoring,status,pla,proper_pagament,darrer_pagament', { count:'exact' });
+    if (!resC.error && resC.data) {
+      APP.clientsList = resC.data; // cau per a altres pantalles
+      var actius = resC.data.filter(function(c){ return c.status === 'active'; });
+      var elC = document.getElementById('hub-stat-clients');
+      if (elC) elC.textContent = actius.length;
+
+      var scorings = resC.data.map(function(c){ return c.scoring || 0; }).filter(function(s){ return s>0; });
+      if (scorings.length > 0) {
+        var avg = Math.round(scorings.reduce(function(a,b){return a+b;},0) / scorings.length);
+        var elS = document.getElementById('hub-stat-scoring');
+        if (elS) elS.textContent = avg;
+      }
+
+      // Refrescar alerta de pagaments amb la llista actualitzada
+      refrescarHubAlertaPagaments();
+    }
+  } catch(e) { console.warn('[refrescarHubStats] clients', e); }
 }
 
 function hubSmallCard(icon, label, viewId) {
@@ -3644,15 +3712,19 @@ function renderClientsList(el) {
         + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px">Clients</div>'
         + '<div style="font-size:12px;color:var(--g500);margin-top:3px">' + getClientsList().length + ' clients registrats</div>'
       + '</div>'
+      + '<button onclick="obrirModalNouClient()" style="padding:10px 18px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);display:inline-flex;align-items:center;gap:6px">'
+        + '<span style="font-size:14px">+</span> Nou client'
+      + '</button>'
     + '</div>';
 
   // Table header
   html += '<div class="cl-header" style="display:flex;align-items:center;gap:14px;padding:8px 24px;font-size:9px;font-weight:500;color:var(--g400);text-transform:uppercase;letter-spacing:.06em">'
     + '<div style="width:40px"></div>'
     + '<div style="flex:1">Client</div>'
-    + '<div style="width:140px">Arquetip · Cartera</div>'
-    + '<div style="width:60px;text-align:center">Scoring</div>'
-    + '<div style="width:70px;text-align:center">Pla</div>'
+    + '<div style="width:120px">Arquetip · Cartera</div>'
+    + '<div style="width:54px;text-align:center">Scoring</div>'
+    + '<div style="width:66px;text-align:center">Pla</div>'
+    + '<div style="width:110px;text-align:center">Pagament</div>'
     + '<div style="width:20px"></div>'
   + '</div>';
 
@@ -3661,6 +3733,7 @@ function renderClientsList(el) {
     var scoreBg    = c.scoring>=70?'#EAF3DE':c.scoring>=50?'#EBF0FA':c.scoring>=30?'#FEF5E7':'#FDF0F0';
     var initials = c.nom.split(' ').map(function(w){return w[0]}).slice(0,2).join('');
     var p_cl = getPla(c.pla);
+    var pagState = calcularEstatPagament(c);
 
     html += '<div class="card" style="cursor:pointer;transition:all .12s;padding:14px 24px" onmouseover="this.style.borderColor=\'var(--g300)\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.borderColor=\'var(--g200)\';this.style.transform=\'none\'" onclick="previewClient(\'' + c.email + '\')">'
       + '<div style="display:flex;align-items:center;gap:14px">'
@@ -3669,21 +3742,27 @@ function renderClientsList(el) {
           + '<div style="font-size:14px;font-weight:500">' + c.nom + '</div>'
           + '<div style="font-size:11px;color:var(--g400)">' + c.email + '</div>'
         + '</div>'
-        + '<div class="cl-col-arq" style="width:140px">'
-          + '<div style="font-size:12px;font-weight:500;color:var(--black)">' + c.arquetip + '</div>'
-          + '<div style="font-size:10px;color:var(--g400)">' + c.cartera + '</div>'
+        + '<div class="cl-col-arq" style="width:120px">'
+          + '<div style="font-size:12px;font-weight:500;color:var(--black)">' + (c.arquetip || '—') + '</div>'
+          + '<div style="font-size:10px;color:var(--g400)">' + (c.cartera || '—') + '</div>'
         + '</div>'
-        + '<div style="width:60px;text-align:center">'
-          + '<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:' + scoreColor + '">' + c.scoring + '</div>'
+        + '<div style="width:54px;text-align:center">'
+          + '<div style="font-family:var(--fm);font-size:16px;font-weight:500;color:' + scoreColor + '">' + (c.scoring || 0) + '</div>'
         + '</div>'
-        + '<div style="width:70px;text-align:center">'
+        + '<div style="width:66px;text-align:center">'
           + '<div style="display:inline-block;font-size:10px;padding:3px 10px;border-radius:99px;background:' + p_cl.bg + ';color:' + p_cl.color + ';font-weight:500">' + p_cl.nom + '</div>'
         + '</div>'
+        + '<div style="width:110px;text-align:center" onclick="event.stopPropagation();obrirModalPagament(\'' + c.email + '\')">'
+          + '<div style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:99px;background:' + pagState.bg + ';color:' + pagState.color + ';font-size:10px;font-weight:500;cursor:pointer;border:1px solid ' + pagState.bc + '" title="' + pagState.tooltip + '">'
+            + '<span>' + pagState.icon + '</span>'
+            + '<span>' + pagState.label + '</span>'
+          + '</div>'
+        + '</div>'
         + '<div style="display:flex;gap:5px;align-items:center">'
-          + '<button onclick="canviarPlaClient(\'' + c.email + '\')" style="padding:4px 9px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g500)" title="Canviar pla">&#128179;</button>'
-          + '<button onclick="confirmarEsborrarClientDirect(\'' + c.email + '\')" style="padding:4px 7px;background:transparent;border:1px solid #FCA5A5;border-radius:6px;font-size:11px;cursor:pointer;color:#DC2626" title="Esborrar">&#128465;</button>'
-          + '<button onclick="obrirEditarTargetAdmin(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:var(--accent)" title="Editar cartera target">&#127917;</button>'
-          + '<button onclick="desbloquarRetest(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:#534AB7" title="Autoritzar re-test">&#128260;</button>'
+          + '<button onclick="event.stopPropagation();canviarPlaClient(\'' + c.email + '\')" style="padding:4px 9px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g500)" title="Canviar pla">&#128179;</button>'
+          + '<button onclick="event.stopPropagation();confirmarEsborrarClientDirect(\'' + c.email + '\')" style="padding:4px 7px;background:transparent;border:1px solid #FCA5A5;border-radius:6px;font-size:11px;cursor:pointer;color:#DC2626" title="Esborrar">&#128465;</button>'
+          + '<button onclick="event.stopPropagation();obrirEditarTargetAdmin(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:var(--accent)" title="Editar cartera target">&#127917;</button>'
+          + '<button onclick="event.stopPropagation();desbloquarRetest(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:#534AB7" title="Autoritzar re-test">&#128260;</button>'
           + '<span style="color:var(--g300);font-size:14px">&#8594;</span>'
         + '</div>'
       + '</div>'
@@ -3692,6 +3771,432 @@ function renderClientsList(el) {
 
   html += '</div>';
   el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════
+// ALTA MANUAL DE CLIENT (sense passar per onboarding públic)
+// ══════════════════════════════════════════════════
+// Crea un usuari de Supabase Auth + fila a clients, amb una contrasenya
+// per defecte que l'admin comunica manualment al client. Per defecte
+// salta el qüestionari (status='active'); l'admin pot canviar el switch
+// per forçar que el client el faci abans d'accedir.
+
+function generarPasswordPerDefecte() {
+  // Genera una contrasenya aleatòria llegible (sense caràcters confusos)
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var pwd = 'TBI-';
+  for (var i = 0; i < 6; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+  return pwd;
+}
+
+function obrirModalNouClient() {
+  var existing = document.getElementById('modal-nou-client');
+  if (existing) existing.remove();
+
+  var pwdDefault = generarPasswordPerDefecte();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-nou-client';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto">'
+    + '<div style="padding:24px 28px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:flex-start">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.2px;margin-bottom:4px">Nou client</div>'
+        + '<div style="font-size:12px;color:var(--g500)">Alta manual sense passar per l\'onboarding públic</div>'
+      + '</div>'
+      + '<button onclick="document.getElementById(\'modal-nou-client\').remove()" style="background:none;border:none;font-size:22px;color:var(--g400);cursor:pointer;line-height:1">×</button>'
+    + '</div>'
+
+    + '<div style="padding:24px 28px">'
+
+      + '<div style="margin-bottom:14px">'
+        + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Nom complet *</label>'
+        + '<input type="text" id="nc-nom" placeholder="Ex: Maria García López" style="width:100%;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+      + '</div>'
+
+      + '<div style="margin-bottom:14px">'
+        + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Email *</label>'
+        + '<input type="email" id="nc-email" placeholder="client@exemple.com" style="width:100%;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+      + '</div>'
+
+      + '<div style="margin-bottom:14px">'
+        + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Contrasenya temporal *</label>'
+        + '<div style="display:flex;gap:8px">'
+          + '<input type="text" id="nc-pwd" value="' + pwdDefault + '" style="flex:1;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)">'
+          + '<button onclick="document.getElementById(\'nc-pwd\').value=generarPasswordPerDefecte()" style="padding:10px 14px;background:#fff;border:1px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb)" title="Regenerar">↻</button>'
+        + '</div>'
+        + '<div style="font-size:11px;color:var(--g400);margin-top:4px;line-height:1.5">Comunica-la al client per email o WhatsApp. Podrà canviar-la des de l\'opció "He oblidat la contrasenya".</div>'
+      + '</div>'
+
+      + '<div style="margin-bottom:14px">'
+        + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Pla inicial</label>'
+        + '<select id="nc-pla" style="width:100%;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+          + '<option value="senyal">Senyal — 8€/mes</option>'
+          + '<option value="bruxola" selected>Brúixola — 29€/mes</option>'
+          + '<option value="nord">Nord — 49€/mes</option>'
+          + '<option value="partner">Partner — Fee per rendiment</option>'
+        + '</select>'
+      + '</div>'
+
+      + '<div style="margin-bottom:18px;padding:12px 14px;background:var(--g50);border:1px solid var(--g200);border-radius:8px">'
+        + '<label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">'
+          + '<input type="checkbox" id="nc-skip-quiz" checked style="margin-top:2px;flex-shrink:0">'
+          + '<div>'
+            + '<div style="font-size:13px;font-weight:500;color:var(--black)">Saltar qüestionari</div>'
+            + '<div style="font-size:11px;color:var(--g500);line-height:1.5;margin-top:2px">El client podrà accedir al portal directament. Pots invitar-lo a fer el qüestionari més endavant des de la seva fitxa.</div>'
+          + '</div>'
+        + '</label>'
+      + '</div>'
+
+      + '<div id="nc-msg" style="margin-bottom:12px;font-size:12px;display:none"></div>'
+
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        + '<button onclick="document.getElementById(\'modal-nou-client\').remove()" style="padding:12px;background:#fff;color:var(--g600);border:1px solid var(--g200);border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Cancel·lar</button>'
+        + '<button id="nc-btn-crear" onclick="crearNouClient()" style="padding:12px;background:#1A5C3A;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">✓ Crear client</button>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+
+  document.body.appendChild(modal);
+  setTimeout(function(){
+    var n = document.getElementById('nc-nom'); if (n) n.focus();
+  }, 100);
+}
+
+async function crearNouClient() {
+  var nom   = (document.getElementById('nc-nom').value || '').trim();
+  var email = (document.getElementById('nc-email').value || '').trim().toLowerCase();
+  var pwd   = (document.getElementById('nc-pwd').value || '').trim();
+  var pla   = document.getElementById('nc-pla').value;
+  var skipQuiz = document.getElementById('nc-skip-quiz').checked;
+  var msg   = document.getElementById('nc-msg');
+  var btn   = document.getElementById('nc-btn-crear');
+
+  function showMsg(text, isError) {
+    msg.style.display = 'block';
+    msg.style.color = isError ? '#C0392B' : '#1A5C3A';
+    msg.textContent = text;
+  }
+
+  if (!nom || nom.length < 2) { showMsg('Cal indicar el nom del client.', true); return; }
+  if (!email || !email.includes('@')) { showMsg('Email no vàlid.', true); return; }
+  if (!pwd || pwd.length < 6) { showMsg('La contrasenya ha de tenir mínim 6 caràcters.', true); return; }
+
+  if (!sb) { showMsg('Supabase no disponible.', true); return; }
+
+  btn.disabled = true; btn.textContent = 'Creant...';
+  showMsg('Creant compte d\'autenticació...', false);
+
+  try {
+    // 1. Crear usuari a Supabase Auth.
+    // NOTA: signUp pot enviar un email de confirmació segons la config de Supabase.
+    // Si està desactivat l'email confirm, l'usuari ja pot fer login amb la pwd directament.
+    var resAuth = await sb.auth.signUp({
+      email: email,
+      password: pwd,
+      options: { data: { nom: nom, created_by_admin: true } }
+    });
+
+    // Cas especial: si l'email ja existeix a Auth, intentem només crear/upsert
+    // la fila a clients (potser és un usuari Auth previ sense fila de clients).
+    var authAlreadyExists = resAuth.error
+      && (resAuth.error.message || '').toLowerCase().indexOf('already') >= 0;
+
+    if (resAuth.error && !authAlreadyExists) throw resAuth.error;
+
+    showMsg('Creant fila de client a la base de dades...', false);
+
+    // 2. Inserir/actualitzar la fila a clients
+    var clientPayload = {
+      email: email,
+      nom: nom,
+      pla: pla,
+      status: skipQuiz ? 'active' : 'pending',
+      perfil: {
+        capitalInicial: '—', aportacioMensual: '—',
+        horitzo: '—', objectiu: '—',
+        riscFinancer: '—', riscEmocional: '—'
+      }
+    };
+    if (skipQuiz) {
+      clientPayload.activated_at = new Date().toISOString();
+    } else {
+      clientPayload.submitted_at = null;
+    }
+
+    var resIns = await sb.from('clients').upsert(clientPayload, { onConflict: 'email' });
+    if (resIns.error) throw resIns.error;
+
+    // 3. Missatge de benvinguda automàtic (no fallar si no es pot)
+    try {
+      var msgBenv;
+      if (skipQuiz) {
+        msgBenv = '👋 Hola ' + nom.split(' ')[0] + ', benvingut a The Boring Investor!\n\n'
+          + 'T\'he donat d\'alta al pla ' + getPlaLabel(pla) + '.\n\n'
+          + 'Ja pots accedir al teu portal. Quan vulguis, completa el qüestionari de perfil inversor des de la fitxa "El meu qüestionari" perquè et pugui personalitzar millor la cartera.\n\n'
+          + 'Qualsevol dubte, escriu-me!\n\n— Guillem';
+      } else {
+        msgBenv = '👋 Hola ' + nom.split(' ')[0] + ', benvingut a The Boring Investor!\n\n'
+          + 'T\'he donat d\'alta al pla ' + getPlaLabel(pla) + '.\n\n'
+          + 'El primer pas és completar el qüestionari de perfil inversor — el tens al teu portal al iniciar sessió. Quan l\'acabis, jo el revisaré i activarem el teu compte.\n\n'
+          + '— Guillem';
+      }
+      await sb.from('messages').insert({
+        client_email: email,
+        from_email: 'guillem@theboringinvestor.com',
+        from_role: 'admin',
+        content: msgBenv,
+        read_by_admin: true,
+        read_by_client: false
+      });
+    } catch(e) { console.warn('No s\'ha pogut crear missatge de benvinguda:', e); }
+
+    // 4. Èxit — mostrar credencials per copiar
+    var notaAuthExistent = authAlreadyExists
+      ? '\n\n⚠ Aquest email ja existia a Auth — s\'ha actualitzat la fila de client però l\'usuari ha de fer servir la contrasenya antiga. Si l\'ha oblidat, demana-li que faci "He oblidat la contrasenya".'
+      : '';
+
+    showMsg('✓ Client creat. Comunica-li:', false);
+    btn.textContent = '✓ Creat';
+
+    // Substituir contingut del modal per fitxa de credencials
+    setTimeout(function(){
+      var modal = document.getElementById('modal-nou-client');
+      if (!modal) return;
+      var inner = modal.querySelector('div > div:nth-child(2)') || modal.querySelector('div > div');
+      if (!inner) return;
+      modal.querySelector('div > div:last-child').innerHTML =
+        '<div style="padding:24px 28px">'
+          + '<div style="text-align:center;font-size:38px;margin-bottom:10px">✓</div>'
+          + '<div style="text-align:center;font-family:var(--fd);font-size:20px;font-weight:400;margin-bottom:8px">Client creat correctament</div>'
+          + '<div style="text-align:center;font-size:12px;color:var(--g500);margin-bottom:20px">Comunica-li aquestes dades per accedir:</div>'
+          + '<div style="background:var(--g50);border:1px solid var(--g200);border-radius:10px;padding:14px 16px;margin-bottom:14px;font-family:var(--fm);font-size:12px;line-height:1.9">'
+            + '<div><span style="color:var(--g500)">URL:</span> <span style="color:var(--black)">https://theboringinvestor.github.io/assessoria/platform.html</span></div>'
+            + '<div><span style="color:var(--g500)">Email:</span> <strong style="color:var(--black)">' + email + '</strong></div>'
+            + '<div><span style="color:var(--g500)">Contrasenya:</span> <strong style="color:var(--black)">' + pwd + '</strong></div>'
+          + '</div>'
+          + (notaAuthExistent ? '<div style="font-size:11px;color:#7A4A00;background:#FEF5E7;border:1px solid #E8C988;border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.5">' + notaAuthExistent + '</div>' : '')
+          + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+            + '<button onclick="copiarCredencials(\'' + email + '\', \'' + pwd + '\')" style="padding:11px;background:#fff;color:var(--accent);border:1.5px solid var(--accent);border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">📋 Copiar credencials</button>'
+            + '<button onclick="document.getElementById(\'modal-nou-client\').remove();renderView(\'admin-clients\')" style="padding:11px;background:#1A5C3A;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Tancar →</button>'
+          + '</div>'
+        + '</div>';
+    }, 300);
+
+    // Refrescar caché de clients
+    try { await carregarClientsList(); } catch(e) {}
+
+  } catch(err) {
+    console.error('[crearNouClient]', err);
+    showMsg('Error: ' + (err.message || 'No s\'ha pogut crear el client'), true);
+    btn.disabled = false; btn.textContent = '✓ Crear client';
+  }
+}
+
+function copiarCredencials(email, pwd) {
+  var text = 'Hola, ja tens accés a The Boring Investor.\n\n'
+    + 'URL: https://theboringinvestor.github.io/assessoria/platform.html\n'
+    + 'Email: ' + email + '\n'
+    + 'Contrasenya: ' + pwd + '\n\n'
+    + 'Et recomano canviar-la la primera vegada que entris.\n\n— Guillem';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){
+      toast('✓ Credencials copiades al portapapers');
+    }).catch(function(){ toast('No s\'ha pogut copiar; selecciona-les manualment.'); });
+  } else {
+    toast('Portapapers no disponible al navegador');
+  }
+}
+
+// Recarrega la llista de clients des de Supabase (caché APP.clientsList)
+async function carregarClientsList() {
+  if (!sb) return;
+  try {
+    var res = await sb.from('clients').select('*').order('nom', { ascending: true });
+    if (res.error) throw res.error;
+    APP.clientsList = res.data || [];
+  } catch(e) { console.warn('[carregarClientsList]', e); }
+}
+
+// ══════════════════════════════════════════════════
+// NOTES MANUALS DE PAGAMENT (mentre no hi ha passarel·la)
+// ══════════════════════════════════════════════════
+// Camps a clients: darrer_pagament (date), proper_pagament (date), nota_pagament (text)
+// Estats:
+//   - sense_config: no hi ha cap data → gris, "Sense config"
+//   - vencut:       proper_pagament < avui → vermell
+//   - aviat:        proper_pagament <= avui+7 → ambre
+//   - al_corrent:   proper_pagament > avui+7 → verd
+// També considerem el cas "no aplica" per a Partner (que té fee per rendiment).
+
+function calcularEstatPagament(c) {
+  // Partner no té quota mensual fixa
+  var pla = getPla(c.pla);
+  if (pla === PLANS.partner) {
+    return { state:'partner', label:'Per rendiment', icon:'⚓', color:'#7A5614', bg:'#FEF7E8', bc:'#E8C988', tooltip:'Pla Partner: fee per rendiment, sense quota mensual' };
+  }
+
+  if (!c.proper_pagament) {
+    return { state:'sense_config', label:'Sense data', icon:'—', color:'var(--g500)', bg:'#F4F3F0', bc:'var(--g200)', tooltip:'Cap pagament configurat. Clica per afegir-ne.' };
+  }
+
+  var avui = new Date(); avui.setHours(0,0,0,0);
+  var data = new Date(c.proper_pagament);
+  if (isNaN(data.getTime())) {
+    return { state:'sense_config', label:'Data invàlida', icon:'?', color:'var(--g500)', bg:'#F4F3F0', bc:'var(--g200)', tooltip:'La data emmagatzemada no és vàlida' };
+  }
+  data.setHours(0,0,0,0);
+  var diasDiff = Math.round((data.getTime() - avui.getTime()) / (24*3600*1000));
+
+  var dataFmt = data.toLocaleDateString('ca-ES', {day:'numeric',month:'short'});
+
+  if (diasDiff < 0) {
+    return { state:'vencut', label:'Vençut', icon:'⚠', color:'#8B1A1A', bg:'#FCEBEB', bc:'#E8B0A8', tooltip:'Pagament vençut el ' + dataFmt + ' (fa ' + Math.abs(diasDiff) + ' dies)' };
+  }
+  if (diasDiff === 0) {
+    return { state:'avui', label:'Avui', icon:'⏰', color:'#7A4A00', bg:'#FEF5E7', bc:'#E8C988', tooltip:'Pagament previst avui (' + dataFmt + ')' };
+  }
+  if (diasDiff <= 7) {
+    return { state:'aviat', label: diasDiff + 'd', icon:'⏰', color:'#7A4A00', bg:'#FEF5E7', bc:'#E8C988', tooltip:'Pagament previst el ' + dataFmt + ' (' + diasDiff + ' dies)' };
+  }
+  return { state:'al_corrent', label: dataFmt, icon:'✓', color:'#1A5C3A', bg:'#EAF3DE', bc:'#B8DBC4', tooltip:'Pagament previst el ' + dataFmt + ' (' + diasDiff + ' dies)' };
+}
+
+function obrirModalPagament(email) {
+  if (!email) return;
+  var c = (APP.clientsList || []).find(function(x){ return x.email === email; });
+  if (!c) { toast('Client no trobat'); return; }
+
+  var pla = getPla(c.pla);
+  var preuMes = pla === PLANS.partner ? 0 : (pla.preu || 0);
+
+  var darrerVal = c.darrer_pagament || '';
+  var properVal = c.proper_pagament || '';
+  var notaVal   = c.nota_pagament   || '';
+
+  var existing = document.getElementById('modal-pagament');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-pagament';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto">'
+    + '<div style="padding:24px 28px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:flex-start">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:20px;font-weight:400;letter-spacing:-.2px;margin-bottom:4px">Pagaments manuals</div>'
+        + '<div style="font-size:12px;color:var(--g500)">' + c.nom + ' · ' + c.email + '</div>'
+        + '<div style="font-size:11px;color:var(--g400);margin-top:4px">Pla ' + pla.nom + (preuMes>0 ? ' · ' + preuMes + '€/mes' : '') + '</div>'
+      + '</div>'
+      + '<button onclick="document.getElementById(\'modal-pagament\').remove()" style="background:none;border:none;font-size:22px;color:var(--g400);cursor:pointer;line-height:1">×</button>'
+    + '</div>'
+
+    + '<div style="padding:24px 28px">'
+      + (pla === PLANS.partner
+          ? '<div style="font-size:12px;color:#7A4A00;background:#FEF7E8;border:1px solid #E8C988;border-radius:8px;padding:10px 12px;margin-bottom:18px;line-height:1.5">El pla Partner no té quota mensual fixa. Pots usar aquests camps per registrar liquidacions de fees per rendiment.</div>'
+          : '<div style="font-size:12px;color:var(--g500);line-height:1.6;margin-bottom:18px">Registra manualment l\'últim pagament rebut i la propera data prevista. Quan tinguis la passarel·la activa, aquests camps es completaran automàticament.</div>'
+        )
+
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">'
+        + '<div>'
+          + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Darrer pagament</label>'
+          + '<input type="date" id="pag-darrer" value="' + darrerVal + '" style="width:100%;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+        + '</div>'
+        + '<div>'
+          + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Proper pagament</label>'
+          + '<input type="date" id="pag-proper" value="' + properVal + '" style="width:100%;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+        + '</div>'
+      + '</div>'
+
+      + '<div style="margin-bottom:14px">'
+        + '<button onclick="autoOmplirProperPagament()" style="padding:8px 14px;background:#fff;border:1px solid var(--g200);border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">📅 Auto: darrer + 1 mes</button>'
+      + '</div>'
+
+      + '<div style="margin-bottom:18px">'
+        + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Nota (opcional)</label>'
+        + '<textarea id="pag-nota" placeholder="Ex: pagat per Bizum el dia 12, factura #2026-014" style="width:100%;min-height:60px;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb);resize:vertical">' + escapeHtml(notaVal) + '</textarea>'
+      + '</div>'
+
+      + '<div id="pag-msg" style="margin-bottom:12px;font-size:12px;display:none"></div>'
+
+      + '<div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:center">'
+        + '<button onclick="esborrarPagament(\'' + email + '\')" style="padding:11px 14px;background:#fff;color:#C0392B;border:1px solid #F4C0C0;border-radius:9px;font-size:12px;cursor:pointer;font-family:var(--fb)" title="Esborrar dades de pagament">🗑</button>'
+        + '<button onclick="document.getElementById(\'modal-pagament\').remove()" style="padding:11px;background:#fff;color:var(--g600);border:1px solid var(--g200);border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Cancel·lar</button>'
+        + '<button id="pag-btn" onclick="guardarPagament(\'' + email + '\')" style="padding:11px;background:#1A5C3A;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">✓ Desar</button>'
+      + '</div>'
+    + '</div>'
+  + '</div>';
+
+  document.body.appendChild(modal);
+}
+
+function autoOmplirProperPagament() {
+  var darrerInp = document.getElementById('pag-darrer');
+  var properInp = document.getElementById('pag-proper');
+  if (!darrerInp || !properInp) return;
+  var val = darrerInp.value || new Date().toISOString().slice(0,10);
+  var d = new Date(val);
+  if (isNaN(d.getTime())) { toast('Data darrer pagament no vàlida'); return; }
+  d.setMonth(d.getMonth() + 1);
+  properInp.value = d.toISOString().slice(0,10);
+}
+
+async function guardarPagament(email) {
+  if (!sb) { toast('Supabase no disponible'); return; }
+  var darrer = document.getElementById('pag-darrer').value || null;
+  var proper = document.getElementById('pag-proper').value || null;
+  var nota   = document.getElementById('pag-nota').value.trim() || null;
+  var msg = document.getElementById('pag-msg');
+  var btn = document.getElementById('pag-btn');
+
+  btn.disabled = true; btn.textContent = 'Desant...';
+  msg.style.display = 'none';
+
+  try {
+    var res = await sb.from('clients').update({
+      darrer_pagament: darrer,
+      proper_pagament: proper,
+      nota_pagament: nota
+    }).eq('email', email.toLowerCase()).select('id,email');
+    if (res.error) throw res.error;
+
+    // Actualitzar caché local
+    var c = (APP.clientsList || []).find(function(x){ return x.email === email; });
+    if (c) {
+      c.darrer_pagament = darrer;
+      c.proper_pagament = proper;
+      c.nota_pagament   = nota;
+    }
+
+    document.getElementById('modal-pagament').remove();
+    toast('✓ Pagament desat');
+    renderView('admin-clients');
+  } catch(e) {
+    console.error('[guardarPagament]', e);
+    msg.style.display = 'block';
+    msg.style.color = '#C0392B';
+    msg.textContent = 'Error: ' + (e.message || 'no s\'ha pogut desar');
+    btn.disabled = false; btn.textContent = '✓ Desar';
+  }
+}
+
+async function esborrarPagament(email) {
+  if (!confirm('Esborrar totes les dades de pagament d\'aquest client?')) return;
+  if (!sb) return;
+  try {
+    var res = await sb.from('clients').update({
+      darrer_pagament: null,
+      proper_pagament: null,
+      nota_pagament: null
+    }).eq('email', email.toLowerCase());
+    if (res.error) throw res.error;
+    var c = (APP.clientsList || []).find(function(x){ return x.email === email; });
+    if (c) { c.darrer_pagament = null; c.proper_pagament = null; c.nota_pagament = null; }
+    document.getElementById('modal-pagament').remove();
+    toast('✓ Dades de pagament esborrades');
+    renderView('admin-clients');
+  } catch(e) { toast('Error: ' + e.message); }
 }
 
 // ══════════════════════════════════════════════════
@@ -4283,6 +4788,141 @@ function obrirAjudaContextual(viewId) {
   modal.appendChild(panel);
   modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
   document.body.appendChild(modal);
+}
+
+// ══════════════════════════════════════════════════
+// PORTAL CLIENT — PREFERÈNCIES DE NOTIFICACIONS
+// ══════════════════════════════════════════════════
+// Pantalla de configuració d'alertes per correu. De moment només
+// captura preferències a la BD (camps notification_email, notify_*).
+// L'enviament real s'activarà més endavant amb Edge Functions + Resend.
+function renderPortalNotificacions(el) {
+  var c = APP.clientData || {};
+  var loginEmail = (APP.user && APP.user.email) || c.email || '';
+  var notifEmail = c.notification_email || '';
+  var nInforme   = c.notify_informe !== false;            // default true
+  var nMissatge  = c.notify_missatge_admin !== false;     // default true
+  var nComunitat = c.notify_comunitat === true;           // default false
+
+  var html = '<div class="content-inner fade-in" style="max-width:780px;margin:0 auto">';
+
+  // Header
+  html += '<div style="margin-bottom:28px">'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px">Notificacions per correu</div>'
+    + '<div style="font-size:13px;color:var(--g500);line-height:1.65">Tria quan vols rebre un correu electrònic. Et podem avisar de nous informes, missatges del teu assessor o comunicats per a tota la comunitat.</div>'
+  + '</div>';
+
+  // Avís beta
+  html += '<div style="background:#FEF7E8;border:1px solid #E8C988;border-left:4px solid #C8A44A;border-radius:10px;padding:14px 18px;margin-bottom:24px">'
+    + '<div style="font-size:12px;color:#7A4A00;line-height:1.6">'
+      + '<strong>📌 Fase beta:</strong> de moment les preferències es guarden però els correus encara no s\'envien automàticament. T\'avisarem quan estigui actiu.'
+    + '</div>'
+  + '</div>';
+
+  // Email de notificacions
+  html += '<div class="card" style="margin-bottom:18px">'
+    + '<div class="card-title">📧 Correu electrònic per a les alertes</div>'
+    + '<div style="font-size:12px;color:var(--g500);line-height:1.6;margin-bottom:14px">'
+      + 'Per defecte enviem les alertes al teu correu de registre (<strong>' + escapeHtml(loginEmail) + '</strong>). Si vols rebre-les en un altre, indica\'l aquí.'
+    + '</div>'
+    + '<input type="email" id="notif-email" value="' + escapeHtml(notifEmail) + '" placeholder="' + escapeHtml(loginEmail) + '" style="width:100%;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
+    + '<div style="font-size:11px;color:var(--g400);margin-top:6px">Deixa-ho buit per fer servir el correu del compte.</div>'
+  + '</div>';
+
+  // Tipus d'alertes
+  html += '<div class="card" style="margin-bottom:18px">'
+    + '<div class="card-title">🔔 Quan vols rebre un avís?</div>'
+
+    + notifToggle('notif-informe', '📋 Nou informe disponible',
+        'Cada cop que el teu assessor publiqui un informe trimestral, de perfil o de pla financer.',
+        nInforme)
+
+    + notifToggle('notif-missatge', '💬 Missatge directe de l\'assessor',
+        'Quan rebis un missatge personal de Guillem (no comunicats generals).',
+        nMissatge)
+
+    + notifToggle('notif-comunitat', '📣 Comunicats a la comunitat',
+        'Notícies, anàlisis destacades i avisos enviats a tots els clients. Desmarcat per defecte per evitar excés de correus.',
+        nComunitat)
+
+  + '</div>';
+
+  // Botons
+  html += '<div id="notif-msg" style="margin-bottom:12px;font-size:12px;display:none"></div>';
+  html += '<div style="display:flex;gap:10px;justify-content:flex-end">'
+    + '<button onclick="renderView(\'portal-notificacions\')" style="padding:11px 20px;background:#fff;color:var(--g600);border:1px solid var(--g200);border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb)">Cancel·lar</button>'
+    + '<button id="notif-btn" onclick="guardarNotificacions()" style="padding:11px 22px;background:#1A5C3A;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">✓ Desar preferències</button>'
+  + '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// Helper per renderitzar un switch toggle a la pantalla de notificacions
+function notifToggle(id, titol, desc, checked) {
+  return '<label style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--g100);cursor:pointer" for="' + id + '">'
+    + '<input type="checkbox" id="' + id + '" ' + (checked ? 'checked' : '') + ' style="margin-top:3px;flex-shrink:0;width:16px;height:16px;accent-color:#1A5C3A;cursor:pointer">'
+    + '<div style="flex:1">'
+      + '<div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:3px">' + titol + '</div>'
+      + '<div style="font-size:11px;color:var(--g500);line-height:1.6">' + desc + '</div>'
+    + '</div>'
+  + '</label>';
+}
+
+async function guardarNotificacions() {
+  if (APP.role === 'admin' && APP.isPreview) {
+    toast('Mode previsualització: no es desa');
+    return;
+  }
+  var email = APP.user && APP.user.email;
+  if (!email || !sb) { toast('Cal iniciar sessió'); return; }
+
+  var notifEmail = (document.getElementById('notif-email').value || '').trim().toLowerCase();
+  if (notifEmail && !notifEmail.includes('@')) {
+    var msgEl = document.getElementById('notif-msg');
+    msgEl.style.display = 'block';
+    msgEl.style.color = '#C0392B';
+    msgEl.textContent = 'El correu de notificacions no és vàlid.';
+    return;
+  }
+  var nInforme   = document.getElementById('notif-informe').checked;
+  var nMissatge  = document.getElementById('notif-missatge').checked;
+  var nComunitat = document.getElementById('notif-comunitat').checked;
+  var btn = document.getElementById('notif-btn');
+  var msg = document.getElementById('notif-msg');
+
+  btn.disabled = true; btn.textContent = 'Desant...';
+  msg.style.display = 'none';
+
+  try {
+    var res = await sb.from('clients').update({
+      notification_email:     notifEmail || null,
+      notify_informe:         nInforme,
+      notify_missatge_admin:  nMissatge,
+      notify_comunitat:       nComunitat,
+    }).eq('email', email.toLowerCase()).select('id,email');
+    if (res.error) throw res.error;
+
+    // Actualitzar caché local
+    if (APP.clientData) {
+      APP.clientData.notification_email    = notifEmail || null;
+      APP.clientData.notify_informe        = nInforme;
+      APP.clientData.notify_missatge_admin = nMissatge;
+      APP.clientData.notify_comunitat      = nComunitat;
+    }
+
+    msg.style.display = 'block';
+    msg.style.color = '#1A5C3A';
+    msg.textContent = '✓ Preferències desades';
+    btn.disabled = false; btn.textContent = '✓ Desar preferències';
+    setTimeout(function(){ msg.style.display='none'; }, 3000);
+  } catch(e) {
+    console.error('[guardarNotificacions]', e);
+    msg.style.display = 'block';
+    msg.style.color = '#C0392B';
+    msg.textContent = 'Error: ' + (e.message || 'no s\'ha pogut desar');
+    btn.disabled = false; btn.textContent = '✓ Desar preferències';
+  }
 }
 
 function renderPortalAjuda(el) {
@@ -6956,6 +7596,72 @@ function subscribeToMessages(email) {
       if (_currentThreadEmail === email) loadThread(email);
     })
     .subscribe();
+}
+
+// ══════════════════════════════════════════════════
+// SUBSCRIPCIÓ REALTIME GLOBAL — badges del sidebar
+// ══════════════════════════════════════════════════
+// Aquesta subscripció és independent del thread obert i s'encarrega
+// d'actualitzar els comptadors de la barra lateral quan arriben
+// missatges nous o canvia l'estat d'un client (pendent → actiu).
+// Es crea un cop per sessió a enterApp().
+var _badgeRealtimeChannel = null;
+
+function subscribeToBadgeUpdates() {
+  if (!sb || !APP.user || !APP.user.email) return;
+  if (_badgeRealtimeChannel) {
+    try { sb.removeChannel(_badgeRealtimeChannel); } catch(e) {}
+    _badgeRealtimeChannel = null;
+  }
+
+  var emailLower = APP.user.email.toLowerCase();
+  var chanName = 'badges-' + (APP.role === 'admin' ? 'admin' : 'cli-' + emailLower);
+
+  _badgeRealtimeChannel = sb.channel(chanName)
+    // Qualsevol INSERT/UPDATE a messages
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'messages'
+    }, function(payload) {
+      try {
+        if (APP.role === 'admin') {
+          actualitzarBadgeMissatgesAdmin();
+        } else {
+          // Per al client, només ens interessen els missatges adreçats a ell
+          var row = payload.new || payload.old || {};
+          if (row.client_email === emailLower) {
+            actualitzarBannerMissatges();
+          }
+        }
+      } catch(e) { console.warn('[badge realtime]', e); }
+    });
+
+  // Per a admins, també escoltar canvis a clients (nous registres pendents)
+  if (APP.role === 'admin') {
+    _badgeRealtimeChannel = _badgeRealtimeChannel.on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'clients'
+    }, function() {
+      try { actualitzarBadgePendents(); } catch(e) {}
+    });
+  }
+
+  _badgeRealtimeChannel.subscribe();
+}
+
+// Comptador global de missatges no llegits per a admin
+async function actualitzarBadgeMissatgesAdmin() {
+  if (APP.role !== 'admin' || !sb) return;
+  try {
+    var res = await sb.from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('from_role', 'client')
+      .eq('read_by_admin', false);
+    if (res.error) return;
+    actualitzarBadgeMissatges(res.count || 0);
+  } catch(e) { console.warn(e); }
 }
 
 // ══════════════════════════════════════════════════
@@ -11169,13 +11875,22 @@ async function actualitzarBannerMissatges() {
 }
 
 function actualitzarBadgeMissatges(count) {
-  // Buscar l'item del nav "Missatges" i actualitzar-ne el badge
+  // Buscar l'item del nav "Missatges" / "Missatges clients" i actualitzar-ne el badge.
+  // NOTA: la nav es renderitza com a `<button class="sidebar-item">[icon] [text] [badge?]</button>`
+  // sense classe envoltant pel label, així que cal llegir el textContent del botó
+  // (excloent icon i badge).
   var items = document.querySelectorAll('.sidebar-item');
   items.forEach(function(item) {
-    var label = item.querySelector('.sidebar-item-label');
-    if (label && (label.textContent === 'Missatges' || label.textContent === 'Missatges clients')) {
-      var existing = item.querySelector('.sidebar-item-badge');
-      if (existing) existing.remove();
+    // Construir el label real eliminant icon i badge del textContent
+    var iconEl  = item.querySelector('.sidebar-item-icon');
+    var badgeEl = item.querySelector('.sidebar-item-badge');
+    var label = item.textContent || '';
+    if (iconEl)  label = label.replace(iconEl.textContent  || '', '');
+    if (badgeEl) label = label.replace(badgeEl.textContent || '', '');
+    label = label.trim();
+
+    if (label === 'Missatges' || label === 'Missatges clients') {
+      if (badgeEl) badgeEl.remove();
       if (count > 0) {
         var badge = document.createElement('span');
         badge.className = 'sidebar-item-badge';
@@ -12197,10 +12912,10 @@ function obrirModalValidacio(email) {
       + '<div style="margin-bottom:14px">'
         + '<label style="font-size:11px;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px">Pla a assignar (en aprovar)</label>'
         + '<select id="val-pla" style="width:100%;padding:10px 12px;border:1px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'
-          + '<option value="essencial">Essencial — 7€/mes</option>'
+          + '<option value="senyal">Senyal — 8€/mes</option>'
           + '<option value="bruxola">Brúixola — 29€/mes</option>'
-          + '<option value="rumb">Rumb — 59€/mes</option>'
-          + '<option value="mapa">Mapa — 99€/mes</option>'
+          + '<option value="nord">Nord — 49€/mes</option>'
+          + '<option value="partner">Partner — Fee per rendiment</option>'
         + '</select>'
       + '</div>'
       
@@ -12361,7 +13076,17 @@ async function marcarRevisio(email) {
 }
 
 function getPlaLabel(pla) {
-  var labels = { essencial:'Essencial (7€/mes)', bruxola:'Brúixola (29€/mes)', rumb:'Rumb (59€/mes)', mapa:'Mapa (99€/mes)' };
+  var labels = {
+    senyal:   'Senyal (8€/mes)',
+    bruxola:  'Brúixola (29€/mes)',
+    nord:     'Nord (49€/mes)',
+    partner:  'Partner (fee per rendiment)',
+    // Aliases antics, mantinguts per compatibilitat amb files existents:
+    essencial:'Senyal (8€/mes)',
+    rumb:     'Nord (49€/mes)',
+    mapa:     'Nord (49€/mes)',
+    family:   'Partner (fee per rendiment)'
+  };
   return labels[pla] || pla;
 }
 
@@ -12400,10 +13125,16 @@ async function actualitzarBadgePendents() {
 
     var items = document.querySelectorAll('.sidebar-item');
     items.forEach(function(item) {
-      var label = item.querySelector('.sidebar-item-label');
-      if (label && label.textContent === 'Sol·licituds pendents') {
-        var existing = item.querySelector('.sidebar-item-badge');
-        if (existing) existing.remove();
+      // Llegir el label real del botó (sense icon ni badge)
+      var iconEl  = item.querySelector('.sidebar-item-icon');
+      var badgeEl = item.querySelector('.sidebar-item-badge');
+      var label = item.textContent || '';
+      if (iconEl)  label = label.replace(iconEl.textContent  || '', '');
+      if (badgeEl) label = label.replace(badgeEl.textContent || '', '');
+      label = label.trim();
+
+      if (label === 'Sol·licituds pendents') {
+        if (badgeEl) badgeEl.remove();
         if (totalCount > 0) {
           var badge = document.createElement('span');
           // Si hi ha urgents (pending/review), afegim classe pulse + color càlid
@@ -12504,6 +13235,64 @@ function renderHubAlertaPendents() {
       + '<div class="hub-alert-sub">' + preview + '</div>'
     + '</div>'
     + '<div class="hub-alert-cta">Revisar →</div>'
+  + '</div>';
+}
+
+// Banner d'alerta de pagaments al Hub (només admin).
+// Es renderitza buit inicialment; refrescarHubAlertaPagaments()
+// l'omple amb les dades reals després de carregar la llista de clients.
+function renderHubAlertaPagaments() {
+  if (APP.role !== 'admin') return '';
+  return '<div id="hub-alert-pagaments" style="display:none;margin-top:12px"></div>';
+}
+
+// Actualitza el contingut del banner de pagaments basant-se en APP.clientsList.
+// Categoritza els clients segons: vençuts (proper_pagament < avui), aviat (<= 7 dies),
+// al corrent (la resta amb pagament configurat).
+function refrescarHubAlertaPagaments() {
+  if (APP.role !== 'admin') return;
+  var banner = document.getElementById('hub-alert-pagaments');
+  if (!banner) return;
+
+  var clients = APP.clientsList || [];
+  var avui = new Date(); avui.setHours(0,0,0,0);
+  var d7 = new Date(avui.getTime() + 7*24*3600*1000);
+
+  var vencuts = [], aviat = [];
+  clients.forEach(function(c){
+    if (c.status !== 'active' || !c.proper_pagament) return;
+    var d = new Date(c.proper_pagament);
+    if (isNaN(d.getTime())) return;
+    d.setHours(0,0,0,0);
+    if (d < avui) vencuts.push(c);
+    else if (d <= d7) aviat.push(c);
+  });
+
+  if (vencuts.length === 0 && aviat.length === 0) {
+    banner.style.display = 'none';
+    banner.innerHTML = '';
+    return;
+  }
+
+  var bg = vencuts.length > 0 ? '#FCEBEB' : '#FEF5E7';
+  var bc = vencuts.length > 0 ? '#E8B0A8' : '#E8C988';
+  var bl = vencuts.length > 0 ? '#C0392B' : '#7A4A00';
+  var ico = vencuts.length > 0 ? '⚠' : '⏰';
+  var titol = vencuts.length > 0
+    ? vencuts.length + ' pagament' + (vencuts.length>1?'s':'') + ' vençut' + (vencuts.length>1?'s':'')
+    : aviat.length + ' pagament' + (aviat.length>1?'s':'') + ' aviat';
+  var sub = vencuts.length > 0
+    ? 'Hi ha clients fora de termini' + (aviat.length>0 ? ' i ' + aviat.length + ' més vencen aviat' : '')
+    : 'Vencen en els propers 7 dies';
+
+  banner.style.display = 'block';
+  banner.innerHTML = '<div onclick="navigateTo(\'admin-clients\')" style="background:' + bg + ';border:1px solid ' + bc + ';border-left:4px solid ' + bl + ';border-radius:10px;padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:14px">'
+    + '<div style="font-size:22px;color:' + bl + '">' + ico + '</div>'
+    + '<div style="flex:1">'
+      + '<div style="font-size:13px;font-weight:500;color:' + bl + '">' + titol + '</div>'
+      + '<div style="font-size:11px;color:' + bl + ';opacity:.8;margin-top:2px">' + sub + '</div>'
+    + '</div>'
+    + '<div style="font-size:11px;color:' + bl + ';font-weight:500">Revisar →</div>'
   + '</div>';
 }
 
