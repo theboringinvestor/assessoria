@@ -13116,6 +13116,7 @@ async function renderAdminPendents(el) {
       + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
         + '<button onclick="obrirNetejaProves()" style="padding:9px 14px;background:transparent;color:var(--g600);border:1px solid var(--g300);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500">🗑 Esborrar files de prova...</button>'
         + '<button onclick="forcarActivacioRapida()" style="padding:9px 14px;background:transparent;color:#1A5C3A;border:1px solid #B8DBC4;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500">⚡ Forçar activació ràpida...</button>'
+        + '<button onclick="reenviarAccesClient()" style="padding:9px 14px;background:transparent;color:#1B3A6B;border:1px solid #A3BCE8;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);font-weight:500">🔑 Reenviar accés a client...</button>'
       + '</div>'
     + '</div>';
 
@@ -13171,6 +13172,60 @@ async function forcarActivacioRapida() {
 }
 
 // ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// REENVIAR ACCÉS A CLIENT — envia email de reset de contrasenya
+// Funciona cridant sb.auth.resetPasswordForEmail (anon key ho permet)
+// El client rep un email amb un link per establir nova contrasenya.
+// ══════════════════════════════════════════════════
+async function reenviarAccesClient(emailPreomplert) {
+  if (!sb || APP.role !== 'admin') return;
+
+  var email = prompt(
+    'Email del client al qual vols reenviar l\u2019acc\u00e9s:\n\n' +
+    'S\u2019enviar\u00e0 un email de Supabase amb un enlla\u00e7 per establir nova contrasenya.',
+    emailPreomplert || ''
+  );
+  if (!email) return;
+  email = email.toLowerCase().trim();
+  if (!email.includes('@')) { toast('\u26a0 Email no v\u00e0lid'); return; }
+
+  if (!confirm(
+    'Enviar email de restabliment de contrasenya a:\n\n' + email + '\n\n' +
+    'El client rebrà un enlla\u00e7 v\u00e0lid durant 1 hora per establir una nova contrasenya.'
+  )) return;
+
+  try {
+    var res = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://theboringinvestor.github.io/assessoria/platform.html?reset=true'
+    });
+    if (res.error) throw res.error;
+
+    toast('\u2713 Email de reset enviat a ' + email);
+
+    // Missatge intern: notificar al client que l'hem enviat
+    try {
+      await sb.from('messages').insert({
+        client_email: email,
+        from_email: 'guillem@theboringinvestor.com',
+        from_role: 'admin',
+        content: '\uD83D\uDD11 T\u2019he enviat un email per restablir la contrasenya d\u2019acc\u00e9s a la plataforma.\n\nRevisa la safata d\u2019entrada (i la carpeta de spam). L\u2019enlla\u00e7 \u00e9s v\u00e0lid durant 1 hora.\n\nURL de la plataforma: https://theboringinvestor.github.io/assessoria/platform.html\n\nSi tens qualsevol problema, escriu-me.\n\n\u2014 Guillem',
+        read_by_admin: true,
+        read_by_client: false
+      });
+    } catch(e) { console.warn('No s\u2019ha pogut crear missatge intern:', e); }
+
+  } catch(e) {
+    var msg = e.message || e;
+    if (msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many')) {
+      toast('\u26a0 Massa intents. Espera uns minuts i torna a provar.');
+    } else {
+      toast('Error: ' + msg);
+    }
+    console.error('[reenviarAccesClient]', e);
+  }
+}
+
 // NETEJA DE FILES DE PROVA — modal admin
 // ══════════════════════════════════════════════════
 async function obrirNetejaProves() {
