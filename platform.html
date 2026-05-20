@@ -8990,6 +8990,67 @@ function _frRecoveryYrs(mu, dd) {
   return Math.log(1 / (1 - dd / 100)) / Math.log(1 + mu / 100);
 }
 function _frVaR95(mu, sigma) { return mu - 1.645 * sigma; }
+
+// Rendiment geomètric anual (CAGR esperat) ≈ μ - σ²/2
+// És el "drift" de la distribució lognormal — el ritme real al qual capitalitza
+// la cartera, restant el cost matemàtic de la volatilitat.
+// Inputs en %, output en %. Sempre ≤ μ aritmètic (igual només si σ=0).
+function _frGeoReturn(muPct, sigmaPct) {
+  var mu  = (parseFloat(muPct)    || 0) / 100;
+  var sig = (parseFloat(sigmaPct) || 0) / 100;
+  return (mu - sig * sig / 2) * 100;
+}
+
+// Money-Weighted Return (TIR sobre fluxos): troba la taxa anual que iguala
+// el valor present dels fluxos (cap inicial + aportacions mensuals) amb el valor final.
+// Resol IRR mensual amb Newton-Raphson, després l'anualitza.
+//   - capInicial: aportació inicial (€)
+//   - aportMens:  aportació mensual (€)
+//   - valorFinal: valor objectiu de la cartera (€) — típicament la mediana de projecció
+//   - anys:       horitzó (anys)
+// Retorna: TIR anual en %. Diferent del CAGR perquè pondera per "euro·temps".
+function _frMWR(capInicial, aportMens, valorFinal, anys) {
+  var n = Math.round((parseFloat(anys) || 0) * 12);
+  var C0 = parseFloat(capInicial) || 0;
+  var A  = parseFloat(aportMens)  || 0;
+  var V  = parseFloat(valorFinal) || 0;
+  var totalAport = C0 + A * n;
+  if (n <= 0 || totalAport <= 0 || V <= 0) return 0;
+
+  // NPV mensual: -C0 al t=0, -A al t=1..n, +V al t=n
+  function npv(r) {
+    var s = -C0;
+    var disc = 1, factor = 1 / (1 + r);
+    for (var i = 1; i <= n; i++) {
+      disc *= factor;
+      s -= A * disc;
+    }
+    s += V * disc; // disc al final = (1+r)^-n
+    return s;
+  }
+
+  // Estimació inicial: rendiment mensual mig assumint creixement compost
+  var r0 = Math.pow(V / totalAport, 1 / n) - 1;
+  var r = Math.max(-0.05, Math.min(0.05, r0));
+
+  // Newton-Raphson amb derivada numèrica
+  for (var iter = 0; iter < 80; iter++) {
+    var f = npv(r);
+    if (Math.abs(f) < 0.01) break;
+    var dr = 1e-6;
+    var df = (npv(r + dr) - f) / dr;
+    if (Math.abs(df) < 1e-12) break;
+    var step = f / df;
+    // Limitar pas per evitar divergir
+    if (step > 0.05) step = 0.05;
+    else if (step < -0.05) step = -0.05;
+    r = r - step;
+    if (r <= -0.99 / 12) r = -0.99 / 12;
+    if (r > 1) r = 1;
+  }
+
+  return (Math.pow(1 + r, 12) - 1) * 100;
+}
 function _frProj(capInicial, aportMens, mu, sigma, anys) {
   var muY = mu / 100, sigY = sigma / 100;
   var drift = muY - sigY * sigY / 2;
@@ -9767,6 +9828,20 @@ function renderPortalRoadmap(el) {
     + '.fr-kpi-desc{font-size:11px;color:var(--g500);line-height:1.55;margin-top:8px}'
     + '.fr-kpi-bar{margin-top:10px;height:4px;background:var(--g100);border-radius:99px;overflow:hidden}'
     + '.fr-kpi-bar-fill{height:100%;border-radius:99px;background:#1B3A6B}'
+
+    // Bloc "Tres mirades al rendiment" — destacat dins de la secció 04
+    + '.fr-rends-wrap{background:linear-gradient(135deg,#FAFBFC 0%,#F2F4F7 100%);border:1px solid var(--g200);border-radius:14px;padding:20px 22px;margin-bottom:22px}'
+    + '.fr-rends-titol{font-family:var(--fm);font-size:9.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#1B3A6B;margin-bottom:4px}'
+    + '.fr-rends-sub{font-family:var(--fd);font-size:18px;font-weight:500;color:var(--black);letter-spacing:-.015em;margin-bottom:14px}'
+    + '.fr-rends-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}'
+    + '@media(max-width:780px){.fr-rends-grid{grid-template-columns:1fr}}'
+    + '.fr-rend{background:#fff;border:1px solid var(--g200);border-radius:10px;padding:14px 16px;position:relative}'
+    + '.fr-rend-lbl{font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:8px}'
+    + '.fr-rend-val{font-family:var(--fd);font-size:26px;font-weight:500;letter-spacing:-.02em;line-height:1;margin-bottom:6px}'
+    + '.fr-rend-val.pos{color:#1A5C3A}.fr-rend-val.navy{color:#1B3A6B}.fr-rend-val.accent{color:#7A4A00}'
+    + '.fr-rend-val .fr-rend-unit{font-family:var(--fm);font-size:11px;font-weight:400;color:var(--g500);margin-left:2px}'
+    + '.fr-rend-desc{font-size:10.5px;color:var(--g500);line-height:1.55;margin-top:4px}'
+    + '.fr-rend-formula{font-family:var(--fm);font-size:9px;color:var(--g400);margin-top:6px;letter-spacing:.02em}'
     // Actiu
     + '.fr-act{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 20px;margin-bottom:10px}'
     + '.fr-act-hd{display:flex;align-items:center;gap:12px;margin-bottom:12px}'
@@ -10303,10 +10378,44 @@ function renderPortalRoadmap(el) {
   + '</div>';
 
   // ─── 5. KPIs ────────────────────────────────────────────────
+  // Mètriques addicionals: rendiment geomètric i TIR ponderada per fluxes
+  var muGeoCart = _frGeoReturn(mCart.mu, mCart.sigma);
+  // Per a la TIR usem la mediana de la projecció (escenari central)
+  var projCartMain = _frProj(capitalSim, aportacio, mCart.mu, mCart.sigma, horitzo);
+  var mwrCart = _frMWR(capitalSim, aportacio, projCartMain.median, horitzo);
+  var totalAportatMain = capitalSim + aportacio * 12 * horitzo;
+
   html += '<div class="fr-section">'
     + '<div class="fr-label">04 · M\u00e8triques clau de la cartera</div>'
     + '<div class="fr-h2">Qu\u00e8 esperar \u2014 i qu\u00e8 no</div>'
-    + '<div class="fr-lead">Aquestes sis m\u00e8triques resumeixen el comportament esperat de la teva cartera. No s\u00f3n promeses; s\u00f3n rangs probabil\u00edstics basats en dades hist\u00f2riques i models matem\u00e0tics est\u00e0ndard.</div>'
+    + '<div class="fr-lead">Aquestes m\u00e8triques resumeixen el comportament esperat de la teva cartera. No s\u00f3n promeses; s\u00f3n rangs probabil\u00edstics basats en dades hist\u00f2riques i models matem\u00e0tics est\u00e0ndard.</div>'
+
+    // BLOC NOU: tres mirades al rendiment
+    + '<div class="fr-rends-wrap">'
+      + '<div class="fr-rends-titol">\u2728 Tres mirades al rendiment esperat</div>'
+      + '<div class="fr-rends-sub">El mateix retorn, mirat des de tres angles diferents</div>'
+      + '<div class="fr-rends-grid">'
+        + '<div class="fr-rend">'
+          + '<div class="fr-rend-lbl">Aritm\u00e8tic \u00b7 \u03BC</div>'
+          + '<div class="fr-rend-val pos" id="fr-rend-arit">+' + f1(mCart.mu) + '<span class="fr-rend-unit">% / any</span></div>'
+          + '<div class="fr-rend-desc">Mitjana ponderada del retorn esperat de cada actiu. \u00c9s la xifra m\u00e9s simple i la que els fons publiquen.</div>'
+          + '<div class="fr-rend-formula">\u03A3 (w\u1d62 \u00b7 \u03BC\u1d62)</div>'
+        + '</div>'
+        + '<div class="fr-rend">'
+          + '<div class="fr-rend-lbl">Geom\u00e8tric \u00b7 CAGR</div>'
+          + '<div class="fr-rend-val navy" id="fr-rend-geo">+' + f1(muGeoCart) + '<span class="fr-rend-unit">% / any</span></div>'
+          + '<div class="fr-rend-desc">El ritme <strong>real</strong> al qual capitalitza la cartera. M\u00e9s baix que l\u2019aritm\u00e8tic per culpa de la volatilitat (cost matem\u00e0tic de la sigma).</div>'
+          + '<div class="fr-rend-formula" id="fr-rend-geo-f">\u03BC \u2212 \u03C3\u00b2 / 2 = ' + f1(mCart.mu) + ' \u2212 ' + f1(mCart.sigma*mCart.sigma/200) + '</div>'
+        + '</div>'
+        + '<div class="fr-rend">'
+          + '<div class="fr-rend-lbl">TIR per fluxos</div>'
+          + '<div class="fr-rend-val accent" id="fr-rend-mwr">+' + f1(mwrCart) + '<span class="fr-rend-unit">% / any</span></div>'
+          + '<div class="fr-rend-desc">Rendiment efectiu sobre cada euro aportat. Considera que les aportacions arriben mes a mes \u2014 els primers euros compensen m\u00e9s temps que els \u00faltims.</div>'
+          + '<div class="fr-rend-formula" id="fr-rend-mwr-f">IRR sobre ' + fEur(totalAportatMain) + ' aportats \u2192 ' + fEur(projCartMain.median) + '</div>'
+        + '</div>'
+      + '</div>'
+    + '</div>'
+
     + '<div class="fr-kpis">'
       + '<div class="fr-kpi"><div class="fr-kpi-lbl">Rendiment esperat \u03BC</div><div class="fr-kpi-val pos">+' + f1(mCart.mu) + '<span class="fr-kpi-unit">% / any</span></div><div class="fr-kpi-desc">Mitjana anual esperada a llarg termini, calculada com a mitjana ponderada del retorn esperat de cada actiu. <strong>No \u00e9s el que guanyar\u00e0s cada any</strong> \u2014 alguns anys ser\u00e0 m\u00e9s, altres ser\u00e0 negatiu.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(mCart.mu * 10, 100) + '%"></div></div></div>'
       + '<div class="fr-kpi"><div class="fr-kpi-lbl">Volatilitat \u03C3</div><div class="fr-kpi-val navy">' + f1(mCart.sigma) + '<span class="fr-kpi-unit">% / any</span></div><div class="fr-kpi-desc">Desviaci\u00f3 est\u00e0ndard del retorn anual: mesura com de variable \u00e9s el rendiment any rere any. Aproximadament un 68% dels anys el resultat estar\u00e0 a \u00B1\u03C3 de la mitjana.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(mCart.sigma * 5, 100) + '%;background:#D4943A"></div></div></div>'
@@ -10315,7 +10424,7 @@ function renderPortalRoadmap(el) {
       + '<div class="fr-kpi"><div class="fr-kpi-lbl">Temps de recuperaci\u00f3</div><div class="fr-kpi-val navy">~' + recCart.toFixed(1).replace('.', ',') + '<span class="fr-kpi-unit"> anys</span></div><div class="fr-kpi-desc">Temps mig per recuperar el valor previ a una caiguda m\u00e0xima, assumint el rendiment esperat. \u00c9s el motiu clau per qu\u00e8 aquesta cartera necessita horitz\u00f3 llarg.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(recCart * 10, 100) + '%"></div></div></div>'
       + '<div class="fr-kpi"><div class="fr-kpi-lbl">VaR 95% · 1 any</div><div class="fr-kpi-val neg">' + (varCart < 0 ? '\u2212' : '+') + f1(Math.abs(varCart)) + '<span class="fr-kpi-unit">%</span></div><div class="fr-kpi-desc">P\u00e8rdua m\u00e0xima esperada amb un 95% de confian\u00e7a en qualsevol any. Cada 20 anys, aproximadament 1 any tindr\u00e0 una caiguda m\u00e9s gran que aquesta xifra.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(Math.abs(varCart) * 3, 100) + '%;background:#8B1A1A"></div></div></div>'
     + '</div>'
-    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Notes metodol\u00f2giques: \u03BC i \u03C3 calculats amb correlaci\u00f3 zero entre actius (model conservador). Sharpe amb rf = 2%. M\u00e0x. caiguda i VaR estimats sota distribuci\u00f3 lognormal. Rendiments passats no garanteixen rendiments futurs.</div>'
+    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Notes metodol\u00f2giques: \u03BC i \u03C3 calculats amb correlaci\u00f3 zero entre actius (model conservador). El <strong>CAGR geom\u00e8tric</strong> usa el drift de GBM (\u03BC \u2212 \u03C3\u00b2/2). La <strong>TIR per fluxos</strong> resol Newton-Raphson sobre el flux real d\u2019aportacions assumint el valor mitj\u00e0 projectat. Sharpe amb rf = 2%. M\u00e0x. caiguda i VaR sota distribuci\u00f3 lognormal. Rendiments passats no garanteixen rendiments futurs.</div>'
   + '</div>';
 
   // ─── 6. ANÀLISI ACTIU PER ACTIU ────────────────────────────
@@ -10483,13 +10592,19 @@ function renderPortalRoadmap(el) {
     var beneficiColor = beneficiMedian >= 0 ? '#1A5C3A' : '#8B1A1A';
     var beneficiSign = beneficiMedian >= 0 ? '+' : '';
 
+    // Càlcul de les noves mètriques per a l'escenari
+    var muGeoEsc = _frGeoReturn(mu, sig);
+    var mwrEsc   = _frMWR(capitalSim, aportacio, proj.median, horitzo);
+
     return '<div class="fr-esc' + cls + '">'
       + '<div class="fr-esc-t">' + titolHtml + '</div>'
       + '<div class="fr-esc-s">' + escSubHtml(target, currentArqId) + '</div>'
       + '<svg id="' + donutId + '" viewBox="0 0 100 100" class="fr-esc-d"></svg>'
       + '<div class="fr-esc-k">'
-        + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03BC esperat</div><div class="fr-esc-kv" style="color:#1A5C3A" id="fr-esc-kv-' + target + '-mu">+' + f1(mu) + '%</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03BC aritm\u00e8tic</div><div class="fr-esc-kv" style="color:#1A5C3A" id="fr-esc-kv-' + target + '-mu">+' + f1(mu) + '%</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">CAGR geom.</div><div class="fr-esc-kv" style="color:#1B3A6B" id="fr-esc-kv-' + target + '-mugeo">+' + f1(muGeoEsc) + '%</div></div>'
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03C3 vol.</div><div class="fr-esc-kv" id="fr-esc-kv-' + target + '-sig">' + f1(sig) + '%</div></div>'
+        + '<div class="fr-esc-ki"><div class="fr-esc-kl">TIR fluxos</div><div class="fr-esc-kv" style="color:#7A4A00" id="fr-esc-kv-' + target + '-mwr">+' + f1(mwrEsc) + '%</div></div>'
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">Sharpe</div><div class="fr-esc-kv" id="fr-esc-kv-' + target + '-sh">' + sh.toFixed(2).replace('.', ',') + '</div></div>'
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">M\u00e0x. DD</div><div class="fr-esc-kv" style="color:#8B1A1A" id="fr-esc-kv-' + target + '-dd">\u2212' + Math.round(dd) + '%</div></div>'
       + '</div>'
@@ -11019,6 +11134,26 @@ function _frRecalcCartPri() {
   // Donut
   var donut = document.getElementById('fr-donut-pri');
   if (donut) _frDrawDonut(donut, actius, { size:200, stroke:28 });
+  // Bloc "Tres mirades al rendiment" — recàlcul live de CAGR i TIR
+  var muGeoLive = _frGeoReturn(m.mu, m.sigma);
+  var fEurLive = function(n){ return new Intl.NumberFormat('ca-ES',{maximumFractionDigits:0}).format(Math.round(n)) + '\u20AC'; };
+  var stLive = window._FR_STATE || {};
+  var capLive = stLive.capital   != null ? stLive.capital   : 30000;
+  var aprLive = stLive.aportacio != null ? stLive.aportacio : 400;
+  var horLive = stLive.horitzo   != null ? stLive.horitzo   : 15;
+  var projLive = _frProj(capLive, aprLive, m.mu, m.sigma, horLive);
+  var totalApLive = capLive + aprLive * 12 * horLive;
+  var mwrLive = _frMWR(capLive, aprLive, projLive.median, horLive);
+  var aritEl   = document.getElementById('fr-rend-arit');
+  var geoEl    = document.getElementById('fr-rend-geo');
+  var geoFEl   = document.getElementById('fr-rend-geo-f');
+  var mwrEl    = document.getElementById('fr-rend-mwr');
+  var mwrFEl   = document.getElementById('fr-rend-mwr-f');
+  if (aritEl) aritEl.innerHTML = '+' + fx(m.mu)      + '<span class="fr-rend-unit">% / any</span>';
+  if (geoEl)  geoEl.innerHTML  = '+' + fx(muGeoLive) + '<span class="fr-rend-unit">% / any</span>';
+  if (geoFEl) geoFEl.textContent = '\u03BC \u2212 \u03C3\u00b2 / 2 = ' + fx(m.mu) + ' \u2212 ' + fx(m.sigma*m.sigma/200);
+  if (mwrEl)  mwrEl.innerHTML  = '+' + fx(mwrLive)   + '<span class="fr-rend-unit">% / any</span>';
+  if (mwrFEl) mwrFEl.textContent = 'IRR sobre ' + fEurLive(totalApLive) + ' aportats \u2192 ' + fEurLive(projLive.median);
   // Guardar pesos + mu/sigma personalitzats
   var muSigSnap = {};
   actius.forEach(function(a){ muSigSnap[a.id] = { mu:a.mu, sigma:a.sigma }; });
@@ -11083,18 +11218,22 @@ function _frRecalcEscenari(target) {
   var m  = _frCalcCartera(actius);
   var sh = _frSharpe(m.mu, m.sigma, 2);
   var dd = _frMaxDD(m.mu, m.sigma);
+  var muGeo = _frGeoReturn(m.mu, m.sigma);  // CAGR geomètric
   var f1 = function(n) { return n.toFixed(1).replace('.', ','); };
 
   // Actualitzar KPI cells
   var pfx = 'fr-esc-kv-' + target + '-';
-  var muEl  = document.getElementById(pfx + 'mu');
-  var sigEl = document.getElementById(pfx + 'sig');
-  var shEl  = document.getElementById(pfx + 'sh');
-  var ddEl  = document.getElementById(pfx + 'dd');
-  if (muEl)  muEl.textContent  = '+' + f1(m.mu);
-  if (sigEl) sigEl.textContent = f1(m.sigma) + '%';
-  if (shEl)  shEl.textContent  = sh.toFixed(2).replace('.', ',');
-  if (ddEl)  ddEl.textContent  = '\u2212' + Math.round(dd) + '%';
+  var muEl    = document.getElementById(pfx + 'mu');
+  var muGeoEl = document.getElementById(pfx + 'mugeo');
+  var sigEl   = document.getElementById(pfx + 'sig');
+  var mwrEl   = document.getElementById(pfx + 'mwr');
+  var shEl    = document.getElementById(pfx + 'sh');
+  var ddEl    = document.getElementById(pfx + 'dd');
+  if (muEl)    muEl.textContent    = '+' + f1(m.mu) + '%';
+  if (muGeoEl) muGeoEl.textContent = '+' + f1(muGeo) + '%';
+  if (sigEl)   sigEl.textContent   = f1(m.sigma) + '%';
+  if (shEl)    shEl.textContent    = sh.toFixed(2).replace('.', ',');
+  if (ddEl)    ddEl.textContent    = '\u2212' + Math.round(dd) + '%';
 
   // Actualitzar valor final i rang
   var st  = window._FR_STATE || {};
@@ -11121,6 +11260,12 @@ function _frRecalcEscenari(target) {
       bvEl.innerHTML = bSign + fEurLoc(Math.abs(benef)) + ' <span style="font-size:11px;font-family:var(--fm);font-weight:400">(' + bSign + Math.round(pctB) + '%)</span>';
     }
     if (baEl) baEl.textContent = 'Sobre ' + fEurLoc(totalAp) + ' aportats';
+    // TIR ponderada per fluxos — depèn del valor final projectat
+    var mwr = _frMWR(cap, apr, proj.median, hor);
+    if (mwrEl) mwrEl.textContent = '+' + f1(mwr) + '%';
+  } else if (mwrEl) {
+    // Sense projecció vàlida (σ=0 o paràmetres no vàlids) → TIR = CAGR
+    mwrEl.textContent = '+' + f1(muGeo) + '%';
   }
 
   // Actualitzar donut (usa l'ID curt 'fr-d-cons' / 'fr-d-agr' / 'fr-d-rec')
