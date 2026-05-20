@@ -9051,6 +9051,60 @@ function _frMWR(capInicial, aportMens, valorFinal, anys) {
 
   return (Math.pow(1 + r, 12) - 1) * 100;
 }
+
+// Plus de rebalanceig (Diversification Return / Volatility Harvesting)
+// DR = ½ · (Σ wᵢσᵢ² − σ²ₚ)  — sota correlació zero (model de la plataforma)
+// Equivalentment: DR = ½ · Σ wᵢ(1−wᵢ)σᵢ²
+//
+// Intuïció: el rebalanceig sistemàtic captura el "volatility drag" en sentit invers
+// — el cost de la volatilitat (σ²/2) per actiu individual menys el cost de la
+// volatilitat de la cartera. Diversificació + rebalanceig retorna part del que
+// la volatilitat es menjaria en un buy-and-hold pur.
+//
+// Inputs: actius amb {pes en %, sigma en %}
+// Output: DR teòric en % / any (≥ 0, =0 si tot el pes a un sol actiu)
+function _frRebalancingPremium(actius) {
+  if (!actius || actius.length === 0) return 0;
+  var total = 0;
+  for (var i = 0; i < actius.length; i++) total += (parseFloat(actius[i].pes) || 0);
+  if (total <= 0) return 0;
+  // Σ wᵢ(1−wᵢ)σᵢ² amb pesos normalitzats
+  var sum = 0;
+  for (var j = 0; j < actius.length; j++) {
+    var w = (parseFloat(actius[j].pes) || 0) / total;
+    var s = (parseFloat(actius[j].sigma) || 0);
+    sum += w * (1 - w) * s * s;
+  }
+  // El resultat de la suma està en %² → dividim entre 100 per portar-ho a % anual
+  return 0.5 * sum / 100;
+}
+
+// Factor d'aplicació del DR teòric (0-100, default 60%).
+// Compensa: correlacions reals > 0, costos de transacció, tax drag, mercats
+// tendencials. Retorna el factor com a decimal (0-1).
+function _frHaircut() {
+  try {
+    var c = getClient();
+    var v = c && c.fullderuta && c.fullderuta.overrides && c.fullderuta.overrides.rebalanceHaircut;
+    if (v == null || isNaN(parseFloat(v))) return 0.60;
+    var pct = parseFloat(v);
+    if (pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+    return pct / 100;
+  } catch (e) { return 0.60; }
+}
+
+// Quan canvia l'haircut: persistim i fem rerender (full per simplicitat
+// — l'haircut canvia rarament en comparació amb els pesos)
+function _frSetHaircut(pct) {
+  var v = parseFloat(pct);
+  if (isNaN(v)) v = 60;
+  if (v < 0) v = 0;
+  if (v > 100) v = 100;
+  _frSetOverride('rebalanceHaircut', Math.round(v));
+  _frMarkDirty();
+  _frRerenderKeepEditors();
+}
 function _frProj(capInicial, aportMens, mu, sigma, anys) {
   var muY = mu / 100, sigY = sigma / 100;
   var drift = muY - sigY * sigY / 2;
@@ -9771,6 +9825,7 @@ function renderPortalRoadmap(el) {
   var varCart = _frVaR95(mCart.mu, mCart.sigma);
 
   function f1(n) { return n.toFixed(1).replace('.', ','); }
+  function f2(n) { return n.toFixed(2).replace('.', ','); }
   function fEur(n) { return new Intl.NumberFormat('ca-ES', { maximumFractionDigits: 0 }).format(Math.round(n)) + '€'; }
   function fEurK(n) { return Math.round(n / 1000) + 'k€'; }
 
@@ -9867,19 +9922,37 @@ function renderPortalRoadmap(el) {
     + '.fr-kpi-bar{margin-top:10px;height:4px;background:var(--g100);border-radius:99px;overflow:hidden}'
     + '.fr-kpi-bar-fill{height:100%;border-radius:99px;background:#1B3A6B}'
 
-    // Bloc "Tres mirades al rendiment" — destacat dins de la secció 04
+    // Bloc "Quatre mirades al rendiment" — destacat dins de la secció 04
     + '.fr-rends-wrap{background:linear-gradient(135deg,#FAFBFC 0%,#F2F4F7 100%);border:1px solid var(--g200);border-radius:14px;padding:20px 22px;margin-bottom:22px}'
     + '.fr-rends-titol{font-family:var(--fm);font-size:9.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#1B3A6B;margin-bottom:4px}'
     + '.fr-rends-sub{font-family:var(--fd);font-size:18px;font-weight:500;color:var(--black);letter-spacing:-.015em;margin-bottom:14px}'
-    + '.fr-rends-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}'
+    + '.fr-rends-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}'
     + '@media(max-width:780px){.fr-rends-grid{grid-template-columns:1fr}}'
     + '.fr-rend{background:#fff;border:1px solid var(--g200);border-radius:10px;padding:14px 16px;position:relative}'
     + '.fr-rend-lbl{font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:8px}'
     + '.fr-rend-val{font-family:var(--fd);font-size:26px;font-weight:500;letter-spacing:-.02em;line-height:1;margin-bottom:6px}'
-    + '.fr-rend-val.pos{color:#1A5C3A}.fr-rend-val.navy{color:#1B3A6B}.fr-rend-val.accent{color:#7A4A00}'
+    + '.fr-rend-val.pos{color:#1A5C3A}.fr-rend-val.navy{color:#1B3A6B}.fr-rend-val.accent{color:#7A4A00}.fr-rend-val.rebal{color:#2D5F3F}'
     + '.fr-rend-val .fr-rend-unit{font-family:var(--fm);font-size:11px;font-weight:400;color:var(--g500);margin-left:2px}'
     + '.fr-rend-desc{font-size:10.5px;color:var(--g500);line-height:1.55;margin-top:4px}'
     + '.fr-rend-formula{font-family:var(--fm);font-size:9px;color:var(--g400);margin-top:6px;letter-spacing:.02em}'
+    // Card de Rebal destacada amb un toc visual diferent (és el "bonus" matemàtic)
+    + '.fr-rend.rebal-card{background:linear-gradient(180deg,#fff 0%,#F4F7F4 100%);border-color:#C8DCC8}'
+    + '.fr-rend.rebal-card .fr-rend-lbl{color:#2D5F3F}'
+    // Control del haircut
+    + '.fr-rebal-ctrl{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:10px 12px;background:#FAFBFC;border:1px dashed var(--g300);border-radius:8px;font-family:var(--fm);font-size:11px;color:var(--g500)}'
+    + '.fr-rebal-ctrl-lbl{flex:1;line-height:1.5}'
+    + '.fr-rebal-ctrl-lbl strong{color:var(--black);font-weight:500}'
+    + '.fr-rebal-ctrl-input{display:flex;align-items:center;gap:6px;flex-shrink:0}'
+    + '.fr-rebal-ctrl-input input{width:48px;padding:4px 6px;border:1px solid var(--g200);border-radius:5px;font-family:var(--fm);font-size:12px;text-align:right;background:#fff;color:var(--black);-moz-appearance:textfield}'
+    + '.fr-rebal-ctrl-input input::-webkit-outer-spin-button,.fr-rebal-ctrl-input input::-webkit-inner-spin-button{-webkit-appearance:none}'
+    + '.fr-rebal-ctrl-input input:focus{outline:none;border-color:#2D5F3F;box-shadow:0 0 0 2px rgba(45,95,63,.12)}'
+    // Premium strip dels escenaris (sota les 6 KPIs)
+    + '.fr-esc-rebal{margin-top:8px;padding:8px 10px;background:#F4F7F4;border:1px solid #C8DCC8;border-radius:6px;font-family:var(--fm);font-size:9.5px;line-height:1.5}'
+    + '.fr-esc-rebal-lbl{color:#2D5F3F;font-weight:500;letter-spacing:.08em;text-transform:uppercase;font-size:8.5px;margin-bottom:3px}'
+    + '.fr-esc-rebal-eq{color:var(--g500)}'
+    + '.fr-esc-rebal-eq b{color:#2D5F3F;font-weight:500}'
+    + '.fr-esc-rebal-tot{margin-top:3px;color:var(--black);font-size:10.5px}'
+    + '.fr-esc-rebal-tot b{color:#1A5C3A;font-weight:500}'
     // Actiu
     + '.fr-act{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 20px;margin-bottom:10px}'
     + '.fr-act-hd{display:flex;align-items:center;gap:12px;margin-bottom:12px}'
@@ -10416,41 +10489,64 @@ function renderPortalRoadmap(el) {
   + '</div>';
 
   // ─── 5. KPIs ────────────────────────────────────────────────
-  // Mètriques addicionals: rendiment geomètric i TIR ponderada per fluxes
+  // Mètriques addicionals: rendiment geomètric, TIR ponderada i plus de rebalanceig
   var muGeoCart = _frGeoReturn(mCart.mu, mCart.sigma);
-  // Per a la TIR usem la mediana de la projecció (escenari central)
-  var projCartMain = _frProj(capitalSim, aportacio, mCart.mu, mCart.sigma, horitzo);
+  // Per a la TIR i la projecció, usem mu efectiu = mu + DR aplicat (simula rebalanceig)
+  var projCartMain = _frProj(capitalSim, aportacio, mCart.mu + drCartApplied, mCart.sigma, horitzo);
   var mwrCart = _frMWR(capitalSim, aportacio, projCartMain.median, horitzo);
   var totalAportatMain = capitalSim + aportacio * 12 * horitzo;
+  // Rebalancing premium
+  var drCartTheor   = _frRebalancingPremium(cartera);           // DR teòric (%)
+  var hairFactor    = _frHaircut();                              // 0-1
+  var hairPct       = Math.round(hairFactor * 100);              // 0-100
+  var drCartApplied = drCartTheor * hairFactor;
+  var cagrTotalCart = muGeoCart + drCartApplied;
 
   html += '<div class="fr-section">'
     + '<div class="fr-label">04 · M\u00e8triques clau de la cartera</div>'
     + '<div class="fr-h2">Qu\u00e8 esperar \u2014 i qu\u00e8 no</div>'
     + '<div class="fr-lead">Aquestes m\u00e8triques resumeixen el comportament esperat de la teva cartera. No s\u00f3n promeses; s\u00f3n rangs probabil\u00edstics basats en dades hist\u00f2riques i models matem\u00e0tics est\u00e0ndard.</div>'
 
-    // BLOC NOU: tres mirades al rendiment
+    // BLOC: quatre mirades al rendiment
     + '<div class="fr-rends-wrap">'
-      + '<div class="fr-rends-titol">\u2728 Tres mirades al rendiment esperat</div>'
-      + '<div class="fr-rends-sub">El mateix retorn, mirat des de tres angles diferents</div>'
+      + '<div class="fr-rends-titol">\u2728 Quatre mirades al rendiment esperat</div>'
+      + '<div class="fr-rends-sub">El mateix retorn, mirat des de quatre angles diferents</div>'
       + '<div class="fr-rends-grid">'
+        // Card 1: Aritmètic
         + '<div class="fr-rend">'
           + '<div class="fr-rend-lbl">Aritm\u00e8tic \u00b7 \u03BC</div>'
           + '<div class="fr-rend-val pos" id="fr-rend-arit">+' + f1(mCart.mu) + '<span class="fr-rend-unit">% / any</span></div>'
           + '<div class="fr-rend-desc">Mitjana ponderada del retorn esperat de cada actiu. \u00c9s la xifra m\u00e9s simple i la que els fons publiquen.</div>'
           + '<div class="fr-rend-formula">\u03A3 (w\u1d62 \u00b7 \u03BC\u1d62)</div>'
         + '</div>'
+        // Card 2: Geomètric
         + '<div class="fr-rend">'
           + '<div class="fr-rend-lbl">Geom\u00e8tric \u00b7 CAGR</div>'
           + '<div class="fr-rend-val navy" id="fr-rend-geo">+' + f1(muGeoCart) + '<span class="fr-rend-unit">% / any</span></div>'
           + '<div class="fr-rend-desc">El ritme <strong>real</strong> al qual capitalitza la cartera. M\u00e9s baix que l\u2019aritm\u00e8tic per culpa de la volatilitat (cost matem\u00e0tic de la sigma).</div>'
           + '<div class="fr-rend-formula" id="fr-rend-geo-f">\u03BC \u2212 \u03C3\u00b2 / 2 = ' + f1(mCart.mu) + ' \u2212 ' + f1(mCart.sigma*mCart.sigma/200) + '</div>'
         + '</div>'
+        // Card 3: TIR per fluxos
         + '<div class="fr-rend">'
           + '<div class="fr-rend-lbl">TIR per fluxos</div>'
           + '<div class="fr-rend-val accent" id="fr-rend-mwr">+' + f1(mwrCart) + '<span class="fr-rend-unit">% / any</span></div>'
           + '<div class="fr-rend-desc">Rendiment efectiu sobre cada euro aportat. Considera que les aportacions arriben mes a mes \u2014 els primers euros compensen m\u00e9s temps que els \u00faltims.</div>'
           + '<div class="fr-rend-formula" id="fr-rend-mwr-f">IRR sobre ' + fEur(totalAportatMain) + ' aportats \u2192 ' + fEur(projCartMain.median) + '</div>'
         + '</div>'
+        // Card 4: CAGR + Rebal (NOU)
+        + '<div class="fr-rend rebal-card">'
+          + '<div class="fr-rend-lbl">CAGR + Rebalanceig</div>'
+          + '<div class="fr-rend-val rebal" id="fr-rend-rebal">+' + f1(cagrTotalCart) + '<span class="fr-rend-unit">% / any</span></div>'
+          + '<div class="fr-rend-desc">Plus de "volatility harvesting" <strong>incorporat a tota la simulaci\u00f3</strong>. Rebalançar i dirigir aportacions als actius infraponderats captura part del cost matem\u00e0tic de la volatilitat individual de cada actiu. Factor de conservadorisme: ' + hairPct + '%.</div>'
+          + '<div class="fr-rend-formula" id="fr-rend-rebal-f">DR \u00bd\u00b7\u03A3w\u1d62(1\u2212w\u1d62)\u03C3\u1d62\u00b2 = +' + f2(drCartTheor) + '% \u00b7 aplicat (' + hairPct + '%) = +' + f2(drCartApplied) + '%</div>'
+        + '</div>'
+      + '</div>'
+      // Control del haircut (admin pot ajustar el factor d'aplicació)
+      + '<div class="fr-rebal-ctrl">'
+        + '<div class="fr-rebal-ctrl-lbl"><strong>Factor d\u2019aplicaci\u00f3 del plus te\u00f2ric.</strong> Ajusta a la baixa per descomptar correlacions positives reals, costos transaccionals, tax drag i p\u00e8rdua en mercats tendencials. Defecte 60%.</div>'
+        + (isAdmin
+          ? '<div class="fr-rebal-ctrl-input"><input type="number" min="0" max="100" step="5" value="' + hairPct + '" id="fr-rebal-haircut-input" onchange="_frSetHaircut(this.value)"><span>%</span></div>'
+          : '<div class="fr-rebal-ctrl-input" style="color:var(--black)"><strong>' + hairPct + '%</strong></div>')
       + '</div>'
     + '</div>'
 
@@ -10462,7 +10558,7 @@ function renderPortalRoadmap(el) {
       + '<div class="fr-kpi"><div class="fr-kpi-lbl">Temps de recuperaci\u00f3</div><div class="fr-kpi-val navy">~' + recCart.toFixed(1).replace('.', ',') + '<span class="fr-kpi-unit"> anys</span></div><div class="fr-kpi-desc">Temps mig per recuperar el valor previ a una caiguda m\u00e0xima, assumint el rendiment esperat. \u00c9s el motiu clau per qu\u00e8 aquesta cartera necessita horitz\u00f3 llarg.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(recCart * 10, 100) + '%"></div></div></div>'
       + '<div class="fr-kpi"><div class="fr-kpi-lbl">VaR 95% · 1 any</div><div class="fr-kpi-val neg">' + (varCart < 0 ? '\u2212' : '+') + f1(Math.abs(varCart)) + '<span class="fr-kpi-unit">%</span></div><div class="fr-kpi-desc">P\u00e8rdua m\u00e0xima esperada amb un 95% de confian\u00e7a en qualsevol any. Cada 20 anys, aproximadament 1 any tindr\u00e0 una caiguda m\u00e9s gran que aquesta xifra.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(Math.abs(varCart) * 3, 100) + '%;background:#8B1A1A"></div></div></div>'
     + '</div>'
-    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Notes metodol\u00f2giques: \u03BC i \u03C3 calculats amb correlaci\u00f3 zero entre actius (model conservador). El <strong>CAGR geom\u00e8tric</strong> usa el drift de GBM (\u03BC \u2212 \u03C3\u00b2/2). La <strong>TIR per fluxos</strong> resol Newton-Raphson sobre el flux real d\u2019aportacions assumint el valor mitj\u00e0 projectat. Sharpe amb rf = 2%. M\u00e0x. caiguda i VaR sota distribuci\u00f3 lognormal. Rendiments passats no garanteixen rendiments futurs.</div>'
+    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Notes metodol\u00f2giques: \u03BC i \u03C3 calculats amb correlaci\u00f3 zero entre actius (model conservador). El <strong>CAGR geom\u00e8tric</strong> usa el drift de GBM (\u03BC\u2212\u03C3\u00b2/2). La <strong>TIR per fluxos</strong> resol Newton-Raphson sobre el flux real d\u2019aportacions assumint el valor mitj\u00e0 projectat. El <strong>plus de rebalanceig</strong> (DR=\u00bd\u00b7\u03A3w\u1d62(1\u2212w\u1d62)\u03C3\u1d62\u00b2) est\u00e0 <strong>incorporat a tota la simulaci\u00f3</strong> com a boost al drift (\u03BC\u209C\u1d52\u209C = \u03BC + DR aplicat); el factor d\u2019aplicaci\u00f3 descompta correlacions reals, costos i p\u00e8rdua en mercats tendencials. L\u2019escenari representa un inversor que rebalanceja regularment i dirigeix aportacions als actius infraponderats. Sharpe amb rf=2%. M\u00e0x. caiguda i VaR sota distribuci\u00f3 lognormal.</div>'
   + '</div>';
 
   // ─── 6. ANÀLISI ACTIU PER ACTIU ────────────────────────────
@@ -10527,7 +10623,7 @@ function renderPortalRoadmap(el) {
       + '</div>'
     + '</div>'
     + '<div class="fr-proj" id="fr-proj-grid"></div>'
-    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Model: Geometric Brownian Motion (lognormal). Capital inicial en simulaci\u00f3: ' + fEur(capitalSim) + (aportacioInicial > 0 ? ' (' + fEur(capital) + ' patrimoni + ' + fEur(aportacioInicial) + ' aportaci\u00f3 inicial \u00fanica)' : '') + ' + ' + fEur(aportacio) + '/mes.</div>'
+    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Model: Geometric Brownian Motion (lognormal). Capital inicial en simulaci\u00f3: ' + fEur(capitalSim) + (aportacioInicial > 0 ? ' (' + fEur(capital) + ' patrimoni + ' + fEur(aportacioInicial) + ' aportaci\u00f3 inicial \u00fanica)' : '') + ' + ' + fEur(aportacio) + '/mes. <strong>La simulaci\u00f3 incorpora el plus de rebalanceig (DR=' + f2(drCartTheor) + '%, aplicat ' + hairPct + '%=+' + f2(drCartApplied) + '%/any)</strong>, que assumeix rebalanceig regular i aportacions dirigides als actius infraponderats. Sense rebalanceig, el CAGR seria ' + f1(muGeoCart) + '% en lloc de ' + f1(muGeoCart + drCartApplied) + '%.</div>'
   + '</div>';
 
   // ─── 8. ESCENARIS ──────────────────────────────────────────
@@ -10537,9 +10633,12 @@ function renderPortalRoadmap(el) {
   var sAgr  = _frSharpe(mAgr.mu, mAgr.sigma, rf);
   var ddCons = _frMaxDD(mCons.mu, mCons.sigma);
   var ddAgr  = _frMaxDD(mAgr.mu, mAgr.sigma);
-  var pCons = _frProj(capitalSim, aportacio, mCons.mu, mCons.sigma, horitzo);
-  var pRec  = _frProj(capitalSim, aportacio, mCart.mu, mCart.sigma, horitzo);
-  var pAgr  = _frProj(capitalSim, aportacio, mAgr.mu,  mAgr.sigma,  horitzo);
+  // DR per cada escenari (hairFactor i drCartApplied ja calculats a sec04)
+  var drConsApplied = _frRebalancingPremium(carteraCons) * hairFactor;
+  var drAgrApplied  = _frRebalancingPremium(carteraAgr)  * hairFactor;
+  var pCons = _frProj(capitalSim, aportacio, mCons.mu + drConsApplied, mCons.sigma, horitzo);
+  var pRec  = _frProj(capitalSim, aportacio, mCart.mu + drCartApplied, mCart.sigma, horitzo);
+  var pAgr  = _frProj(capitalSim, aportacio, mAgr.mu  + drAgrApplied,  mAgr.sigma,  horitzo);
 
   // Helper: editor de pesos + μ + σ inline per a admin
   function escEditorHtml(target, actius, hasCustom) {
@@ -10633,6 +10732,12 @@ function renderPortalRoadmap(el) {
     // Càlcul de les noves mètriques per a l'escenari
     var muGeoEsc = _frGeoReturn(mu, sig);
     var mwrEsc   = _frMWR(capitalSim, aportacio, proj.median, horitzo);
+    // Plus de rebalanceig
+    var drEscTheor   = _frRebalancingPremium(actius);
+    var hairFactorE  = _frHaircut();
+    var hairPctE     = Math.round(hairFactorE * 100);
+    var drEscApplied = drEscTheor * hairFactorE;
+    var cagrTotalEsc = muGeoEsc + drEscApplied;
 
     return '<div class="fr-esc' + cls + '">'
       + '<div class="fr-esc-t">' + titolHtml + '</div>'
@@ -10645,6 +10750,12 @@ function renderPortalRoadmap(el) {
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">TIR fluxos</div><div class="fr-esc-kv" style="color:#7A4A00" id="fr-esc-kv-' + target + '-mwr">+' + f1(mwrEsc) + '%</div></div>'
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">Sharpe</div><div class="fr-esc-kv" id="fr-esc-kv-' + target + '-sh">' + sh.toFixed(2).replace('.', ',') + '</div></div>'
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">M\u00e0x. DD</div><div class="fr-esc-kv" style="color:#8B1A1A" id="fr-esc-kv-' + target + '-dd">\u2212' + Math.round(dd) + '%</div></div>'
+      + '</div>'
+      // Premium strip de rebalanceig
+      + '<div class="fr-esc-rebal">'
+        + '<div class="fr-esc-rebal-lbl">\u2728 Plus rebalanceig</div>'
+        + '<div class="fr-esc-rebal-eq">DR te\u00f2ric: <b id="fr-esc-rebal-th-' + target + '">+' + f2(drEscTheor) + '%</b> \u00b7 aplicat (' + hairPctE + '%): <b id="fr-esc-rebal-ap-' + target + '">+' + f2(drEscApplied) + '%</b></div>'
+        + '<div class="fr-esc-rebal-tot">CAGR + rebal: <b id="fr-esc-rebal-tot-' + target + '">+' + f1(cagrTotalEsc) + '%</b> / any</div>'
       + '</div>'
       + escEditorHtml(target, actius, hasCustomPesos)
       + '<div class="fr-esc-r">'
@@ -10837,7 +10948,7 @@ function renderPortalRoadmap(el) {
   _frDrawDonut(document.getElementById('fr-d-cons'),    carteraCons, { size:100, stroke:14 });
   _frDrawDonut(document.getElementById('fr-d-rec'),     cartera,     { size:100, stroke:14 });
   _frDrawDonut(document.getElementById('fr-d-agr'),     carteraAgr,  { size:100, stroke:14 });
-  _frDrawSimChart(document.getElementById('fr-sim-chart'), capitalSim, aportacio, mCart.mu, mCart.sigma, 20);
+  _frDrawSimChart(document.getElementById('fr-sim-chart'), capitalSim, aportacio, mCart.mu + drCartApplied, mCart.sigma, 20);
 
   // Projecció grid
   var grid = document.getElementById('fr-proj-grid');
@@ -10846,7 +10957,7 @@ function renderPortalRoadmap(el) {
     var gh = '';
     for (var pi = 0; pi < pts.length; pi++) {
       var yp = pts[pi];
-      var p = _frProj(capitalSim, aportacio, mCart.mu, mCart.sigma, yp);
+      var p = _frProj(capitalSim, aportacio, mCart.mu + drCartApplied, mCart.sigma, yp);
       gh += '<div class="fr-proj-c"><div class="fr-proj-a">A ' + yp + ' anys</div><div class="fr-proj-m">' + fEurK(p.median) + '</div><div class="fr-proj-r">P5: ' + fEurK(p.p5) + ' · P95: ' + fEurK(p.p95) + '</div></div>';
     }
     grid.innerHTML = gh;
@@ -11172,26 +11283,37 @@ function _frRecalcCartPri() {
   // Donut
   var donut = document.getElementById('fr-donut-pri');
   if (donut) _frDrawDonut(donut, actius, { size:200, stroke:28 });
-  // Bloc "Tres mirades al rendiment" — recàlcul live de CAGR i TIR
+  // Bloc "Quatre mirades al rendiment" — recàlcul live de CAGR, TIR i Rebal
   var muGeoLive = _frGeoReturn(m.mu, m.sigma);
   var fEurLive = function(n){ return new Intl.NumberFormat('ca-ES',{maximumFractionDigits:0}).format(Math.round(n)) + '\u20AC'; };
+  var f2Live   = function(n){ return n.toFixed(2).replace('.', ','); };
   var stLive = window._FR_STATE || {};
   var capLive = stLive.capital   != null ? stLive.capital   : 30000;
   var aprLive = stLive.aportacio != null ? stLive.aportacio : 400;
   var horLive = stLive.horitzo   != null ? stLive.horitzo   : 15;
-  var projLive = _frProj(capLive, aprLive, m.mu, m.sigma, horLive);
+  var projLive = _frProj(capLive, aprLive, m.mu + drApplLive, m.sigma, horLive);
   var totalApLive = capLive + aprLive * 12 * horLive;
   var mwrLive = _frMWR(capLive, aprLive, projLive.median, horLive);
-  var aritEl   = document.getElementById('fr-rend-arit');
-  var geoEl    = document.getElementById('fr-rend-geo');
-  var geoFEl   = document.getElementById('fr-rend-geo-f');
-  var mwrEl    = document.getElementById('fr-rend-mwr');
-  var mwrFEl   = document.getElementById('fr-rend-mwr-f');
-  if (aritEl) aritEl.innerHTML = '+' + fx(m.mu)      + '<span class="fr-rend-unit">% / any</span>';
-  if (geoEl)  geoEl.innerHTML  = '+' + fx(muGeoLive) + '<span class="fr-rend-unit">% / any</span>';
-  if (geoFEl) geoFEl.textContent = '\u03BC \u2212 \u03C3\u00b2 / 2 = ' + fx(m.mu) + ' \u2212 ' + fx(m.sigma*m.sigma/200);
-  if (mwrEl)  mwrEl.innerHTML  = '+' + fx(mwrLive)   + '<span class="fr-rend-unit">% / any</span>';
-  if (mwrFEl) mwrFEl.textContent = 'IRR sobre ' + fEurLive(totalApLive) + ' aportats \u2192 ' + fEurLive(projLive.median);
+  // Rebal premium
+  var drTheorLive  = _frRebalancingPremium(actius);
+  var hairLive     = _frHaircut();
+  var hairPctLive  = Math.round(hairLive * 100);
+  var drApplLive   = drTheorLive * hairLive;
+  var cagrTotLive  = muGeoLive + drApplLive;
+  var aritEl    = document.getElementById('fr-rend-arit');
+  var geoEl     = document.getElementById('fr-rend-geo');
+  var geoFEl    = document.getElementById('fr-rend-geo-f');
+  var mwrEl     = document.getElementById('fr-rend-mwr');
+  var mwrFEl    = document.getElementById('fr-rend-mwr-f');
+  var rebalEl   = document.getElementById('fr-rend-rebal');
+  var rebalFEl  = document.getElementById('fr-rend-rebal-f');
+  if (aritEl)   aritEl.innerHTML   = '+' + fx(m.mu)      + '<span class="fr-rend-unit">% / any</span>';
+  if (geoEl)    geoEl.innerHTML    = '+' + fx(muGeoLive) + '<span class="fr-rend-unit">% / any</span>';
+  if (geoFEl)   geoFEl.textContent = '\u03BC \u2212 \u03C3\u00b2 / 2 = ' + fx(m.mu) + ' \u2212 ' + fx(m.sigma*m.sigma/200);
+  if (mwrEl)    mwrEl.innerHTML    = '+' + fx(mwrLive)   + '<span class="fr-rend-unit">% / any</span>';
+  if (mwrFEl)   mwrFEl.textContent = 'IRR sobre ' + fEurLive(totalApLive) + ' aportats \u2192 ' + fEurLive(projLive.median);
+  if (rebalEl)  rebalEl.innerHTML  = '+' + fx(cagrTotLive) + '<span class="fr-rend-unit">% / any</span>';
+  if (rebalFEl) rebalFEl.textContent = 'DR \u00bd\u00b7\u03A3w\u1d62(1\u2212w\u1d62)\u03C3\u1d62\u00b2 = +' + f2Live(drTheorLive) + '% \u00b7 aplicat (' + hairPctLive + '%) = +' + f2Live(drApplLive) + '%';
   // Guardar pesos + mu/sigma personalitzats
   var muSigSnap = {};
   actius.forEach(function(a){ muSigSnap[a.id] = { mu:a.mu, sigma:a.sigma }; });
@@ -11258,6 +11380,13 @@ function _frRecalcEscenari(target) {
   var dd = _frMaxDD(m.mu, m.sigma);
   var muGeo = _frGeoReturn(m.mu, m.sigma);  // CAGR geomètric
   var f1 = function(n) { return n.toFixed(1).replace('.', ','); };
+  var f2 = function(n) { return n.toFixed(2).replace('.', ','); };
+  // Plus rebal
+  var drTheor   = _frRebalancingPremium(actius);
+  var hairF     = _frHaircut();
+  var hairP     = Math.round(hairF * 100);
+  var drAppl    = drTheor * hairF;
+  var cagrTotEs = muGeo + drAppl;
 
   // Actualitzar KPI cells
   var pfx = 'fr-esc-kv-' + target + '-';
@@ -11273,13 +11402,21 @@ function _frRecalcEscenari(target) {
   if (shEl)    shEl.textContent    = sh.toFixed(2).replace('.', ',');
   if (ddEl)    ddEl.textContent    = '\u2212' + Math.round(dd) + '%';
 
+  // Premium strip rebal
+  var rebalThEl  = document.getElementById('fr-esc-rebal-th-'  + target);
+  var rebalApEl  = document.getElementById('fr-esc-rebal-ap-'  + target);
+  var rebalTotEl = document.getElementById('fr-esc-rebal-tot-' + target);
+  if (rebalThEl)  rebalThEl.textContent  = '+' + f2(drTheor)   + '%';
+  if (rebalApEl)  rebalApEl.textContent  = '+' + f2(drAppl)    + '%';
+  if (rebalTotEl) rebalTotEl.textContent = '+' + f1(cagrTotEs) + '%';
+
   // Actualitzar valor final i rang
   var st  = window._FR_STATE || {};
   var cap = st.capital    || 30000;
   var apr = st.aportacio  || 400;
   var hor = st.horitzo    || 15;
   if (!isNaN(cap) && !isNaN(apr) && !isNaN(hor) && m.sigma > 0) {
-    var proj = _frProj(cap, apr, m.mu, m.sigma, hor);
+    var proj = _frProj(cap, apr, m.mu + drAppl, m.sigma, hor);
     var rvEl = document.getElementById('fr-esc-rv-' + target);
     var rgEl = document.getElementById('fr-esc-rg-' + target);
     var fEurLoc = function(n) { return new Intl.NumberFormat('ca-ES', { maximumFractionDigits:0 }).format(Math.round(n)) + '\u20AC'; };
@@ -16484,7 +16621,11 @@ async function renderAdminAssessoria(el){
 
 function aaCrearNova(){
   var nova = {
-    id: 'an_' + Date.now() + '_' + Math.random().toString(36).slice(2,8),
+    id: (typeof crypto !== 'undefined' && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c){
+              var r = Math.random()*16|0, v = c==='x'?r:(r&0x3|0x8); return v.toString(16);
+            }),
     titol: '',
     subtitol: '',
     categoria: 'mercat',
