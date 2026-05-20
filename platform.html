@@ -2332,7 +2332,13 @@ async function doRegister() {
 
   try {
     // 1. Crear usuari a Supabase Auth
-    var res = await sb.auth.signUp({ email: email, password: pass });
+    var res = await sb.auth.signUp({
+      email: email,
+      password: pass,
+      options: {
+        emailRedirectTo: 'https://theboringinvestor.github.io/assessoria/platform.html'
+      }
+    });
     if (res.error) throw res.error;
 
     // 2. Crear el registre a la taula clients (amb pla Senyal per defecte)
@@ -3895,7 +3901,10 @@ async function crearNouClient() {
     var resAuth = await sb.auth.signUp({
       email: email,
       password: pwd,
-      options: { data: { nom: nom, created_by_admin: true } }
+      options: {
+        data: { nom: nom, created_by_admin: true },
+        emailRedirectTo: 'https://theboringinvestor.github.io/assessoria/platform.html'
+      }
     });
 
     // Cas especial: si l'email ja existeix a Auth, intentem només crear/upsert
