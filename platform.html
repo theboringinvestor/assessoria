@@ -9563,6 +9563,26 @@ function _frRerender() {
   }
 }
 
+// Variant de _frRerender que recorda quins editors d'escenari estaven oberts
+// i els restaura un cop refet el DOM. Evita que l'editor es tanqui en afegir/
+// eliminar un actiu des del desplegable.
+function _frRerenderKeepEditors(targetObert) {
+  // 1) Quins editors estan oberts ara?
+  var oberts = [];
+  document.querySelectorAll('[data-esc-editor-target]').forEach(function(d) {
+    if (d.open) oberts.push(d.getAttribute('data-esc-editor-target'));
+  });
+  // El target que ha provocat el canvi sempre l'obrim (era obert o l'usuari hi estava)
+  if (targetObert && oberts.indexOf(targetObert) < 0) oberts.push(targetObert);
+  // 2) Rerenderitzar
+  _frRerender();
+  // 3) Restaurar l'estat obert (el DOM ja s'ha reconstruït)
+  oberts.forEach(function(t) {
+    var el = document.querySelector('[data-esc-editor-target="' + t + '"]');
+    if (el) el.open = true;
+  });
+}
+
 
 /* ════════════════════════════════════════════════════════════════════════════
    FUNCIÓ PRINCIPAL · renderPortalRoadmap
@@ -9664,6 +9684,8 @@ function renderPortalRoadmap(el) {
   var capitalSim = capital + aportacioInicial;
 
   // ── Escenaris alternatius (amb override d'arquetip) ───────
+  // enriquir: per a actius que venen d'un arquetip (format {id, pct, ...})
+  // Usa sempre els mu/sigma de la taxonomia. Per a carteres de referència.
   function enriquir(actiusList) {
     return actiusList.map(function(a) {
       var ms = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(a.id) : { mu: 6, sigma: 12 };
@@ -9673,6 +9695,22 @@ function renderPortalRoadmap(el) {
         pes: parseFloat(a.pct) || 0,
         color: a.color || (tax && tax.color) || '#888',
         mu: ms.mu, sigma: ms.sigma,
+      };
+    });
+  }
+  // enriquirOv: per a actius que venen d'un override desat (ja han sigut editats)
+  // RESPECTA els mu/sigma personalitzats guardats; usa defaults NOMÉS si manquen.
+  function enriquirOv(ovList) {
+    return ovList.map(function(a) {
+      var ms  = (typeof _muSigmaPerActiu === 'function') ? _muSigmaPerActiu(a.id) : { mu: 6, sigma: 12 };
+      var tax = ACTIUS_TAXONOMY.find(function(t) { return t.id === a.id; });
+      return {
+        id:    a.id,
+        nom:   a.nom   || (tax && tax.ca) || a.id,
+        pes:   parseFloat(a.pes)   != null ? (parseFloat(a.pes)   || 0) : (parseFloat(a.pct) || 0),
+        color: a.color || (tax && tax.color) || '#888',
+        mu:    a.mu    != null ? parseFloat(a.mu)    : ms.mu,
+        sigma: a.sigma != null ? parseFloat(a.sigma) : ms.sigma,
       };
     });
   }
@@ -9688,21 +9726,21 @@ function renderPortalRoadmap(el) {
   var carteraCons;
   if (isCustomCons) {
     carteraCons = Array.isArray(overrides.escenariCons)
-      ? enriquir(overrides.escenariCons.map(function(a){ return { id: a.id, pct: a.pes }; }))
+      ? enriquirOv(overrides.escenariCons)
       : [];
   } else {
     carteraCons = overrides.escenariCons
-      ? enriquir(overrides.escenariCons.map(function(a){ return { id: a.id, pct: a.pes }; }))
+      ? enriquirOv(overrides.escenariCons)
       : enriquir(arqCons.actius || []);
   }
   var carteraAgr;
   if (isCustomAgr) {
     carteraAgr = Array.isArray(overrides.escenariAgr)
-      ? enriquir(overrides.escenariAgr.map(function(a){ return { id: a.id, pct: a.pes }; }))
+      ? enriquirOv(overrides.escenariAgr)
       : [];
   } else {
     carteraAgr = overrides.escenariAgr
-      ? enriquir(overrides.escenariAgr.map(function(a){ return { id: a.id, pct: a.pes }; }))
+      ? enriquirOv(overrides.escenariAgr)
       : enriquir(arqAgr.actius || []);
   }
 
@@ -10560,7 +10598,7 @@ function renderPortalRoadmap(el) {
       + '<th style="font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);padding-bottom:5px">\u03C3</th>'
       + '<th></th>'
       + '</tr></thead>';
-    return '<details class="fr-esc-editor">'
+    return '<details class="fr-esc-editor" data-esc-editor-target="' + target + '">'
       + '<summary>\u270F Personalitzar pesos \u00b7 \u03BC \u00b7 \u03C3 ' + badgeCustom + '</summary>'
       + '<div style="padding:8px 0 4px">'
         + '<table style="width:100%;border-collapse:collapse">' + hdr + '<tbody>' + rows + '</tbody></table>'
@@ -11343,7 +11381,7 @@ function _frAddActiuEscenari(target, actId) {
   });
   _frSetOverride(ovKey, actius);
   _frMarkDirty();
-  _frRerender();
+  _frRerenderKeepEditors(target);
 }
 
 // Eliminar un actiu d'un escenari comparatiu
@@ -11356,7 +11394,7 @@ function _frRemoveActiuEscenari(target, actId) {
   // _frSetOverride no esborra arrays buits, així que [] es desa correctament.
   _frSetOverride(ovKey, actius);
   _frMarkDirty();
-  _frRerender();
+  _frRerenderKeepEditors(target);
 }
 
 function _frDrawSimChart(svg, capital, aportacio, mu, sigma, maxAnys) {
