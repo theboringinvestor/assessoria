@@ -3274,6 +3274,7 @@ var ADMIN_NAV = [
   {id:'admin-calendari',   icon:'📆', label:'Calendari'},
   {id:'admin-diagnostic',  icon:'🔍', label:'Diagn\u00f2stic'},
   {id:'admin-plans',       icon:'&#128142;', label:'Plans'},
+  {id:'admin-ingressos',    icon:'&#128182;', label:'Ingressos'},
   {section:'Clients'},
   {id:'admin-pendents',    icon:'⏳', label:'Sol\u00b7licituds pendents'},
   {id:'admin-entrevista',  icon:'📋', label:'Entrevista inicial'},
@@ -3290,6 +3291,7 @@ var ADMIN_NAV = [
   {id:'portal-assessoria', icon:'📈', label:'An\u00e0lisi de mercat'},
   {id:'portal-informes',   icon:'📋', label:'Informes'},
   {id:'portal-carteres',   icon:'🗂', label:'Carteres Model'},
+  {id:'portal-educacio',   icon:'🎓', label:'Educaci\u00f3 financera'},
   {id:'portal-fire',       icon:'🔥', label:'Calculadora FIRE'},
   {id:'portal-turbo',      icon:'🚀', label:'Turbo Estalvi'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emerg\u00e8ncia"},
@@ -3315,6 +3317,7 @@ var CLIENT_NAV = [
   {id:'portal-informes', icon:'📋', label:'Informes'},
   {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
   {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
+  {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
   {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
   {section:'Eines'},
   {id:'portal-simulador', icon:'📊', label:'Simulador d\'actius'},
@@ -3323,7 +3326,6 @@ var CLIENT_NAV = [
   {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
   {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
-  {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
   {section:'Suport'},
   {id:'portal-calendari', icon:'📆', label:'Reunions'},
   {id:'portal-notificacions', icon:'🔔', label:'Notificacions'},
@@ -3398,6 +3400,7 @@ function navigateTo(viewId) {
   var titles = {
     'hub': ['Hub de l\'assessor', 'Vista general de la plataforma'],
     'admin-clients': ['Clients', 'Llistat i gestió de clients'],
+    'admin-ingressos': ['Ingressos', 'Facturació i ingressos de l\'assessoria'],
     'admin-diagnostic': ['Diagn\u00f2stic de Client', 'Genera el pla financer personalitzat amb AI'],
     'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['Resum', 'Vista general del teu perfil inversor'],
     'portal-roadmap': APP.role === 'admin' ? ['Portal Client · Full de Ruta', '👁 Previsualització · Editable'] : ['Full de Ruta', 'El teu pla financer personalitzat'],
@@ -3484,6 +3487,7 @@ function renderView(viewId) {
       }
       break;
     case 'admin-clients': renderClientsList(content); break;
+    case 'admin-ingressos': renderAdminIngressos(content); break;
     case 'admin-diagnostic': renderAdminDiagnostic(content); break;
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
@@ -3596,6 +3600,8 @@ function renderHub(el) {
       + '<div class="hub-stat"><div class="hub-stat-val" id="hub-stat-scoring">' + scoringMig + '</div><div class="hub-stat-lbl">Scoring mig</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val" style="color:var(--accent)" id="hub-stat-aum">' + totalValor.toLocaleString('ca-ES') + '€</div><div class="hub-stat-lbl">AUM total (demo)</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val" style="color:#7A4A00" id="hub-stat-msgs">—</div><div class="hub-stat-lbl">Missatges pendents</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:#1A5C3A" id="hub-stat-ing-any">—</div><div class="hub-stat-lbl">Ingressos any</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:#1A5C3A" id="hub-stat-ing-mes">—</div><div class="hub-stat-lbl">Ingressos mes</div></div>'
     + '</div>'
 
     // Quick actions
@@ -3617,6 +3623,12 @@ function renderHub(el) {
         + '<div class="hub-card-icon">💬</div>'
         + '<div class="hub-card-title">Missatges <span id="hub-card-msgs-count" style="font-size:11px;color:var(--amber);font-weight:600"></span></div>'
         + '<div class="hub-card-desc">Revisa i respon els missatges dels clients.</div>'
+        + '<div class="hub-card-arrow">→</div>'
+      + '</div>'
+      + '<div class="hub-card" onclick="navigateTo(\'admin-ingressos\')" style="border-color:#B8DBC4">'
+        + '<div class="hub-card-icon">💶</div>'
+        + '<div class="hub-card-title">Ingressos <span id="hub-ing-badge" style="font-size:11px;color:#1A5C3A;font-weight:600"></span></div>'
+        + '<div class="hub-card-desc">Facturació i seguiment d\'ingressos de l\'assessoria.</div>'
         + '<div class="hub-card-arrow">→</div>'
       + '</div>'
     + '</div>'
@@ -17400,3 +17412,408 @@ async function eliminarEdu(id) {
 </script>
 </body>
 </html>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// INGRESSOS — Sistema de facturació manual
+// Taula Supabase: ingressos (id, data, client_email, concepte, import,
+//   tipus, notes, created_at)
+// Admin: CRUD complet. Vista: KPIs + gràfic per mes + llistat per any.
+// ═══════════════════════════════════════════════════════════════════════════
+
+var _ING_CACHE = null;
+
+async function loadIngressos(forceRefresh) {
+  if (_ING_CACHE && !forceRefresh) return _ING_CACHE;
+  if (!sb) { _ING_CACHE = []; return []; }
+  try {
+    var res = await sb.from('ingressos').select('*').order('data', { ascending: false });
+    _ING_CACHE = res.data || [];
+    return _ING_CACHE;
+  } catch(e) { console.warn('loadIngressos error:', e); _ING_CACHE = []; return []; }
+}
+
+async function renderAdminIngressos(el) {
+  var html = '<div class="content-inner fade-in">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:4px">Ingressos</div>'
+        + '<div style="font-size:12px;color:var(--g500)">Seguiment manual de facturaci\u00f3 fins a la passarel\u00b7la de pagament</div>'
+      + '</div>'
+      + '<button id="btn-nou-ingres" style="padding:10px 18px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Nou ingrés</button>'
+    + '</div>'
+    + '<div id="ing-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px">'
+      + '<div class="card" style="padding:18px 20px;text-align:center"><div style="font-size:11px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Total acumulat</div><div id="ing-kpi-total" style="font-size:24px;font-weight:600;font-family:var(--fm);color:var(--black)">—</div></div>'
+      + '<div class="card" style="padding:18px 20px;text-align:center"><div style="font-size:11px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Any ' + new Date().getFullYear() + '</div><div id="ing-kpi-any" style="font-size:24px;font-weight:600;font-family:var(--fm);color:#1A5C3A">—</div></div>'
+      + '<div class="card" style="padding:18px 20px;text-align:center"><div style="font-size:11px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Mes actual</div><div id="ing-kpi-mes" style="font-size:24px;font-weight:600;font-family:var(--fm);color:#1B3A6B">—</div></div>'
+      + '<div class="card" style="padding:18px 20px;text-align:center"><div style="font-size:11px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Entrades totals</div><div id="ing-kpi-n" style="font-size:24px;font-weight:600;font-family:var(--fm);color:var(--g500)">—</div></div>'
+    + '</div>'
+    // Filtre d'any
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">'
+      + '<span style="font-size:11px;color:var(--g500);font-weight:500">Filtrar per any:</span>'
+      + '<select id="ing-filter-any" style="padding:7px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;background:#fff;font-family:var(--fb)">'
+        + '<option value="all">Tots els anys</option>'
+      + '</select>'
+      + '<span style="font-size:11px;color:var(--g500);margin-left:8px">Filtrar per tipus:</span>'
+      + '<select id="ing-filter-tipus" style="padding:7px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;background:#fff;font-family:var(--fb)">'
+        + '<option value="all">Tots</option>'
+        + '<option value="subscripcio">Subscripci\u00f3</option>'
+        + '<option value="pack">Pack</option>'
+        + '<option value="consultoria">Consultoria puntual</option>'
+        + '<option value="assessoria">Assessoria</option>'
+        + '<option value="altre">Altre</option>'
+      + '</select>'
+    + '</div>'
+    + '<div id="ing-chart-wrap" style="margin-bottom:28px"></div>'
+    + '<div id="ing-list"><div style="text-align:center;padding:40px;color:var(--g400)">Carregant ingressos...</div></div>'
+  + '</div>';
+
+  el.innerHTML = html;
+
+  document.getElementById('btn-nou-ingres').addEventListener('click', function() { obrirModalIngres(null); });
+  document.getElementById('ing-filter-any').addEventListener('change', function() { filtrarIRenderIngressos(); });
+  document.getElementById('ing-filter-tipus').addEventListener('change', function() { filtrarIRenderIngressos(); });
+
+  var data = await loadIngressos(true);
+  omplirFiltreAnys(data);
+  renderKPIsIngressos(data);
+  filtrarIRenderIngressos();
+  actualitzarHubStats(data);
+}
+
+function omplirFiltreAnys(data) {
+  var sel = document.getElementById('ing-filter-any');
+  if (!sel) return;
+  var anys = [...new Set(data.map(function(d){ return new Date(d.data).getFullYear(); }))].sort().reverse();
+  // Afegir any actual si no hi és
+  var curYear = new Date().getFullYear();
+  if (!anys.includes(curYear)) anys.unshift(curYear);
+  anys.forEach(function(y) {
+    var opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    sel.appendChild(opt);
+  });
+}
+
+function renderKPIsIngressos(data) {
+  var now = new Date();
+  var curYear = now.getFullYear();
+  var curMonth = now.getMonth();
+  var total = data.reduce(function(s,d){ return s + (parseFloat(d.import)||0); }, 0);
+  var any = data.filter(function(d){ return new Date(d.data).getFullYear() === curYear; })
+               .reduce(function(s,d){ return s + (parseFloat(d.import)||0); }, 0);
+  var mes = data.filter(function(d){
+    var dt = new Date(d.data);
+    return dt.getFullYear()===curYear && dt.getMonth()===curMonth;
+  }).reduce(function(s,d){ return s + (parseFloat(d.import)||0); }, 0);
+
+  function fmt(v) { return v.toLocaleString('ca-ES',{minimumFractionDigits:0,maximumFractionDigits:2}) + '\u20ac'; }
+  var kpiTotal = document.getElementById('ing-kpi-total');
+  var kpiAny   = document.getElementById('ing-kpi-any');
+  var kpiMes   = document.getElementById('ing-kpi-mes');
+  var kpiN     = document.getElementById('ing-kpi-n');
+  if (kpiTotal) kpiTotal.textContent = fmt(total);
+  if (kpiAny)   kpiAny.textContent   = fmt(any);
+  if (kpiMes)   kpiMes.textContent   = fmt(mes);
+  if (kpiN)     kpiN.textContent     = data.length;
+}
+
+function actualitzarHubStats(data) {
+  var now = new Date();
+  var curYear = now.getFullYear();
+  var curMonth = now.getMonth();
+  function fmt(v) { return v.toLocaleString('ca-ES',{minimumFractionDigits:0,maximumFractionDigits:0}) + '\u20ac'; }
+  var any = data.filter(function(d){ return new Date(d.data).getFullYear()===curYear; })
+               .reduce(function(s,d){ return s+(parseFloat(d.import)||0); }, 0);
+  var mes = data.filter(function(d){
+    var dt = new Date(d.data);
+    return dt.getFullYear()===curYear && dt.getMonth()===curMonth;
+  }).reduce(function(s,d){ return s+(parseFloat(d.import)||0); }, 0);
+  var elAny = document.getElementById('hub-stat-ing-any');
+  var elMes = document.getElementById('hub-stat-ing-mes');
+  var badge = document.getElementById('hub-ing-badge');
+  if (elAny) elAny.textContent = fmt(any);
+  if (elMes) elMes.textContent = fmt(mes);
+  if (badge) badge.textContent = fmt(any);
+}
+
+function filtrarIRenderIngressos() {
+  var data = _ING_CACHE || [];
+  var anyFilter = (document.getElementById('ing-filter-any')||{}).value || 'all';
+  var tipusFilter = (document.getElementById('ing-filter-tipus')||{}).value || 'all';
+  var filtrat = data.filter(function(d) {
+    if (anyFilter !== 'all' && new Date(d.data).getFullYear() !== parseInt(anyFilter)) return false;
+    if (tipusFilter !== 'all' && d.tipus !== tipusFilter) return false;
+    return true;
+  });
+  renderGraficMensual(filtrat, anyFilter);
+  renderLlistatIngressos(filtrat);
+}
+
+function renderGraficMensual(data, anyFilter) {
+  var wrap = document.getElementById('ing-chart-wrap');
+  if (!wrap) return;
+  if (!data.length) { wrap.innerHTML = ''; return; }
+
+  // Agrupem per mes (o per any-mes si "tots els anys")
+  var grups = {};
+  var mosStr = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
+
+  if (anyFilter !== 'all') {
+    // 12 mesos de l'any seleccionat
+    for (var m=0;m<12;m++) grups[m] = {lbl:mosStr[m], total:0};
+    data.forEach(function(d){ var m=new Date(d.data).getMonth(); grups[m].total+=(parseFloat(d.import)||0); });
+  } else {
+    // Per any
+    data.forEach(function(d){
+      var y = new Date(d.data).getFullYear();
+      if (!grups[y]) grups[y] = {lbl:String(y), total:0};
+      grups[y].total += (parseFloat(d.import)||0);
+    });
+  }
+
+  var keys = Object.keys(grups).sort();
+  var vals = keys.map(function(k){ return grups[k].total; });
+  var lbls = keys.map(function(k){ return grups[k].lbl; });
+  var maxVal = Math.max.apply(null, vals.concat([1]));
+
+  // SVG bar chart simple
+  var W = 600, H = 160, PL = 50, PR = 10, PT = 15, PB = 40;
+  var nBars = keys.length;
+  var barW = Math.min(40, Math.floor((W - PL - PR) / nBars) - 4);
+  var gap = Math.floor((W - PL - PR) / nBars);
+
+  var svgBars = '';
+  var svgXLabels = '';
+  keys.forEach(function(k, i) {
+    var val = grups[k].total;
+    var barH = val > 0 ? Math.max(4, Math.floor((val/maxVal) * (H-PT-PB))) : 0;
+    var x = PL + i * gap + (gap - barW) / 2;
+    var y = H - PB - barH;
+    svgBars += '<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+barH+'" rx="3" fill="#1A5C3A" opacity="0.85"/>';
+    if (val > 0) {
+      svgBars += '<text x="'+(x+barW/2)+'" y="'+(y-4)+'" text-anchor="middle" font-size="9" fill="#1A5C3A" font-weight="600">'+Math.round(val)+'</text>';
+    }
+    svgXLabels += '<text x="'+(x+barW/2)+'" y="'+(H-PB+14)+'" text-anchor="middle" font-size="9" fill="#888">'+lbls[i]+'</text>';
+  });
+
+  // Y axis labels
+  var yLabels = '';
+  for (var step=0; step<=4; step++) {
+    var v = Math.round(maxVal * step/4);
+    var yPos = H - PB - Math.floor((v/maxVal)*(H-PT-PB));
+    yLabels += '<text x="'+(PL-4)+'" y="'+(yPos+3)+'" text-anchor="end" font-size="8" fill="#aaa">'+v+'</text>';
+    yLabels += '<line x1="'+PL+'" y1="'+yPos+'" x2="'+(W-PR)+'" y2="'+yPos+'" stroke="#eee" stroke-width="1"/>';
+  }
+
+  wrap.innerHTML = '<div class="card" style="padding:18px 20px;overflow-x:auto">'
+    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:12px">Ingressos per ' + (anyFilter!=='all'?'mes':'any') + '</div>'
+    + '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;min-width:300px;height:'+H+'px" xmlns="http://www.w3.org/2000/svg">'
+      + yLabels + svgBars + svgXLabels
+    + '</svg></div>';
+}
+
+function renderLlistatIngressos(data) {
+  var list = document.getElementById('ing-list');
+  if (!list) return;
+  if (!data.length) {
+    list.innerHTML = '<div style="text-align:center;padding:48px;background:#fff;border:1px solid var(--g200);border-radius:14px">'
+      + '<div style="font-size:36px;margin-bottom:12px">&#128182;</div>'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap ingrés registrat</div>'
+      + '<div style="font-size:12px;color:var(--g500)">Fes clic a "+ Nou ingrés" per afegir la primera entrada.</div>'
+    + '</div>';
+    return;
+  }
+
+  var tipusCfg = {
+    subscripcio: {bg:'#EBF0FA',col:'#1B3A6B',lbl:'Subscripci\u00f3'},
+    pack:        {bg:'#EDEAF9',col:'#534AB7',lbl:'Pack'},
+    consultoria: {bg:'#EAF3DE',col:'#1A5C3A',lbl:'Consultoria'},
+    assessoria:  {bg:'#FEF5E7',col:'#7A4A00',lbl:'Assessoria'},
+    altre:       {bg:'#F5F5F5',col:'#555',   lbl:'Altre'},
+  };
+
+  // Agrupar per any > mes
+  var grups = {};
+  data.forEach(function(d) {
+    var dt = new Date(d.data);
+    var any = dt.getFullYear();
+    var mes = dt.getMonth();
+    var key = any + '-' + String(mes).padStart(2,'0');
+    var mesLbl = dt.toLocaleDateString('ca-ES',{month:'long',year:'numeric'});
+    if (!grups[key]) grups[key] = {lbl:mesLbl, any:any, entries:[], total:0};
+    grups[key].entries.push(d);
+    grups[key].total += (parseFloat(d.import)||0);
+  });
+
+  var html = '';
+  // Agrupar per any primer
+  var anyGrups = {};
+  Object.keys(grups).sort().reverse().forEach(function(key) {
+    var g = grups[key];
+    if (!anyGrups[g.any]) anyGrups[g.any] = {keys:[], total:0};
+    anyGrups[g.any].keys.push(key);
+    anyGrups[g.any].total += g.total;
+  });
+
+  Object.keys(anyGrups).sort().reverse().forEach(function(any) {
+    var ag = anyGrups[any];
+    html += '<div style="margin-bottom:32px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--g200)">'
+        + '<div style="font-size:14px;font-weight:600;color:var(--black)">' + any + '</div>'
+        + '<div style="font-size:13px;font-weight:600;color:#1A5C3A;font-family:var(--fm)">' + ag.total.toLocaleString('ca-ES',{minimumFractionDigits:0,maximumFractionDigits:2}) + '\u20ac</div>'
+      + '</div>';
+
+    ag.keys.forEach(function(key) {
+      var g = grups[key];
+      html += '<div style="margin-bottom:16px">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+          + '<div style="font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.06em">' + g.lbl + '</div>'
+          + '<div style="font-size:12px;font-weight:600;color:var(--g500);font-family:var(--fm)">' + g.total.toLocaleString('ca-ES',{minimumFractionDigits:0,maximumFractionDigits:2}) + '\u20ac</div>'
+        + '</div>';
+
+      g.entries.forEach(function(d) {
+        var tc = tipusCfg[d.tipus] || tipusCfg.altre;
+        var dt = new Date(d.data).toLocaleDateString('ca-ES',{day:'numeric',month:'short'});
+        var imp = parseFloat(d.import||0).toLocaleString('ca-ES',{minimumFractionDigits:0,maximumFractionDigits:2});
+        html += '<div class="card" style="padding:12px 18px;margin-bottom:6px">'
+          + '<div style="display:flex;align-items:center;gap:14px">'
+            + '<div style="font-size:11px;color:var(--g400);white-space:nowrap;min-width:40px">' + dt + '</div>'
+            + '<span style="background:' + tc.bg + ';color:' + tc.col + ';padding:2px 8px;border-radius:99px;font-size:9px;font-weight:600;white-space:nowrap">' + tc.lbl.toUpperCase() + '</span>'
+            + '<div style="flex:1;min-width:0;font-size:13px;font-weight:500">' + (d.concepte||'') + '</div>'
+            + (d.client_email ? '<div style="font-size:11px;color:var(--g400);white-space:nowrap">' + d.client_email + '</div>' : '')
+            + '<div style="font-size:14px;font-weight:600;font-family:var(--fm);color:#1A5C3A;white-space:nowrap">' + imp + '\u20ac</div>'
+            + '<div class="ing-btns" data-id="' + (d.id||'') + '" style="display:flex;gap:5px;flex-shrink:0">'
+              + '<button style="padding:4px 9px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:10px;cursor:pointer">&#9998;</button>'
+              + '<button style="padding:4px 9px;background:transparent;border:1px solid #E8B0A8;color:#8B1A1A;border-radius:6px;font-size:10px;cursor:pointer">&#128465;</button>'
+            + '</div>'
+          + '</div>'
+          + (d.notes ? '<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--g100);font-size:11px;color:var(--g500)">' + d.notes + '</div>' : '')
+        + '</div>';
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  list.innerHTML = html;
+
+  // Event listeners botons
+  list.querySelectorAll('.ing-btns').forEach(function(div) {
+    var id = div.getAttribute('data-id');
+    var btns = div.querySelectorAll('button');
+    if (btns[0]) btns[0].addEventListener('click', function() { obrirModalIngres(id); });
+    if (btns[1]) btns[1].addEventListener('click', function() { eliminarIngres(id); });
+  });
+}
+
+async function obrirModalIngres(id) {
+  var isNew = !id;
+  var d = {id:null, data:new Date().toISOString().slice(0,10), client_email:'', concepte:'', import:'', tipus:'subscripcio', notes:''};
+  if (!isNew && _ING_CACHE) {
+    var found = _ING_CACHE.find(function(x){ return x.id===id; });
+    if (found) d = Object.assign({}, d, found);
+  }
+  var old = document.getElementById('modal-ingres');
+  if (old) old.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-ingres';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+
+  var tipusOpts = [
+    {v:'subscripcio', l:'Subscripci\u00f3'},
+    {v:'pack', l:'Pack'},
+    {v:'consultoria', l:'Consultoria puntual'},
+    {v:'assessoria', l:'Assessoria'},
+    {v:'altre', l:'Altre'},
+  ].map(function(t){ return '<option value="'+t.v+'"'+(d.tipus===t.v?' selected':'')+'>'+t.l+'</option>'; }).join('');
+
+  // Clients per autocomplete
+  var clientsOpts = (APP.clientsList||[]).map(function(c){
+    return '<option value="'+(c.email||'')+'"></option>';
+  }).join('');
+
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto">'
+    + '<div style="padding:22px 26px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center">'
+      + '<div style="font-family:var(--fd);font-size:20px;font-weight:400">' + (isNew?'Nou ingrés':'Editar ingrés') + '</div>'
+      + '<button id="btn-close-ingres" style="background:none;border:none;font-size:22px;color:var(--g400);cursor:pointer">&times;</button>'
+    + '</div>'
+    + '<div style="padding:24px 26px;display:flex;flex-direction:column;gap:14px">'
+      + '<datalist id="dl-clients">' + clientsOpts + '</datalist>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Data *</label>'
+          + '<input type="date" id="ing-data" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Import (€) *</label>'
+          + '<input type="number" id="ing-import" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)"></div>'
+      + '</div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Tipus *</label>'
+        + '<select id="ing-tipus" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;background:#fff">' + tipusOpts + '</select></div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Concepte</label>'
+        + '<input type="text" id="ing-concepte" placeholder="Ex: Subscripci\u00f3 Brúixola Q2, Pack Diagnòstic..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Client (opcional)</label>'
+        + '<input type="email" id="ing-client" list="dl-clients" placeholder="email@client.com" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Notes</label>'
+        + '<textarea id="ing-notes" rows="2" placeholder="Observacions..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;resize:vertical;font-family:var(--fb);line-height:1.6"></textarea></div>'
+      + '<div id="ing-msg" style="min-height:18px;font-size:12px;color:#c00"></div>'
+      + '<div style="display:flex;gap:10px;justify-content:flex-end">'
+        + '<button id="btn-cancel-ingres" style="padding:10px 18px;background:var(--g100);color:var(--black);border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Cancel·lar</button>'
+        + '<button id="btn-desar-ingres" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar →</button>'
+      + '</div>'
+    + '</div></div>';
+
+  document.body.appendChild(modal);
+
+  // Omplir valors
+  document.getElementById('ing-data').value    = (d.data||'').slice(0,10);
+  document.getElementById('ing-import').value  = d.import || '';
+  document.getElementById('ing-concepte').value= d.concepte || '';
+  document.getElementById('ing-client').value  = d.client_email || '';
+  document.getElementById('ing-notes').value   = d.notes || '';
+
+  document.getElementById('btn-close-ingres').onclick  = function() { modal.remove(); };
+  document.getElementById('btn-cancel-ingres').onclick = function() { modal.remove(); };
+  document.getElementById('btn-desar-ingres').onclick  = function() { desarIngres(d.id||null); };
+}
+
+async function desarIngres(existingId) {
+  if (!sb) { alert('Supabase no disponible'); return; }
+  var msg = document.getElementById('ing-msg');
+  var btn = document.getElementById('btn-desar-ingres');
+  var payload = {
+    data:         document.getElementById('ing-data').value,
+    import:       parseFloat(document.getElementById('ing-import').value) || null,
+    tipus:        document.getElementById('ing-tipus').value,
+    concepte:     document.getElementById('ing-concepte').value.trim(),
+    client_email: document.getElementById('ing-client').value.trim() || null,
+    notes:        document.getElementById('ing-notes').value.trim() || null,
+  };
+  if (!payload.data) { if(msg) msg.textContent='La data és obligatòria.'; return; }
+  if (!payload.import || payload.import <= 0) { if(msg) msg.textContent='L\'import ha de ser > 0.'; return; }
+  if (btn) { btn.disabled=true; btn.textContent='Desant...'; }
+  try {
+    var res = existingId
+      ? await sb.from('ingressos').update(payload).eq('id', existingId)
+      : await sb.from('ingressos').insert(payload);
+    if (res.error) throw res.error;
+    _ING_CACHE = null;
+    document.getElementById('modal-ingres').remove();
+    toast('\u2713 Ingrés ' + (existingId?'actualitzat':'afegit'));
+    renderAdminIngressos(document.getElementById('content'));
+  } catch(e) {
+    if (btn) { btn.disabled=false; btn.textContent='Desar →'; }
+    if (msg) msg.textContent='Error: ' + (e.message||e);
+  }
+}
+
+async function eliminarIngres(id) {
+  if (!confirm('Eliminar aquest ingrés? Acció irreversible.')) return;
+  if (!sb) return;
+  try {
+    var res = await sb.from('ingressos').delete().eq('id', id);
+    if (res.error) throw res.error;
+    _ING_CACHE = null;
+    toast('Ingrés eliminat');
+    renderAdminIngressos(document.getElementById('content'));
+  } catch(e) { toast('Error: '+(e.message||e)); }
+}
+</script>
