@@ -16874,6 +16874,529 @@ async function aaEliminar(id){
   }
 }
 
+
+
+// ═══ PATCH v2: Seguiment TBI + Educacio Supabase ═══
+// ═══════════════════════════════════════════════════════════════════════════
+// PATCH v2: Seguiment TBI + Educacio Supabase
+// Injectat al final del script principal
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── Helper: escapar HTML per a atributs ────────────────────────────────
+function _hesc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── Override renderPortalCarteres per afegir tabs ──────────────────────
+var _origRPC = (typeof renderPortalCarteres === 'function') ? renderPortalCarteres : null;
+
+renderPortalCarteres = function(el) {
+  var tabActiu = window._cartTab || 'carteres';
+  var bs = 'padding:9px 18px;border-radius:7px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);';
+  var tabs = '<div style="display:flex;gap:6px;margin-bottom:24px;background:var(--g50);padding:4px;border-radius:9px;width:fit-content">'
+    + '<button onclick="window._cartTab=\'carteres\';renderPortalCarteres(document.getElementById(\'content\'))" '
+      + 'style="' + bs + 'background:' + (tabActiu==='carteres'?'var(--white)':'transparent') + ';color:' + (tabActiu==='carteres'?'var(--black)':'var(--g400)') + '">&#128194; 10 Carteres Model</button>'
+    + '<button onclick="window._cartTab=\'tbi\';renderPortalCarteres(document.getElementById(\'content\'))" '
+      + 'style="' + bs + 'background:' + (tabActiu==='tbi'?'var(--white)':'transparent') + ';color:' + (tabActiu==='tbi'?'var(--black)':'var(--g400)') + '">&#128202; Seguiment TBI</button>'
+  + '</div>';
+
+  if (tabActiu === 'tbi') {
+    el.innerHTML = '<div class="content-inner fade-in">' + tabs + '<div id="tbi-ops-list" style="min-height:80px"></div></div>';
+    renderSeguimentTBIContent(el, tabs);
+    return;
+  }
+
+  // Tab carteres: crida l'original i injecta tabs al davant
+  if (_origRPC) {
+    _origRPC.call(this, el);
+    // Injectar tabs al principi del content-inner
+    el.innerHTML = el.innerHTML.replace(
+      '<div class="content-inner fade-in">',
+      '<div class="content-inner fade-in">' + tabs
+    );
+  }
+};
+
+// ─── Seguiment TBI ───────────────────────────────────────────────────────
+var _TBI_OPS = null;
+
+async function loadTBIOperacions(forceRefresh) {
+  if (_TBI_OPS && !forceRefresh) return _TBI_OPS;
+  if (!sb) { _TBI_OPS = []; return []; }
+  try {
+    var res = await sb.from('tbi_operacions').select('*').order('data', { ascending: false });
+    _TBI_OPS = res.data || [];
+    return _TBI_OPS;
+  } catch(e) { _TBI_OPS = []; return []; }
+}
+
+async function renderSeguimentTBIContent(el, tabsHtml) {
+  var html = '<div class="content-inner fade-in">' + tabsHtml;
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">'
+    + '<div>'
+      + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:4px">Seguiment Cartera TBI</div>'
+      + '<div style="font-size:12px;color:var(--g500)">Operacions i decisions de la cartera model The Boring Investor</div>'
+    + '</div>'
+    + (APP.role === 'admin' ? '<button onclick="obrirModalTBIOperacio(null)" style="padding:10px 18px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Nova operaci\u00f3</button>' : '')
+  + '</div>';
+  html += '<div id="tbi-ops-list"><div style="text-align:center;padding:40px;color:var(--g400)">Carregant...</div></div>';
+  html += '</div>';
+  el.innerHTML = html;
+  var ops = await loadTBIOperacions(true);
+  renderTBIOpsList(ops);
+}
+
+// Wrapper: renderSeguimentTBI now needs tabs context
+async function renderSeguimentTBI(el, tabsHtml) {
+  await renderSeguimentTBIContent(el, tabsHtml || '');
+}
+
+function renderTBIOpsList(ops) {
+  var list = document.getElementById('tbi-ops-list');
+  if (!list) return;
+  if (!ops || !ops.length) {
+    list.innerHTML = '<div style="text-align:center;padding:48px;background:#fff;border:1px solid var(--g200);border-radius:14px">'
+      + '<div style="font-size:36px;margin-bottom:12px">&#128200;</div>'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap operaci\u00f3 publicada</div>'
+      + '<div style="font-size:12px;color:var(--g500)">' + (APP.role==='admin'?'Fes clic a "+ Nova operaci\u00f3" per afegir la primera.':'Les operacions de la cartera TBI apareixeran aqu\u00ed.') + '</div>'
+    + '</div>';
+    return;
+  }
+  var tipusCfg = {
+    compra:      {lbl:'Compra',      bg:'#EAF3DE',col:'#1A5C3A',ic:'+'},
+    venda:       {lbl:'Venda',       bg:'#FDF0F0',col:'#8B1A1A',ic:'-'},
+    dividend:    {lbl:'Dividend',    bg:'#EBF0FA',col:'#1B3A6B',ic:'&#128176;'},
+    rebalanceig: {lbl:'Rebalanceig', bg:'#EDEAF9',col:'#534AB7',ic:'&#8644;'},
+    nota:        {lbl:'Nota',        bg:'#FEF5E7',col:'#7A4A00',ic:'&#128221;'},
+  };
+  var grups = {};
+  ops.forEach(function(op) {
+    var dt = new Date(op.data);
+    var key = dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0');
+    var lbl = dt.toLocaleDateString('ca-ES',{month:'long',year:'numeric'});
+    if (!grups[key]) grups[key] = {lbl:lbl, ops:[]};
+    grups[key].ops.push(op);
+  });
+  var html = '';
+  Object.keys(grups).sort().reverse().forEach(function(key) {
+    var g = grups[key];
+    html += '<div style="margin-bottom:24px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--g200)">' + g.lbl + '</div>';
+    g.ops.forEach(function(op) {
+      var tc = tipusCfg[op.tipus] || tipusCfg.nota;
+      var dt = new Date(op.data).toLocaleDateString('ca-ES',{day:'numeric',month:'short'});
+      var imp = op.import_total ? parseFloat(op.import_total).toLocaleString('ca-ES',{minimumFractionDigits:0,maximumFractionDigits:2}) + '\u20ac' : '';
+      var pr  = op.preu ? parseFloat(op.preu).toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:4}) + '\u20ac' : '';
+      var opId = op.id || '';
+      html += '<div class="card" style="padding:16px 20px;margin-bottom:8px"><div style="display:flex;align-items:flex-start;gap:14px">'
+        + '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px">'
+          + '<span style="font-size:18px">' + tc.ic + '</span>'
+          + '<span style="background:' + tc.bg + ';color:' + tc.col + ';padding:2px 7px;border-radius:99px;font-size:9px;font-weight:600">' + tc.lbl.toUpperCase() + '</span>'
+        + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+            + '<div style="font-size:14px;font-weight:500">' + _hesc(op.actiu||'') + (op.actiu&&op.descripcio?' \u2014 ':'') + _hesc(op.descripcio||'') + '</div>'
+            + '<div style="font-size:11px;color:var(--g400)">' + dt + '</div>'
+          + '</div>'
+          + '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--g500)">'
+            + (pr ? '<span>Preu: <strong style="color:var(--black)">' + pr + '</strong></span>' : '')
+            + (op.unitats ? '<span>Unitats: <strong style="color:var(--black)">' + op.unitats + '</strong></span>' : '')
+            + (imp ? '<span>Import: <strong style="color:' + tc.col + '">' + imp + '</strong></span>' : '')
+          + '</div>'
+          + (op.notes ? '<div style="margin-top:8px;font-size:12px;color:var(--g500);background:var(--g50);padding:8px 12px;border-radius:6px;border-left:3px solid var(--g200)">' + _hesc(op.notes) + '</div>' : '')
+        + '</div>'
+        + (APP.role === 'admin' ? '<div style="display:flex;gap:6px;flex-shrink:0" data-op-id="' + opId + '">'
+            + '<button style="padding:5px 10px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer">&#9998;</button>'
+            + '<button style="padding:5px 10px;background:transparent;border:1px solid #E8B0A8;color:#8B1A1A;border-radius:6px;font-size:11px;cursor:pointer">&#128465;</button>'
+          + '</div>' : '')
+      + '</div></div>';
+    });
+    html += '</div>';
+  });
+  list.innerHTML = html;
+
+  // Afegir event listeners als botons (evita inline onclick amb quotes)
+  if (APP.role === 'admin') {
+    list.querySelectorAll('[data-op-id]').forEach(function(div) {
+      var id = div.getAttribute('data-op-id');
+      var btns = div.querySelectorAll('button');
+      if (btns[0]) btns[0].addEventListener('click', function() { obrirModalTBIOperacio(id); });
+      if (btns[1]) btns[1].addEventListener('click', function() { eliminarTBIOperacio(id); });
+    });
+  }
+}
+
+async function obrirModalTBIOperacio(id) {
+  var isNew = !id;
+  var op = {id:null, data:new Date().toISOString().slice(0,10), tipus:'compra', actiu:'', descripcio:'', preu:'', unitats:'', import_total:'', notes:'', publicat:true};
+  if (!isNew && _TBI_OPS) {
+    var found = _TBI_OPS.find(function(o) { return o.id === id; });
+    if (found) op = Object.assign({}, op, found);
+  }
+  var old = document.getElementById('modal-tbi-op');
+  if (old) old.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-tbi-op';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)';
+
+  var tipusOpts = ['compra','venda','dividend','rebalanceig','nota'].map(function(t) {
+    return '<option value="' + t + '"' + (op.tipus===t?' selected':'') + '>' + t.charAt(0).toUpperCase() + t.slice(1) + '</option>';
+  }).join('');
+
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto">'
+    + '<div style="padding:22px 26px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center">'
+      + '<div style="font-family:var(--fd);font-size:20px;font-weight:400">' + (isNew?'Nova operaci\u00f3 TBI':'Editar operaci\u00f3') + '</div>'
+      + '<button id="btn-close-tbi-modal" style="background:none;border:none;font-size:22px;color:var(--g400);cursor:pointer">&times;</button>'
+    + '</div>'
+    + '<div style="padding:24px 26px;display:flex;flex-direction:column;gap:14px">'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Data *</label>'
+          + '<input type="date" id="tbi-data" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Tipus *</label>'
+          + '<select id="tbi-tipus" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;background:#fff">' + tipusOpts + '</select></div>'
+      + '</div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Actiu (ETF/fons)</label>'
+        + '<input type="text" id="tbi-actiu" placeholder="Ex: IWDA, VAGF, CSPX..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Descripci\u00f3</label>'
+        + '<input type="text" id="tbi-desc" placeholder="Ex: Compra mensual DCA, Rebalanceig anual..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Preu (\u20ac)</label>'
+          + '<input type="number" id="tbi-preu" placeholder="0.00" min="0" step="0.01" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)"></div>'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Unitats</label>'
+          + '<input type="number" id="tbi-unitats" placeholder="0" min="0" step="0.001" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)"></div>'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Import total (\u20ac)</label>'
+          + '<input type="number" id="tbi-import" placeholder="0.00" min="0" step="0.01" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)"></div>'
+      + '</div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Notes / raonament</label>'
+        + '<textarea id="tbi-notes" rows="3" placeholder="Per qu\u00e8 s\'ha fet aquesta operaci\u00f3..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;resize:vertical;font-family:var(--fb);line-height:1.6"></textarea></div>'
+      + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">'
+        + '<input type="checkbox" id="tbi-publicat">Publicat (visible als clients)</label>'
+      + '<div id="tbi-msg" style="min-height:18px;font-size:12px;color:#c00"></div>'
+      + '<div style="display:flex;gap:10px;justify-content:flex-end">'
+        + '<button id="btn-cancel-tbi" style="padding:10px 18px;background:var(--g100);color:var(--black);border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Cancel\u00b7lar</button>'
+        + '<button id="btn-desar-tbi" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar \u2192</button>'
+      + '</div>'
+    + '</div></div>';
+
+  document.body.appendChild(modal);
+
+  // Omplir valors (evita quoting issues en HTML)
+  document.getElementById('tbi-data').value = (op.data||'').slice(0,10);
+  document.getElementById('tbi-actiu').value = op.actiu || '';
+  document.getElementById('tbi-desc').value = op.descripcio || '';
+  document.getElementById('tbi-preu').value = op.preu || '';
+  document.getElementById('tbi-unitats').value = op.unitats || '';
+  document.getElementById('tbi-import').value = op.import_total || '';
+  document.getElementById('tbi-notes').value = op.notes || '';
+  document.getElementById('tbi-publicat').checked = !!op.publicat;
+
+  // Event listeners
+  document.getElementById('btn-close-tbi-modal').onclick = function() { modal.remove(); };
+  document.getElementById('btn-cancel-tbi').onclick = function() { modal.remove(); };
+  document.getElementById('btn-desar-tbi').onclick = function() { desarTBIOperacio(op.id || null); };
+}
+
+async function desarTBIOperacio(existingId) {
+  if (!sb) { alert('Supabase no disponible'); return; }
+  var msg = document.getElementById('tbi-msg');
+  var btn = document.getElementById('btn-desar-tbi');
+  var payload = {
+    data:         document.getElementById('tbi-data').value,
+    tipus:        document.getElementById('tbi-tipus').value,
+    actiu:        document.getElementById('tbi-actiu').value.trim(),
+    descripcio:   document.getElementById('tbi-desc').value.trim(),
+    preu:         parseFloat(document.getElementById('tbi-preu').value) || null,
+    unitats:      parseFloat(document.getElementById('tbi-unitats').value) || null,
+    import_total: parseFloat(document.getElementById('tbi-import').value) || null,
+    notes:        document.getElementById('tbi-notes').value.trim(),
+    publicat:     document.getElementById('tbi-publicat').checked,
+  };
+  if (!payload.data) { if(msg) msg.textContent = 'La data \u00e9s obligat\u00f2ria.'; return; }
+  if (!payload.descripcio && !payload.actiu) { if(msg) msg.textContent = 'Posa almenys un actiu o descripci\u00f3.'; return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Desant...'; }
+  try {
+    var res = existingId
+      ? await sb.from('tbi_operacions').update(payload).eq('id', existingId)
+      : await sb.from('tbi_operacions').insert(payload);
+    if (res.error) throw res.error;
+    _TBI_OPS = null;
+    document.getElementById('modal-tbi-op').remove();
+    toast('\u2713 Operaci\u00f3 ' + (existingId?'actualitzada':'afegida'));
+    window._cartTab = 'tbi';
+    renderPortalCarteres(document.getElementById('content'));
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Desar \u2192'; }
+    if (msg) msg.textContent = 'Error: ' + (e.message || e);
+  }
+}
+
+async function eliminarTBIOperacio(id) {
+  if (!confirm('Eliminar aquesta operaci\u00f3? Acci\u00f3 irreversible.')) return;
+  if (!sb) return;
+  try {
+    var res = await sb.from('tbi_operacions').delete().eq('id', id);
+    if (res.error) throw res.error;
+    _TBI_OPS = null;
+    toast('Operaci\u00f3 eliminada');
+    window._cartTab = 'tbi';
+    renderPortalCarteres(document.getElementById('content'));
+  } catch(e) { toast('Error: ' + (e.message||e)); }
+}
+
+// ─── Educaci\u00f3 financera (Supabase) ──────────────────────────────────────
+renderPortalEducacio = async function(el) {
+  var nivellActiu = window._eduNivell || 'basic';
+  var nivells = [
+    {id:'basic',        lbl:'&#127807; B\u00e0sic'},
+    {id:'usuari',       lbl:'&#128218; Usuari'},
+    {id:'expert',       lbl:'&#129504; Expert'},
+    {id:'especialista', lbl:'&#127942; Especialista'},
+  ];
+  var tabs = '<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">';
+  nivells.forEach(function(n) {
+    var isA = nivellActiu === n.id;
+    tabs += '<button data-edu-nivell="' + n.id + '" '
+      + 'style="padding:8px 16px;border-radius:8px;border:1.5px solid ' + (isA?'var(--black)':'var(--g200)') + ';'
+      + 'background:' + (isA?'var(--black)':'#fff') + ';color:' + (isA?'#fff':'var(--g500)') + ';'
+      + 'font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">' + n.lbl + '</button>';
+  });
+  tabs += '</div>';
+
+  var html = '<div class="content-inner fade-in">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Educaci\u00f3 financera</div>'
+        + '<div style="font-size:12px;color:var(--g500)">Articles i documents educatius sobre inversions i finances personals</div>'
+      + '</div>'
+      + (APP.role==='admin' ? '<button id="btn-nou-edu" style="padding:10px 18px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Nou contingut</button>' : '')
+    + '</div>'
+    + tabs
+    + '<div id="edu-list"><div style="text-align:center;padding:40px;color:var(--g400)">Carregant...</div></div>'
+  + '</div>';
+
+  el.innerHTML = html;
+
+  // Event listeners (evita inline onclick)
+  el.querySelectorAll('[data-edu-nivell]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      window._eduNivell = btn.getAttribute('data-edu-nivell');
+      renderPortalEducacio(document.getElementById('content'));
+    });
+  });
+  var btnNou = document.getElementById('btn-nou-edu');
+  if (btnNou) btnNou.addEventListener('click', function() { obrirModalEdu(null); });
+
+  await loadIRenderEdu(nivellActiu);
+};
+
+async function loadIRenderEdu(nivell) {
+  var list = document.getElementById('edu-list');
+  if (!list) return;
+  var items = [];
+  if (sb) {
+    try {
+      var q = sb.from('educacio').select('*').eq('nivell', nivell).order('ordre').order('created_at', {ascending:false});
+      if (APP.role !== 'admin') q = q.eq('publicat', true);
+      var res = await q;
+      items = res.data || [];
+    } catch(e) { console.warn('educacio error:', e); }
+  }
+  if (!items.length) {
+    list.innerHTML = '<div style="text-align:center;padding:48px;background:#fff;border:1px solid var(--g200);border-radius:14px">'
+      + '<div style="font-size:36px;margin-bottom:12px">&#128218;</div>'
+      + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap contingut per a aquest nivell</div>'
+      + '<div style="font-size:12px;color:var(--g500)">' + (APP.role==='admin'?'Fes clic a "+ Nou contingut" per afegir el primer article o PDF.':'Aviat afegirem contingut per a aquest nivell.') + '</div>'
+    + '</div>';
+    return;
+  }
+  var cats = {}; var catOrder = [];
+  items.forEach(function(it) {
+    var cat = it.categoria || 'General';
+    if (!cats[cat]) { cats[cat]=[]; catOrder.push(cat); }
+    cats[cat].push(it);
+  });
+  var tipusIcn = {article:'&#128221;', pdf:'&#128196;', video:'&#127916;', link:'&#128279;'};
+  var html = '';
+  catOrder.forEach(function(cat) {
+    html += '<div style="margin-bottom:28px">'
+      + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--g200)">' + _hesc(cat) + '</div>';
+    cats[cat].forEach(function(it) {
+      var icn = tipusIcn[it.tipus] || '&#128221;';
+      var isPdf = it.tipus === 'pdf';
+      var hasUrl = !!it.url;
+      html += '<div class="card" style="padding:16px 20px;margin-bottom:10px;' + (APP.role!=='admin'&&hasUrl?'cursor:pointer':'') + ';"'
+        + ' data-edu-url="' + _hesc(it.url||'') + '" data-edu-id="' + _hesc(it.id||'') + '">'
+        + '<div style="display:flex;align-items:flex-start;gap:12px">'
+          + '<div style="flex-shrink:0;width:38px;height:38px;border-radius:8px;background:var(--g50);border:1px solid var(--g200);display:flex;align-items:center;justify-content:center;font-size:18px">' + icn + '</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:3px;flex-wrap:wrap">'
+              + '<div style="font-size:14px;font-weight:500">' + _hesc(it.titol) + '</div>'
+              + (it.destacat?'<span style="background:#FEF5E7;color:#7A4A00;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:600">&#9733; Destacat</span>':'')
+              + (!it.publicat&&APP.role==='admin'?'<span style="background:#FDF0F0;color:#8B1A1A;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:600">Esborrany</span>':'')
+            + '</div>'
+            + (it.subtitol?'<div style="font-size:12px;color:var(--g500);margin-bottom:6px">' + _hesc(it.subtitol) + '</div>':'')
+            + (it.resum?'<div style="font-size:12px;color:var(--g600);line-height:1.6;margin-bottom:8px">' + _hesc(it.resum) + '</div>':'')
+            + '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">'
+              + '<span style="font-size:10px;color:var(--g400);background:var(--g100);padding:2px 8px;border-radius:99px">' + (it.tipus||'article').toUpperCase() + '</span>'
+              + (it.temps_lectura?'<span style="font-size:10px;color:var(--g400)">&#9201; ' + _hesc(it.temps_lectura) + '</span>':'')
+              + (hasUrl&&APP.role!=='admin'?'<span style="font-size:11px;color:var(--accent);font-weight:500">' + (isPdf?'Descarregar PDF \u2193':'Llegir \u2192') + '</span>':'')
+            + '</div>'
+          + '</div>'
+          + (APP.role==='admin'?'<div class="edu-admin-btns" style="display:flex;gap:6px;flex-shrink:0">'
+            + '<button class="btn-edit-edu" style="padding:5px 10px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer">&#9998;</button>'
+            + '<button class="btn-del-edu" style="padding:5px 10px;background:transparent;border:1px solid #E8B0A8;color:#8B1A1A;border-radius:6px;font-size:11px;cursor:pointer">&#128465;</button>'
+            + '</div>':'')
+        + '</div></div>';
+    });
+    html += '</div>';
+  });
+  list.innerHTML = html;
+
+  // Event listeners
+  list.querySelectorAll('[data-edu-id]').forEach(function(card) {
+    var id = card.getAttribute('data-edu-id');
+    var url = card.getAttribute('data-edu-url');
+    if (APP.role === 'admin') {
+      var btnEdit = card.querySelector('.btn-edit-edu');
+      var btnDel  = card.querySelector('.btn-del-edu');
+      if (btnEdit) btnEdit.addEventListener('click', function(e) { e.stopPropagation(); obrirModalEdu(id); });
+      if (btnDel)  btnDel.addEventListener('click',  function(e) { e.stopPropagation(); eliminarEdu(id); });
+    } else if (url) {
+      card.addEventListener('click', function() { window.open(url, '_blank', 'noopener'); });
+    }
+  });
+}
+
+async function obrirModalEdu(id) {
+  if (APP.role !== 'admin') return;
+  var isNew = !id;
+  var it = {nivell:window._eduNivell||'basic', categoria:'', tipus:'article', titol:'', subtitol:'', resum:'', url:'', temps_lectura:'', publicat:false, destacat:false, ordre:0};
+  if (!isNew && sb) {
+    try {
+      var r = await sb.from('educacio').select('*').eq('id',id).limit(1);
+      if (r.data && r.data[0]) it = Object.assign({}, it, r.data[0]);
+    } catch(e) { console.warn('obrirModalEdu fetch error:', e); }
+  }
+  var old = document.getElementById('modal-edu');
+  if (old) old.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-edu';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto;backdrop-filter:blur(2px)';
+
+  var nivellOpts = ['basic','usuari','expert','especialista'].map(function(n) {
+    return '<option value="' + n + '"' + (it.nivell===n?' selected':'') + '>' + n.charAt(0).toUpperCase() + n.slice(1) + '</option>';
+  }).join('');
+  var tipusOpts = ['article','pdf','video','link'].map(function(t) {
+    return '<option value="' + t + '"' + (it.tipus===t?' selected':'') + '>' + t.charAt(0).toUpperCase() + t.slice(1) + '</option>';
+  }).join('');
+
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:580px;width:100%;margin:auto">'
+    + '<div style="padding:22px 26px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:2">'
+      + '<div style="font-family:var(--fd);font-size:20px;font-weight:400">' + (isNew?'Nou contingut educatiu':'Editar contingut') + '</div>'
+      + '<button id="btn-close-edu" style="background:none;border:none;font-size:22px;color:var(--g400);cursor:pointer">&times;</button>'
+    + '</div>'
+    + '<div style="padding:24px 26px;display:flex;flex-direction:column;gap:14px">'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Nivell *</label>'
+          + '<select id="edu-nivell" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;background:#fff">' + nivellOpts + '</select></div>'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Tipus *</label>'
+          + '<select id="edu-tipus" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;background:#fff">' + tipusOpts + '</select></div>'
+      + '</div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Categoria</label>'
+        + '<input type="text" id="edu-cat" placeholder="Ex: Fonaments, ETFs, Psicologia inversora..." style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">T\u00edtol *</label>'
+        + '<input type="text" id="edu-titol" placeholder="Ex: Qu\u00e8 \u00e9s la indexaci\u00f3 i per qu\u00e8 funciona" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Subt\u00edtol</label>'
+        + '<input type="text" id="edu-subtitol" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Resum / descripci\u00f3</label>'
+        + '<textarea id="edu-resum" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;resize:vertical;font-family:var(--fb);line-height:1.6"></textarea></div>'
+      + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">URL (Google Drive, web, Dropbox...)</label>'
+        + '<div style="font-size:11px;color:var(--g400);margin-bottom:6px;line-height:1.5">PDFs: puja a Google Drive, activa acc\u00e9s p\u00fablic i enganxa l\'enlla\u00e7. Articles: URL directa.</div>'
+        + '<input type="url" id="edu-url" placeholder="https://drive.google.com/file/d/.../view" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fm)"></div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Temps de lectura</label>'
+          + '<input type="text" id="edu-temps" placeholder="Ex: 5 min" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px"></div>'
+        + '<div><label style="font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px">Ordre (1=primer)</label>'
+          + '<input type="number" id="edu-ordre" min="0" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm)"></div>'
+      + '</div>'
+      + '<div style="display:flex;gap:20px">'
+        + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="edu-publicat">Publicat (visible als clients)</label>'
+        + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="edu-destacat">Destacat</label>'
+      + '</div>'
+      + '<div id="edu-msg" style="min-height:18px;font-size:12px;color:#c00"></div>'
+      + '<div style="display:flex;gap:10px;justify-content:flex-end">'
+        + '<button id="btn-cancel-edu" style="padding:10px 18px;background:var(--g100);color:var(--black);border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Cancel\u00b7lar</button>'
+        + '<button id="btn-desar-edu" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar \u2192</button>'
+      + '</div>'
+    + '</div></div>';
+
+  document.body.appendChild(modal);
+
+  // Omplir valors amb .value (sense quoting en HTML)
+  document.getElementById('edu-cat').value      = it.categoria || '';
+  document.getElementById('edu-titol').value    = it.titol || '';
+  document.getElementById('edu-subtitol').value = it.subtitol || '';
+  document.getElementById('edu-resum').value    = it.resum || '';
+  document.getElementById('edu-url').value      = it.url || '';
+  document.getElementById('edu-temps').value    = it.temps_lectura || '';
+  document.getElementById('edu-ordre').value    = it.ordre || 0;
+  document.getElementById('edu-publicat').checked = !!it.publicat;
+  document.getElementById('edu-destacat').checked = !!it.destacat;
+
+  // Event listeners
+  document.getElementById('btn-close-edu').onclick  = function() { modal.remove(); };
+  document.getElementById('btn-cancel-edu').onclick = function() { modal.remove(); };
+  document.getElementById('btn-desar-edu').onclick  = function() { desarEdu(it.id || null); };
+}
+
+async function desarEdu(existingId) {
+  if (!sb) { alert('Supabase no disponible'); return; }
+  var msg = document.getElementById('edu-msg');
+  var btn = document.getElementById('btn-desar-edu');
+  var payload = {
+    nivell:        document.getElementById('edu-nivell').value,
+    tipus:         document.getElementById('edu-tipus').value,
+    categoria:     document.getElementById('edu-cat').value.trim(),
+    titol:         document.getElementById('edu-titol').value.trim(),
+    subtitol:      document.getElementById('edu-subtitol').value.trim(),
+    resum:         document.getElementById('edu-resum').value.trim(),
+    url:           document.getElementById('edu-url').value.trim(),
+    temps_lectura: document.getElementById('edu-temps').value.trim(),
+    ordre:         parseInt(document.getElementById('edu-ordre').value) || 0,
+    publicat:      document.getElementById('edu-publicat').checked,
+    destacat:      document.getElementById('edu-destacat').checked,
+    updated_at:    new Date().toISOString(),
+  };
+  if (!payload.titol) { if(msg) msg.textContent = 'El t\u00edtol \u00e9s obligatori.'; return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Desant...'; }
+  try {
+    var res = existingId
+      ? await sb.from('educacio').update(payload).eq('id', existingId)
+      : await sb.from('educacio').insert(payload);
+    if (res.error) throw res.error;
+    document.getElementById('modal-edu').remove();
+    toast('\u2713 Contingut ' + (existingId?'actualitzat':'afegit'));
+    window._eduNivell = payload.nivell;
+    renderPortalEducacio(document.getElementById('content'));
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Desar \u2192'; }
+    if (msg) msg.textContent = 'Error: ' + (e.message||e);
+  }
+}
+
+async function eliminarEdu(id) {
+  if (!confirm('Eliminar aquest contingut? Acci\u00f3 irreversible.')) return;
+  if (!sb) return;
+  try {
+    var res = await sb.from('educacio').delete().eq('id', id);
+    if (res.error) throw res.error;
+    toast('Contingut eliminat');
+    renderPortalEducacio(document.getElementById('content'));
+  } catch(e) { toast('Error: ' + (e.message||e)); }
+}
+
+
 </script>
 </body>
 </html>
