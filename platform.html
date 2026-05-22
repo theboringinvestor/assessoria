@@ -2795,6 +2795,31 @@ async function loadClientFromSupabase(email) {
   }
 }
 
+// ── Recarregar dades del client actual des de Supabase ──────────────────
+// Útil quan el client acaba de completar el qüestionari (en altra pestanya)
+// i vol veure el nou scoring sense tancar sessió.
+async function recarregarDadesClient() {
+  var email = (APP.clientData && APP.clientData.email) || (APP.user && APP.user.email);
+  if (!email || !sb) return;
+  var btn = document.getElementById('btn-refresh-client');
+  if (btn) { btn.disabled = true; btn.textContent = '\u23f3 Carregant...'; }
+  try {
+    var cd = await loadClientFromSupabase(email);
+    if (cd) {
+      APP.clientData = cd;
+      try { localStorage.removeItem('tbi_test_completed'); } catch(e){}
+      var content = document.getElementById('content');
+      if (content) {
+        if (APP.view === 'portal-perfil') renderPortalPerfil(content);
+        else navigateTo(APP.view || 'portal-perfil');
+      }
+    }
+  } catch(e) {
+    console.error('[recarregarDadesClient]', e);
+    if (btn) { btn.disabled = false; btn.textContent = '\ud83d\udd04 Actualitzar'; }
+  }
+}
+
 async function loadAllClientsFromSupabase() {
   if (!sb) return null;
   try {
@@ -4478,7 +4503,13 @@ function _renderPortalPerfilImpl(el) {
     + '<div class="score-right">'
       + '<div class="score-num" style="color:' + scoreColor + '">' + sc + '<span class="score-denom">/100</span></div>'
       + '<div style="padding:6px 12px;background:' + scoreBg + ';border-radius:6px;font-size:11px;font-weight:500;color:' + scoreColor + ';margin-top:6px;display:inline-block">' + scoreLabel + '</div>'
-      + (APP.role !== 'admin' ? '<div style="margin-top:14px"><button onclick="confirmarRetestQuestionnaire()" style="padding:7px 13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:8px;font-size:11px;color:rgba(255,255,255,.7);cursor:pointer;font-family:var(--fb)">&#x1F504; Actualitzar perfil</button></div>' : '')
+      + (APP.role !== 'admin'
+          ? '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">'
+              + '<button onclick="confirmarRetestQuestionnaire()" style="padding:7px 13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:8px;font-size:11px;color:rgba(255,255,255,.7);cursor:pointer;font-family:var(--fb)">&#x1F504; Actualitzar perfil</button>'
+              + '<button id="btn-refresh-client" onclick="recarregarDadesClient()" title="Recarrega el scoring i dades des del servidor" style="padding:7px 13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:11px;color:rgba(255,255,255,.45);cursor:pointer;font-family:var(--fb)">&#x1F5D8;&#xFE0F; Sync</button>'
+            + '</div>'
+          : '<div style="margin-top:14px"><button id="btn-refresh-client" onclick="recarregarDadesClient()" title="Recarrega dades del client des de Supabase" style="padding:7px 13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:11px;color:rgba(255,255,255,.55);cursor:pointer;font-family:var(--fb)">&#x1F5D8;&#xFE0F; Sync dades</button></div>'
+        )
     + '</div>'
   + '</div>';
 
@@ -4613,17 +4644,99 @@ function _renderPortalPerfilImpl(el) {
     ['Risc financer',     pVal('riscFinancer',      ['riscFinancer','risc_financer','riscF'])],
     ['Risc emocional',    pVal('riscEmocional',     ['riscEmocional','risc_emocional','riscE'])],
   ];
-  html += '<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
-    + '<div class="card-title" style="margin-bottom:0">Dades financeres</div>'
-    + (APP.role === 'admin' ? '<button onclick="obrirEditarDadesFinanceres(\'' + (c.email||'') + '\')" style="padding:4px 10px;font-size:11px;border:1px solid var(--g200);border-radius:6px;background:transparent;cursor:pointer;color:var(--g500);font-family:var(--fb)">✏️ Editar</button>' : '')
-  + '</div>'
-  + '<div class="perfil-grid">';
-  dadesF.forEach(function(r){
-    var isEmpty = !r[1] || r[1] === '—';
-    html += '<div class="perfil-item"><div class="perfil-lbl">' + r[0] + '</div>'
-      + '<div class="perfil-val" style="color:' + (isEmpty ? 'var(--g400)' : 'var(--black)') + '">' + r[1] + '</div></div>';
-  });
-  html += '</div></div>';
+  // ── DADES FINANCERES — disseny professional ─────────────────────────────
+  (function() {
+    var vCap  = pVal('capitalInicial',   ['capitalInicial','capital_inicial','capital']);
+    var vAp   = pVal('aportacioMensual', ['aportacioMensual','aportacio_mensual','aportacio']);
+    var vHor  = pVal('horitzo',          ['horitzo','horitz','horitz\u00f3','horizon']);
+    var vObj  = pVal('objectiu',         ['objectiu','objectivo','objective','goal']);
+    var vRF   = pVal('riscFinancer',     ['riscFinancer','risc_financer','riscF']);
+    var vRE   = pVal('riscEmocional',    ['riscEmocional','risc_emocional','riscE']);
+
+    function rLvl(v) {
+      if (!v||v==='\u2014') return 0;
+      var lv = v.toLowerCase();
+      return (lv==='alt'||lv==='alto') ? 3 : (lv==='moderat'||lv==='moderado'||lv==='mig') ? 2 : 1;
+    }
+    function rCol(v) { return rLvl(v)===3?'#C0392B':rLvl(v)===2?'#D4943A':'#1A5C3A'; }
+    function rBg(v)  { return rLvl(v)===3?'#FDF0F0':rLvl(v)===2?'#FEF5E7':'#EAF3DE'; }
+
+    var kpis = [
+      { icon:'&#x1F4B0;', lbl:'Capital inicial',       val:vCap,  ac:'#1B3A6B', bg:'#EBF0FA' },
+      { icon:'&#x1F4C5;', lbl:'Aportaci\u00f3 mensual', val:vAp,  ac:'#1A5C3A', bg:'#EAF3DE' },
+      { icon:'&#x23F3;',  lbl:'Horit\u00f3 temporal',   val:vHor, ac:'#534AB7', bg:'#EDEAF9' },
+      { icon:'&#x1F3AF;', lbl:'Objectiu financer',      val:vObj, ac:'#7A4A00', bg:'#FEF5E7' },
+    ];
+
+    html += '<div class="card" style="padding:0;overflow:hidden">';
+
+    // ── Capçalera
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px">'
+      + '<div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--g400)">Perfil financer</div>'
+      + (APP.role === 'admin'
+        ? '<button onclick="obrirEditarDadesFinanceres(\'' + (c.email||'') + '\')" '
+          + 'style="display:flex;align-items:center;gap:5px;padding:5px 12px;font-size:11px;border:1px solid var(--g200);border-radius:6px;background:transparent;cursor:pointer;color:var(--g500);font-family:var(--fb)" '
+          + 'onmouseover="this.style.background=\'var(--g100)\'" onmouseout="this.style.background=\'transparent\'">&#x270F;&#xFE0F; Editar</button>'
+        : '')
+      + '</div>';
+
+    // ── Grid 2×2 de KPIs
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--g100)">';
+    kpis.forEach(function(k, i) {
+      var empty = !k.val || k.val === '\u2014';
+      var bR = (i%2===0) ? 'border-right:1px solid var(--g100);' : '';
+      var bB = (i<2)     ? 'border-bottom:1px solid var(--g100);' : '';
+      html += '<div style="padding:16px 18px;' + bR + bB + '">'
+        + '<div style="display:flex;align-items:flex-start;gap:10px">'
+          + '<div style="width:34px;height:34px;border-radius:9px;background:' + k.bg + ';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">' + k.icon + '</div>'
+          + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">' + k.lbl + '</div>';
+      if (empty) {
+        html += '<div style="font-size:15px;color:var(--g300)">—</div>'
+          + '<div style="font-size:9px;color:var(--g300);margin-top:2px;font-style:italic">Pendent</div>';
+      } else {
+        html += '<div style="font-size:16px;font-weight:600;color:' + k.ac + ';font-family:var(--fm);letter-spacing:-.3px;line-height:1.2;word-break:break-word">' + k.val + '</div>';
+      }
+      html += '</div></div></div>';
+    });
+    html += '</div>';
+
+    // ── Secció de risc (dues barres de mesura)
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--g100)">';
+    [
+      { icon:'&#x1F4CA;', lbl:'Risc financer',  val:vRF },
+      { icon:'&#x1F4AD;', lbl:'Risc emocional', val:vRE },
+    ].forEach(function(r, idx) {
+      var col  = rCol(r.val);
+      var bg   = rBg(r.val);
+      var lv   = rLvl(r.val);
+      var bR   = idx===0 ? 'border-right:1px solid var(--g100);' : '';
+      var dotP = lv===1 ? 15 : lv===2 ? 50 : 85;
+      html += '<div style="padding:14px 18px;' + bR + '">';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em">' + r.icon + ' ' + r.lbl + '</div>';
+      if (r.val && r.val !== '\u2014') {
+        html += '<div style="padding:2px 9px;background:' + bg + ';color:' + col + ';border-radius:99px;font-size:10px;font-weight:600">' + r.val + '</div>';
+      } else {
+        html += '<div style="padding:2px 9px;background:var(--g100);color:var(--g400);border-radius:99px;font-size:10px">—</div>';
+      }
+      html += '</div>';
+      // Barra gradient de risc
+      html += '<div style="position:relative;height:6px;background:linear-gradient(90deg,#1A5C3A,#D4943A,#C0392B);border-radius:99px">';
+      if (lv > 0) {
+        html += '<div style="position:absolute;top:50%;left:' + dotP + '%;transform:translate(-50%,-50%);width:14px;height:14px;background:' + col + ';border-radius:50%;border:2.5px solid #fff;box-shadow:0 0 0 2px ' + col + '40"></div>';
+      }
+      html += '</div>';
+      html += '<div style="display:flex;justify-content:space-between;margin-top:5px">'
+        + '<span style="font-size:9px;color:var(--g400)">Conservador</span>'
+        + '<span style="font-size:9px;color:var(--g400)">Agressiu</span>'
+        + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '</div>'; // card
+  })();
 
   // Dimensions
   html += '<div class="card"><div class="card-title">Perfil de les 7 dimensions</div><div class="dims-grid">';
@@ -18285,6 +18398,13 @@ var EDU_MAX_SCORE = (function(){
 })();
 
 function eduStateKey(){
+  // En mode admin preview, usar l'email del CLIENT previsualitzat com a clau,
+  // no l'ID de l'admin. Aix\u00f2 garanteix que cada client t\u00e9 el seu propi progress
+  // independent quan l'admin fa la Vista client de diferents clients.
+  if (APP && APP.role === 'admin' && APP.clientData && APP.clientData.email) {
+    return 'tbi_edu_prev_' + APP.clientData.email.replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  }
+  // Mode client: ID d'autenticaci\u00f3 \u00fanic per compte Supabase
   var uid = (APP && APP.user && APP.user.id) ? APP.user.id : 'demo';
   return 'tbi_edu_basic_' + uid;
 }
