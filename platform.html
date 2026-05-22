@@ -2835,7 +2835,11 @@ async function loadAnalisisFromSupabase() {
   try {
     var res = await sb.from('analisis').select('*').eq('visible_portal', true).order('data_pub', {ascending: false});
     if (res.error || !res.data) return null;
-    return res.data;
+    // Normalitzar: la BD pot tenir 'contingut' en lloc de 'resum' (legacy)
+    return res.data.map(function(a) {
+      if (!a.resum && a.contingut) a.resum = a.contingut;
+      return a;
+    });
   } catch(e) {
     console.error('Error loading analisis:', e);
     return null;
@@ -13951,6 +13955,42 @@ function renderUpgradePrompt(viewId, pla) {
 // Antigament redirigia directament al qüestionari. Ara mostra una pantalla
 // intermèdia perquè l'usuari sàpiga qui és, què ha de fer, i pugui tancar
 // sessió si ha entrat per error.
+async function saltarQuestionnaire() {
+  // El client opta per accedir sense fer el qüestionari ara.
+  // Activem el compte directament a status='active' a Supabase.
+  if (sb && APP.user && APP.user.email) {
+    var email = APP.user.email.toLowerCase();
+    try {
+      // Comprova si ja existeix fila
+      var existing = await loadClientFromSupabase(email);
+      if (existing) {
+        await sb.from('clients').update({ status: 'active' }).eq('email', email);
+        APP.clientData = existing;
+        APP.clientData.status = 'active';
+      } else {
+        // Crear registre mínim
+        var cd = {
+          email: email,
+          nom: APP.user.name || email,
+          status: 'active',
+          scoring: 0,
+          pla: 'Senyal',
+          activated_at: new Date().toISOString()
+        };
+        await sb.from('clients').insert(cd);
+        APP.clientData = cd;
+      }
+    } catch(e) {
+      console.warn('[saltarQuestionnaire] Error actualitzant Supabase:', e);
+      // Continuar igualment — el portal farà fallback a demo si cal
+      if (!APP.clientData) APP.clientData = { email: email, status: 'active', scoring: 0 };
+      else APP.clientData.status = 'active';
+    }
+  }
+  toast('Benvingut/da! Pots completar el perfil quan vulguis des del portal.');
+  navigateTo('portal-perfil');
+}
+
 function redirectToQuestionnaire() {
   mostrarPantallaCompletaPerfil();
 }
@@ -14086,6 +14126,7 @@ function mostrarPantallaCompletaPerfil() {
 
       + '<div style="margin-top:32px;display:flex;flex-direction:column;gap:10px;max-width:380px;margin-left:auto;margin-right:auto">'
         + '<button onclick="anarAlQuestionari()" style="padding:13px 20px;background:var(--black);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s" onmouseover="this.style.background=\'#1a1a1a\';this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.background=\'#0A0A0A\';this.style.transform=\'translateY(0)\'">Començar el qüestionari →</button>'
+        + '<button onclick="saltarQuestionnaire()" style="padding:11px 18px;background:transparent;color:var(--g600);border:1.5px solid var(--g300);border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--fb);transition:all .15s" onmouseover="this.style.borderColor=\'var(--black)\';this.style.color=\'var(--black)\'" onmouseout="this.style.borderColor=\'var(--g300)\';this.style.color=\'var(--g600)\'">Accedir directament (sense qüestionari)</button>'
         + '<button onclick="doLogout()" style="padding:11px 18px;background:transparent;color:var(--g500);border:1px solid var(--g200);border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--fb);transition:all .15s" onmouseover="this.style.color=\'var(--black)\';this.style.borderColor=\'var(--g300)\'" onmouseout="this.style.color=\'#6B6762\';this.style.borderColor=\'#E8E6E1\'">Tancar sessió</button>'
       + '</div>'
 
@@ -16921,7 +16962,7 @@ function aaObrirEditor(){
   // Resum
   body += '<div style="background:#fff;border-radius:13px;padding:22px 26px;margin-bottom:14px;border:1px solid #E8E6E1">'
     + '<div style="font-size:13px;font-weight:600;margin-bottom:12px">Resum / contingut</div>'
-    + '<textarea id="aa-resum" placeholder="Resum o contingut visible al portal del client..." style="width:100%;min-height:200px;padding:12px 14px;border:1.5px solid #E8E6E1;border-radius:9px;font-size:13px;font-family:var(--fb);line-height:1.7;resize:vertical;color:#0A0A0A">' + (a.resum||'') + '</textarea>'
+    + '<textarea id="aa-resum" placeholder="Resum o contingut visible al portal del client..." style="width:100%;min-height:200px;padding:12px 14px;border:1.5px solid #E8E6E1;border-radius:9px;font-size:13px;font-family:var(--fb);line-height:1.7;resize:vertical;color:#0A0A0A">' + (a.resum||a.contingut||'') + '</textarea>'
   + '</div>';
 
   // URL fitxer adjunt
@@ -16972,6 +17013,12 @@ async function aaDesar(publicar){
     alert('Supabase no disponible. Els canvis no es desaran.');
     return;
   }
+
+  // La columna a Supabase es diu 'contingut' (NOT NULL) — mapejar des de 'resum'
+  if (!payload.contingut && payload.resum !== undefined) {
+    payload.contingut = payload.resum || '';
+  }
+  delete payload.resum;
 
   try {
     var res;
