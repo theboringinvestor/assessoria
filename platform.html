@@ -910,6 +910,144 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
   .diag-doc-hdr,.diag-propera,.diag-doc-lead,.diag-kpi,.diag-perf-dark{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @page{margin:0;size:A4}
 }
+
+/* ━━━━━━━━━━ EDUCACIÓ INTERACTIVA ━━━━━━━━━━ */
+:root{--edu-gold:#C8A54A;--edu-gold-t:#FBF3D6;--edu-good:#2E7D5A;--edu-warn:#B7472A;}
+.edu-wrap{max-width:760px;margin:0 auto}
+.edu-dash-header{margin-bottom:24px}
+.edu-prog-rail{background:var(--g100);border:1px solid var(--g200);border-radius:10px;padding:16px 20px;margin-bottom:20px}
+.edu-prog-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.edu-prog-label{font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.08em}
+.edu-prog-score{font-family:var(--fm);font-size:12px;color:var(--accent);font-weight:500}
+.edu-prog-bar{height:6px;background:var(--g200);border-radius:99px;overflow:hidden}
+.edu-prog-fill{height:100%;background:linear-gradient(90deg,var(--accent) 0%,var(--edu-gold) 100%);border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
+.edu-lvl-map{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px}
+.edu-lvl{text-align:center;padding:12px 8px;background:#fff;border:1.5px solid var(--g200);border-radius:10px}
+.edu-lvl-icon{font-size:18px;display:block;margin-bottom:4px}
+.edu-lvl-name{font-size:12px;font-weight:600;color:var(--g700);margin-bottom:2px}
+.edu-lvl-st{font-size:10px;color:var(--g400);font-family:var(--fm);letter-spacing:.06em}
+.edu-lvl.active{border-color:var(--edu-gold);background:var(--edu-gold-t)}
+.edu-lvl.active .edu-lvl-name{color:var(--accent)}
+.edu-lvl.active .edu-lvl-st{color:var(--edu-gold);font-weight:600}
+.edu-lvl.locked{opacity:.4}
+.edu-lvl.passed{border-color:var(--edu-good);background:#EAF5EE}
+.edu-lvl.passed .edu-lvl-st{color:var(--edu-good)}
+.edu-mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:28px}
+.edu-mod-card{background:#fff;border:1.5px solid var(--g200);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s;position:relative}
+.edu-mod-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 12px rgba(27,58,107,.08)}
+.edu-mod-card.done{border-color:var(--edu-good);background:#F0F9F4}
+.edu-mod-card.partial{border-color:var(--edu-gold);background:var(--edu-gold-t)}
+.edu-mod-num{font-family:var(--fm);font-size:10px;color:var(--g400);font-weight:500;letter-spacing:.1em;margin-bottom:4px}
+.edu-mod-icon{font-size:18px;margin-bottom:6px}
+.edu-mod-titol{font-size:13px;font-weight:500;color:var(--g700);line-height:1.4;margin-bottom:6px}
+.edu-mod-bar{height:3px;background:var(--g200);border-radius:99px;overflow:hidden}
+.edu-mod-bar-f{height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.edu-mod-card.done .edu-mod-bar-f{background:var(--edu-good)}
+.edu-mod-card.partial .edu-mod-bar-f{background:var(--edu-gold)}
+.edu-mod-pts{font-family:var(--fm);font-size:10px;color:var(--g400);margin-top:5px;text-align:right}
+.edu-mod-badge{position:absolute;top:10px;right:10px;font-size:11px}
+/* Vista mòdul */
+.edu-mod-view{animation:fadeIn .2s ease}
+.edu-mod-back{display:inline-flex;align-items:center;gap:6px;color:var(--g500);font-size:12px;cursor:pointer;margin-bottom:20px;padding:6px 0;border:none;background:none;font-family:var(--fb)}
+.edu-mod-back:hover{color:var(--accent)}
+.edu-mod-view-header{margin-bottom:28px}
+.edu-mod-view-num{font-family:var(--fm);font-size:10px;color:var(--edu-gold);font-weight:500;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.edu-mod-view-title{font-family:var(--fd);font-size:28px;font-weight:400;letter-spacing:-.3px;color:var(--black);margin-bottom:6px;line-height:1.15}
+.edu-mod-view-lede{font-size:14px;color:var(--g500);font-style:italic;line-height:1.5}
+/* Prose */
+.edu-prose{font-size:14px;color:var(--g600);line-height:1.75}
+.edu-prose p{margin:0 0 16px}
+.edu-prose p strong{color:var(--black)}
+.edu-prose h3{font-family:var(--fd);font-size:18px;font-weight:400;color:var(--accent);margin:28px 0 10px}
+.edu-prose ul,.edu-prose ol{margin:0 0 16px;padding-left:20px}
+.edu-prose li{margin-bottom:6px;color:var(--g600)}
+.edu-prose li strong{color:var(--black)}
+.edu-prose em{font-style:italic}
+.edu-prose table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+.edu-prose th{text-align:left;padding:9px 12px;background:var(--g100);color:var(--accent);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--accent)}
+.edu-prose td{padding:9px 12px;border-bottom:1px solid var(--g200);color:var(--g600)}
+.edu-prose tr:last-child td{font-weight:600;color:var(--accent);background:var(--edu-gold-t)}
+/* Boxes */
+.edu-box{margin:20px 0;padding:16px 18px;border-radius:10px;border:1px solid var(--g200)}
+.edu-box-lbl{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+.edu-box.intuicio{background:var(--g50);border-color:var(--g200)}.edu-box.intuicio .edu-box-lbl{color:var(--accent)}
+.edu-box.clau{background:var(--edu-gold-t);border-color:var(--edu-gold)}.edu-box.clau .edu-box-lbl{color:#8B7128}
+.edu-box.clau p{color:#5A4A18;font-weight:500}
+.edu-box.exemple{background:#F8F5EF;border-color:#E8DCBC}.edu-box.exemple .edu-box-lbl{color:#7A6427}
+.edu-box.alerta{background:#FBF3F0;border-color:#E8C8BD}.edu-box.alerta .edu-box-lbl{color:var(--edu-warn)}
+.edu-quote{margin:24px 0;padding:16px 20px 16px 24px;border-left:3px solid var(--edu-gold);background:transparent}
+.edu-quote p{font-family:var(--fd);font-style:italic;font-size:16px;color:var(--black);margin-bottom:6px;line-height:1.5}
+.edu-quote footer{font-size:11px;color:var(--g400);font-family:var(--fm)}
+.edu-num-box{display:flex;align-items:baseline;gap:12px;margin:16px 0;padding:18px 20px;background:var(--accent);color:#fff;border-radius:10px}
+.edu-num-val{font-family:var(--fd);font-style:italic;font-size:42px;color:var(--edu-gold);line-height:1}
+.edu-num-txt{flex:1;font-size:13px;color:rgba(255,255,255,.8);line-height:1.5}
+/* Pros/Cons */
+.edu-pc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.edu-pc-col{padding:14px 16px;border-radius:8px;background:#fff;border:1px solid var(--g200)}
+.edu-pc-col h5{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.edu-pc-col ul{list-style:none;padding:0;margin:0}
+.edu-pc-col li{font-size:12.5px;padding:5px 0 5px 16px;position:relative;color:var(--g600)}
+.edu-pros h5{color:var(--edu-good)}.edu-pros li::before{content:'+';position:absolute;left:0;color:var(--edu-good);font-weight:700}
+.edu-cons h5{color:var(--edu-warn)}.edu-cons li::before{content:'−';position:absolute;left:0;color:var(--edu-warn);font-weight:700}
+/* Quiz */
+.edu-quiz{margin:32px 0 0;padding:22px 24px;background:#fff;border:1.5px solid var(--edu-gold);border-radius:12px;position:relative}
+.edu-quiz::before{content:'';position:absolute;top:-1px;left:-1px;right:-1px;height:3px;background:linear-gradient(90deg,var(--accent),var(--edu-gold));border-radius:12px 12px 0 0}
+.edu-quiz-lbl{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--edu-gold);margin-bottom:4px}
+.edu-quiz-title{font-family:var(--fd);font-size:18px;font-weight:400;color:var(--accent);margin-bottom:4px}
+.edu-quiz-intro{font-size:12px;color:var(--g400);font-style:italic;margin-bottom:20px}
+.edu-q{margin:20px 0 0;padding-top:18px;border-top:1px dashed var(--g200)}
+.edu-q:first-of-type{border-top:none;padding-top:0;margin-top:0}
+.edu-q-num{font-family:var(--fm);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--edu-gold);font-weight:600;margin-bottom:5px}
+.edu-q-text{font-size:14px;font-weight:500;color:var(--black);line-height:1.5;margin-bottom:12px}
+.edu-q-opts{display:flex;flex-direction:column;gap:7px}
+.edu-q-opt{text-align:left;padding:10px 14px;background:var(--g50);border:1.5px solid var(--g200);border-radius:8px;font-size:13px;color:var(--g600);cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:all .12s;font-family:var(--fb);line-height:1.45}
+.edu-q-opt:hover:not([disabled]){border-color:var(--accent);background:var(--accent-l)}
+.edu-q-opt-ltr{font-family:var(--fm);font-size:10px;font-weight:600;background:var(--g200);color:var(--g600);width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.edu-q-opt[disabled]{cursor:default}
+.edu-q-opt.correct{background:#EAF5EE;border-color:var(--edu-good);color:#1E4E36}.edu-q-opt.correct .edu-q-opt-ltr{background:var(--edu-good);color:#fff}
+.edu-q-opt.wrong{background:#FBF1EE;border-color:var(--edu-warn);color:#7A2E1B}.edu-q-opt.wrong .edu-q-opt-ltr{background:var(--edu-warn);color:#fff}
+.edu-q-opt.show-correct{border-color:var(--edu-good);border-style:dashed}.edu-q-opt.show-correct .edu-q-opt-ltr{background:var(--edu-good);color:#fff}
+.edu-q-explain{margin-top:10px;padding:12px 14px;background:var(--accent-l);border-left:2px solid var(--accent);border-radius:0 6px 6px 0;font-size:13px;color:var(--g600);line-height:1.6;display:none}
+.edu-q-explain.show{display:block}
+.edu-q-explain strong{color:var(--accent)}
+.edu-quiz-sum{margin-top:20px;padding:14px 18px;background:var(--edu-gold-t);border-radius:8px;display:none;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.edu-quiz-sum.show{display:flex}
+.edu-quiz-sum-txt{font-size:13px;color:#5A4A18}
+.edu-quiz-sum-sc{font-family:var(--fd);font-style:italic;font-size:22px;color:var(--accent)}
+/* Nav */
+.edu-mod-nav{display:flex;justify-content:space-between;margin-top:32px;padding-top:20px;border-top:1px solid var(--g200);gap:10px}
+.edu-nav-btn{padding:10px 18px;border:1.5px solid var(--g200);border-radius:8px;background:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);color:var(--g600);transition:all .15s}
+.edu-nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.edu-nav-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.edu-nav-btn.primary:hover{background:var(--accent)}
+/* Results */
+.edu-results{margin-top:28px;padding:28px;background:var(--accent);color:#fff;border-radius:14px;text-align:center}
+.edu-results h3{font-family:var(--fd);font-size:24px;font-weight:400;color:#fff;margin-bottom:6px}
+.edu-results h3 em{font-style:italic;color:var(--edu-gold)}
+.edu-results-score{font-family:var(--fd);font-style:italic;font-size:52px;color:var(--edu-gold);line-height:1;margin:16px 0 4px}
+.edu-results-of{font-family:var(--fm);font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.08em}
+.edu-results p{font-size:13px;color:rgba(255,255,255,.75);margin:14px 0}
+.edu-results-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.edu-results-stat{padding:12px;background:rgba(255,255,255,.08);border-radius:8px}
+.edu-results-stat-v{font-family:var(--fd);font-style:italic;font-size:22px;color:var(--edu-gold)}
+.edu-results-stat-l{font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase}
+.edu-results-btn{margin-top:8px;padding:10px 20px;background:var(--edu-gold);color:var(--black);border:none;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb)}
+.edu-breakdown{margin-top:16px}
+.edu-bk-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--g200);font-size:12px}
+.edu-bk-row:last-child{border-bottom:none}
+.edu-bk-num{font-family:var(--fm);font-size:10px;color:var(--edu-gold);min-width:26px;font-weight:500}
+.edu-bk-name{flex:1;color:var(--g600)}
+.edu-bk-bar{flex:0 0 80px;height:4px;background:var(--g200);border-radius:99px;overflow:hidden}
+.edu-bk-fill{height:100%;background:var(--accent);border-radius:99px}
+.edu-bk-pts{font-family:var(--fm);font-size:10px;color:var(--g400);min-width:56px;text-align:right}
+@media(max-width:600px){
+  .edu-lvl-map{grid-template-columns:repeat(2,1fr)}
+  .edu-pc{grid-template-columns:1fr}
+  .edu-num-box{flex-direction:column}
+  .edu-results-stats{grid-template-columns:1fr 1fr}
+  .edu-mod-grid{grid-template-columns:repeat(2,1fr)}
+}
+
 </style>
 </head>
 <body>
@@ -17156,7 +17294,8 @@ async function eliminarTBIOperacio(id) {
 }
 
 // ─── Educaci\u00f3 financera (Supabase) ──────────────────────────────────────
-renderPortalEducacio = async function(el) {
+// --- substituït per integració educativa ---
+_OLD_renderPortalEducacio_UNUSED = async function(el) {
   var nivellActiu = window._eduNivell || 'basic';
   var nivells = [
     {id:'basic',        lbl:'&#127807; B\u00e0sic'},
@@ -17189,6 +17328,1301 @@ renderPortalEducacio = async function(el) {
   el.innerHTML = html;
 
   // Event listeners (evita inline onclick)
+  el.querySelectorAll('[data-edu-nivell]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      window._eduNivell = btn.getAttribute('data-edu-nivell');
+      renderPortalEducacio(document.getElementById('content'));
+    });
+  });
+  var btnNou = document.getElementById('btn-nou-edu');
+  if (btnNou) btnNou.addEventListener('click', function() { obrirModalEdu(null); });
+
+  await loadIRenderEdu(nivellActiu);
+};
+
+
+// ══════════════════════════════════════════════════════
+// SISTEMA EDUCACIÓ INTERACTIVA · TBI Nivell Bàsic
+// ══════════════════════════════════════════════════════
+var EDU_QUIZ = {
+  m1: {"name": "Què són els diners", "weight": 1.0, "correct": [2, 3, 1], "questions": [{"q": "Per què val un bitllet de 50€?", "opts": ["Pel paper i la tinta que conté", "Perquè està respaldat per or al banc central", "Perquè tothom accepta que val 50€ — és un acord social", "Pel seu valor industrial com a material"], "explain": "Els diners moderns són fiduciaris: el seu valor ve de la confiança col·lectiva i de la força legal, no de cap material valuós ni de cap or al banc."}, {"q": "Quina d'aquestes NO és una funció bàsica dels diners?", "opts": ["Mitjà d'intercanvi", "Unitat de compte", "Reserva de valor", "Generador automàtic de riquesa"], "explain": "Els diners no generen res per si sols. Les tres funcions clàssiques són mitjà d'intercanvi, unitat de compte i reserva de valor — i aquesta última, com veuràs al Mòdul 2, no la compleixen gaire bé."}, {"q": "Què vol dir que l'euro és diner \"fiduciari\"?", "opts": ["Que està garantit per or físic", "Que val per la confiança i la legalitat, sense respaldar amb metalls", "Que paga interessos automàticament", "Que només el poden tenir empreses fiduciàries"], "explain": "Des de 1971 (final del patró or), totes les monedes mundials són fiduciàries. Valen perquè els estats les imposen com a moneda de curs legal i perquè tothom les accepta."}]},
+  m2: {"name": "La inflació", "weight": 1.3, "correct": [2, 1, 1], "questions": [{"q": "Què li passa als teus 1.000€ guardats al matalàs durant 30 anys amb inflació mitjana del 2,4%?", "opts": ["Es mantenen iguals: 1.000€", "Pugen lleugerament fins als ~1.200€", "Baixen fins a un valor real d'uns ~480€", "Es duplicarien automàticament"], "explain": "L'erosió del 2,4% anual durant 30 anys redueix el poder adquisitiu real a aproximadament el 48% del valor original. Per això la inflació és el primer enemic de l'estalviador."}, {"q": "L'IPC mesura...", "opts": ["L'Índex de Pobresa Crítica", "L'Índex de Preus al Consum: pujada mitjana del cost de la cistella de la compra", "L'Interès Pactat amb el Client", "L'Import Permès de Crèdit"], "explain": "L'IPC compara el cost d'una cistella mitjana representativa (aliments, transport, habitatge, oci...) entre dos períodes per mesurar la inflació."}, {"q": "Quin és l'objectiu oficial d'inflació anual del BCE a la zona euro?", "opts": ["0% — inflació zero", "Al voltant del 2% anual", "Al voltant del 5% anual", "Tan baixa com sigui possible, sense un objectiu concret"], "explain": "El BCE busca una inflació al voltant del 2% a mig termini. Una mica d'inflació estimula el consum i la inversió; massa, destrueix el poder adquisitiu."}]},
+  m3: {"name": "Sistema monetari", "weight": 1.0, "correct": [2, 0, 1], "questions": [{"q": "Què és exactament el BCE?", "opts": ["El banc comercial més gran d'Espanya", "Una agència privada de qualificació creditícia", "El Banc Central Europeu: institució que controla l'euro i la política monetària", "Una xarxa de neobancs europeus"], "explain": "El BCE és l'autoritat monetària independent de la zona euro: imprimeix euros, fixa el tipus d'interès oficial i vigila la inflació."}, {"q": "Quan el BCE puja els tipus d'interès, què sol passar a l'economia?", "opts": ["Tot es paga més car (hipoteques, crèdits) i l'economia es refreda", "Tots els productes financers baixen de preu automàticament", "Hi ha més diners circulant per l'economia", "Els salaris pugen instantàniament"], "explain": "Pujar tipus = encarir el diner = frenar consum i inversió = refredar l'economia. És l'eina clàssica per combatre la inflació."}, {"q": "Per què el BCE puja els tipus quan hi ha inflació alta?", "opts": ["Per castigar els consumidors", "Per refredar l'economia i frenar la pujada de preus", "Per ajudar els bancs comercials a guanyar més", "Per error tècnic d'algorisme"], "explain": "L'objectiu prioritari del BCE és l'estabilitat de preus. Si la inflació es desboca, puja tipus per refrenar la demanda agregada i tornar al voltant del 2%."}]},
+  m4: {"name": "Sistema bancari", "weight": 1.0, "correct": [2, 2, 2], "questions": [{"q": "Què fa realment el banc amb els teus diners ingressats al compte corrent?", "opts": ["Els guarda en una caixa forta amb el teu nom escrit", "Els envia al banc central per a custòdia", "En guarda una petita part (~1%) i presta la resta a altres clients", "Els converteix en or i els emmagatzema"], "explain": "És el sistema de reserva fraccional: el banc només manté una fracció dels dipòsits i presta la resta. Així guanya l'spread entre el que cobra i el que paga."}, {"q": "Si el teu banc fa fallida, quina quantitat tens garantida pel Fons de Garantia de Dipòsits?", "opts": ["10.000 € per persona", "50.000 € per persona", "100.000 € per persona i banc", "500.000 € sense límit"], "explain": "El FGD garanteix fins a 100.000€ per titular i entitat. Per això, si tens més d'aquest import, val la pena repartir-ho en diferents bancs."}, {"q": "Quin percentatge aproximat dels euros que circulen avui són apunts digitals creats pels bancs (no bitllets físics)?", "opts": ["Al voltant del 20%", "Al voltant del 50%", "Al voltant del 95%", "El 100% — ja no hi ha bitllets"], "explain": "La gran majoria del diner modern no existeix físicament. Es crea com a apunt digital quan els bancs concedeixen crèdits, i desapareix quan els retornen."}]},
+  m5: {"name": "Estalvi vs Inversió", "weight": 1.3, "correct": [1, 1, 1], "questions": [{"q": "Quants mesos de despeses fixes hauries de tenir al fons d'emergència?", "opts": ["Cap, no cal", "Entre 3 i 6 mesos", "Almenys 5 anys", "Tot el teu patrimoni invertit"], "explain": "Entre 3 i 6 mesos és el rang habitual. Pot anar fins a 9 mesos si tens ingressos volàtils (autònom, comissions). Aquest fons va en compte líquid o monetari, no en borsa."}, {"q": "Tens un deute de targeta al 15% d'interès. Què hauries de fer abans d'invertir?", "opts": ["Començar a invertir en borsa de seguida", "Pagar el deute primer, després invertir", "Demanar un altre préstec per invertir més", "Estalviar lentament i pagar el deute en 20 anys"], "explain": "Pagar un deute al 15% equival a una rendibilitat garantida del 15% lliure d'impostos. Cap inversió en borsa et donarà això de manera segura."}, {"q": "Per què tenir tots els estalvis al compte corrent no és suficient a llarg termini?", "opts": ["Perquè els bancs te'ls roben", "Perquè la inflació et menja el poder adquisitiu cada any", "Perquè els comptes corrents són il·legals", "Perquè cal pagar moltes comissions per tenir-los"], "explain": "És la lliçó central del Mòdul 2 aplicada: sense rendiment, el teu poder adquisitiu cau cada any per la inflació. Estalviar és necessari, però no és suficient per a objectius llargs."}]},
+  m6: {"name": "Accions", "weight": 1.3, "correct": [1, 2, 0], "questions": [{"q": "Què representa exactament una acció?", "opts": ["Un préstec que tu fas a l'empresa", "Un trosset de propietat de l'empresa", "Una assegurança contra la fallida de l'empresa", "Un cupó de descompte per als seus productes"], "explain": "Una acció = una fracció de propietat de l'empresa. Si comprés totes les accions, l'empresa seria teva. Per això tens dret als beneficis (dividends) i a votar a les juntes."}, {"q": "Com pots guanyar diners amb una acció?", "opts": ["Només per la revalorització del preu", "Només pels dividends que reparteix l'empresa", "Per revalorització i/o dividends — sovint combinats", "Cobrant un sou directament de l'empresa"], "explain": "Les dues vies són la revalorització (vens a un preu superior al de compra) i el dividend (part del benefici repartida). Algunes empreses prioritzen una; altres, l'altra."}, {"q": "Per què els preus de les accions pugen i baixen tant a curt termini?", "opts": ["Per les emocions i expectatives canviants dels inversors", "Perquè el govern els fixa cada matí", "Pel temps meteorològic global", "És totalment aleatori, sense cap explicació"], "explain": "Com va dir Graham: \"a curt termini, el mercat és una màquina de votar; a llarg, és una màquina de pesar\". Les emocions manen a curt; els resultats reals dominen a llarg."}]},
+  m7: {"name": "Bons", "weight": 1.0, "correct": [1, 1, 1], "questions": [{"q": "Què és un bo?", "opts": ["Una acció que paga dividend mensual", "Un préstec que tu fas a un estat o empresa amb interès pactat", "Una assegurança de vida disfressada", "Un compte d'estalvi remunerat"], "explain": "Amb un bo, tu fas de banc: prestes diners a un emissor (Estat o empresa) i cobres un interès periòdic (el cupó). Al venciment, et tornen el principal."}, {"q": "Tens un bo antic que paga el 2%. El BCE puja tipus i els bons nous paguen el 4%. Què passa amb el preu del teu bo si el vols vendre?", "opts": ["Puja, perquè és un bo del passat", "Baixa, perquè ningú el voldrà al mateix preu si pot tenir un nou amb el doble d'interès", "Es manté igual", "Es duplica automàticament"], "explain": "És la relació inversa preu/tipus: pugen tipus → baixa el valor dels bons existents (i a l'inrevés). Si el manteins fins al venciment, recuperes el nominal igualment."}, {"q": "Quina és la diferència fonamental entre una acció i un bo?", "opts": ["No hi ha cap diferència rellevant", "Amb un bo ets prestador; amb una acció ets propietari", "Les accions són legals i els bons no", "Només les empreses poden comprar bons"], "explain": "Acció = soci de l'empresa (participes del guany i la pèrdua). Bo = creditor (cobres interès pactat, però no participes del creixement). Risc i retorn diferents."}]},
+  m8: {"name": "Immobiliari", "weight": 1.0, "correct": [1, 1, 1], "questions": [{"q": "Què és un REIT?", "opts": ["Un tipus de préstec hipotecari especial", "Una empresa cotitzada que es dedica a comprar i llogar immobles", "Un impost sobre la renda immobiliària", "Un programa públic d'ajuda a l'habitatge"], "explain": "Un REIT (o SOCIMI a Espanya) és una empresa cotitzada especialitzada en immobles. Permet invertir en immobiliari sense haver de comprar pisos directament."}, {"q": "Quin és el principal inconvenient de comprar un pis per llogar comparat amb un REIT?", "opts": ["És una activitat il·legal", "És molt poc líquid, té costos d'entrada elevats i requereix gestió activa", "No té cap problema, és sempre millor", "No pots cobrar lloguer per llei"], "explain": "El pis directe requereix capital alt, gestió contínua i és molt poc líquid (vendre triga mesos). El REIT et dóna exposició immobiliària amb 100€ i liquiditat diària."}, {"q": "Per què els REITs solen pagar dividends elevats (3-5% anual)?", "opts": ["Per pura generositat amb els accionistes", "Perquè legalment estan obligats a repartir el 90% dels seus beneficis", "Perquè els accionistes ho voten cada any", "Per evitar pagar impostos personals"], "explain": "Aquesta obligació legal de distribució del 90% és el preu que paguen pels seus avantatges fiscals (no paguen impost de societats sobre els beneficis repartits)."}]},
+  m9: {"name": "Interès compost", "weight": 1.5, "correct": [1, 2, 1], "questions": [{"q": "Què és l'interès compost?", "opts": ["Un interès que cobra el banc en forma de comissió", "Els interessos comencen a generar els seus propis interessos sobre el total acumulat", "Un tipus d'interès elevat, superior al 10%", "L'interès específic que paga l'Estat"], "explain": "És l'efecte bola de neu: cada any, el % es calcula sobre el total acumulat (principal + interessos previs), no només sobre el capital inicial."}, {"q": "Quina és la palanca MÉS important per treure el màxim de l'interès compost?", "opts": ["Quants diners aportes cada mes", "Quina rendibilitat anual aconsegueixes", "Quant de temps deixes treballar els diners", "Quin broker o banc tries"], "explain": "El temps és exponencial: començar 10 anys abans pot multiplicar el resultat per més de 2. L'aportació és lineal; el temps, exponencial."}, {"q": "Segons la regla del 72, quants anys triguen aproximadament a doblar els teus diners invertits al 7% anual?", "opts": ["Uns 3 anys", "Uns 10 anys (72 / 7 ≈ 10,3)", "Uns 25 anys", "Mai, l'interès no fa això"], "explain": "La regla del 72: divideix 72 entre el % de rendibilitat anual i obtens els anys per doblar el capital. Al 7% ≈ 10 anys; al 10% ≈ 7 anys."}]},
+  m10: {"name": "Risc i diversificació", "weight": 1.3, "correct": [1, 1, 1], "questions": [{"q": "Què és la diversificació en inversió?", "opts": ["Comprar i vendre accions diferents cada dia", "Repartir la inversió entre molts actius, sectors i geografies per reduir el risc", "Invertir tot el patrimoni en una sola empresa que coneixes bé", "No invertir mai per evitar el risc"], "explain": "\"No posis tots els ous a la mateixa cistella\". La diversificació real combina diferents actius (RV, RF, immo...), sectors, geografies i monedes per reduir el risc específic."}, {"q": "Volatilitat i risc real són...", "opts": ["Exactament el mateix concepte amb noms diferents", "Conceptes diferents: la volatilitat és el moviment de preu (normal); el risc real és perdre diners de manera permanent", "Sinònims tècnics intercanviables", "Mesures il·legals als mercats europeus"], "explain": "És una distinció crítica. Una caiguda del 30% en un fons indexat mundial és volatilitat (recuperable). Una empresa que fa fallida i no torna mai és risc real (irrecuperable)."}, {"q": "Quin d'aquests escenaris NO és diversificar correctament?", "opts": ["Comprar un ETF amb 1.500 empreses de tot el món", "Tenir 5 accions diferents... totes de bancs espanyols del mateix sector", "Combinar accions globals + bons + REITs + or", "Tenir actius de diferents geografies (EUA, Europa, Àsia)"], "explain": "Diversitat aparent, no real. Si totes són bancs espanyols, una crisi del sector banc o de l'economia espanyola t'afecta totes alhora. Cal diversificar de veritat."}]},
+  m11: {"name": "ETFs i fons indexats", "weight": 1.3, "correct": [1, 1, 2], "questions": [{"q": "Què és un ETF?", "opts": ["Un tipus d'assegurança financera", "Un fons que cotitza a la borsa com si fos una acció i pots comprar i vendre durant la sessió", "Un dipòsit a llarg termini d'un banc", "Un préstec entre inversors particulars"], "explain": "ETF = Exchange Traded Fund. És un fons d'inversió que cotitza a la borsa amb el seu propi preu en temps real. La gran diferència amb un fons tradicional: el pots comprar i vendre intra-dia."}, {"q": "Per què el TER d'un fons és tan important?", "opts": ["No és important — totes les comissions són iguals", "Es resta automàticament del rendiment cada any i, acumulat durant dècades, pot fer perdre desenes de milers d'euros", "Només importa si tens més d'1 milió €", "És només informatiu, no s'aplica realment"], "explain": "Una diferència d'1% en el TER sembla insignificant, però amb interès compost durant 30 anys pot suposar fàcilment el 25–30% del capital final. És el cost més infravalorat en inversió."}, {"q": "Quina taxa d'èxit aproximada tenen els gestors actius en superar el seu índex de referència a 10 anys?", "opts": ["Al voltant del 90% — el coneixement humà bat sempre l'algorisme", "Al voltant del 50% — l'atzar dóna meitat i meitat", "Al voltant del 15% — gairebé tots queden per sota", "Al voltant del 70% — paga la pena pagar comissions"], "explain": "Estudis com l'S&P SPIVA mostren consistentment que ~85% dels gestors actius no superen el seu índex a 10 anys. Per això la gestió passiva s'ha imposat — és més barata i estadísticament millor."}]},
+  m12: {"name": "Brokers i plataformes", "weight": 1.0, "correct": [2, 1, 1], "questions": [{"q": "Què protegeix el FOGAIN exactament?", "opts": ["Et compensa si la teva inversió perd valor en el mercat", "Garanteix una rendibilitat mínima anual", "Et protegeix fins a 100.000€ si el broker fa fallida o desapareix amb els teus actius", "És un fons de subvencions de l'Estat"], "explain": "El FOGAIN cobreix la fallida o frau del broker — no les pèrdues de mercat. Si el teu ETF baixa el 30% no recuperes res; si el broker desapareix amb els teus diners, recuperes fins a 100.000€."}, {"q": "A part de la comissió de compra/venda, quina altra comissió pot acabar costant molt en un broker estranger?", "opts": ["El cost del wifi del broker", "La comissió de canvi de divisa quan compres actius en USD amb euros", "L'impost de successions", "L'IVA dels actius"], "explain": "La conversió EUR→USD pot tenir un cost del 0,1% al 0,5% cada cop. Si compres ETFs en dòlars amb DCA mensual, aquesta despesa s'acumula molt. Alguns brokers ofereixen comptes multidivisa per evitar-ho."}, {"q": "Quin és el principal avantatge fiscal d'un broker espanyol davant d'un d'estranger?", "opts": ["Té comissions sempre més baixes", "Envia les dades automàticament a Hisenda i no cal presentar el model 720", "No tributes mai els guanys", "Et regala accions cada Nadal"], "explain": "Un broker espanyol fa la retenció a compte i reporta les operacions a Hisenda. Amb un broker estranger, si superes 50.000€, has de presentar el model 720 informatiu cada any."}]},
+  m13: {"name": "Psicologia de l'inversor", "weight": 1.3, "correct": [1, 1, 2], "questions": [{"q": "Què diu el biaix d'aversió a la pèrdua sobre les nostres emocions financeres?", "opts": ["Ens encanta perdre diners", "Perdre 100€ ens fa aproximadament 2,5 vegades més mal del que ens alegra guanyar-ne 100€", "Les pèrdues i els guanys ens afecten exactament igual", "Som indiferents al diner"], "explain": "És el descobriment clau de Kahneman i Tversky (Premi Nobel). Aquesta asimetria emocional ens porta a vendre en pànic quan baixa i a no consolidar guanys quan puja."}, {"q": "Què és el FOMO i per què és tan perillós per a un inversor?", "opts": ["Un tipus de pa francès — no té res a veure amb inversió", "Fear Of Missing Out: la por de quedar-se fora porta a comprar quan els preus ja són altíssims, just abans de la caiguda", "Una estratègia d'inversió professional", "Una eina d'anàlisi tècnica"], "explain": "Quan tothom parla d'un actiu, el preu ja sol estar molt inflat. El FOMO ha sigut darrere de totes les bombolles modernes: les tulipes holandeses, les puntcoms, els pisos del 2007, les cripto del 2021."}, {"q": "Quina estratègia ajuda més a neutralitzar les emocions a l'hora d'invertir?", "opts": ["Mirar la cartera cada dia per «controlar-la»", "Llegir notícies financeres tota l'estona per estar al dia", "Tenir un pla escrit, automatitzar les aportacions i no mirar la cartera gaire sovint", "Seguir el consell de l'últim influencer financer que has vist"], "explain": "Les tres defenses: pla escrit (decideix en calma), automatització (no decideixes en cada aportació) i poca exposició (no mirar = no patir = no actuar impulsivament)."}]},
+  m14: {"name": "DCA · temps al mercat", "weight": 1.3, "correct": [1, 1, 1], "questions": [{"q": "Què passa amb el rendiment a 20 anys si et perds només els 10 millors dies de borsa?", "opts": ["No passa res, perds molt poc", "Pots reduir el resultat final més de la meitat — passes d'un capital final per 6,5× a un per 3×", "El rendiment es duplica màgicament", "És impossible perdre's dies de borsa"], "explain": "Els 10 millors dies en 20 anys solen aparèixer just després dels pitjors. Si vens en pànic, et perds el rebot. És l'argument estadístic més fort per al «time in market beats timing»."}, {"q": "Què vol dir DCA?", "opts": ["Direct Capital Account", "Dollar Cost Averaging: invertir una quantitat fixa cada període, independentment del preu del mercat", "Daily Crypto Action", "Dynamic Currency Adjustment"], "explain": "DCA et fa comprar més unitats quan el preu és baix i menys quan és alt, suavitzant el preu mitjà de compra i, sobretot, eliminant la pressió emocional de «encertar el moment»."}, {"q": "Per què DCA funciona tan bé emocionalment, encara que matemàticament invertir-ho tot d'una sigui millor en ~66% dels casos?", "opts": ["Perquè és més car i això genera disciplina", "Perquè evita la sensació d'haver entrat «en el pitjor moment» i et fa seguir comprant en caigudes, quan més por té tothom", "Perquè els bancs et regalen un euro per cada compra", "Perquè és il·legal invertir d'una sola vegada"], "explain": "L'avantatge psicològic és real i mesurable. Molts inversors que farien lump sum teòricament no aguantarien la caiguda que pot venir just després. El DCA és «dormir tranquil» versus «optimitzar matemàticament»."}]},
+  m15: {"name": "Fiscalitat bàsica", "weight": 1.0, "correct": [1, 1, 1], "questions": [{"q": "Quin és el tipus mínim de la base de l'estalvi a Espanya (2024)?", "opts": ["12%", "19%", "25%", "47%"], "explain": "Els primers 6.000€ de guany per inversions tributen al 19%. A partir d'aquí pugen progressivament fins al 28%. La base general (sou) té tipus més alts (fins a 47%+)."}, {"q": "Quin és l'avantatge fiscal clau dels fons d'inversió davant dels ETFs a Espanya?", "opts": ["Els fons no paguen mai impostos", "Els traspasos entre fons no tributen — pots canviar de fons sense pagar impostos fins al rescat final", "Els fons estan exempts d'IVA", "Els fons retornen un percentatge d'Hisenda"], "explain": "L'exempció de traspasos és un dels grans avantatges fiscals del sistema espanyol. Permet rebalancejar la cartera durant dècades sense fricció fiscal — beneficiant l'interès compost de manera molt potent."}, {"q": "Si dins del mateix any tens 1.000€ de guanys en unes accions i 400€ de pèrdues en unes altres, sobre quin import tributes?", "opts": ["Sobre els 1.000€ complets — les pèrdues no compten", "Sobre 600€ — pots compensar pèrdues amb guanys del mateix any", "Sobre 1.400€ — se sumen ambdues quantitats", "No tributes res, perquè tens pèrdues"], "explain": "La compensació pèrdues-guanys és una eina molt útil. A més, si les pèrdues són grans, pots compensar fins al 25% amb rendiments d'altres tipus i arrossegar la resta durant 4 anys."}]}
+};
+
+var EDU_MODULES = [
+  { id: 'm1', num: '01', icon: '💰', titol: 'Què són, realment, els diners?', lede: 'Un bitllet de 50€ no val 50€ pel paper. Aleshores per què val?' },
+  { id: 'm2', num: '02', icon: '📉', titol: 'La inflació, el lladre invisible', lede: 'No et roba al carrer. Et roba mentre dorms, any rere any.' },
+  { id: 'm3', num: '03', icon: '🏛️', titol: 'Qui mana sobre els euros?', lede: "El sistema monetari, el BCE i els tipus d'interès — explicat amb pomes." },
+  { id: 'm4', num: '04', icon: '🏦', titol: 'El secret millor amagat dels bancs', lede: 'Els teus diners al compte corrent no hi són. Ho jurem.' },
+  { id: 'm5', num: '05', icon: '⚖️', titol: 'Estalviar ≠ invertir', lede: 'Confondre-ho és el primer error que paguen 9 de cada 10 famílies.' },
+  { id: 'm6', num: '06', icon: '📈', titol: "Les accions: trossets d'empresa", lede: 'Quan compres una acció, no estàs comprant un paper — ets co-propietari.' },
+  { id: 'm7', num: '07', icon: '🔒', titol: 'Els bons: tu fas de banc', lede: 'Si una acció et fa soci, un bo et fa creditor.' },
+  { id: 'm8', num: '08', icon: '🏠', titol: "L'immobiliari: maons o paper", lede: "Comprar un pis o un ETF d'immobiliària: dues maneres molt diferents de fer el mateix." },
+  { id: 'm9', num: '09', icon: '⚡', titol: "L'interès compost, segons Einstein la 8a meravella", lede: 'El concepte més important de tot el material. Si només recordes una cosa, recorda aquesta.' },
+  { id: 'm10', num: '10', icon: '🎯', titol: "Risc i diversificació: l'únic dinar gratis", lede: 'No pots eliminar el risc, però sí repartir-lo de manera intel·ligent.' },
+  { id: 'm11', num: '11', icon: '🗂️', titol: "ETFs i fons indexats: el paller, no l'agulla", lede: "Per què cada cop més inversors compren «tot el mercat» en lloc d'escollir empreses una a una." },
+  { id: 'm12', num: '12', icon: '💼', titol: 'Brokers · la porta al mercat', lede: 'No pots anar a Wall Street a comprar accions tu mateix. Necessites un intermediari.' },
+  { id: 'm13', num: '13', icon: '🧠', titol: 'El teu pitjor enemic ets tu mateix', lede: 'Els inversors no perden diners pels mercats. Els perden per ells mateixos.' },
+  { id: 'm14', num: '14', icon: '⏱️', titol: 'El temps al mercat bat cronometrar el mercat', lede: 'No cal endevinar el millor moment per invertir. Només cal començar — i no parar.' },
+  { id: 'm15', num: '15', icon: '🧾', titol: 'Hisenda, el teu soci silenciós', lede: "Tot guany d'inversió tributa. Conèixer les regles és part essencial del joc." },
+];
+
+var EDU_MOD_HTML = {
+  m1: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Els diners no són una cosa amb valor pel seu material. Són <strong>un acord social</strong>:
+      tothom accepta que aquest paper o aquest número al banc serveix per intercanviar coses. Si demà
+      ningú l'acceptés, no valdria res — encara que fos el mateix paper.</p>
+    </div>
+
+    <h3>Una història molt resumida</h3>
+    <p>Fa molts segles, la gent intercanviava coses directament: tu em dones blat, jo et dono un porc.
+    És el que es diu <strong>troc</strong>. El problema és evident: i si jo no vull el teu porc en aquest moment? Per
+    això es van inventar els diners — com a intermediari universal.</p>
+
+    <ul>
+      <li><strong>Metalls preciosos</strong> (or, plata): valien pel seu pes i escassetat.</li>
+      <li><strong>Bitllets de paper convertibles</strong>: el banc et garantia que els podies bescanviar per or.</li>
+      <li><strong>Diner fiduciari</strong> (l'actual): no està lligat a cap or ni metall. Val perquè l'Estat
+      diu que val i tothom hi confia. Fiat ve del llatí «que es faci» — una declaració.</li>
+    </ul>
+
+    <h3>Les tres funcions dels diners</h3>
+    <p>Per servir realment com a diners, una cosa ha de fer aquestes tres feines alhora:</p>
+    <ul>
+      <li><strong>Mitjà d'intercanvi</strong> · tothom l'accepta a canvi de béns o serveis.</li>
+      <li><strong>Unitat de compte</strong> · ens permet comparar preus («això val el doble d'allò»).</li>
+      <li><strong>Reserva de valor</strong> · els pots guardar avui i seguiran valent demà.</li>
+    </ul>
+    <p>El problema —spoiler del Mòdul 2— és que la <em>reserva de valor</em> dels diners moderns
+    és cada cop pitjor.</p>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>Els diners són un acord col·lectiu basat en la confiança. Quan deixes de confiar en una
+      moneda (Veneçuela, Argentina), deixa de funcionar — encara que els bitllets segueixin sent allà.</p>
+    </div>
+
+    <div class="edu-quote">
+      <p>El paper moneda finalment torna al seu valor intrínsec: zero.</p>
+      <footer>— Voltaire (atribuït)</footer>
+    </div>
+
+  </div></div>`,
+  m2: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Imagina que vas al supermercat amb 100€. L'any que ve, hi tornes amb els mateixos 100€ —
+      però la cistella plena costa 102,40€. <strong>Has perdut el 2,4% del poder adquisitiu</strong> sense
+      gastar res. Això és la inflació.</p>
+    </div>
+
+    <h3>Per què pugen els preus</h3>
+    <p>La inflació apareix per tres causes principals (sovint mesclades):</p>
+    <ul>
+      <li><strong>Més diners en circulació</strong> · si imprimeixes molts euros nous, cada euro existent val
+      una mica menys (com diluir un suc amb aigua).</li>
+      <li><strong>Costos més alts</strong> · si puja l'energia o els salaris, les empreses ho repercuteixen al
+      preu final.</li>
+      <li><strong>Més demanda que oferta</strong> · quan tothom vol pisos i no n'hi ha prou, els preus pugen.</li>
+    </ul>
+
+    <h3>Com es mesura</h3>
+    <p>L'IPC (Índex de Preus al Consum) és una «cistella de la compra» mitjana del que gasta una
+    família típica: aliments, transport, habitatge, oci… Cada mes es compara amb la del mes anterior.
+    A la zona euro, l'objectiu del BCE és mantenir la inflació al voltant del <strong>2% anual</strong>.</p>
+
+    
+
+    <div class="edu-box alerta">
+      <div class="edu-box-lbl">Alerta</div>
+      <p>Si tens els teus estalvis al compte corrent sense rendiment, no estàs «mantenint-los segurs» —
+      <strong>estàs perdent diners</strong> a un ritme imperceptible però brutal a llarg termini.</p>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>La inflació és la raó número 1 per la qual no n'hi ha prou amb estalviar. Invertir, com a mínim,
+      serveix per <em>no perdre poder adquisitiu</em>.</p>
+    </div>
+
+  </div></div>`,
+  m3: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Pensa en els euros com si fossin pomes en un mercat. Si n'hi ha massa, el preu (= la inflació)
+      es desboca. Si n'hi ha massa poques, l'economia es paralitza. <strong>El Banc Central Europeu (BCE)</strong>
+      és qui decideix quantes pomes hi ha i a quin preu es presten.</p>
+    </div>
+
+    <h3>Què fa exactament el BCE</h3>
+    <p>El BCE té quatre eines bàsiques:</p>
+    <ul>
+      <li><strong>Imprimir o destruir euros</strong> · pot crear diners nous o retirar-ne de circulació.</li>
+      <li><strong>Fixar el tipus d'interès oficial</strong> · el «preu» al qual presta diners als bancs comercials.</li>
+      <li><strong>Comprar o vendre bons</strong> · injectar o retirar liquiditat del sistema (QE).</li>
+      <li><strong>Vigilar la inflació</strong> · objectiu del 2% anual a la zona euro.</li>
+    </ul>
+
+    <h3>Els tipus d'interès, en una frase</h3>
+    <p>El <strong>tipus d'interès oficial</strong> és el preu del lloguer del diner. Quan puja, tot es paga
+    més car: hipoteques, préstecs, finançament d'empreses. Quan baixa, demanar diners surt barat i
+    l'economia s'accelera.</p>
+
+    <div class="edu-pc">
+      <div class="edu-pc-col edu-pros">
+        <h5>BCE puja tipus</h5>
+        <ul>
+          <li>Refreda l'economia</li>
+          <li>Baixa la inflació</li>
+          <li>Els dipòsits paguen més</li>
+          <li>Els bons nous són més atractius</li>
+        </ul>
+      </div>
+      <div class="edu-pc-col edu-cons">
+        <h5>BCE baixa tipus</h5>
+        <ul>
+          <li>Estimula consum i inversió</li>
+          <li>Hipoteques més barates</li>
+          <li>Els dipòsits paguen menys</li>
+          <li>Risc d'inflació si s'abusa</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Per què t'importa això a tu</h3>
+    <p>Els tipus d'interès afecten directament:</p>
+    <ul>
+      <li>El que pagues per la <strong>hipoteca</strong> si és variable (Euríbor).</li>
+      <li>El que et paga el <strong>dipòsit o compte remunerat</strong>.</li>
+      <li>El <strong>rendiment dels bons</strong> i, indirectament, les <strong>valoracions de la borsa</strong>.</li>
+    </ul>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>El BCE no és «el govern». És una institució independent que decideix la temperatura de
+      l'economia ajustant el preu del diner. Cada decisió seva té un impacte real al teu compte
+      bancari.</p>
+    </div>
+
+  </div></div>`,
+  m4: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Quan ingresses 1.000€ al banc, el banc no els guarda en una caixa forta amb el teu nom. En
+      manté una part petita per si vens a treure'n, i la resta <strong>els presta a altres clients</strong>
+      (per hipoteques, per crèdits…). Així el banc guanya diners — cobra més d'interès a qui presta
+      del que et paga a tu.</p>
+    </div>
+
+    <h3>La reserva fraccional, en 3 línies</h3>
+    <p>El banc està obligat a mantenir només un percentatge dels diners dipositats (al voltant de l'1%
+    a la zona euro). La resta la pot prestar. <strong>Aquest sistema és el que permet que tota
+    l'economia moderna funcioni</strong> — però també vol dir que si tots els clients anessin a treure
+    els seus diners el mateix dia, el banc <em>no els tindria</em>. És el famós <em>bank run</em>.</p>
+
+    <h3>Els bancs creen diners</h3>
+    <p>Aquest és el part difícil però fonamental: quan un banc et concedeix un préstec, no està movent
+    diners d'un altre client al teu compte. Està <strong>creant euros nous</strong> apuntant-los al teu
+    saldo. Aquests euros desapareixen quan retornes el préstec.</p>
+
+    <div class="edu-num-box">
+      <span class="edu-num-val">~95%</span>
+      <p class="numeric-txt">dels euros que circulen avui per l'economia no són bitllets ni monedes —
+      són simples apunts digitals creats pels bancs comercials en concedir crèdits.</p>
+    </div>
+
+    <h3>Els tres grans tipus de banc</h3>
+    <ul>
+      <li><strong>Banc comercial tradicional</strong> · BBVA, Santander, CaixaBank. Oficines físiques,
+      productes amplis, comissions altes.</li>
+      <li><strong>Neobanc digital</strong> · Revolut, N26, Trade Republic. Tot per app, sense oficina,
+      productes innovadors i comissions baixes. Mateixa regulació i protecció que els tradicionals.</li>
+      <li><strong>Banc d'inversió</strong> · Goldman Sachs, Morgan Stanley. No treballen amb particulars.
+      Assessoren empreses i mouen grans operacions a la borsa.</li>
+    </ul>
+
+    <div class="edu-box exemple">
+      <div class="edu-box-lbl">Què passa si fallís el meu banc</div>
+      <p>A la zona euro hi ha el <strong>Fons de Garantia de Dipòsits (FGD)</strong>: si el teu banc
+      fallís, l'Estat et garanteix fins a <strong>100.000€ per persona i banc</strong>. Per això, si
+      tens més d'aquest import, val la pena repartir-ho en dos bancs diferents.</p>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>El teu compte corrent no és un calaix. És un <em>préstec que tu fas al banc</em> a canvi de
+      serveis (transferències, targetes, app…). Per això un banc et paga molt poc (o res) pels teus
+      dipòsits — sap que els necessites a la vida quotidiana.</p>
+    </div>
+
+    <div class="edu-quote">
+      <p>És bo que la gent del país no entengui el nostre sistema bancari i monetari, perquè si
+      l'entengués, crec que hi hauria una revolució abans de demà al matí.</p>
+      <footer>— Henry Ford</footer>
+    </div>
+
+  </div></div>`,
+  m5: `<div class="edu-prose"><div class="edu-pc">
+      <div class="edu-pc-col edu-pros">
+        <h5>Estalviar</h5>
+        <ul>
+          <li>Guardar el que sobra del sou</li>
+          <li>Diners líquids, sempre disponibles</li>
+          <li>Risc zero (sota 100.000€ per banc)</li>
+          <li>Rendiment ≈ 0 o lleugerament positiu</li>
+          <li>Perd valor real per la inflació</li>
+        </ul>
+      </div>
+      <div class="edu-pc-col edu-cons">
+        <h5>Invertir</h5>
+        <ul>
+          <li>Posar diners a treballar en actius</li>
+          <li>Pots haver d'esperar per recuperar-los</li>
+          <li>Hi ha risc — el preu pot pujar i baixar</li>
+          <li>Rendiment esperat 4–9% anual a llarg termini</li>
+          <li>Bat la inflació amb el temps</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>L'ordre correcte</h3>
+    <p>Abans de pensar en invertir, hi ha dues bases que cal tenir:</p>
+    <ol>
+      <li><strong>Fons d'emergència</strong> · entre 3 i 6 mesos de les teves despeses, en un compte
+      líquid (compte remunerat o fons monetari). És el coixí que t'evita haver de vendre inversions
+      en mal moment si perds la feina o tens un imprevist.</li>
+      <li><strong>Pagar el deute car</strong> · si tens un préstec personal o targeta de crèdit al 10%,
+      cap inversió de borsa et donarà això de manera garantida. <em>Primer cancel·la el deute, després
+      inverteix.</em></li>
+    </ol>
+
+    <h3>Quan estalviar és la millor opció</h3>
+    <ul>
+      <li>Quan estàs construint el <strong>fons d'emergència</strong>.</li>
+      <li>Quan tens una <strong>despesa important prevista</strong> en menys de 3 anys (entrada de
+      pis, cotxe, viatge gran).</li>
+      <li>Quan vols tenir <strong>munició</strong> per aprofitar oportunitats que apareguin.</li>
+    </ul>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>L'estalvi és la <em>base</em>; la inversió és el <em>motor</em>. Sense base, el motor et fa
+      caure quan menys ho esperes. Sense motor, la base es fon any rere any per la inflació.</p>
+    </div>
+
+  </div></div>`,
+  m6: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Imagina la teva fleca preferida. Decideixen partir-la en 1.000 trossets per recaptar diners
+      i obrir una nova botiga. Cada tros és una <strong>acció</strong>. Si en compres 10, ets el
+      propietari de l'1% de la fleca: tens dret al pa que es ven (els <em>beneficis</em>) i al valor
+      del local (el <em>patrimoni</em>).</p>
+    </div>
+
+    <h3>Com guanyes diners amb una acció</h3>
+    <p>Hi ha dues maneres, sovint combinades:</p>
+    <ul>
+      <li><strong>Revalorització</strong> · l'empresa creix, guanya més diners, i les seves accions
+      passen de valer 50€ a 80€. Tu compres a 50, vens a 80, t'embutxaques 30€ per acció.</li>
+      <li><strong>Dividends</strong> · l'empresa reparteix una part dels seus beneficis entre els
+      accionistes. Si ets propietari de 100 accions de Coca-Cola i paga 2€ de dividend, cobres 200€
+      a l'any sense fer res.</li>
+    </ul>
+
+    <h3>Què és una borsa</h3>
+    <p>Una borsa de valors (NYSE, Nasdaq, Borsa de Madrid…) és simplement el mercat on els accionistes
+    es venen i compren les accions entre ells. <strong>La pròpia empresa no hi guanya res</strong>
+    quan les seves accions canvien de mà. L'empresa només va rebre diners quan va emetre les accions
+    per primer cop.</p>
+
+    <h3>Per què pugen i baixen tant</h3>
+    <p>El preu d'una acció avui reflecteix el que <em>els inversors creuen</em> que valdrà l'empresa
+    en el futur. Si surt una notícia bona, tothom vol comprar i el preu puja. Si surt una de dolenta,
+    tothom vol vendre i baixa. A curt termini, les emocions manen. A llarg termini, els <em>resultats
+    reals</em> de l'empresa són el que compta.</p>
+
+    <div class="edu-quote">
+      <p>A curt termini, el mercat és una màquina de votar; a llarg termini, és una màquina de pesar.</p>
+      <footer>— Benjamin Graham</footer>
+    </div>
+
+    <h3>Comprar accions una a una… o totes alhora</h3>
+    <p>Pots comprar accions individuals (Apple, Inditex, Iberdrola…), però això requereix triar quina
+    empresa anirà bé i quina no. La majoria d'inversors particulars opten per <strong>ETFs i fons
+    indexats</strong>: un sol producte que compra trossets de centenars o milers d'empreses alhora.
+    En parlarem al següent nivell.</p>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>Una acció no és un número que puja i baixa en una pantalla. És propietat real d'un negoci
+      real. Si pots imaginar-te <em>com a soci</em> de l'empresa, ja entens el 80% de què és invertir
+      en borsa.</p>
+    </div>
+
+  </div></div>`,
+  m7: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>L'Estat espanyol necessita 1.000€. Emet un <strong>bo a 5 anys al 3%</strong>. Tu li deixes
+      1.000€. Cada any et paga 30€ d'interès (el <em>cupó</em>). Al cinquè any, et torna els 1.000€
+      originals i ja està. Tu has actuat com a <em>banc</em> de l'Estat — has cobrat per prestar-li
+      els diners.</p>
+    </div>
+
+    <h3>Qui emet bons</h3>
+    <ul>
+      <li><strong>Estats</strong> · lletres del tresor (curt termini), bons i obligacions (llarg termini).
+      Considerats els més segurs dins de cada país.</li>
+      <li><strong>Empreses</strong> · per finançar inversions sense haver d'emetre noves accions.
+      Paguen una mica més d'interès perquè el risc és més alt.</li>
+      <li><strong>Comunitats autònomes i ajuntaments</strong> · menys habitual per particulars.</li>
+    </ul>
+
+    <h3>Acció vs bo, cara a cara</h3>
+    <div class="edu-pc">
+      <div class="edu-pc-col edu-pros">
+        <h5>Acció</h5>
+        <ul>
+          <li>Ets propietari de l'empresa</li>
+          <li>Sense data de venciment</li>
+          <li>Cobres dividends si l'empresa decideix</li>
+          <li>Pots multiplicar el capital… o perdre'l</li>
+        </ul>
+      </div>
+      <div class="edu-pc-col edu-cons">
+        <h5>Bo</h5>
+        <ul>
+          <li>Ets prestador de l'emissor</li>
+          <li>Té data de venciment</li>
+          <li>Cobres cupó pactat sempre que no fallin</li>
+          <li>Rendiment limitat, però predictible</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>La relació clau: preu vs tipus d'interès</h3>
+    <p>Si tens un bo antic que paga el 2% i el BCE puja els tipus, els bons nous pagaran el 4%. Aleshores
+    ningú voldrà el teu bo antic — a no ser que el venguis amb descompte. <strong>Per això, quan pugen
+    els tipus, baixa el valor dels bons existents</strong>. I a l'inrevés.</p>
+
+    <div class="edu-box alerta">
+      <div class="edu-box-lbl">Els riscos</div>
+      <p>No tots els bons són segurs. Els tres principals riscos són:</p>
+      <ul style="margin-top:8px">
+        <li><strong>Impagament</strong> · l'emissor fa fallida i no et torna els diners.</li>
+        <li><strong>Inflació</strong> · si la inflació és del 5% i el teu bo paga el 3%, perds poder
+        adquisitiu encara que cobris.</li>
+        <li><strong>Tipus d'interès</strong> · si vols vendre el bo abans del venciment i els tipus
+        han pujat, perdràs diners.</li>
+      </ul>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>Els bons no fan rics, però donen estabilitat. A una cartera diversificada, hi són per
+      <em>amortir les caigudes</em> de la borsa i generar ingressos predictibles.</p>
+    </div>
+
+  </div></div>`,
+  m8: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>L'immobiliari és el camí preferit de moltes famílies catalanes — tangible, conegut, i ha
+      funcionat bé durant dècades. Però hi ha dues formes molt diferents d'invertir-hi, i confondre-les
+      pot sortir car.</p>
+    </div>
+
+    <h3>Inversió directa · compres un pis</h3>
+    <p>Compres una propietat (pis, plaça d'aparcament, local…) i la llogues. Cobres rendes mensuals
+    i, si el preu del pis puja, també guanyes per revalorització quan el venguis.</p>
+
+    <div class="edu-pc">
+      <div class="edu-pc-col edu-pros">
+        <h5>Avantatges</h5>
+        <ul>
+          <li>Actiu tangible, real</li>
+          <li>Ingressos mensuals previsibles</li>
+          <li>Protecció natural contra inflació</li>
+          <li>Pots apalancar-te amb hipoteca</li>
+        </ul>
+      </div>
+      <div class="edu-pc-col edu-cons">
+        <h5>Inconvenients</h5>
+        <ul>
+          <li>Capital inicial molt alt (30%+ entrada)</li>
+          <li>Costos d'entrada elevats (impostos, notari)</li>
+          <li>Problemes amb inquilins, impagaments</li>
+          <li>Molt poc líquid — vendre's pot trigar mesos</li>
+          <li>Concentració del patrimoni en un sol actiu</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Inversió indirecta · REITs</h3>
+    <p>Un <strong>REIT</strong> (Real Estate Investment Trust, o <em>SOCIMI</em> a Espanya) és una
+    empresa cotitzada a borsa que es dedica exclusivament a comprar i llogar immobles. Quan en compres
+    accions, ets co-propietari d'una cartera d'edificis comercials, logístics, sanitaris o residencials
+    — sense haver de tractar amb cap inquilí.</p>
+
+    <p>Aquestes empreses tenen una obligació legal: <strong>repartir com a mínim el 90% dels seus
+    beneficis</strong> entre els accionistes. Per això, els REITs solen pagar dividends bastant
+    elevats (3–5% anual).</p>
+
+    <div class="edu-pc">
+      <div class="edu-pc-col edu-pros">
+        <h5>REIT vs Pis directe</h5>
+        <ul>
+          <li>Pots començar amb 100€</li>
+          <li>Líquid: pots vendre en un dia</li>
+          <li>Diversificat (desenes d'edificis)</li>
+          <li>Sense gestió, sense porta a porta</li>
+        </ul>
+      </div>
+      <div class="edu-pc-col edu-cons">
+        <h5>Però…</h5>
+        <ul>
+          <li>Volatilitat de borsa (el preu fluctua diàriament)</li>
+          <li>Sensible als tipus d'interès</li>
+          <li>No tens un pis al teu nom</li>
+          <li>No pots usar-lo si en necessites un</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>L'immobiliari directe és una <em>petita empresa</em> que has de gestionar. Els REITs són
+      <em>borsa</em> amb sabor immobiliari. No és millor un que l'altre — són eines diferents per a
+      situacions diferents.</p>
+    </div>
+
+  </div></div>`,
+  m9: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Inverteixes 1.000€ al 7% anual. Al cap d'un any tens 1.070€. <strong>L'any següent, el 7% no
+      es calcula sobre 1.000€, sinó sobre 1.070€</strong>. Així els teus interessos comencen a generar
+      els seus propis interessos. És una bola de neu que rodola pendent avall.</p>
+    </div>
+
+    <h3>L'exemple que ho deixa clar</h3>
+    <p>Imagina dos amics, Anna i Bru. Tots dos inverteixen 100€/mes a un 7% anual:</p>
+
+    <table >
+      <thead>
+        <tr><th>Persona</th><th>Comença als</th><th>Inverteix fins</th><th>Total posat</th><th>Té al final</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Anna</td><td>25 anys</td><td>65 anys</td><td>48.000 €</td><td>262.500 €</td></tr>
+        <tr><td>Bru</td><td>35 anys</td><td>65 anys</td><td>36.000 €</td><td>122.000 €</td></tr>
+        <tr><td colspan="3"><strong>Diferència</strong></td><td>+12.000 €</td><td>+140.500 €</td></tr>
+      </tbody>
+    </table>
+
+    <p>Anna només ha posat 12.000€ més que el Bru, però acaba amb <strong>140.500€ més</strong>.
+    No és cap truc — és el temps multiplicant els seus interessos. Començar 10 anys abans canvia
+    el resultat per complet.</p>
+
+    <div class="edu-num-box">
+      <span class="edu-num-val">×72</span>
+      <p class="numeric-txt">La <strong>regla del 72</strong>: divideix 72 entre la rendibilitat anual
+      i obtens els anys que trigaràs a doblar la inversió. Al 7%, doblegues els diners cada 10 anys.
+      Al 10%, cada 7 anys.</p>
+    </div>
+
+    <h3>Les tres palanques</h3>
+    <p>Tres variables determinen quant guanyaràs:</p>
+    <ul>
+      <li><strong>Quant inverteixes</strong> — important, però no decisiu.</li>
+      <li><strong>Quina rendibilitat aconsegueixes</strong> — important, però fora del teu control.</li>
+      <li><strong>Quant de temps deixes treballar els diners</strong> — el factor més decisiu i
+      l'única palanca que <em>controles totalment des d'avui mateix</em>.</li>
+    </ul>
+
+    <div class="edu-quote">
+      <p>L'interès compost és la força més poderosa de l'univers. Qui l'entén el guanya; qui no
+      l'entén el paga.</p>
+      <footer>— Albert Einstein (atribuït)</footer>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>El millor moment per començar a invertir va ser fa 10 anys. El segon millor és <em>avui</em>.
+      Cada any que esperes és exponencialment més car del que sembla.</p>
+    </div>
+
+  </div></div>`,
+  m10: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Diversificar és la versió financera del refrany <em>«no posis tots els ous a la mateixa
+      cistella»</em>. Si una empresa fa fallida, no vols que sigui l'únic actiu que tens. Si reparteixes
+      la teva inversió entre 1.500 empreses de tot el món, l'enfonsament d'una no et fa mal.</p>
+    </div>
+
+    <h3>Risc ≠ volatilitat</h3>
+    <p>La gent confon dos conceptes que són diferents:</p>
+    <ul>
+      <li><strong>Volatilitat</strong> · com canvia el preu d'un actiu dia a dia. Una acció pot baixar
+      un 20% una setmana i pujar un 30% el mes següent. Això és normal.</li>
+      <li><strong>Risc real</strong> · la possibilitat de perdre diners de manera <em>permanent</em>.
+      Una empresa que fa fallida i no torna mai. Un fons que no recupera el valor mai.</li>
+    </ul>
+
+    <p>A llarg termini, la borsa global ha pujat <em>sempre</em>. Té volatilitat, sí — molta. Però
+    el risc de perdre tot el capital invertint en un fons indexat mundial és pràcticament zero.</p>
+
+    <h3>Les quatre dimensions de la diversificació</h3>
+    <ul>
+      <li><strong>Per actius</strong> · accions + bons + immobiliari + or + liquiditat.</li>
+      <li><strong>Per sectors</strong> · tecnologia + salut + energia + banca + consum…</li>
+      <li><strong>Per geografies</strong> · Europa + EUA + Àsia + mercats emergents.</li>
+      <li><strong>Per temps</strong> · invertir cada mes (DCA) en lloc de tot d'una.</li>
+    </ul>
+
+    <div class="edu-num-box">
+      <span class="edu-num-val">~1.500</span>
+      <p class="numeric-txt">Un ETF de l'índex MSCI World et fa propietari de més de 1.500 empreses
+      de 23 països desenvolupats. Una sola compra, una sola comissió, diversificació mundial real.</p>
+    </div>
+
+    <h3>El que NO és diversificar</h3>
+    <ul>
+      <li>Tenir 5 accions d'empreses del mateix sector (totes bancs, o totes tech).</li>
+      <li>Tenir 10 fons que invertien tots a la mateixa cosa.</li>
+      <li>Tenir el 80% del patrimoni en un sol pis.</li>
+      <li>Pensar que estàs diversificat per tenir comptes a 3 bancs diferents (tots inverteixen igual).</li>
+    </ul>
+
+    <div class="edu-quote">
+      <p>La diversificació és l'únic dinar gratis dels mercats financers.</p>
+      <footer>— Harry Markowitz (Premi Nobel d'Economia)</footer>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>No saps quina serà l'empresa, el sector o el país guanyador dels pròxims 30 anys. <em>Ningú
+      ho sap</em>. Per això, la millor estratègia per a la majoria de persones és tenir-ho una mica
+      de tot — i deixar que el temps faci la resta.</p>
+    </div>
+
+  </div></div>`,
+  m11: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Imagina que vas al supermercat a comprar fruita. Pots triar peça per peça (i arriscar-te a
+      escollir-ne alguna de podrida)... o pots emportar-te una <strong>cistella mixta ja preparada</strong>
+      amb 50 fruites diferents. Si una surt malament, no passa res — en tens 49 més. Això és,
+      essencialment, un fons indexat.</p>
+    </div>
+
+    <h3>Què és un fons d'inversió</h3>
+    <p>Un fons és un vehicle col·lectiu: molts inversors posen els seus diners en una mateixa olla,
+    i un gestor compra actius (accions, bons, immobles...) amb tot aquest capital agrupat. Tu reps
+    <em>participacions</em> proporcionals al que has aportat.</p>
+
+    <h3>Gestió activa vs gestió passiva</h3>
+    <ul>
+      <li><strong>Gestió activa</strong> · un gestor humà tria quines empreses comprar i vendre,
+      intentant batre el mercat. Comissions altes (1–2% anual). Resultats: el <strong>85%</strong> dels
+      gestors actius no superen el seu índex a 10 anys.</li>
+      <li><strong>Gestió passiva</strong> · un algorisme replica un índex (l'S&amp;P 500, l'MSCI World,
+      l'IBEX 35...) comprant simplement totes les empreses que el componen amb el seu pes. Comissions
+      molt baixes (0,10–0,25%). No intenta batre el mercat — <em>és</em> el mercat.</li>
+    </ul>
+
+    <h3>Què és un ETF i en què es diferencia d'un fons indexat</h3>
+    <p>Un <strong>ETF</strong> (Exchange Traded Fund) és un fons que cotitza a la borsa com si fos una
+    acció: el pots comprar i vendre en qualsevol moment de la sessió, a temps real, amb el preu del
+    moment. Un <strong>fons indexat tradicional</strong> es compra i ven a final del dia, al preu de
+    tancament.</p>
+
+    <p>A efectes pràctics:</p>
+    <ul>
+      <li><strong>ETF</strong> · liquidesa intra-dia, sovint més barat, però pagues impostos per cada
+      venda.</li>
+      <li><strong>Fons indexat</strong> · operativa més senzilla, i a Espanya té un avantatge clau:
+      pots <em>traspassar</em> entre fons sense tributar fins que retiris definitivament.</li>
+    </ul>
+
+    <h3>El TER · el cost ocult</h3>
+    <p>El <strong>TER</strong> (Total Expense Ratio) és el percentatge anual que es queda el fons en
+    concepte de despeses i gestió. Es resta del rendiment automàticament — ni el veus, però el pagues.</p>
+
+    <div class="edu-num-box">
+      <span class="edu-num-val">−1,2%</span>
+      <p class="numeric-txt">100.000€ invertits durant 30 anys al 7% anual. Amb un TER del 0,2%
+      acabes amb ~720.000€. Amb un TER de l'1,4% acabes amb ~510.000€. <strong>210.000€ menys
+      per culpa d'1,2% extra de comissió.</strong></p>
+    </div>
+
+    <h3>Acumulació vs distribució</h3>
+    <ul>
+      <li><strong>Acumulació</strong> · els dividends que generen les empreses es reinverteixen
+      automàticament dins el fons. No reps res al banc, però el fons creix. Ideal en fase
+      d'acumulació de patrimoni (fiscalitat diferida).</li>
+      <li><strong>Distribució</strong> · els dividends et van caient al compte trimestralment o
+      semestralment. Pagues impostos cada cop, però tens flux de caixa real. Útil en jubilació.</li>
+    </ul>
+
+    <div class="edu-quote">
+      <p>No busquis l'agulla al paller. Compra el paller.</p>
+      <footer>— John Bogle, fundador de Vanguard</footer>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>Per a la majoria d'inversors particulars, <strong>1–3 ETFs o fons indexats ben triats</strong>
+      ja són suficients per tenir una cartera diversificada, barata i sense haver de tocar res en
+      anys. Senzill, avorrit, eficaç — molt TBI.</p>
+    </div>
+
+  </div></div>`,
+  m12: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Per comprar pa vas a la fleca. Per comprar accions o ETFs, vas a un <strong>broker</strong> —
+      una entitat financera regulada que té accés directe als mercats. Tu li dius «compra'm això»,
+      ell ho fa, et cobra una petita comissió i guarda els teus actius al seu sistema.</p>
+    </div>
+
+    <h3>Tipus de brokers</h3>
+    <ul>
+      <li><strong>Brokers tradicionals del teu banc</strong> · BBVA Trader, CaixaBank Bolsa, Banco
+      Santander. Còmodes (ja ets client), però amb comissions sovint elevades i poca varietat.</li>
+      <li><strong>Brokers online especialitzats</strong> · DEGIRO, Trade Republic, Interactive
+      Brokers, eToro. Comissions molt baixes, gran varietat de productes mundials, però has de
+      gestionar-ho tu mateix.</li>
+      <li><strong>Robo-advisors</strong> · Indexa Capital, MyInvestor, InbestMe. T'assignen
+      automàticament una cartera segons el teu perfil de risc i la rebalancegen sola. Una mica més
+      cars que un broker pur però totalment passiu.</li>
+    </ul>
+
+    <h3>Les comissions que has de mirar</h3>
+    <ul>
+      <li><strong>Compra/venda</strong> · cobrada cada cop que operes. Pot ser fixa (3€) o un %
+      (0,5%). En ETFs i fons, sovint és zero.</li>
+      <li><strong>Custòdia</strong> · alguns brokers cobren un fix anual per «guardar-te» els actius.
+      Els bons brokers la tenen a zero.</li>
+      <li><strong>Canvi de divisa</strong> · si compres ETFs en dòlars amb euros, et cobren entre el
+      0,1% i el 0,5%. Sembla poc; acumulat és molt.</li>
+      <li><strong>Retirada / inactivitat</strong> · alguns cobren per traspassar diners fora o per
+      no operar.</li>
+    </ul>
+
+    <h3>Regulació i protecció</h3>
+    <p>Tots els brokers que operen a la UE estan supervisats per organismes oficials (CNMV a Espanya,
+    BaFin a Alemanya, AFM als Països Baixos...). A més, hi ha el <strong>FOGAIN</strong> (Fondo
+    General de Garantía de Inversiones), que protegeix els teus actius fins a <strong>100.000€ per
+    inversor</strong> en cas de fallida de l'entitat. Atenció: això no et protegeix de pèrdues pel
+    mercat — només si el broker desapareix.</p>
+
+    <div class="edu-box exemple">
+      <div class="edu-box-lbl">Broker espanyol vs estranger · el dilema 720</div>
+      <p>Si tens més de 50.000€ en un broker estranger, has de declarar-ho a Hisenda via
+      <strong>model 720</strong> cada any. És només informatiu, però molesta. Un broker espanyol
+      ja envia les dades a Hisenda automàticament — vida més fàcil, però sovint més car.</p>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>El broker és com un proveïdor d'internet: el canvies quan vols, mentre els teus actius
+      siguin transferibles. <strong>No t'obsessionis triant-ne un</strong>; comença amb un de fiable,
+      regulat i barat, i ja optimitzaràs més endavant si cal.</p>
+    </div>
+
+  </div></div>`,
+  m13: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Imagina el teu cervell com un cotxe d'època fantàstic per perseguir mamuts a la sabana,
+      però mal preparat per gestionar gràfics de borsa. La majoria dels nostres instints emocionals
+      ens van bé al món real i ens fan mal al món financer. <strong>Conèixer-los és la millor
+      defensa.</strong></p>
+    </div>
+
+    <h3>L'aversió a la pèrdua</h3>
+    <p>Perdre 50€ ens fa <strong>2,5 vegades més mal</strong> del que ens alegra guanyar-ne 50€.
+    No és racional, però és com funciona el cervell. Aquesta asimetria fa que venguem inversions
+    bones quan baixen (no podem suportar la pèrdua) i mantinguem inversions dolentes massa temps
+    (esperant que «tornin a zero»).</p>
+
+    <h3>FOMO · la por de quedar-se fora</h3>
+    <p>«Fear Of Missing Out». Quan veus que tothom guanya diners amb una cosa (cripto al 2021,
+    accions tech al 1999, pisos al 2006...), comences a entrar quan el preu ja està als núvols —
+    just abans de la caiguda. <strong>Quan tothom en parla, ja és tard.</strong></p>
+
+    <h3>L'efecte ramat</h3>
+    <p>«Tothom ho fa, deu ser bo.» És la mateixa pulsió que ens feia caçar en grup. Avui crea
+    bombolles especulatives: quan tothom compra, els preus es desboquen molt per sobre del valor real.
+    I quan tothom ven, s'enfonsen molt per sota.</p>
+
+    <h3>L'ancoratge</h3>
+    <p>«Jo el vaig comprar a 100€, no el venc a 80€». El preu de compra és emocionalment significatiu
+    per a tu — però <strong>al mercat li és igual</strong>. La pregunta correcta no és «quant em va
+    costar?» sinó «valdria la pena comprar-lo avui al preu actual?».</p>
+
+    <h3>El biaix de recencia</h3>
+    <p>Si la borsa ha pujat 3 anys seguits, donem per fet que pujarà el quart. Si ha caigut 3 mesos,
+    creiem que el món s'acaba. La nostra ment recorda el que ha passat fa poc més que el que ha
+    passat fa 10 anys — i en mercats, això és perillós.</p>
+
+    <h3>Les tres armes contra els biaixos</h3>
+    <ol>
+      <li><strong>Un pla escrit</strong> · decideix QUAN tot està en calma, no quan tot està en flames.</li>
+      <li><strong>Automatització</strong> · DCA mensual programat, sense decidir mes a mes.</li>
+      <li><strong>No mirar la cartera cada dia</strong> · una mirada al mes és suficient. Cada
+      cop que la consultes, augmentes la probabilitat de fer una bestiesa.</li>
+    </ol>
+
+    <div class="edu-quote">
+      <p>El principal problema de l'inversor — i fins i tot el seu pitjor enemic — és, probablement,
+      ell mateix.</p>
+      <footer>— Benjamin Graham, mentor de Warren Buffett</footer>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>Invertir bé té poca relació amb el coeficient intel·lectual i molta amb la <em>disciplina
+      emocional</em>. Un pla mediocre executat amb constància bat sempre un pla brillant abandonat
+      al primer ensurt.</p>
+    </div>
+
+  </div></div>`,
+  m14: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>«Espero que baixi una mica per entrar.» Aquesta frase ha costat més diners a l'humanitat
+      que qualsevol crisi financera. Ningú no sap quin serà el millor moment per entrar — ni Warren
+      Buffett. La bona notícia: <strong>no cal saber-ho</strong>.</p>
+    </div>
+
+    <h3>L'estadística que ho canvia tot</h3>
+    <p>Si haguessis invertit 10.000€ a l'S&amp;P 500 entre 2003 i 2023, mantenint-los tot el temps,
+    haurien crescut fins a uns <strong>64.800€</strong>. Però si t'haguessis perdut només els 10
+    millors dies de borsa en aquests 20 anys, hauries acabat amb tan sols <strong>29.700€</strong>
+    — més de la meitat menys.</p>
+
+    <div class="edu-num-box">
+      <span class="edu-num-val">×2,2</span>
+      <p class="numeric-txt">És el que rendeix mantenir-se invertit en lloc d'intentar entrar i
+      sortir. I el pitjor: <strong>els 10 millors dies solen aparèixer just després dels pitjors</strong>.
+      Si vens en el pànic, et perds el rebot.</p>
+    </div>
+
+    <h3>DCA · Dollar Cost Averaging</h3>
+    <p>Invertir <strong>una quantitat fixa cada període</strong> (cada mes, cada trimestre), sense
+    importar com està el mercat. Quan el preu és baix, la teva aportació compra més unitats. Quan
+    és alt, en compra menys. Al final, el cost mitjà s'equilibra.</p>
+
+    <h3>Per què funciona</h3>
+    <ul>
+      <li><strong>Emocional</strong> · no et castigues per «entrar en mal moment». Sempre estàs entrant.</li>
+      <li><strong>Pràctic</strong> · l'automatitzes una vegada i s'oblides. Es paguen el lloguer i la
+      inversió el mateix dia, sense pensar-hi.</li>
+      <li><strong>Disciplina</strong> · sobretot en caigudes, quan tothom té por de seguir invertint,
+      tu segueixes — i estàs comprant a preus baixos, encara que en aquell moment doli.</li>
+    </ul>
+
+    <h3>L'excepció: Lump Sum</h3>
+    <p>Si tens una quantitat important d'una vegada (una herència, una venda...), <strong>invertir-ho
+    tot d'una</strong> ha batut el DCA aproximadament en el <strong>66% dels casos</strong> a nivell
+    històric (perquè els mercats pugen més temps del que baixen). Però emocionalment, és duríssim si
+    just després ve una caiguda. Un compromís raonable: dividir-ho en aportacions setmanals durant
+    3–6 mesos.</p>
+
+    <div class="edu-quote">
+      <p>El millor moment per plantar un arbre va ser fa 20 anys. El segon millor moment és ara.</p>
+      <footer>— Proverbi xinès</footer>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>El millor <em>moment</em> per invertir és quan tinguis els diners disponibles i el fons
+      d'emergència fet. La millor <em>estratègia</em> per a la majoria és el DCA automàtic. La
+      millor <em>actitud</em> és no mirar gaire i no parar mai.</p>
+    </div>
+
+  </div></div>`,
+  m15: `<div class="edu-prose"><div class="edu-box intuicio">
+      <div class="edu-box-lbl">Intuïció</div>
+      <p>Hisenda no és el teu enemic, però sí que és un soci que s'emporta una part important
+      dels teus guanys. <strong>Bona notícia</strong>: a Espanya, la fiscalitat dels guanys
+      d'inversió és relativament suau si la compares amb els ingressos del treball. Una mica de
+      planificació marca una diferència gran a llarg termini.</p>
+    </div>
+
+    <h3>Les dues bases imposables</h3>
+    <p>Les teves rendes es divideixen en dos calaixos separats:</p>
+    <ul>
+      <li><strong>Base general</strong> · sou del treball, ingressos d'autònom, lloguers d'immobles...
+      Tributen a l'escala progressiva habitual de l'IRPF (de 19% fins a 47%+).</li>
+      <li><strong>Base de l'estalvi</strong> · guanys per inversions: dividends, cupons de bons,
+      vendes amb plusvàlua, interessos de comptes... Tributen a una <strong>escala separada més baixa</strong>.</li>
+    </ul>
+
+    <h3>Escala de la base de l'estalvi (2024)</h3>
+    <table >
+      <thead><tr><th>Trams</th><th>Tipus impositiu</th></tr></thead>
+      <tbody>
+        <tr><td>Fins a 6.000 €</td><td>19 %</td></tr>
+        <tr><td>De 6.000 € a 50.000 €</td><td>21 %</td></tr>
+        <tr><td>De 50.000 € a 200.000 €</td><td>23 %</td></tr>
+        <tr><td>De 200.000 € a 300.000 €</td><td>27 %</td></tr>
+        <tr><td>Més de 300.000 €</td><td>28 %</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Exemple</strong>: tens 9.000€ de guany per venda d'accions. Pagaràs el 19% pels
+    primers 6.000€ (= 1.140€) i el 21% pels 3.000€ restants (= 630€). Total: <strong>1.770€</strong>
+    d'impost, és a dir un tipus efectiu del 19,67%.</p>
+
+    <h3>Compensar pèrdues amb guanys</h3>
+    <p>Si dins del mateix any tens unes accions amb guany de 1.000€ i altres amb pèrdua de 400€,
+    només tributes per <strong>600€ nets</strong>. A més, si les pèrdues són grans, pots compensar
+    fins al 25% amb rendiments d'altres tipus (interessos, dividends) i arrossegar la resta durant
+    <strong>4 anys</strong> per compensar guanys futurs.</p>
+
+    <h3>El gran avantatge dels fons d'inversió</h3>
+    <p>Els <strong>traspasos entre fons</strong> a Espanya <strong>NO tributen</strong>. Vens un fons,
+    compres un altre, i el fisc s'espera. No pagues impostos fins que retiris definitivament els
+    diners. Aquest avantatge, aplicat durant 20–30 anys, és or pur.</p>
+
+    <div class="edu-box exemple">
+      <div class="edu-box-lbl">Fons vs ETF</div>
+      <p>Els <strong>ETFs no tenen aquest avantatge</strong>: cada cop que vens un ETF (per
+      rebalancejar, per canviar d'idea), pagues impostos. És una raó important per la qual molts
+      inversors particulars espanyols prefereixen fons indexats davant d'ETFs equivalents.</p>
+    </div>
+
+    <h3>Productes amb avantatges fiscals especials</h3>
+    <ul>
+      <li><strong>Plans de Pensions</strong> · les aportacions <em>redueixen</em> la teva base
+      imposable general (estalvi fiscal immediat), però quan els rescatis tributen com a rendes
+      del treball. Útil si tens ingressos alts ara i baixos a la jubilació.</li>
+      <li><strong>PIAS</strong> (Plans Individuals d'Estalvi Sistemàtic) · si els rescates passats
+      els 5 anys en forma de renda vitalícia, els guanys queden exempts d'impostos. Productes
+      complexos, miràn-los amb lupa.</li>
+    </ul>
+
+    <div class="edu-quote">
+      <p>Les úniques certeses en aquest món són la mort i els impostos.</p>
+      <footer>— Benjamin Franklin</footer>
+    </div>
+
+    <div class="edu-box clau">
+      <div class="edu-box-lbl">Idea clau</div>
+      <p>L'impacte de la fiscalitat acumulat durant dècades pot ser tan important com la pròpia
+      rendibilitat. Pensar fiscalment des del primer dia (acumulació, fons, compensació de pèrdues)
+      no és per a «rics» — és per a tothom.</p>
+    </div>
+
+  </div></div>`,
+};
+
+
+// ════════════════════════════════════════════════
+//  ENGINE EDUCACIÓ INTERACTIVA — TBI Nivell Bàsic
+// ════════════════════════════════════════════════
+
+var _eduState = {};
+var _eduCurrentMod = null;
+var EDU_POINTS = 10;
+var EDU_PASS   = 0.70;
+var EDU_MAX_SCORE = (function(){
+  var t=0; for(var mid in EDU_QUIZ) t += EDU_QUIZ[mid].correct.length * EDU_POINTS * EDU_QUIZ[mid].weight;
+  return Math.round(t);
+})();
+
+function eduStateKey(){
+  var uid = (APP && APP.user && APP.user.id) ? APP.user.id : 'demo';
+  return 'tbi_edu_basic_' + uid;
+}
+function eduLoadState(){
+  try{ var r = localStorage.getItem(eduStateKey()); if(r) _eduState = JSON.parse(r); } catch(e){ _eduState = {}; }
+}
+function eduSaveState(){
+  try{ localStorage.setItem(eduStateKey(), JSON.stringify(_eduState)); } catch(e){}
+}
+function eduModMaxScore(mid){
+  return Math.round(EDU_QUIZ[mid].correct.length * EDU_POINTS * EDU_QUIZ[mid].weight);
+}
+function eduModScore(mid){
+  var sc=0, correct=EDU_QUIZ[mid].correct;
+  for(var i=0;i<correct.length;i++){
+    var k=mid+'_'+i;
+    if(_eduState[k]!==undefined && _eduState[k]===correct[i]) sc += EDU_POINTS * EDU_QUIZ[mid].weight;
+  }
+  return Math.round(sc);
+}
+function eduModAnswered(mid){
+  var correct=EDU_QUIZ[mid].correct;
+  for(var i=0;i<correct.length;i++) if(_eduState[mid+'_'+i]===undefined) return false;
+  return true;
+}
+function eduModPartial(mid){
+  var correct=EDU_QUIZ[mid].correct;
+  for(var i=0;i<correct.length;i++) if(_eduState[mid+'_'+i]!==undefined) return true;
+  return false;
+}
+function eduTotalScore(){
+  var t=0; for(var mid in EDU_QUIZ) t+=eduModScore(mid); return t;
+}
+function eduModsCompleted(){
+  var c=0; for(var mid in EDU_QUIZ) if(eduModAnswered(mid)) c++; return c;
+}
+function eduTotalAnswered(){
+  var c=0;
+  for(var mid in EDU_QUIZ) for(var i=0;i<EDU_QUIZ[mid].correct.length;i++) if(_eduState[mid+'_'+i]!==undefined) c++;
+  return c;
+}
+function eduTotalCorrect(){
+  var c=0;
+  for(var mid in EDU_QUIZ){
+    var correct=EDU_QUIZ[mid].correct;
+    for(var i=0;i<correct.length;i++) if(_eduState[mid+'_'+i]===correct[i]) c++;
+  }
+  return c;
+}
+
+// ── Render quiz inline ──────────────────────────
+function eduRenderQuiz(mid){
+  var q = EDU_QUIZ[mid]; if(!q) return '';
+  var weightBadge = q.weight !== 1.0 ? ('× ' + q.weight) : '× 1.0';
+  var qHtml = '';
+  q.questions.forEach(function(qd, i){
+    var opts = '';
+    qd.opts.forEach(function(opt, j){
+      var ltr = String.fromCharCode(65+j);
+      opts += '<button class="edu-q-opt" data-mod="'+mid+'" data-q="'+i+'" data-opt="'+j+'">'
+        + '<span class="edu-q-opt-ltr">'+ltr+'</span><span>'+opt+'</span></button>';
+    });
+    qHtml += '<div class="edu-q">'
+      + '<div class="edu-q-num">Pregunta '+(i+1)+' de '+q.questions.length+'</div>'
+      + '<p class="edu-q-text">'+qd.q+'</p>'
+      + '<div class="edu-q-opts">'+opts+'</div>'
+      + '<div class="edu-q-explain" id="eduex_'+mid+'_'+i+'">'+qd.explain+'</div>'
+      + '</div>';
+  });
+  return '<div class="edu-quiz" data-quiz="'+mid+'">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;flex-wrap:wrap;gap:6px">'
+      + '<span class="edu-quiz-lbl">Test del mòdul</span>'
+      + '<span style="font-family:var(--fm);font-size:10px;color:var(--g400)">Ponderació: <strong>'+weightBadge+'</strong></span>'
+    + '</div>'
+    + '<div class="edu-quiz-title">'+q.name+'</div>'
+    + '<div class="edu-quiz-intro">Respon i veuràs immediatament si has encertat.</div>'
+    + qHtml
+    + '<div class="edu-quiz-sum" id="edusum_'+mid+'">'
+      + '<span class="edu-quiz-sum-txt">Mòdul completat · Puntuació:</span>'
+      + '<span class="edu-quiz-sum-sc"><span id="edusc_'+mid+'">0</span> / '+eduModMaxScore(mid)+' pts</span>'
+    + '</div>'
+  + '</div>';
+}
+
+// ── Aplicar respostes guardades al DOM ──────────
+function eduApplyState(mid){
+  var q = EDU_QUIZ[mid]; if(!q) return;
+  q.correct.forEach(function(correctOpt, i){
+    var given = _eduState[mid+'_'+i];
+    if(given===undefined) return;
+    var opts = document.querySelectorAll('.edu-q-opt[data-mod="'+mid+'"][data-q="'+i+'"]');
+    opts.forEach(function(btn){
+      var oi = parseInt(btn.getAttribute('data-opt'));
+      btn.setAttribute('disabled','true');
+      if(oi===correctOpt) btn.classList.add(oi===given?'correct':'show-correct');
+      else if(oi===given)  btn.classList.add('wrong');
+    });
+    var ex = document.getElementById('eduex_'+mid+'_'+i);
+    if(ex) ex.classList.add('show');
+  });
+  if(eduModAnswered(mid)){
+    var sum = document.getElementById('edusum_'+mid);
+    var sc  = document.getElementById('edusc_'+mid);
+    if(sum){ sum.classList.add('show'); }
+    if(sc)  { sc.textContent = eduModScore(mid); }
+  }
+}
+
+// ── Respondre una pregunta ──────────────────────
+function eduAnswer(mid, qIdx, optIdx){
+  var k = mid+'_'+qIdx;
+  if(_eduState[k]!==undefined) return;
+  _eduState[k] = optIdx;
+  eduSaveState();
+  eduApplyState(mid);
+  eduUpdateProgress();
+  eduUpdateDashCards();
+  eduUpdateResults();
+}
+
+// ── Actualitzar barra progrés i badge ──────────
+function eduUpdateProgress(){
+  var score = eduTotalScore();
+  var pct   = EDU_MAX_SCORE ? (score/EDU_MAX_SCORE*100) : 0;
+  var fill  = document.getElementById('eduProgFill');
+  var lbl   = document.getElementById('eduProgScore');
+  if(fill) fill.style.width = pct+'%';
+  if(lbl)  lbl.textContent  = score+' / '+EDU_MAX_SCORE+' pts';
+}
+
+// ── Actualitzar cards del dashboard ──────────────
+function eduUpdateDashCards(){
+  for(var mid in EDU_QUIZ){
+    var card = document.getElementById('educard_'+mid);
+    if(!card) continue;
+    var bar  = card.querySelector('.edu-mod-bar-f');
+    var pts  = card.querySelector('.edu-mod-pts');
+    var bdg  = card.querySelector('.edu-mod-badge');
+    var mx   = eduModMaxScore(mid);
+    var sc   = eduModScore(mid);
+    var pct  = mx ? (sc/mx*100) : 0;
+    card.classList.remove('done','partial');
+    if(eduModAnswered(mid)){
+      card.classList.add('done');
+      if(bdg) bdg.textContent='✓';
+    } else if(eduModPartial(mid)){
+      card.classList.add('partial');
+      if(bdg) bdg.textContent='●';
+    } else {
+      if(bdg) bdg.textContent='';
+    }
+    if(bar) bar.style.width = pct+'%';
+    if(pts) pts.textContent = eduModAnswered(mid) ? (sc+'/'+mx+' pts') : '';
+  }
+}
+
+// ── Actualitzar bloc de resultats ──────────────
+function eduUpdateResults(){
+  var total     = eduTotalScore();
+  var completed = eduModsCompleted();
+  var allDone   = completed === Object.keys(EDU_QUIZ).length;
+  var pct       = EDU_MAX_SCORE ? (total/EDU_MAX_SCORE) : 0;
+  var rScore    = document.getElementById('eduResScore');
+  var rTitle    = document.getElementById('eduResTitle');
+  var rMsg      = document.getElementById('eduResMsg');
+  var rComp     = document.getElementById('eduResComp');
+  var rCorr     = document.getElementById('eduResCorr');
+  var rPct      = document.getElementById('eduResPct');
+  var rCard     = document.getElementById('eduResCard');
+  if(rScore) rScore.textContent = total;
+  if(rComp)  rComp.textContent  = completed+'/15';
+  var ans = eduTotalAnswered();
+  var cor = eduTotalCorrect();
+  if(rCorr) rCorr.textContent = cor+(ans?'/'+ans:'');
+  if(rPct)  rPct.textContent  = ans ? Math.round(cor/ans*100)+'%' : '—';
+  if(rCard){
+    if(allDone){
+      rCard.style.opacity='1';
+      if(pct>=EDU_PASS){
+        if(rTitle) rTitle.innerHTML='Enhorabona! <em>Nivell Bàsic superat</em>';
+        if(rMsg)   rMsg.innerHTML='Has obtingut <strong>'+total+' punts</strong> ('+(Math.round(pct*100))+'%). El Nivell Avançat es desbloqueja aviat.';
+      } else {
+        var needed = Math.ceil(EDU_MAX_SCORE*EDU_PASS)-total;
+        if(rTitle) rTitle.innerHTML='Quasi! <em>Repassa i torna-ho a intentar</em>';
+        if(rMsg)   rMsg.innerHTML='Et falten <strong>'+needed+' punts</strong> per superar el 70%. Revisa els mòduls amb errors.';
+      }
+    } else {
+      rCard.style.opacity= completed>0 ? '0.85' : '0.5';
+      if(rTitle) rTitle.innerHTML='Progrés <em>en curs</em>';
+      if(rMsg)   rMsg.innerHTML='Completa tots els tests per veure el resultat final. Necessites <strong>'+(Math.ceil(EDU_MAX_SCORE*EDU_PASS))+' punts (70%)</strong>.';
+    }
+  }
+  // breakdown
+  var bklist = document.getElementById('eduBkList');
+  if(bklist){
+    var html='';
+    var mids = Object.keys(EDU_QUIZ);
+    mids.forEach(function(mid,idx){
+      var sc=eduModScore(mid), mx=eduModMaxScore(mid);
+      var p=mx?(sc/mx*100):0;
+      html+='<div class="edu-bk-row">'
+        +'<span class="edu-bk-num">M'+(idx+1<10?'0':'')+(idx+1)+'</span>'
+        +'<span class="edu-bk-name">'+EDU_QUIZ[mid].name+'</span>'
+        +'<div class="edu-bk-bar"><div class="edu-bk-fill" style="width:'+p+'%"></div></div>'
+        +'<span class="edu-bk-pts">'+(eduModAnswered(mid)?sc+'/'+mx:'—')+'</span>'
+      +'</div>';
+    });
+    bklist.innerHTML=html;
+  }
+}
+
+// ── Render vista mòdul ────────────────────────
+function renderEduModule(el, mid){
+  _eduCurrentMod = mid;
+  var mods  = Object.keys(EDU_MODULES.reduce(function(o,m){o[m.id]=1;return o},{}));
+  var modArr = EDU_MODULES.map(function(m){return m.id});
+  var idx   = modArr.indexOf(mid);
+  var modMeta = EDU_MODULES[idx];
+  var prevMid = idx > 0 ? modArr[idx-1] : null;
+  var nextMid = idx < modArr.length-1 ? modArr[idx+1] : null;
+
+  var navHtml = '<div class="edu-mod-nav">'
+    + (prevMid ? '<button class="edu-nav-btn" data-edu-nav="'+prevMid+'">← '+EDU_MODULES[idx-1].titol.substring(0,28)+'…</button>' : '<span></span>')
+    + (nextMid ? '<button class="edu-nav-btn primary" data-edu-nav="'+nextMid+'">'+EDU_MODULES[idx+1].titol.substring(0,28)+'… →</button>' : '<span></span>')
+  + '</div>';
+
+  var html = '<div class="content-inner fade-in edu-mod-view">'
+    + '<button class="edu-mod-back" id="eduBtnBack">← Tornar al curs</button>'
+    + '<div class="edu-mod-view-header">'
+      + '<div class="edu-mod-view-num">Mòdul '+modMeta.num+' · Nivell Bàsic</div>'
+      + '<h2 class="edu-mod-view-title">'+modMeta.icon+' '+modMeta.titol+'</h2>'
+      + '<p class="edu-mod-view-lede">'+modMeta.lede+'</p>'
+    + '</div>'
+    + (EDU_MOD_HTML[mid] || '')
+    + eduRenderQuiz(mid)
+    + navHtml
+  + '</div>';
+
+  el.innerHTML = html;
+  eduApplyState(mid);
+
+  document.getElementById('eduBtnBack').addEventListener('click', function(){
+    renderEduBasic(el);
+  });
+  el.querySelectorAll('.edu-q-opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      eduAnswer(btn.getAttribute('data-mod'), parseInt(btn.getAttribute('data-q')), parseInt(btn.getAttribute('data-opt')));
+    });
+  });
+  el.querySelectorAll('[data-edu-nav]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      renderEduModule(el, btn.getAttribute('data-edu-nav'));
+    });
+  });
+}
+
+// ── Render dashboard Nivell Bàsic ────────────
+function renderEduBasic(contentEl){
+  var el = contentEl || document.getElementById('content');
+  if(!el) return;
+
+  var cardsHtml = '';
+  EDU_MODULES.forEach(function(mod){
+    var done    = eduModAnswered(mod.id);
+    var partial = eduModPartial(mod.id);
+    var cls     = done?'done':partial?'partial':'';
+    var mx      = eduModMaxScore(mod.id);
+    var sc      = eduModScore(mod.id);
+    var pct     = mx?(sc/mx*100):0;
+    cardsHtml += '<div class="edu-mod-card '+cls+'" id="educard_'+mod.id+'" data-edu-mod="'+mod.id+'">'
+      + '<div class="edu-mod-num">Mòdul '+mod.num+'</div>'
+      + '<div class="edu-mod-icon">'+mod.icon+'</div>'
+      + '<div class="edu-mod-titol">'+mod.titol+'</div>'
+      + '<div class="edu-mod-bar"><div class="edu-mod-bar-f" style="width:'+pct+'%"></div></div>'
+      + '<div class="edu-mod-pts">'+(done?sc+'/'+mx+' pts':'')+'</div>'
+      + '<div class="edu-mod-badge">'+(done?'✓':partial?'●':'')+'</div>'
+    + '</div>';
+  });
+
+  var html = '<div class="content-inner fade-in">'
+    + '<div class="edu-dash-header">'
+      + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:3px">Educació financera</div>'
+      + '<div style="font-size:12px;color:var(--g500)">Nivell Bàsic · 15 mòduls · ~60 min de lectura</div>'
+    + '</div>'
+    // Barra progrés
+    + '<div class="edu-prog-rail">'
+      + '<div class="edu-prog-top">'
+        + '<span class="edu-prog-label">Progrés Nivell Bàsic</span>'
+        + '<span class="edu-prog-score" id="eduProgScore">0 / '+EDU_MAX_SCORE+' pts</span>'
+      + '</div>'
+      + '<div class="edu-prog-bar"><div class="edu-prog-fill" id="eduProgFill"></div></div>'
+    + '</div>'
+    // Mapa de 4 nivells
+    + '<div class="edu-lvl-map">'
+      + '<div class="edu-lvl active"><span class="edu-lvl-icon">🌱</span><div class="edu-lvl-name">Bàsic</div><div class="edu-lvl-st">En curs</div></div>'
+      + '<div class="edu-lvl locked"><span class="edu-lvl-icon">📈</span><div class="edu-lvl-name">Avançat</div><div class="edu-lvl-st">Bloquejat</div></div>'
+      + '<div class="edu-lvl locked"><span class="edu-lvl-icon">🎯</span><div class="edu-lvl-name">Expert</div><div class="edu-lvl-st">Bloquejat</div></div>'
+      + '<div class="edu-lvl locked"><span class="edu-lvl-icon">🏆</span><div class="edu-lvl-name">Especialista</div><div class="edu-lvl-st">Bloquejat</div></div>'
+    + '</div>'
+    // Grid de mòduls
+    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:10px">Mòduls</div>'
+    + '<div class="edu-mod-grid">'+cardsHtml+'</div>'
+    // Resultats
+    + '<div class="edu-results" id="eduResCard" style="opacity:0.5">'
+      + '<h3 id="eduResTitle">Progrés <em>en curs</em></h3>'
+      + '<div class="edu-results-score"><span id="eduResScore">0</span><span style="font-size:26px">/'+EDU_MAX_SCORE+'</span></div>'
+      + '<div class="edu-results-of">PUNTS TOTALS PONDERATS</div>'
+      + '<p id="eduResMsg">Completa els tests dels 15 mòduls per veure el resultat.</p>'
+      + '<div class="edu-results-stats">'
+        + '<div class="edu-results-stat"><div class="edu-results-stat-v" id="eduResComp">0/15</div><div class="edu-results-stat-l">Completats</div></div>'
+        + '<div class="edu-results-stat"><div class="edu-results-stat-v" id="eduResCorr">0</div><div class="edu-results-stat-l">Encerts</div></div>'
+        + '<div class="edu-results-stat"><div class="edu-results-stat-v" id="eduResPct">—</div><div class="edu-results-stat-l">% Encert</div></div>'
+      + '</div>'
+      + '<button class="edu-results-btn" onclick="if(confirm(\'Reiniciar tot el progrés?\')){_eduState={};eduSaveState();renderEduBasic();}">↺ Reiniciar progrés</button>'
+    + '</div>'
+    // Breakdown
+    + '<div style="margin-top:24px">'
+      + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:10px">Detall per mòdul</div>'
+      + '<div class="edu-breakdown" id="eduBkList"></div>'
+    + '</div>'
+  + '</div>';
+
+  el.innerHTML = html;
+
+  // Event listeners
+  el.querySelectorAll('[data-edu-mod]').forEach(function(card){
+    card.addEventListener('click', function(){
+      renderEduModule(el, card.getAttribute('data-edu-mod'));
+    });
+  });
+
+  eduUpdateProgress();
+  eduUpdateDashCards();
+  eduUpdateResults();
+}
+
+renderPortalEducacio = async function(el) {
+  eduLoadState();
+  var nivellActiu = window._eduNivell || 'basic';
+  var nivells = [
+    {id:'basic',        lbl:'&#127807; B\u00e0sic'},
+    {id:'usuari',       lbl:'&#128218; Avan\u00e7at'},
+    {id:'expert',       lbl:'&#129504; Expert'},
+    {id:'especialista', lbl:'&#127942; Especialista'},
+  ];
+  var tabs = '<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">';
+  nivells.forEach(function(n) {
+    var isA = nivellActiu === n.id;
+    tabs += '<button data-edu-nivell="' + n.id + '" '
+      + 'style="padding:8px 16px;border-radius:8px;border:1.5px solid ' + (isA?'var(--black)':'var(--g200)') + ';'
+      + 'background:' + (isA?'var(--black)':'#fff') + ';color:' + (isA?'#fff':'var(--g500)') + ';'
+      + 'font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">' + n.lbl + '</button>';
+  });
+  tabs += '</div>';
+
+  if (nivellActiu === 'basic') {
+    // Renderitzem el curs interactiu de Nivell Bàsic
+    var shell = '<div class="content-inner fade-in"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px"><div><div style=\"font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px\">Educaci\u00f3 financera</div></div></div>' + tabs + '<div id=\"edu-basic-content\"></div></div>';
+    el.innerHTML = '<div class="content-inner fade-in"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px"><div><div style=\"font-family:var(--fd);font-size:22px\"></div></div></div>' + tabs + '<div id="edu-basic-wrap"></div></div>';
+    el.querySelectorAll('[data-edu-nivell]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        window._eduNivell = btn.getAttribute('data-edu-nivell');
+        renderPortalEducacio(document.getElementById('content'));
+      });
+    });
+    var wrap = document.getElementById('edu-basic-wrap');
+    if(wrap) renderEduBasic(wrap);
+    return;
+  }
+
+  // Comportament original per a Avançat/Expert/Especialista (articles de DB)
+  var html = '<div class="content-inner fade-in">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">'
+      + '<div>'
+        + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Educaci\u00f3 financera</div>'
+        + '<div style="font-size:12px;color:var(--g500)">Articles i documents educatius sobre inversions i finances personals</div>'
+      + '</div>'
+      + (APP.role==='admin' ? '<button id="btn-nou-edu" style="padding:10px 18px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Nou contingut</button>' : '')
+    + '</div>'
+    + tabs
+    + '<div id="edu-list"><div style="text-align:center;padding:40px;color:var(--g400)">Carregant...</div></div>'
+  + '</div>';
+
+  el.innerHTML = html;
+
   el.querySelectorAll('[data-edu-nivell]').forEach(function(btn) {
     btn.addEventListener('click', function() {
       window._eduNivell = btn.getAttribute('data-edu-nivell');
