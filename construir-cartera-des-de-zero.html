@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construir una cartera des de zero · The Boring Investor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0A0A0A; --bg:#F7F6F4; --paper:#FFFFFF;
+    --g200:#E8E6E1; --g300:#C8C5BE; --g400:#9A9690; --g500:#6B6762; --g600:#4A4845; --g700:#3A3835;
+    --accent:#1B3A6B; --green:#1A5C3A; --amber:#7A4A00; --red:#8B1A1A; --purple:#534AB7;
+    --fd:'Playfair Display',Georgia,serif;
+    --fb:'DM Sans',system-ui,sans-serif;
+    --fm:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--fb); background:var(--black); color:var(--g700);
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- DECK ---------- */
+  .deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    padding:clamp(32px,5.5vw,90px);
+    background:var(--bg);
+    opacity:0;transform:translateX(40px);
+    transition:opacity .55s ease,transform .55s ease;
+    pointer-events:none;
+    overflow-y:auto;
+  }
+  .slide.active{opacity:1;transform:translateX(0);pointer-events:auto}
+  .slide.prev{transform:translateX(-40px)}
+
+  /* paper grain texture */
+  .slide::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(27,58,107,.04), transparent 38%),
+      radial-gradient(circle at 88% 90%, rgba(122,74,0,.045), transparent 40%);
+  }
+  .slide > *{position:relative;z-index:1}
+
+  /* ---------- SHARED TYPE ---------- */
+  .kicker{
+    font-family:var(--fm);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:18px;display:flex;align-items:center;gap:12px;
+  }
+  .kicker::before{content:"";width:34px;height:1px;background:var(--accent);display:inline-block}
+  h1{
+    font-family:var(--fd);font-weight:600;color:var(--black);
+    font-size:clamp(34px,4.6vw,62px);line-height:1.05;letter-spacing:-.01em;
+  }
+  h2{
+    font-family:var(--fd);font-weight:600;color:var(--black);
+    font-size:clamp(28px,3.5vw,46px);line-height:1.1;margin-bottom:8px;letter-spacing:-.01em;
+  }
+  .lead{
+    font-size:clamp(15px,1.35vw,19px);color:var(--g600);line-height:1.6;max-width:62ch;
+  }
+  p{line-height:1.62}
+  .em{color:var(--accent);font-weight:500}
+  .serif-q{font-family:var(--fd);font-style:italic;color:var(--g600)}
+
+  /* ---------- COVER ---------- */
+  .cover{justify-content:center}
+  .cover .brand{
+    font-family:var(--fm);font-size:12px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--g400);margin-bottom:auto;padding-top:4px;
+  }
+  .cover h1{font-size:clamp(40px,6.4vw,92px);margin:8px 0 26px}
+  .cover .sub{font-size:clamp(15px,1.5vw,21px);color:var(--g500);max-width:54ch;line-height:1.6}
+  .cover .steps-row{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:38px;
+  }
+  .pill{
+    font-family:var(--fm);font-size:11.5px;letter-spacing:.04em;
+    border:1px solid var(--g300);border-radius:40px;padding:8px 16px;color:var(--g600);
+    background:var(--paper);
+  }
+  .pill b{color:var(--accent)}
+  .cover .footline{
+    margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;
+    font-family:var(--fm);font-size:11px;color:var(--g400);letter-spacing:.05em;padding-top:30px;
+  }
+
+  /* ---------- LAYOUT HELPERS ---------- */
+  .head{margin-bottom:30px;flex-shrink:0}
+  .body-grid{display:grid;gap:clamp(20px,2.4vw,40px);align-items:start}
+  .cols-2{grid-template-columns:1fr 1fr}
+  .cols-5-7{grid-template-columns:5fr 7fr}
+  .cols-7-5{grid-template-columns:7fr 5fr}
+  .stack{display:flex;flex-direction:column;gap:16px}
+
+  /* ---------- CARD ---------- */
+  .card{
+    background:var(--paper);border:1px solid var(--g200);border-radius:14px;
+    padding:clamp(18px,1.8vw,28px);
+  }
+  .card.tint-accent{border-color:#C9D4E4;background:linear-gradient(180deg,#F4F7FB,#fff)}
+  .card.tint-green{border-color:#BFD4C5;background:linear-gradient(180deg,#F1F6F2,#fff)}
+  .card.tint-amber{border-color:#E4D2AC;background:linear-gradient(180deg,#FBF6EC,#fff)}
+  .card.tint-red{border-color:#E0BFBF;background:linear-gradient(180deg,#FBF1F1,#fff)}
+  .card-num{
+    font-family:var(--fm);font-size:12px;color:var(--g400);margin-bottom:10px;letter-spacing:.06em;
+  }
+  .card-title{
+    font-family:var(--fd);font-size:clamp(17px,1.5vw,22px);font-weight:600;color:var(--black);
+    margin-bottom:8px;line-height:1.2;
+  }
+  .card-text{font-size:13.5px;color:var(--g600);line-height:1.62}
+  .card-text + .card-text{margin-top:8px}
+
+  /* ---------- ICON CHIP ---------- */
+  .chip{
+    width:46px;height:46px;border-radius:11px;display:grid;place-items:center;
+    font-size:22px;margin-bottom:14px;border:1px solid var(--g200);background:var(--bg);
+  }
+
+  /* ---------- BULLET LIST ---------- */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:11px;margin-top:4px}
+  ul.clean li{
+    font-size:13.5px;color:var(--g600);line-height:1.55;padding-left:22px;position:relative;
+  }
+  ul.clean li::before{
+    content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:2px;
+    background:var(--accent);
+  }
+  ul.clean.green li::before{background:var(--green)}
+  ul.clean.red li::before{background:var(--red)}
+  ul.clean.amber li::before{background:var(--amber)}
+  ul.clean li b{color:var(--g700)}
+
+  /* ---------- STEP BADGE ---------- */
+  .stepbadge{
+    font-family:var(--fd);font-size:clamp(40px,5vw,72px);font-weight:700;color:var(--g300);
+    line-height:.85;
+  }
+
+  /* ---------- RISK GRID ---------- */
+  .risk-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+  }
+  .risk{
+    background:var(--paper);border:1px solid var(--g200);border-radius:11px;padding:15px 15px 16px;
+  }
+  .risk .ic{font-size:19px;margin-bottom:8px}
+  .risk .nm{font-family:var(--fb);font-weight:700;font-size:13px;color:var(--black);margin-bottom:5px}
+  .risk .ds{font-size:11.5px;color:var(--g500);line-height:1.5}
+
+  /* ---------- COMPOUND BARS ---------- */
+  .growth{display:flex;align-items:flex-end;gap:14px;height:200px;padding-top:10px}
+  .gcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:8px;height:100%}
+  .gbar{
+    width:100%;border-radius:7px 7px 0 0;position:relative;
+    background:linear-gradient(180deg,#27508c,var(--accent));
+  }
+  .gbar.simple{background:linear-gradient(180deg,#cfccc6,#a8a49d)}
+  .gval{font-family:var(--fm);font-size:12px;color:var(--g600);font-weight:500}
+  .glabel{font-family:var(--fm);font-size:10.5px;color:var(--g400);letter-spacing:.04em}
+
+  /* ---------- ZERO-SUM VISUAL ---------- */
+  .pievs{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+  .pievs .col{flex:1;min-width:170px;text-align:center}
+  .pievs .lbl{font-family:var(--fm);font-size:11px;letter-spacing:.04em;color:var(--g500);margin-top:12px}
+  .barwrap{height:130px;display:flex;align-items:flex-end;justify-content:center;gap:9px}
+  .gw{width:30px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#27508c,var(--accent))}
+  .gw.g2{background:linear-gradient(180deg,#2f7d57,var(--green))}
+
+  /* ---------- CAR ANALOGY ---------- */
+  .car-rows{display:flex;flex-direction:column;gap:12px}
+  .car-row{
+    display:grid;grid-template-columns:148px 1fr;gap:18px;align-items:center;
+    background:var(--paper);border:1px solid var(--g200);border-radius:12px;padding:14px 18px;
+  }
+  .car-part{
+    font-family:var(--fd);font-weight:600;font-size:16px;color:var(--black);
+    display:flex;align-items:center;gap:9px;
+  }
+  .car-part .e{font-size:20px}
+  .car-desc{font-size:13px;color:var(--g600);line-height:1.55}
+  .car-desc b{color:var(--accent)}
+
+  /* ---------- QUOTE ---------- */
+  .quote{
+    font-family:var(--fd);font-style:italic;font-size:clamp(17px,1.7vw,24px);
+    color:var(--g700);line-height:1.45;border-left:2px solid var(--accent);padding-left:22px;
+  }
+  .quote .by{
+    display:block;font-style:normal;font-family:var(--fm);font-size:11px;
+    letter-spacing:.06em;color:var(--g400);margin-top:12px;
+  }
+
+  /* ---------- RECAP ---------- */
+  .recap{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px}
+  .recap .step{
+    background:var(--paper);border:1px solid var(--g200);border-radius:13px;
+    padding:20px 18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;
+  }
+  .recap .step::after{
+    content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:var(--accent);
+  }
+  .recap .step:nth-child(2)::after{background:var(--green)}
+  .recap .step:nth-child(3)::after{background:var(--amber)}
+  .recap .step:nth-child(4)::after{background:var(--purple)}
+  .recap .n{font-family:var(--fm);font-size:12px;color:var(--g400)}
+  .recap .t{font-family:var(--fd);font-weight:600;font-size:18px;color:var(--black);line-height:1.15}
+  .recap .d{font-size:12px;color:var(--g500);line-height:1.55}
+
+  /* ---------- NAV / CHROME ---------- */
+  .chrome{
+    position:fixed;left:0;right:0;bottom:0;height:54px;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 clamp(20px,3vw,46px);
+    background:linear-gradient(180deg,rgba(247,246,244,0),rgba(247,246,244,.96) 55%);
+    pointer-events:none;
+  }
+  .chrome > *{pointer-events:auto}
+  .progress{display:flex;gap:6px;align-items:center}
+  .dot{
+    width:8px;height:8px;border-radius:50%;background:var(--g300);
+    cursor:pointer;transition:all .3s;border:none;padding:0;
+  }
+  .dot.on{background:var(--accent);width:24px;border-radius:5px}
+  .nav-btns{display:flex;gap:8px}
+  .nav-btn{
+    font-family:var(--fm);font-size:12px;letter-spacing:.04em;
+    background:var(--black);color:#fff;border:none;border-radius:8px;
+    padding:9px 15px;cursor:pointer;transition:opacity .2s,transform .15s;
+  }
+  .nav-btn:hover{opacity:.82}
+  .nav-btn:active{transform:translateY(1px)}
+  .nav-btn.ghost{background:transparent;color:var(--g500);border:1px solid var(--g300)}
+  .nav-btn:disabled{opacity:.32;cursor:default}
+  .counter{
+    font-family:var(--fm);font-size:11.5px;color:var(--g400);letter-spacing:.05em;
+    min-width:46px;text-align:center;
+  }
+  .topbar{
+    position:fixed;top:0;left:0;right:0;height:3px;z-index:50;background:var(--g200);
+  }
+  .topbar .fill{height:100%;background:var(--accent);transition:width .5s ease;width:0}
+  .corner{
+    position:fixed;top:18px;right:clamp(20px,3vw,46px);z-index:50;
+    font-family:var(--fm);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--g400);
+  }
+
+  .footnote{
+    font-family:var(--fm);font-size:10.5px;color:var(--g400);line-height:1.5;
+    margin-top:18px;
+  }
+
+  /* ---------- ASSET GRID (Slide: Tipus d'inversió) ---------- */
+  .asset-grid{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:11px;
+  }
+  .asset-card{
+    background:var(--paper);border:1px solid var(--g200);border-radius:11px;
+    padding:14px 14px 15px;display:flex;flex-direction:column;gap:5px;
+    transition:transform .15s,border-color .15s;
+  }
+  .asset-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .asset-card .e{font-size:22px;line-height:1}
+  .asset-card .nm{font-family:var(--fb);font-weight:700;font-size:12.5px;color:var(--black);margin-top:6px}
+  .asset-card .ds{font-size:10.5px;color:var(--g500);line-height:1.5}
+  .asset-card .tag{
+    font-family:var(--fm);font-size:9px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--g400);margin-top:auto;padding-top:6px;
+  }
+  .asset-card.rv{border-left:3px solid var(--accent)}
+  .asset-card.rf{border-left:3px solid var(--amber)}
+  .asset-card.alt{border-left:3px solid var(--purple)}
+  .asset-card.imm{border-left:3px solid var(--green)}
+  .asset-card.csh{border-left:3px solid var(--g400)}
+
+  /* ---------- MATCH ROWS (Slide: No hi ha inversions dolentes) ---------- */
+  .match-row{
+    display:grid;grid-template-columns:1.2fr 1fr 1.4fr;gap:14px;
+    background:var(--paper);border:1px solid var(--g200);border-radius:11px;
+    padding:14px 18px;align-items:center;margin-bottom:8px;
+  }
+  .match-row .who{font-family:var(--fd);font-weight:600;font-size:14px;color:var(--black)}
+  .match-row .who small{display:block;font-family:var(--fb);font-weight:400;font-size:11px;color:var(--g500);margin-top:3px}
+  .match-row .arrow{font-family:var(--fm);font-size:13px;color:var(--accent);text-align:center;letter-spacing:.04em}
+  .match-row .what{font-size:12.5px;color:var(--g600);line-height:1.55}
+  .match-row .what b{color:var(--accent)}
+
+  /* ---------- STAT BIG (Slide: ATH, Passiva vs Activa) ---------- */
+  .stat-big{
+    background:var(--paper);border:1px solid var(--g200);border-radius:12px;
+    padding:20px 22px;text-align:center;display:flex;flex-direction:column;gap:6px;
+  }
+  .stat-big.tint-accent{border-color:#C9D4E4;background:linear-gradient(180deg,#F4F7FB,#fff)}
+  .stat-big.tint-green{border-color:#BFD4C5;background:linear-gradient(180deg,#F1F6F2,#fff)}
+  .stat-big.tint-red{border-color:#E0BFBF;background:linear-gradient(180deg,#FBF1F1,#fff)}
+  .stat-big .num{
+    font-family:var(--fd);font-weight:700;font-size:clamp(34px,3.8vw,52px);line-height:1;
+    color:var(--accent);
+  }
+  .stat-big.tint-green .num{color:var(--green)}
+  .stat-big.tint-red .num{color:var(--red)}
+  .stat-big .lbl{font-family:var(--fb);font-size:12px;color:var(--g500);line-height:1.5;font-weight:500}
+  .stat-big .sub{font-family:var(--fm);font-size:10px;color:var(--g400);letter-spacing:.04em;margin-top:3px}
+
+  .stat-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .stat-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+  /* ---------- COMPARE TABLE (Slide: Passiva vs Activa) ---------- */
+  .compare{
+    display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:0;
+    background:var(--paper);border:1px solid var(--g200);border-radius:12px;overflow:hidden;
+  }
+  .compare .ch{
+    padding:13px 16px;font-family:var(--fm);font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--g500);background:#FAFAF8;
+    border-bottom:1px solid var(--g200);
+  }
+  .compare .ch.passive{color:var(--accent);font-weight:600}
+  .compare .ch.active{color:var(--red);font-weight:600}
+  .compare .row-l{
+    padding:13px 16px;font-size:13px;color:var(--g700);font-weight:500;
+    border-bottom:1px solid var(--g200);
+  }
+  .compare .row-v{
+    padding:13px 16px;font-size:13px;color:var(--g600);
+    border-bottom:1px solid var(--g200);border-left:1px solid var(--g200);
+  }
+  .compare .row-v.win{color:var(--green);font-weight:600;background:#F6FAF7}
+  .compare .row-v.lose{color:var(--red);background:#FCF6F6}
+  .compare > *:nth-last-child(-n+3){border-bottom:none}
+
+  /* ---------- ATH BARS (Slide: Màxims històrics) ---------- */
+  .ath-chart{
+    display:flex;flex-direction:column;gap:10px;margin-top:14px;
+  }
+  .ath-row{
+    display:grid;grid-template-columns:180px 1fr 80px;gap:14px;align-items:center;
+  }
+  .ath-row .lab{font-size:12px;color:var(--g600);line-height:1.4}
+  .ath-row .bar-track{
+    height:14px;background:var(--g200);border-radius:7px;overflow:hidden;position:relative;
+  }
+  .ath-row .bar-fill{
+    height:100%;background:linear-gradient(90deg,var(--accent),#3a5b8f);
+    border-radius:7px;transition:width .5s ease;
+  }
+  .ath-row .bar-fill.green{background:linear-gradient(90deg,var(--green),#2f7d57)}
+  .ath-row .val{
+    font-family:var(--fm);font-size:13px;font-weight:600;color:var(--accent);text-align:right;
+  }
+  .ath-row .val.green{color:var(--green)}
+
+  /* ---------- MISTAKES (Slide: Errors típics) ---------- */
+  .mistakes-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:13px;
+  }
+  .mistake{
+    background:var(--paper);border:1px solid var(--g200);border-radius:11px;padding:16px 18px;
+    border-top:3px solid var(--red);
+  }
+  .mistake .ic{font-size:22px;margin-bottom:8px}
+  .mistake .nm{
+    font-family:var(--fd);font-weight:600;font-size:15px;color:var(--black);margin-bottom:6px;line-height:1.25;
+  }
+  .mistake .ds{font-size:12px;color:var(--g600);line-height:1.55}
+  .mistake .fix{
+    font-family:var(--fm);font-size:10.5px;color:var(--green);letter-spacing:.04em;
+    margin-top:9px;padding-top:9px;border-top:1px solid var(--g200);
+  }
+  .mistake .fix b{color:var(--green);font-family:var(--fb);font-weight:600}
+
+  /* ---------- KEY-LINE (callout style) ---------- */
+  .key-line{
+    background:linear-gradient(180deg,#FBF6EC,#fff);border:1px solid #E4D2AC;
+    border-radius:11px;padding:16px 22px;font-size:14px;color:var(--g700);
+    line-height:1.55;border-left:3px solid var(--amber);
+  }
+  .key-line b{color:var(--amber)}
+
+  /* ---------- BIAS GRID (Slide: Biaixos emocionals) ---------- */
+  .bias-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:11px;
+  }
+  .bias-card{
+    background:var(--paper);border:1px solid var(--g200);border-radius:11px;
+    padding:14px 16px 15px;border-top:3px solid var(--purple);
+    display:flex;flex-direction:column;gap:5px;
+  }
+  .bias-card .lbl{
+    font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--purple);font-weight:500;
+  }
+  .bias-card .nm{
+    font-family:var(--fd);font-weight:600;font-size:14.5px;color:var(--black);line-height:1.2;
+  }
+  .bias-card .ds{font-size:11.5px;color:var(--g600);line-height:1.5;margin-top:2px}
+  .bias-card .stat{
+    font-family:var(--fm);font-size:10.5px;color:var(--purple);margin-top:auto;
+    padding-top:6px;border-top:1px solid var(--g200);
+  }
+
+  .behavior-gap{
+    background:linear-gradient(135deg,#534AB7 0%,#3a3589 100%);color:#fff;
+    border-radius:13px;padding:22px 28px;display:grid;grid-template-columns:auto 1fr auto;
+    gap:24px;align-items:center;margin-bottom:18px;
+  }
+  .behavior-gap .num{
+    font-family:var(--fd);font-weight:700;font-size:clamp(38px,4.2vw,58px);line-height:1;
+  }
+  .behavior-gap .lbl{font-size:13.5px;line-height:1.5;color:rgba(255,255,255,.85)}
+  .behavior-gap .lbl b{color:#fff}
+  .behavior-gap .sub{
+    font-family:var(--fm);font-size:10px;letter-spacing:.06em;color:rgba(255,255,255,.55);
+    text-align:right;line-height:1.5;
+  }
+
+  /* ---------- METHODOLOGY PILLARS (Slide: Metodologia TBI) ---------- */
+  .method-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
+  }
+  .method-pillar{
+    background:var(--paper);border:1px solid var(--g200);border-radius:12px;
+    padding:20px 22px;display:flex;flex-direction:column;gap:10px;
+    border-left:4px solid var(--accent);
+  }
+  .method-pillar.p2{border-left-color:var(--green)}
+  .method-pillar.p3{border-left-color:var(--purple)}
+  .method-pillar.p4{border-left-color:var(--amber)}
+  .method-pillar .top{display:flex;align-items:flex-start;gap:12px}
+  .method-pillar .ic{
+    font-size:26px;line-height:1;flex-shrink:0;width:46px;height:46px;
+    background:var(--bg);border:1px solid var(--g200);border-radius:10px;
+    display:grid;place-items:center;
+  }
+  .method-pillar .ttl{
+    font-family:var(--fd);font-weight:600;font-size:17px;color:var(--black);line-height:1.2;
+  }
+  .method-pillar .sub{font-family:var(--fm);font-size:10.5px;color:var(--g400);letter-spacing:.06em;margin-top:3px}
+  .method-pillar ul.clean{margin-top:4px}
+  .method-pillar ul.clean li{font-size:12.5px}
+  .method-pillar .quote-mini{
+    font-family:var(--fd);font-style:italic;font-size:12.5px;color:var(--accent);
+    border-left:2px solid var(--accent);padding-left:11px;margin-top:auto;line-height:1.45;
+  }
+  .method-pillar.p2 .quote-mini{color:var(--green);border-left-color:var(--green)}
+  .method-pillar.p3 .quote-mini{color:var(--purple);border-left-color:var(--purple)}
+  .method-pillar.p4 .quote-mini{color:var(--amber);border-left-color:var(--amber)}
+
+  /* ---------- ALPHA BREAKDOWN (the 3% Vanguard waterfall) ---------- */
+  .alpha-box{
+    background:linear-gradient(135deg,#0F2847 0%,#0A1E35 100%);color:#fff;
+    border-radius:13px;padding:24px 26px;
+  }
+  .alpha-box .htitle{
+    font-family:var(--fd);font-size:18px;font-weight:500;margin-bottom:14px;
+  }
+  .alpha-box .htitle .num{
+    font-family:var(--fd);font-weight:700;font-size:32px;color:#C8A54A;display:inline-block;
+    vertical-align:-3px;margin-right:6px;
+  }
+  .alpha-row{
+    display:grid;grid-template-columns:1fr auto 78px;gap:14px;align-items:center;
+    padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .alpha-row:last-child{border-bottom:none}
+  .alpha-row .nm{font-size:12.5px;color:rgba(255,255,255,.85)}
+  .alpha-row .nm b{color:#fff;font-weight:600}
+  .alpha-row .track{
+    height:8px;background:rgba(255,255,255,.08);border-radius:4px;width:130px;overflow:hidden;
+  }
+  .alpha-row .fill{height:100%;background:#C8A54A;border-radius:4px}
+  .alpha-row.featured .fill{background:#5DCAA5}
+  .alpha-row .val{font-family:var(--fm);font-size:13px;font-weight:600;color:#C8A54A;text-align:right}
+  .alpha-row.featured .val{color:#5DCAA5;font-size:14.5px}
+  .alpha-row.total{
+    margin-top:8px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15);
+    border-bottom:none;
+  }
+  .alpha-row.total .nm{font-weight:600;font-size:13.5px}
+  .alpha-row.total .val{font-size:18px;color:#fff;font-family:var(--fd);font-weight:700}
+
+  @media (max-width:820px){
+    .cols-2,.cols-5-7,.cols-7-5{grid-template-columns:1fr}
+    .risk-grid{grid-template-columns:repeat(2,1fr)}
+    .recap{grid-template-columns:1fr 1fr}
+    .car-row{grid-template-columns:1fr}
+    .corner{display:none}
+    .asset-grid{grid-template-columns:repeat(2,1fr)}
+    .match-row{grid-template-columns:1fr;text-align:center}
+    .match-row .arrow{display:none}
+    .stat-grid-3,.stat-grid-4{grid-template-columns:1fr 1fr}
+    .compare{grid-template-columns:1fr}
+    .compare .ch:first-child{display:none}
+    .ath-row{grid-template-columns:1fr;gap:6px}
+    .mistakes-grid{grid-template-columns:1fr}
+    .bias-grid{grid-template-columns:repeat(2,1fr)}
+    .behavior-gap{grid-template-columns:1fr;text-align:center;gap:8px}
+    .behavior-gap .sub{text-align:center}
+    .method-grid{grid-template-columns:1fr}
+    .alpha-row{grid-template-columns:1fr auto;gap:8px}
+    .alpha-row .track{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="fill" id="topfill"></div></div>
+<div class="corner">The Boring Investor</div>
+
+<div class="deck" id="deck">
+
+  <!-- ===== SLIDE 1 · COVER ===== -->
+  <section class="slide cover active">
+    <div class="brand">The Boring Investor · Educació financera</div>
+    <div class="kicker">Guia per a clients · Entrevista inicial</div>
+    <h1>Construir una cartera<br>des de zero</h1>
+    <p class="sub">De zero a una cartera diversificada, sòlida i pensada per al llarg termini. Tipus d'inversió, gestió passiva vs activa, biaixos emocionals, errors a evitar &mdash; i la metodologia TBI per fer-ho ben fet.</p>
+    <div class="steps-row">
+      <span class="pill"><b>01</b>&nbsp; Tipus d'inversió i quina t'encaixa</span>
+      <span class="pill"><b>02</b>&nbsp; Els 4 passos per construir</span>
+      <span class="pill"><b>03</b>&nbsp; Passiva vs activa &middot; màxims històrics</span>
+      <span class="pill"><b>04</b>&nbsp; Biaixos, errors i com evitar-los</span>
+      <span class="pill"><b>05</b>&nbsp; Metodologia TBI &middot; el valor afegit</span>
+    </div>
+    <div class="footline">
+      <span>Material introductori &middot; basat en el dossier «TBI base»</span>
+      <span>Fes servir &rarr; o l'espai per avançar</span>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 2 · NEW — TIPUS D'INVERSIÓ QUE EXISTEIXEN ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Orientació &middot; El paisatge inversor</div>
+      <h2>Quins tipus d'inversió existeixen</h2>
+      <p class="lead">Abans de triar res, val la pena conèixer què hi ha. Cada actiu té una funció, un risc i un horitzó diferents. La cartera final combina varis &mdash; no n'escollim un de sol.</p>
+    </div>
+    <div class="asset-grid" style="flex:1">
+      <div class="asset-card rv">
+        <div class="e">📈</div>
+        <div class="nm">Accions</div>
+        <div class="ds">Un tros real d'una empresa. Cobres dividends i en pots guanyar (o perdre) si puja el preu.</div>
+        <div class="tag">Renda variable</div>
+      </div>
+      <div class="asset-card rv">
+        <div class="e">🧺</div>
+        <div class="nm">ETFs &middot; Fons indexats</div>
+        <div class="ds">Cistella de centenars d'accions seguint un índex. Diversificació immediata i comissions baixes.</div>
+        <div class="tag">Renda variable</div>
+      </div>
+      <div class="asset-card rv">
+        <div class="e">🎯</div>
+        <div class="nm">Fons gestionats</div>
+        <div class="ds">Gestor humà decideix què comprar. Comissions altes (1–2,5%). Rarament superen l'índex.</div>
+        <div class="tag">Renda variable</div>
+      </div>
+      <div class="asset-card rf">
+        <div class="e">📜</div>
+        <div class="nm">Bons &middot; Renda fixa</div>
+        <div class="ds">Prestes diners a un estat o empresa a canvi d'un interès pactat. Menys volàtil que accions.</div>
+        <div class="tag">Renda fixa</div>
+      </div>
+      <div class="asset-card csh">
+        <div class="e">🏦</div>
+        <div class="nm">Dipòsits &middot; Monetaris</div>
+        <div class="ds">El banc et paga un interès baix per la liquiditat. Garantit (FGD). Útil per emergència.</div>
+        <div class="tag">Liquiditat</div>
+      </div>
+      <div class="asset-card imm">
+        <div class="e">🏠</div>
+        <div class="nm">Immobiliari directe</div>
+        <div class="ds">Pis o local de lloguer. Tangible i contra inflació, però poc líquid i amb gestió activa.</div>
+        <div class="tag">Real assets</div>
+      </div>
+      <div class="asset-card imm">
+        <div class="e">🏢</div>
+        <div class="nm">REITs &middot; SOCIMIs</div>
+        <div class="ds">Empreses cotitzades d'immobles. Exposició immobiliària sense pis físic i amb liquiditat diària.</div>
+        <div class="tag">Real assets</div>
+      </div>
+      <div class="asset-card alt">
+        <div class="e">🥇</div>
+        <div class="nm">Or i matèries primeres</div>
+        <div class="ds">Or, plata, petroli, blat... Cobertura contra inflació i crisis. No genera ingressos.</div>
+        <div class="tag">Alternatius</div>
+      </div>
+      <div class="asset-card alt">
+        <div class="e">₿</div>
+        <div class="nm">Cripto-actius</div>
+        <div class="ds">Bitcoin, Ethereum... Molt volàtils i especulatius. Funció asimètrica per a una part petita.</div>
+        <div class="tag">Alternatius</div>
+      </div>
+      <div class="asset-card alt">
+        <div class="e">💡</div>
+        <div class="nm">Crowdlending &middot; PE</div>
+        <div class="ds">Préstecs P2P, capital risc, startups, art, whisky... Il&middot;líquids i de risc alt. Diversifiquen.</div>
+        <div class="tag">Alternatius</div>
+      </div>
+    </div>
+    <div class="key-line" style="margin-top:18px">
+      <b>Idea clau:</b> cada categoria té un paper diferent. La nostra feina és combinar-les en la proporció correcta per al teu perfil &mdash; no triar la «millor».
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 3 · NEW — NO HI HA INVERSIONS DOLENTES ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Mentalitat &middot; El més important d'avui</div>
+      <h2>No hi ha inversions dolentes &mdash; n'hi ha d'adequades</h2>
+      <p class="lead">L'error més comú: buscar «el millor actiu». La pregunta correcta és: <i>quin actiu té sentit per a tu, en aquest moment de la teva vida</i>. Mateix actiu, dos inversors diferents: pot ser fantàstic per a un i un desastre per a l'altre.</p>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+      <div class="match-row">
+        <div class="who">Jove de 28 anys <small>horitzó 30 anys · alta tolerància</small></div>
+        <div class="arrow">→ pot considerar →</div>
+        <div class="what"><b>RV global indexada (80%)</b> + cripto petit (5%) + fons emergència. El temps és el seu millor aliat: pot absorbir caigudes del 40% i tornar a comprar.</div>
+      </div>
+      <div class="match-row">
+        <div class="who">Família 40 anys <small>fills petits · hipoteca · estabilitat necessària</small></div>
+        <div class="arrow">→ pot considerar →</div>
+        <div class="what"><b>Cartera 60/40 equilibrada</b> + fons emergència ampliat + assegurança vida. Necessita el motor però amb amortidors generosos.</div>
+      </div>
+      <div class="match-row">
+        <div class="who">Pre-jubilat 58 anys <small>horitzó 7 anys · objectiu: preservar</small></div>
+        <div class="arrow">→ pot considerar →</div>
+        <div class="what"><b>RF curta + dividends + immobiliari</b>. La cripto, per molt rendible que pugui ser, no encaixa: una caiguda al 5è any podria descarrilar el pla.</div>
+      </div>
+      <div class="match-row">
+        <div class="who">Patrimoni elevat <small>>500 k€ · ja té base sòlida</small></div>
+        <div class="arrow">→ pot considerar →</div>
+        <div class="what"><b>Nucli indexat + alternatius reals</b> (PE, immobiliari directe, art, infraestructures). Pot pagar el peatge d'il&middot;liquiditat a canvi de més diversificació.</div>
+      </div>
+      <div class="match-row">
+        <div class="who">Inversor novell <small>capital baix · aprenent</small></div>
+        <div class="arrow">→ pot considerar →</div>
+        <div class="what"><b>1 fons indexat global + DCA mensual</b>. Senzill, automàtic, barat. Quan la base és sòlida i ha vist 1–2 caigudes, ja es pot complicar.</div>
+      </div>
+    </div>
+    <div class="body-grid cols-2" style="margin-top:18px">
+      <div class="card tint-green">
+        <div class="card-title" style="font-size:17px">✓ Què sí preguntar</div>
+        <ul class="clean green">
+          <li>Quant temps puc tenir aquests diners invertits?</li>
+          <li>Quina caiguda podria suportar sense vendre en pànic?</li>
+          <li>Què passa amb el meu pla si aquest actiu cau un 50%?</li>
+        </ul>
+      </div>
+      <div class="card tint-red">
+        <div class="card-title" style="font-size:17px">✗ Què no preguntar</div>
+        <ul class="clean red">
+          <li>«Quina és la millor inversió ara mateix?»</li>
+          <li>«Quin actiu donarà més rendibilitat?»</li>
+          <li>«On posa els diners el Warren Buffett?»</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 4 · PAS 1 — BANC + FONS EMERGÈNCIA ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Pas 1 &middot; La base</div>
+      <h2>Primer la xarxa de seguretat, després invertir</h2>
+      <p class="lead">Abans de comprar cap actiu, els diners necessiten una base estable. El sistema bancari ens dona dues eines per construir-la sense risc.</p>
+    </div>
+    <div class="body-grid cols-2" style="flex:1">
+      <div class="card tint-accent">
+        <div class="chip">🏦</div>
+        <div class="card-num">Eina A</div>
+        <div class="card-title">Compte remunerat</div>
+        <p class="card-text">El banc et paga un interès per tenir-hi els diners. Pots moure'ls quan vulguis i, dins el límit, estan garantits pel Fons de Garantia de Dipòsits.</p>
+        <p class="card-text">És el lloc natural on aparcar els diners que <span class="em">encara no inverteixes</span>: rendeix una mica i no pateix sotracs.</p>
+      </div>
+      <div class="card tint-green">
+        <div class="chip">🛡️</div>
+        <div class="card-num">Eina B</div>
+        <div class="card-title">Fons d'emergència</div>
+        <p class="card-text">Una reserva de <span class="em">3 a 9 mesos</span> de despeses, guardada en aquell compte remunerat. Cobreix imprevistos sense haver de vendre inversions a mal moment.</p>
+        <p class="card-text">És tan important com la cartera: protegeix el pla perquè una sorpresa no l'obligui a aturar-se.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <p class="card-text"><b>Per què va primer?</b> Si arriba una despesa inesperada i no tens reserva, et toca des-invertir &mdash; sovint en el pitjor moment. El fons d'emergència és el que et permet mantenir la cartera intacta i deixar-la treballar.</p>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 5 · PER QUÈ LLARG TERMINI ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Pas 1 &middot; El principi que ho sosté tot</div>
+      <h2>Per què invertim a llarg termini</h2>
+      <p class="lead">El llarg termini no és paciència per paciència: canvia matemàticament el resultat. Fa la inversió més rendible, més previsible i menys arriscada.</p>
+    </div>
+    <div class="body-grid cols-7-5" style="flex:1">
+      <div class="stack">
+        <div class="card tint-accent">
+          <div class="card-title" style="font-size:19px">📈 Més rendible &mdash; l'interès compost</div>
+          <p class="card-text">Els guanys es reinverteixen i generen nous guanys. Aquest «efecte bola de neu» és petit al principi i enorme al cap dels anys.</p>
+        </div>
+        <div class="growth">
+          <div class="gcol">
+            <span class="gval">100&euro;</span>
+            <div class="gbar simple" style="height:14%"></div>
+            <span class="glabel">Avui</span>
+          </div>
+          <div class="gcol">
+            <span class="gval">216&euro;</span>
+            <div class="gbar" style="height:30%"></div>
+            <span class="glabel">10 anys</span>
+          </div>
+          <div class="gcol">
+            <span class="gval">466&euro;</span>
+            <div class="gbar" style="height:62%"></div>
+            <span class="glabel">20 anys</span>
+          </div>
+          <div class="gcol">
+            <span class="gval">1.006&euro;</span>
+            <div class="gbar" style="height:100%"></div>
+            <span class="glabel">30 anys</span>
+          </div>
+        </div>
+        <p class="footnote">Exemple il&middot;lustratiu: 100&euro; amb un 8% anual reinvertit. Els rendiments passats no garanteixen rendiments futurs.</p>
+      </div>
+      <div class="stack">
+        <div class="card tint-green">
+          <div class="card-title" style="font-size:18px">🎯 Més previsible</div>
+          <p class="card-text">A curt termini manen esdeveniments imprevisibles. A llarg termini els anys bons compensen els dolents i el resultat s'acosta a la mitjana esperada.</p>
+        </div>
+        <div class="card tint-amber">
+          <div class="card-title" style="font-size:18px">⚖️ Menys arriscat</div>
+          <p class="card-text">El temps és la millor eina per mitigar la volatilitat. Com més llarg és l'horitzó, més probable és acabar amb rendiment positiu.</p>
+        </div>
+        <div class="quote">Importa més el temps de la inversió que el moment de la inversió.
+          <span class="by">— Warren Buffett</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 6 · ELS RISCOS ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Pas 1 &middot; Conèixer el terreny</div>
+      <h2>Quins riscos existeixen &mdash; i com es gestionen</h2>
+      <p class="lead">Risc és la probabilitat que passi un contratemps que impedeixi el rendiment esperat. No es tracta d'evitar-lo, sinó de gestionar-lo amb cap.</p>
+    </div>
+    <div class="risk-grid" style="margin-bottom:18px">
+      <div class="risk"><div class="ic">💳</div><div class="nm">Crèdit</div><div class="ds">Qui et deu diners no paga.</div></div>
+      <div class="risk"><div class="ic">🔒</div><div class="nm">Liquiditat</div><div class="ds">No pots moure els diners quan ho necessites.</div></div>
+      <div class="risk"><div class="ic">📉</div><div class="nm">Mercat</div><div class="ds">Fluctuacions de preu, tipus o divisa.</div></div>
+      <div class="risk"><div class="ic">🏛️</div><div class="nm">Polític (país)</div><div class="ds">Depèn de l'estabilitat del país.</div></div>
+      <div class="risk"><div class="ic">🔥</div><div class="nm">Inflació</div><div class="ds">El diner perd poder de compra amb el temps.</div></div>
+      <div class="risk"><div class="ic">⚖️</div><div class="nm">Legal</div><div class="ds">Canvis de llei o de fiscalitat.</div></div>
+      <div class="risk"><div class="ic">⚙️</div><div class="nm">Operacional</div><div class="ds">Errors en executar les operacions.</div></div>
+      <div class="risk" style="background:#F1F6F2;border-color:#BFD4C5"><div class="ic">🧭</div><div class="nm" style="color:var(--green)">La bona notícia</div><div class="ds">Tots es poden mitigar.</div></div>
+    </div>
+    <div class="body-grid" style="grid-template-columns:repeat(3,1fr);gap:14px">
+      <div class="card tint-green">
+        <div class="card-num">Defensa 1</div>
+        <div class="card-title" style="font-size:17px">Diversificació</div>
+        <p class="card-text">Molts actius, sectors i països: cap contratemps concret t'afecta de ple.</p>
+      </div>
+      <div class="card tint-green">
+        <div class="card-num">Defensa 2</div>
+        <div class="card-title" style="font-size:17px">Coneixement</div>
+        <p class="card-text">Saber on poses els diners evita riscos operacionals i sorpreses legals.</p>
+      </div>
+      <div class="card tint-green">
+        <div class="card-num">Defensa 3</div>
+        <div class="card-title" style="font-size:17px">Llarg termini</div>
+        <p class="card-text">El temps fa la mitjana: els esdeveniments dolents es compensen amb els bons.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 7 · PAS 2 — BORSA, NO ÉS SUMA ZERO ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Pas 2 &middot; El nucli de la cartera</div>
+      <h2>La borsa no és un joc de suma zero</h2>
+      <p class="lead">Una acció és un tros real d'una empresa. El seu preu reflecteix què val aquesta empresa &mdash; i les empreses, en conjunt, creen valor nou cada any.</p>
+    </div>
+    <div class="body-grid cols-5-7" style="flex:1">
+      <div class="stack">
+        <div class="card">
+          <div class="card-title" style="font-size:18px">🎰 Suma zero</div>
+          <p class="card-text">En una aposta, el que un guanya l'altre ho perd. El total no creix: només canvia de mans.</p>
+        </div>
+        <div class="card tint-accent">
+          <div class="card-title" style="font-size:18px">🌱 La borsa, a llarg termini</div>
+          <p class="card-text">Les empreses venen, innoven i creixen. El «pastís» total es fa més gran amb el temps: pot guanyar-hi tothom alhora.</p>
+        </div>
+        <p class="card-text" style="color:var(--g500)"><b>Per què puja i baixa?</b> A curt termini el preu el mou l'estat d'ànim del mercat. A llarg termini el preu segueix el valor real del negoci.</p>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="card-num">El pastís creix</div>
+        <div class="pievs">
+          <div class="col">
+            <div class="barwrap">
+              <div class="gw" style="height:46%"></div>
+              <div class="gw" style="height:46%"></div>
+            </div>
+            <div class="lbl">Joc de suma zero<br>el total no canvia</div>
+          </div>
+          <div class="col">
+            <div class="barwrap">
+              <div class="gw g2" style="height:42%"></div>
+              <div class="gw g2" style="height:78%"></div>
+              <div class="gw g2" style="height:100%"></div>
+            </div>
+            <div class="lbl">Economia productiva<br>el total creix amb els anys</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--g200);margin-top:20px;padding-top:16px">
+          <div class="card-title" style="font-size:18px">🧺 La conseqüència pràctica: el fons indexat</div>
+          <p class="card-text">En lloc de triar accions una a una, compres una cistella que <span class="em">replica tot el mercat</span> (un ETF o fons indexat). Diversificació immediata, comissions baixes i el creixement mitjà de l'economia. És el nucli de la cartera.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 8 · NEW — GESTIÓ PASSIVA VS ACTIVA ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Pas 2 &middot; La decisió que més diners et farà guanyar</div>
+      <h2>Gestió passiva vs activa &mdash; els números reals</h2>
+      <p class="lead">Hi ha dues maneres de gestionar una cartera: pagar un gestor humà perquè triï accions (activa) o comprar tot el mercat amb un algoritme (passiva). Les dades del darrer mig segle són concloents.</p>
+    </div>
+    <div class="stat-grid-3" style="margin-bottom:18px">
+      <div class="stat-big tint-red">
+        <div class="num">85%</div>
+        <div class="lbl">dels fons actius europeus <b>NO superen</b> el seu índex a 10 anys</div>
+        <div class="sub">Font · SPIVA Europe Scorecard</div>
+      </div>
+      <div class="stat-big tint-red">
+        <div class="num">~98%</div>
+        <div class="lbl">dels fons actius <b>NO superen</b> el seu índex a 20 anys</div>
+        <div class="sub">Font · S&amp;P Dow Jones Indices</div>
+      </div>
+      <div class="stat-big tint-green">
+        <div class="num">1,5%</div>
+        <div class="lbl">és la diferència mitjana de cost &mdash; sembla petita, és <b>enorme acumulada</b></div>
+        <div class="sub">TER actiu 1,80% &middot; TER passiu 0,15–0,30%</div>
+      </div>
+    </div>
+    <div class="body-grid cols-2" style="flex:1">
+      <div class="compare">
+        <div class="ch">Concepte</div>
+        <div class="ch passive">Gestió passiva</div>
+        <div class="ch active">Gestió activa</div>
+        <div class="row-l">Cost anual (TER)</div>
+        <div class="row-v win">0,10–0,30%</div>
+        <div class="row-v lose">1,20–2,50%</div>
+        <div class="row-l">Probabilitat de superar el mercat (10 anys)</div>
+        <div class="row-v win">~100% del mercat — per definició</div>
+        <div class="row-v lose">~15% (i identificar-los abans és impossible)</div>
+        <div class="row-l">Transparència</div>
+        <div class="row-v win">Total — saps què tens cada dia</div>
+        <div class="row-v lose">Limitada — només publiquen trimestralment</div>
+        <div class="row-l">Decisions emocionals del gestor</div>
+        <div class="row-v win">Cap — replica un índex</div>
+        <div class="row-v lose">Sí — biaix humà, rotació, momentum</div>
+      </div>
+      <div class="card tint-amber">
+        <div class="card-title" style="font-size:19px">💰 L'efecte compost del cost</div>
+        <p class="card-text">Imagina 100.000&euro; invertits 30 anys amb rendiment brut del 7% anual:</p>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:11px">
+          <div style="background:#fff;border:1px solid var(--g200);border-radius:9px;padding:12px 14px">
+            <div style="font-family:var(--fm);font-size:11px;color:var(--g500);margin-bottom:3px">Indexat &middot; cost 0,20%</div>
+            <div style="font-family:var(--fd);font-size:22px;font-weight:700;color:var(--green)">718.300&euro;</div>
+          </div>
+          <div style="background:#fff;border:1px solid var(--g200);border-radius:9px;padding:12px 14px">
+            <div style="font-family:var(--fm);font-size:11px;color:var(--g500);margin-bottom:3px">Actiu &middot; cost 1,80%</div>
+            <div style="font-family:var(--fd);font-size:22px;font-weight:700;color:var(--red)">466.100&euro;</div>
+          </div>
+          <div style="background:linear-gradient(180deg,#FBF1F1,#fff);border:1px solid #E0BFBF;border-radius:9px;padding:12px 14px">
+            <div style="font-family:var(--fm);font-size:11px;color:var(--red);margin-bottom:3px">Diferència &middot; el que «paga» l'inversor</div>
+            <div style="font-family:var(--fd);font-size:22px;font-weight:700;color:var(--red)">−252.200&euro;</div>
+          </div>
+        </div>
+        <p class="footnote">Càlcul il&middot;lustratiu. La diferència no és «1,6% al any» &mdash; és <b>més d'un terç del capital final</b>. Aquest és l'enemic silenciós.</p>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:18px">En inversió, el cost és l'única cosa que pots controlar de veritat. Tota la resta és incertesa.
+      <span class="by">— John C. Bogle · fundador de Vanguard</span>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 9 · NEW — COM INVERTIR EN MÀXIMS HISTÒRICS ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Pas 2 &middot; La por més freqüent del client nou</div>
+      <h2>Però... ¿no estem en màxims històrics?</h2>
+      <p class="lead">És la pregunta més habitual abans de començar. La intuïció diu «esperar la caiguda». Les dades diuen una altra cosa: invertir en màxims és, estadísticament, una <i>bona</i> decisió.</p>
+    </div>
+    <div class="stat-grid-4" style="margin-bottom:20px">
+      <div class="stat-big tint-accent">
+        <div class="num">~30%</div>
+        <div class="lbl">dels dies de mercat l'S&amp;P 500 ha tancat <b>en màxim històric</b></div>
+        <div class="sub">Sèrie 1950–2024</div>
+      </div>
+      <div class="stat-big tint-green">
+        <div class="num">+10,3%</div>
+        <div class="lbl">retorn mitjà a 1 any invertint <b>en un ATH</b></div>
+        <div class="sub">JP Morgan AM &middot; 1988–2020</div>
+      </div>
+      <div class="stat-big">
+        <div class="num">+9,6%</div>
+        <div class="lbl">retorn mitjà a 1 any invertint <b>en un dia qualsevol</b></div>
+        <div class="sub">JP Morgan AM &middot; 1988–2020</div>
+      </div>
+      <div class="stat-big tint-green">
+        <div class="num">82%</div>
+        <div class="lbl">dels màxims històrics <b>tornen a marcar màxim</b> en menys de 12 mesos</div>
+        <div class="sub">Sèrie S&amp;P 500</div>
+      </div>
+    </div>
+    <div class="body-grid cols-5-7" style="flex:1">
+      <div class="card tint-accent">
+        <div class="card-title" style="font-size:19px">📊 La intuïció enganya</div>
+        <p class="card-text">Un màxim històric no és un sostre &mdash; només vol dir que l'economia segueix creant valor. Si el mercat sempre tornés a baixar després de cada ATH, no hi hauria progrés.</p>
+        <p class="card-text" style="margin-top:10px"><b>L'altra cara:</b> esperar la caiguda costa diners. Si esperes 12 mesos, et perds el dividend i el creixement &mdash; sovint pitjor que la caiguda que evites.</p>
+        <div class="key-line" style="margin-top:14px;padding:12px 16px;font-size:13px">
+          <b>Resum:</b> un ATH és estadísticament un <i>moment normal</i>, no perillós.
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div class="card-title" style="font-size:17px">🛠 Què fer si tens por d'entrar de cop</div>
+          <div class="ath-chart">
+            <div class="ath-row">
+              <div class="lab"><b>DCA</b> (Dollar Cost Averaging)<br><span style="color:var(--g400)">Entrar en quotes mensuals</span></div>
+              <div class="bar-track"><div class="bar-fill green" style="width:78%"></div></div>
+              <div class="val green">Recomanat</div>
+            </div>
+            <div class="ath-row">
+              <div class="lab"><b>Lump sum</b><br><span style="color:var(--g400)">Tot el capital de cop</span></div>
+              <div class="bar-track"><div class="bar-fill" style="width:92%"></div></div>
+              <div class="val">75% de pics</div>
+            </div>
+            <div class="ath-row">
+              <div class="lab"><b>Value averaging</b><br><span style="color:var(--g400)">Més en caigudes, menys en pujades</span></div>
+              <div class="bar-track"><div class="bar-fill green" style="width:85%"></div></div>
+              <div class="val green">Avançat</div>
+            </div>
+            <div class="ath-row">
+              <div class="lab"><b>Esperar el crash</b><br><span style="color:var(--g400)">Mantenir liquiditat a l'espera</span></div>
+              <div class="bar-track"><div class="bar-fill" style="background:linear-gradient(90deg,#8B1A1A,#c44);width:25%"></div></div>
+              <div class="val" style="color:var(--red)">Pitjor opció</div>
+            </div>
+          </div>
+          <p class="footnote">Estudi Vanguard: lump sum supera DCA el 75% del temps a llarg termini &mdash; però DCA és psicològicament més suportable per a inversors nous.</p>
+        </div>
+        <div class="card tint-green">
+          <div class="card-title" style="font-size:16px">🎯 La recepta pràctica per al client nou</div>
+          <p class="card-text">Capital inicial moderat: <b>DCA mensual durant 6–12 mesos</b>. Si entres més tard amb un excedent: <b>lump sum</b> &mdash; les estadístiques juguen al teu favor. I sempre: <b>el fons d'emergència ja muntat abans</b>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 10 · PAS 3 — RENDA FIXA ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Pas 3 &middot; L'estructura</div>
+      <h2>El deute i la renda fixa: estructura, no refugi</h2>
+      <p class="lead">Un bo és un préstec a una empresa o govern: et paguen un interès i et tornen el capital al final. Útil &mdash; però amb un matís important que cal entendre.</p>
+    </div>
+    <div class="body-grid cols-2" style="flex:1">
+      <div class="stack">
+        <div class="card">
+          <div class="chip">📜</div>
+          <div class="card-title" style="font-size:19px">Com funciona</div>
+          <p class="card-text">Prestes diners a canvi de pagaments periòdics (el cupó). Dona ingressos previsibles i menys volatilitat que les accions.</p>
+        </div>
+        <div class="card tint-red">
+          <div class="card-title" style="font-size:18px">⚠️ El matís: ja no és un actiu refugi automàtic</div>
+          <p class="card-text">La idea clàssica era «quan la borsa cau, els bons pugen». Avui aquesta relació no està garantida: en escenaris d'inflació i pujades de tipus, <span class="em">renda variable i renda fixa poden caure alhora</span> &mdash; correlació positiva.</p>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card tint-accent" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="card-num">El paper que sí que té</div>
+          <div class="card-title" style="font-size:20px">Complementar la renda variable</div>
+          <p class="card-text">La renda fixa segueix sent valuosa com a <span class="em">component estructural</span>: aporta estabilitat, ingressos i un coixí emocional que ajuda a no vendre en pànic.</p>
+          <ul class="clean" style="margin-top:14px">
+            <li>Hi ha <b>diferents tipus</b>: governamental curt, llarg, corporativa... cadascun reacciona diferent.</li>
+            <li>No s'hi posa «per refugi cec», sinó <b>amb criteri</b> i en la proporció adequada al perfil.</li>
+            <li>És una peça de l'estructura, <b>no tota la defensa</b> de la cartera.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 11 · PAS 4 — ANALOGIA DEL COTXE ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Pas 4 &middot; Els amortidors</div>
+      <h2>Afegir actius: la cartera com un cotxe</h2>
+      <p class="lead">Si la renda variable és el motor que t'impulsa endavant, la resta d'actius són els amortidors: no et porten més lluny, però fan el viatge molt més suau.</p>
+    </div>
+    <div class="car-rows" style="flex:1">
+      <div class="car-row">
+        <div class="car-part"><span class="e">🚗</span> El motor</div>
+        <div class="car-desc"><b>Renda variable indexada.</b> És el que genera el creixement a llarg termini i et fa avançar. Sense motor, no vas enlloc.</div>
+      </div>
+      <div class="car-row">
+        <div class="car-part"><span class="e">🛞</span> Els amortidors</div>
+        <div class="car-desc"><b>Renda fixa, or i metalls, immobiliari (REITs), alternatius...</b> Esmorteeixen els sotracs del mercat. Quan el motor pateix, ells suavitzen la caiguda.</div>
+      </div>
+      <div class="car-row">
+        <div class="car-part"><span class="e">🅿️</span> El fre i la reserva</div>
+        <div class="car-desc"><b>Liquiditat i fons d'emergència.</b> Et permeten aturar-te amb seguretat i aprofitar oportunitats sense desmuntar la cartera.</div>
+      </div>
+      <div class="car-row" style="background:linear-gradient(180deg,#F4F7FB,#fff);border-color:#C9D4E4">
+        <div class="car-part" style="color:var(--accent)"><span class="e">🧭</span> El conductor</div>
+        <div class="car-desc">Ets tu, amb el teu assessor. La clau és <b>combinar les peces segons el teu perfil</b>: prou motor per arribar lluny, prou amortidors per no patir pel camí.</div>
+      </div>
+    </div>
+    <div class="card tint-green" style="margin-top:16px">
+      <p class="card-text"><b>La idea de fons (Markowitz, 1952):</b> combinar actius que no es mouen igual permet, alhora, <span class="em">millorar el rendiment ajustat al risc</span>. Afegir els amortidors adequats pot baixar la volatilitat sense renunciar al creixement.</p>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 12 · NEW — BIAIXOS EMOCIONALS ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Comportament inversor &middot; La biologia que ens enganya</div>
+      <h2>Els biaixos que ens roben rendibilitat</h2>
+      <p class="lead">El nostre cervell està dissenyat per sobreviure a la sabana, no per gestionar una cartera durant 30 anys. Aquests biaixos són universals i no signifiquen ser «mal inversor» &mdash; són humans. La feina és conèixer-los i protegir-se'n.</p>
+    </div>
+    <div class="behavior-gap">
+      <div class="num">−4,5%</div>
+      <div class="lbl">és la <b>«behavior gap»</b>: el que perd l'inversor mitjà anualment respecte al mercat per culpa de decisions emocionals. Mercat: <b>10,4%</b> anual · Inversor mitjà: <b>5,9%</b> anual.</div>
+      <div class="sub">DALBAR QAIB &middot;<br>20 anys (2003–2023)<br>S&amp;P 500 vs fons equity</div>
+    </div>
+    <div class="bias-grid" style="flex:1">
+      <div class="bias-card">
+        <div class="lbl">Biaix 1</div>
+        <div class="nm">Aversió a la pèrdua</div>
+        <div class="ds">Perdre 1.000&euro; fa el doble de mal del que un guany de 1.000&euro; et fa bé. Resultat: vendre en pànic per «aturar el dolor».</div>
+        <div class="stat">Kahneman &middot; Nobel 2002</div>
+      </div>
+      <div class="bias-card">
+        <div class="lbl">Biaix 2</div>
+        <div class="nm">Recency bias</div>
+        <div class="ds">Donem massa pes al que ha passat fa poc. Si el mercat puja, esperem que segueixi pujant; si cau, que segueixi caient.</div>
+        <div class="stat">Tversky &amp; Kahneman, 1973</div>
+      </div>
+      <div class="bias-card">
+        <div class="lbl">Biaix 3</div>
+        <div class="nm">Excés de confiança</div>
+        <div class="ds">El 75% dels inversors es creuen «millors que la mitjana». Estadísticament impossible. Porta a operar massa i pagar comissions.</div>
+        <div class="stat">Svenson, 1981 &middot; Barber-Odean</div>
+      </div>
+      <div class="bias-card">
+        <div class="lbl">Biaix 4</div>
+        <div class="nm">Disposition effect</div>
+        <div class="ds">Venem els guanyadors massa aviat (per «assegurar el guany») i conservem els perdedors massa estona (per no admetre l'error).</div>
+        <div class="stat">Shefrin &amp; Statman, 1985</div>
+      </div>
+      <div class="bias-card">
+        <div class="lbl">Biaix 5</div>
+        <div class="nm">Comportament gregari</div>
+        <div class="ds">Seguim el ramat. Quan tothom compra cripto, comprem cripto. Quan tothom ven, venem. Sempre arribem tard al moviment.</div>
+        <div class="stat">FOMO &middot; teoria evolutiva</div>
+      </div>
+      <div class="bias-card">
+        <div class="lbl">Biaix 6</div>
+        <div class="nm">Biaix d'acció</div>
+        <div class="ds">Quan el mercat es mou, sentim que «cal fer alguna cosa». Normalment la millor decisió és <i>no fer res</i>, però costa molt.</div>
+        <div class="stat">Patterson, 2006</div>
+      </div>
+      <div class="bias-card">
+        <div class="lbl">Biaix 7</div>
+        <div class="nm">Biaix de confirmació</div>
+        <div class="ds">Llegim notícies i opinions que confirmen el que ja pensem, i ignorem les que ho contradiuen. La bombolla informativa s'autoperpetua.</div>
+        <div class="stat">Wason, 1960</div>
+      </div>
+      <div class="bias-card">
+        <div class="lbl">Biaix 8</div>
+        <div class="nm">Home bias</div>
+        <div class="ds">Sobreinvertim al nostre país perquè «el coneixem». El IBEX 35 és el 0,7% del PIB mundial, però per un català sovint és el 30% de la cartera.</div>
+        <div class="stat">French &amp; Poterba, 1991</div>
+      </div>
+    </div>
+    <div class="key-line" style="margin-top:18px">
+      <b>El més important:</b> conèixer els biaixos no els elimina &mdash; el cervell segueix sent el mateix. Però tenir un pla escrit i algú al teu costat que t'aturi en el moment clau, sí que ho compensa. Aquest és el cor del que faig amb tu.
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 13 · ERRORS TÍPICS DEL INVERSOR NOU ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">El que tot inversor nou ha d'evitar</div>
+      <h2>Els errors més cars &mdash; i com no caure-hi</h2>
+      <p class="lead">No són errors d'intel&middot;ligència, són errors de comportament. Per això un assessor ajuda: no perquè sàpiga «el secret», sinó perquè et fa de baranda quan vols saltar.</p>
+    </div>
+    <div class="mistakes-grid" style="flex:1">
+      <div class="mistake">
+        <div class="ic">🎯</div>
+        <div class="nm">Voler fer market timing</div>
+        <div class="ds">«Vendré quan estigui al pic i compraré quan caigui». Ningú ho aconsegueix de manera sostenible &mdash; perdre's els 10 millors dies del mercat redueix el rendiment a 30 anys a la meitat.</div>
+        <div class="fix"><b>Solució →</b> aportacions automàtiques mensuals (DCA). El millor dia és sempre avui.</div>
+      </div>
+      <div class="mistake">
+        <div class="ic">😨</div>
+        <div class="nm">Vendre en pànic</div>
+        <div class="ds">El 2020 (COVID) la borsa va caure un −34% en 23 dies i va recuperar tot en 5 mesos. Els qui van vendre van convertir una caiguda temporal en pèrdua permanent.</div>
+        <div class="fix"><b>Solució →</b> fons d'emergència sòlid i no mirar la cartera diàriament.</div>
+      </div>
+      <div class="mistake">
+        <div class="ic">🔥</div>
+        <div class="nm">Caure en el FOMO</div>
+        <div class="ds">Comprar l'actiu de moda perquè tothom el compra (cripto 2021, ARK 2020, Tesla, Nvidia...). Quan arriba al titular del diari, ja és tard.</div>
+        <div class="fix"><b>Solució →</b> tenir un pla escrit i seguir-lo. La cartera no és un casino.</div>
+      </div>
+      <div class="mistake">
+        <div class="ic">💸</div>
+        <div class="nm">Ignorar el cost</div>
+        <div class="ds">Triar fons del banc «perquè el conec» pagant un 1,8% TER quan un indexat costa 0,2%. A 30 anys aquesta diferència és més d'un terç del capital final.</div>
+        <div class="fix"><b>Solució →</b> mirar sempre el TER abans de comprar. És irrellevant a curt, decisiu a llarg.</div>
+      </div>
+      <div class="mistake">
+        <div class="ic">🥚</div>
+        <div class="nm">Concentrar massa</div>
+        <div class="ds">«Treballo en aquesta empresa, conec el sector, és segur». La diversificació no és por &mdash; és la única «vacuna» científicament provada contra l'imprevist específic.</div>
+        <div class="fix"><b>Solució →</b> nucli indexat global. Cap empresa &gt; 5% de la cartera total.</div>
+      </div>
+      <div class="mistake">
+        <div class="ic">📱</div>
+        <div class="nm">Mirar la cartera cada dia</div>
+        <div class="ds">A curt termini el mercat és aleatori i sorollós. Mirar-ho cada dia genera ansietat i convida a fer canvis innecessaris &mdash; cadascun amb peatge fiscal i emocional.</div>
+        <div class="fix"><b>Solució →</b> revisar la cartera 1 cop per trimestre. Rebalancejar 1 cop l'any.</div>
+      </div>
+      <div class="mistake">
+        <div class="ic">📈</div>
+        <div class="nm">Confondre volatilitat amb risc</div>
+        <div class="ds">Una caiguda del 30% no és perdre diners &mdash; és una caiguda <i>de moment</i>. El risc real és perdre'ls per sempre: una empresa que fa fallida, un frau, no diversificar.</div>
+        <div class="fix"><b>Solució →</b> entendre què tens i per què. El coneixement converteix el soroll en silenci.</div>
+      </div>
+      <div class="mistake">
+        <div class="ic">🏗</div>
+        <div class="nm">Invertir sense base</div>
+        <div class="ds">Posar diners en borsa sense fons d'emergència vol dir que la primera despesa imprevista t'obliga a vendre &mdash; sovint al pitjor moment possible.</div>
+        <div class="fix"><b>Solució →</b> primer 3–9 mesos d'emergència. Després ja parlem d'inversió.</div>
+      </div>
+      <div class="mistake">
+        <div class="ic">📊</div>
+        <div class="nm">No tenir un pla escrit</div>
+        <div class="ds">Sense pla, cada notícia és un drama i cada moviment del mercat una invitació a fer alguna cosa. El pla és el que et permet <i>no fer res</i> &mdash; que és el millor.</div>
+        <div class="fix"><b>Solució →</b> Full de Ruta: objectiu, horitzó, aportació mensual, regla de rebalanceig.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 14 · NEW — METODOLOGIA TBI · EL VALOR QUE APORTO ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">El que fem junts &middot; Més enllà d'una cartera</div>
+      <h2>La metodologia TBI &mdash; el valor que aporto</h2>
+      <p class="lead">Una cartera és només l'inici. El que marca la diferència és el procés que la sosté durant els anys que vindran. Aquests són els quatre pilars del que faig amb tu &mdash; i el que això val, en números.</p>
+    </div>
+    <div class="method-grid" style="flex:1">
+      <div class="method-pillar">
+        <div class="top">
+          <div class="ic">🎯</div>
+          <div>
+            <div class="ttl">Inversió semi-passiva ponderada</div>
+            <div class="sub">Pilar 01 &middot; Construcció</div>
+          </div>
+        </div>
+        <ul class="clean">
+          <li><b>Nucli indexat global</b> com a motor (baix cost, eficient, científicament provat)</li>
+          <li><b>Sobreponderació tàctica</b> per arquetip i fase de cicle &mdash; no comprem el que està de moda</li>
+          <li><b>10 carteres model</b> adaptades a 10 arquetips inversors, no «one size fits all»</li>
+        </ul>
+        <div class="quote-mini">Combinem actius perquè es complementin &mdash; no triem el «millor».</div>
+      </div>
+      <div class="method-pillar p2">
+        <div class="top">
+          <div class="ic">📊</div>
+          <div>
+            <div class="ttl">Diversificació real per descorrelació</div>
+            <div class="sub">Pilar 02 &middot; Risc</div>
+          </div>
+        </div>
+        <ul class="clean green">
+          <li>No és tenir «<b>molts</b>» actius &mdash; és tenir actius que es comporten <b>diferent</b></li>
+          <li>RV global + RF curta + or + REITs + alternatius en proporcions calculades</li>
+          <li>Resultat: <b>menys volatilitat</b> amb el mateix rendiment esperat</li>
+        </ul>
+        <div class="quote-mini">Harry Markowitz, 1952. Premi Nobel d'Economia 1990.</div>
+      </div>
+      <div class="method-pillar p3">
+        <div class="top">
+          <div class="ic">🧠</div>
+          <div>
+            <div class="ttl">Coaching emocional i seguiment</div>
+            <div class="sub">Pilar 03 &middot; Comportament</div>
+          </div>
+        </div>
+        <ul class="clean">
+          <li>Revisió trimestral del pla amb tu &mdash; no només quan «cal»</li>
+          <li>Acompanyament en moments de pànic (com el COVID 2020, l'inflació 2022...)</li>
+          <li>Tu fas les preguntes, jo aporto el criteri tècnic i la perspectiva</li>
+        </ul>
+        <div class="quote-mini">Segons Vanguard, aquest és el component <i>més</i> valuós de l'assessorament.</div>
+      </div>
+      <div class="method-pillar p4">
+        <div class="top">
+          <div class="ic">📝</div>
+          <div>
+            <div class="ttl">Pla per escrit (Full de Ruta)</div>
+            <div class="sub">Pilar 04 &middot; Disciplina</div>
+          </div>
+        </div>
+        <ul class="clean amber">
+          <li><b>Objectius</b> concrets, horitzó i aportació mensual òptima</li>
+          <li><b>Regla automàtica</b> de rebalanceig &mdash; sense decisions a l'instant</li>
+          <li><b>Estratègia de sortida</b> planificada (regla del 4%, dividends, etc.)</li>
+        </ul>
+        <div class="quote-mini">El que no està escrit, no existeix. Si tens dubtes, no tens pla.</div>
+      </div>
+    </div>
+
+    <div class="body-grid cols-2" style="margin-top:18px;align-items:stretch">
+      <div class="alpha-box">
+        <div class="htitle"><span class="num">+3%</span> anual de valor afegit</div>
+        <div style="font-size:11.5px;color:rgba(255,255,255,.55);margin-bottom:14px;line-height:1.5">
+          Segons l'estudi <b style="color:#C8A54A">«Vanguard Advisor's Alpha»</b> (2022), un assessor metòdic afegeix de mitjana 3 punts percentuals anuals al rendiment net. Aquest és el desglossament:
+        </div>
+        <div class="alpha-row">
+          <div class="nm">Suitable asset allocation</div>
+          <div class="track"><div class="fill" style="width:15%"></div></div>
+          <div class="val">+0,45%</div>
+        </div>
+        <div class="alpha-row">
+          <div class="nm">Reducció de costos (TER)</div>
+          <div class="track"><div class="fill" style="width:10%"></div></div>
+          <div class="val">+0,30%</div>
+        </div>
+        <div class="alpha-row">
+          <div class="nm">Rebalancing disciplinat</div>
+          <div class="track"><div class="fill" style="width:5%"></div></div>
+          <div class="val">+0,14%</div>
+        </div>
+        <div class="alpha-row featured">
+          <div class="nm"><b>Coaching emocional</b> &mdash; el més gran</div>
+          <div class="track"><div class="fill" style="width:50%"></div></div>
+          <div class="val">+1,50%</div>
+        </div>
+        <div class="alpha-row">
+          <div class="nm">Optimització fiscal</div>
+          <div class="track"><div class="fill" style="width:25%"></div></div>
+          <div class="val">+0,75%</div>
+        </div>
+        <div class="alpha-row total">
+          <div class="nm">VALOR AFEGIT TOTAL</div>
+          <div class="track"></div>
+          <div class="val">+3,00%</div>
+        </div>
+      </div>
+      <div class="card tint-green">
+        <div class="card-title" style="font-size:19px">💶 Quant val 3% extra al any?</div>
+        <p class="card-text">Inversió de <b>100.000&euro;</b> a 20 anys, mateix risc, dues situacions:</p>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:9px">
+          <div style="background:#fff;border:1px solid var(--g200);border-radius:9px;padding:13px 16px">
+            <div style="font-family:var(--fm);font-size:10.5px;color:var(--g500);margin-bottom:3px">Inversor mitjà &middot; 7% anual</div>
+            <div style="font-family:var(--fd);font-size:22px;font-weight:700;color:var(--g700)">386.968&euro;</div>
+            <div style="font-size:11px;color:var(--g500);margin-top:2px">Té que lluitar contra els seus propis biaixos i sol pagar comissions altes</div>
+          </div>
+          <div style="background:linear-gradient(180deg,#F1F6F2,#fff);border:1px solid #BFD4C5;border-radius:9px;padding:13px 16px">
+            <div style="font-family:var(--fm);font-size:10.5px;color:var(--green);margin-bottom:3px">Amb assessor metòdic &middot; 10% anual</div>
+            <div style="font-family:var(--fd);font-size:22px;font-weight:700;color:var(--green)">672.750&euro;</div>
+            <div style="font-size:11px;color:var(--g500);margin-top:2px">Mateixos diners, mateix risc, més coneixement i menys errors</div>
+          </div>
+          <div style="background:linear-gradient(180deg,#F4F7FB,#fff);border:1px solid #C9D4E4;border-radius:9px;padding:13px 16px">
+            <div style="font-family:var(--fm);font-size:10.5px;color:var(--accent);margin-bottom:3px">Diferència acumulada</div>
+            <div style="font-family:var(--fd);font-size:24px;font-weight:700;color:var(--accent)">+285.782&euro;</div>
+            <div style="font-size:11px;color:var(--g500);margin-top:2px">L'equivalent a <b>una segona cartera</b>, només per fer-ho ben fet</div>
+          </div>
+        </div>
+        <p class="footnote">Càlculs amb interès compost. La xifra real depèn del perfil, mercat i fidelitat al pla. Vanguard Advisor's Alpha estima un rang de 2,7%–3,5%.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SLIDE 15 · RECAP ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">En resum</div>
+      <h2>El que ens emportem</h2>
+      <p class="lead">Construir una cartera des de zero no és endevinar el proper actiu calent ni fer trading. És un procés ordenat &mdash; i sostenir-lo en el temps amb mètode i acompanyament.</p>
+    </div>
+    <div class="recap">
+      <div class="step">
+        <span class="n">Pas 01</span>
+        <span class="t">La base</span>
+        <span class="d">Compte remunerat + fons d'emergència de 3&ndash;9 mesos. La xarxa de seguretat abans d'invertir.</span>
+      </div>
+      <div class="step">
+        <span class="n">Pas 02</span>
+        <span class="t">El nucli</span>
+        <span class="d">Fons indexat global a baix cost. Diversificació, creixement i sense excuses de market timing.</span>
+      </div>
+      <div class="step">
+        <span class="n">Pas 03</span>
+        <span class="t">L'estructura</span>
+        <span class="d">Renda fixa amb criteri per complementar &mdash; estabilitat i ingressos, no refugi cec.</span>
+      </div>
+      <div class="step">
+        <span class="n">Pas 04</span>
+        <span class="t">Els amortidors</span>
+        <span class="d">Actius alternatius descorrelacionats per millorar el rendiment ajustat al risc.</span>
+      </div>
+    </div>
+    <div class="body-grid cols-2" style="margin-top:22px">
+      <div class="card tint-accent">
+        <div class="card-title" style="font-size:18px">📌 Els 4 missatges clau</div>
+        <ul class="clean">
+          <li><b>No hi ha inversions dolentes</b> &mdash; n'hi ha d'adequades per a tu i el teu moment.</li>
+          <li><b>El cost importa més que el gestor</b> &mdash; el 85% dels fons actius no superen el seu índex.</li>
+          <li><b>Els màxims històrics no són perillosos</b> &mdash; el temps al mercat &gt; encertar el moment.</li>
+          <li><b>Els biaixos costen 4,5% anual</b> &mdash; tenir mètode i acompanyament és el que ho compensa.</li>
+        </ul>
+      </div>
+      <div class="card tint-green" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="card-title" style="font-size:18px">🚀 El que aporto al teu costat</div>
+        <p class="card-text">Cartera semi-passiva ponderada per arquetip &middot; diversificació per descorrelació &middot; coaching i revisió trimestral &middot; pla escrit en un Full de Ruta.</p>
+        <p class="card-text" style="margin-top:10px;color:var(--green);font-weight:500">→ Vanguard estima ~3% anual de valor afegit. Sobre 100k€ a 20 anys: <b>+285.000€</b>.</p>
+        <p class="card-text" style="margin-top:10px;color:var(--g500);font-size:12px">Primer pas: el qüestionari de 27 preguntes. En 15 minuts tindrem el teu arquetip.</p>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:18px">El truc dels inversors d'èxit és vendre quan vulguin, no quan ho hagin de fer.
+      <span class="by">— Seth Klarman</span>
+    </div>
+    <p class="footnote">The Boring Investor &middot; Material introductori d'educació financera. No constitueix una recomanació d'inversió personalitzada. Els rendiments passats no garanteixen rendiments futurs. Les xifres de la metodologia es basen en l'estudi Vanguard Advisor's Alpha (2022) i la sèrie DALBAR QAIB; són estimacions de mitjana i no garanties.</p>
+  </section>
+
+</div>
+
+<!-- ===== NAV CHROME ===== -->
+<div class="chrome">
+  <div class="progress" id="progress"></div>
+  <div class="nav-btns">
+    <button class="nav-btn ghost" id="prevBtn">&larr; Anterior</button>
+    <span class="counter" id="counter">1 / 15</span>
+    <button class="nav-btn" id="nextBtn">Següent &rarr;</button>
+  </div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const topfill = document.getElementById('topfill');
+
+  // build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    d.setAttribute('aria-label', 'Diapositiva ' + (i + 1));
+    d.addEventListener('click', () => go(i));
+    progress.appendChild(d);
+  });
+  const dots = Array.from(progress.children);
+
+  function go(n) {
+    n = Math.max(0, Math.min(total - 1, n));
+    if (n === idx) return;
+    const dir = n > idx ? 1 : -1;
+    slides[idx].classList.remove('active');
+    slides[idx].classList.toggle('prev', dir === 1);
+    idx = n;
+    slides[idx].classList.remove('prev');
+    slides[idx].classList.add('active');
+    slides[idx].scrollTop = 0;
+    update();
+  }
+
+  function update() {
+    dots.forEach((d, i) => d.classList.toggle('on', i === idx));
+    counter.textContent = (idx + 1) + ' / ' + total;
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === total - 1;
+    topfill.style.width = ((idx) / (total - 1) * 100) + '%';
+  }
+
+  prevBtn.addEventListener('click', () => go(idx - 1));
+  nextBtn.addEventListener('click', () => go(idx + 1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(idx + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(total - 1);
+  });
+
+  // touch swipe
+  let tx = 0;
+  document.addEventListener('touchstart', e => { tx = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 60) go(idx + (dx < 0 ? 1 : -1));
+  }, {passive:true});
+
+  update();
+</script>
+</body>
+</html>
