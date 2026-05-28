@@ -508,62 +508,7 @@
     .alpha-row .track{display:none}
   }
 
-  /* ════════════════════════════════════
-     PRINT / PDF — una diapositiva per pàgina
-     ════════════════════════════════════ */
-  @media print {
-    @page { size: A4 landscape; margin: 0; }
-
-    html, body {
-      height: auto !important; overflow: visible !important;
-      background: #F7F6F4 !important;
-    }
-
-    /* Amaguem el chrome de navegació */
-    .topbar, .corner, .chrome, #btn-pdf { display: none !important; }
-
-    /* El deck passa a flux normal */
-    .deck {
-      position: static !important;
-      width: 100% !important; height: auto !important;
-      overflow: visible !important;
-    }
-
-    /* Cada slide ocupa una pàgina */
-    .slide {
-      position: relative !important; inset: auto !important;
-      display: flex !important;
-      opacity: 1 !important; transform: none !important;
-      pointer-events: auto !important;
-      width: 100% !important;
-      min-height: 190mm !important; height: auto !important;
-      padding: 14mm 18mm 10mm !important;
-      page-break-after: always !important;
-      break-after: page !important;
-      overflow: hidden !important;
-      box-sizing: border-box !important;
-    }
-    .slide:last-of-type { page-break-after: avoid !important; break-after: avoid !important; }
-
-    /* Ajustos tipogràfics per impressió */
-    h1 { font-size: 36px !important; }
-    h2 { font-size: 28px !important; }
-    .lead { font-size: 14px !important; }
-    .card-text { font-size: 12px !important; }
-    .asset-grid { grid-template-columns: repeat(5,1fr) !important; }
-    .bias-grid { grid-template-columns: repeat(4,1fr) !important; }
-    .behavior-gap { grid-template-columns: auto 1fr auto !important; }
-    .method-grid { grid-template-columns: repeat(2,1fr) !important; }
-    .alpha-row .track { display: block !important; }
-
-    /* Watermark discret */
-    .slide::after {
-      content: "The Boring Investor · theboringinvestor.github.io/assessoria";
-      position: absolute; bottom: 6mm; right: 14mm;
-      font-family: 'DM Mono', monospace; font-size: 8px;
-      color: #C8C5BE; letter-spacing: .05em;
-    }
-  }
+  /* print CSS eliminat — el PDF el genera html2canvas + jsPDF */
 </style>
 </head>
 <body>
@@ -1412,7 +1357,7 @@
     <button class="nav-btn ghost" id="prevBtn">&larr; Anterior</button>
     <span class="counter" id="counter">1 / 15</span>
     <button class="nav-btn" id="nextBtn">Següent &rarr;</button>
-    <button class="nav-btn ghost" id="btn-pdf" onclick="exportarPDF()" title="Descarregar totes les diapositives en PDF (A4 horitzontal)">⬇ PDF</button>
+    <button class="nav-btn ghost" id="btn-pdf" onclick="exportarPDF()" title="Descarregar PDF (A4 horitzontal, tots els slides, alta resolució)">⬇ PDF</button>
   </div>
 </div>
 
@@ -1461,20 +1406,157 @@
   prevBtn.addEventListener('click', () => go(idx - 1));
   nextBtn.addEventListener('click', () => go(idx + 1));
 
-  // ─── EXPORT PDF ────────────────────────────────
-  function exportarPDF() {
-    const btn = document.getElementById('btn-pdf');
-    if (btn) { btn.textContent = '⏳ Preparant...'; btn.disabled = true; }
+  // ─── EXPORT PDF (html2canvas + jsPDF) ────────────────────────────
+  function loadLib(src) {
+    return new Promise(function(resolve, reject) {
+      if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
 
-    // Petit retard perquè el botó actualitzi el text abans de bloquejar el thread
-    setTimeout(() => {
-      window.print();
-      // Restaurem el botó quan l'usuari tanca/completa el diàleg d'impressió
-      // window.print() és síncrona a la majoria de navegadors
-      setTimeout(() => {
-        if (btn) { btn.textContent = '⬇ PDF'; btn.disabled = false; }
-      }, 500);
-    }, 80);
+  async function exportarPDF() {
+    const btn = document.getElementById('btn-pdf');
+    const originalText = '⬇ PDF';
+
+    function setBtn(txt, disabled) {
+      if (btn) { btn.textContent = txt; btn.disabled = !!disabled; }
+    }
+
+    setBtn('⏳ Carregant...', true);
+
+    try {
+      // Carreguem les dues llibreries des de CDN (cdnjs.cloudflare.com)
+      await loadLib('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+      await loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+
+      const { jsPDF } = window.jspdf;
+      const allSlides = Array.from(document.querySelectorAll('.slide'));
+      const total = allSlides.length;
+
+      // PDF A4 horitzontal (297 × 210 mm)
+      const pdf   = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const PW    = 297;   // amplada pàgina mm
+      const PH    = 210;   // alçada pàgina mm
+      const PAD   = 9;     // marge exterior mm
+      const FW    = PW - PAD * 2;   // amplada marc mm
+      const FH    = PH - PAD * 2;   // alçada marc mm
+      const INNER = 2;     // espai entre marc i imatge mm
+
+      const deck = document.querySelector('.deck');
+      const dW   = deck.offsetWidth;
+      const dH   = deck.offsetHeight;
+      const slideAspect = dW / dH; // p.ex. 16/9 = 1.778
+
+      // Dimensions de la zona d'imatge disponible (mm)
+      const imgAreaW = FW - INNER * 2;
+      const imgAreaH = FH - INNER * 2;
+
+      // Fit-to-width mantenint aspect ratio (letterbox vertical si cal)
+      let imgW = imgAreaW;
+      let imgH = imgAreaW / slideAspect;
+      if (imgH > imgAreaH) {          // si no cap en altura, ajusta per l'altura
+        imgH = imgAreaH;
+        imgW = imgAreaH * slideAspect;
+      }
+      // Centrem la imatge dins el marc
+      const imgX = PAD + INNER + (imgAreaW - imgW) / 2;
+      const imgY = PAD + INNER + (imgAreaH - imgH) / 2;
+
+      for (let i = 0; i < total; i++) {
+        setBtn('⏳ ' + (i + 1) + ' / ' + total, true);
+
+        const slide = allSlides[i];
+
+        // Guardem estat original i forcem visibilitat per captura
+        const origInline = slide.getAttribute('style') || '';
+        slide.style.cssText = 'position:absolute;inset:0;display:flex;opacity:1;'
+          + 'transform:none;transition:none;z-index:9000;pointer-events:none;'
+          + 'background:#F7F6F4;';
+
+        // Petit retard perquè el layout es recalculi
+        await new Promise(function(r) { setTimeout(r, 60); });
+
+        const canvas = await html2canvas(slide, {
+          scale:         2.5,         // alta resolució
+          useCORS:       true,
+          allowTaint:    true,
+          backgroundColor: '#F7F6F4',
+          width:         dW,
+          height:        dH,
+          scrollX:       0,
+          scrollY:       0,
+          windowWidth:   dW,
+          windowHeight:  dH,
+          logging:       false,
+          imageTimeout:  0
+        });
+
+        // Restaurem estil original
+        if (origInline) {
+          slide.setAttribute('style', origInline);
+        } else {
+          slide.removeAttribute('style');
+        }
+
+        // ── Nova pàgina al PDF ──────────────────────────────────────────
+        if (i > 0) pdf.addPage([PW, PH], 'landscape');
+
+        // Fons pàgina (warm gray)
+        pdf.setFillColor(247, 246, 244);
+        pdf.rect(0, 0, PW, PH, 'F');
+
+        // Marc blanc rodejat
+        pdf.setFillColor(255, 255, 255);
+        pdf.roundedRect(PAD, PAD, FW, FH, 3, 3, 'F');
+
+        // Vora subtil
+        pdf.setDrawColor(210, 207, 200);
+        pdf.setLineWidth(0.25);
+        pdf.roundedRect(PAD, PAD, FW, FH, 3, 3, 'S');
+
+        // Imatge del slide (JPEG 0.93 — bon equilibri qualitat/pes)
+        const imgData = canvas.toDataURL('image/jpeg', 0.93);
+        pdf.addImage(
+          imgData, 'JPEG',
+          imgX, imgY, imgW, imgH,
+          '', 'FAST'
+        );
+
+        // Número de pàgina (baix dreta)
+        pdf.setFontSize(6.5);
+        pdf.setTextColor(180, 176, 168);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(
+          (i + 1) + ' / ' + total,
+          PW - PAD - 0.5, PH - 3,
+          { align: 'right' }
+        );
+
+        // Branding (baix esquerra, última pàgina)
+        if (i === total - 1) {
+          pdf.setFontSize(6);
+          pdf.text(
+            'The Boring Investor \u00b7 Material educatiu \u00b7 No constitueix assessorament personalitzat \u00b7 theboringinvestor.github.io/assessoria',
+            PAD + 0.5, PH - 3
+          );
+        }
+      }
+
+      // Descarreguem el PDF
+      pdf.save('TBI-Construir-Cartera-des-de-Zero.pdf');
+
+      setBtn('✓ Descarregat!', false);
+      setTimeout(function() { setBtn(originalText, false); }, 2500);
+
+    } catch (err) {
+      console.error('[exportarPDF]', err);
+      setBtn('⚠ Error · reintenta', false);
+      setTimeout(function() { setBtn(originalText, false); }, 3000);
+    }
   }
 
   document.addEventListener('keydown', (e) => {
