@@ -3450,6 +3450,7 @@ var ADMIN_NAV = [
   {id:'admin-broadcast',   icon:'📣', label:'Comunicat comunitat'},
   {id:'admin-assessoria',  icon:'📰', label:'Gestionar anàlisis'},
   {id:'portal-questionnaire', icon:'📋', label:'Q\u00fcestionari client'},
+  {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
   {section:'Portal Client \u00b7 Preview'},
   {id:'portal-perfil',     icon:'📊', label:'Resum'},
   {id:'portal-roadmap',    icon:'🗺️', label:'Full de Ruta'},
@@ -3484,6 +3485,7 @@ var CLIENT_NAV = [
   {id:'portal-informes', icon:'📋', label:'Informes'},
   {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
   {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
+  {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
   {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
   {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
   {section:'Eines'},
@@ -3587,6 +3589,7 @@ function navigateTo(viewId) {
     'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', '👁 Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
     'portal-notificacions': APP.role === 'admin' ? ['Portal Client · Notificacions', '👁 Previsualització'] : ['Notificacions', 'Gestiona les alertes per correu electrònic'],
     'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', '👁 Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
+    'portal-presentacions': APP.role === 'admin' ? ['Portal Client · Presentacions', '👁 Previsualització'] : ['Presentacions', 'Material visual per a explicacions ràpides'],
     'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', '👁 Previsualització'] : ['El meu qüestionari', 'Les teves respostes del perfil inversor'],
     'settings': ['Configuració', 'Gestió del sistema'],
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
@@ -3683,6 +3686,7 @@ function renderView(viewId) {
     case 'portal-turbo': renderPortalTurbo(content); break;
     case 'portal-emergencia': renderPortalEmergencia(content); break;
     case 'portal-educacio': renderPortalEducacio(content); break;
+    case 'portal-presentacions': renderPortalPresentacions(content); break;
     case 'portal-notificacions': renderPortalNotificacions(content); break;
     case 'portal-ajuda': renderPortalAjuda(content); break;
     case 'portal-questionnaire': renderPortalQuestionnaire(content); break;
@@ -17193,6 +17197,142 @@ async function aaEliminar(id){
 // ═══════════════════════════════════════════════════════════════════════════
 
 // ─── Helper: escapar HTML per a atributs ────────────────────────────────
+// ══════════════════════════════════════════════════════
+// PRESENTACIONS — Material visual per a explicacions
+// ══════════════════════════════════════════════════════
+var PRESENTACIONS = [
+  {
+    id: 'construir-cartera-zero',
+    titol: 'Construir una cartera des de zero',
+    subtitol: 'Guia introductòria · Entrevista inicial',
+    descripcio: 'De zero a una cartera diversificada: tipus d\'inversió, biaixos emocionals, gestió passiva vs activa, màxims històrics i la metodologia TBI amb números reals.',
+    url: 'construir-cartera-des-de-zero.html',
+    diapositives: 15,
+    durada: '~20 min',
+    nivell: 'Bàsic',
+    icona: '📊',
+    tags: ['Inversió', 'Nou client', 'Educació'],
+    destacat: true,
+  },
+];
+
+function renderPortalPresentacions(el) {
+  var role = APP.role;
+  var html = '<div class="content-inner fade-in">'
+    + '<div style="margin-bottom:24px">'
+      + '<div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px">Presentacions</div>'
+      + '<div style="font-size:13px;color:var(--g500);max-width:62ch;line-height:1.6">'
+        + (role === 'admin'
+            ? 'Material visual per a entrevistes inicials i explicacions ràpides. Obre la presentació a pantalla completa o en una pestanya nova.'
+            : 'Material visual per entendre conceptes clau d\'inversió. Pots veure-les sol o amb Guillem en una reunió.')
+      + '</div>'
+    + '</div>';
+
+  var destacada = PRESENTACIONS.filter(function(p){ return p.destacat; })[0];
+  if (destacada) {
+    html += '<div style="background:linear-gradient(135deg,#0F2847 0%,#0A1E35 100%);'
+      + 'border-radius:14px;padding:32px 36px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden">'
+      + '<div style="position:absolute;top:18px;right:24px;font-family:var(--fm);font-size:10px;'
+      + 'letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45);'
+      + 'background:rgba(255,255,255,.08);padding:5px 11px;border-radius:99px">\u2605 Destacada</div>'
+      + '<div style="font-size:42px;margin-bottom:14px;line-height:1">' + destacada.icona + '</div>'
+      + '<div style="font-family:var(--fd);font-size:28px;font-weight:500;letter-spacing:-.5px;margin-bottom:6px;line-height:1.15">'
+        + _hesc(destacada.titol) + '</div>'
+      + '<div style="font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;'
+        + 'color:rgba(255,255,255,.5);margin-bottom:16px">' + _hesc(destacada.subtitol) + '</div>'
+      + '<div style="font-size:14px;color:rgba(255,255,255,.75);line-height:1.6;max-width:62ch;margin-bottom:22px">'
+        + _hesc(destacada.descripcio) + '</div>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:22px">'
+        + '<span style="font-family:var(--fm);font-size:11px;background:rgba(255,255,255,.08);'
+        + 'padding:6px 12px;border-radius:6px;color:rgba(255,255,255,.7)">\uD83D\uDCD1 '
+        + destacada.diapositives + ' diapositives</span>'
+        + '<span style="font-family:var(--fm);font-size:11px;background:rgba(255,255,255,.08);'
+        + 'padding:6px 12px;border-radius:6px;color:rgba(255,255,255,.7)">\u23F1 ' + _hesc(destacada.durada) + '</span>'
+        + '<span style="font-family:var(--fm);font-size:11px;background:rgba(255,255,255,.08);'
+        + 'padding:6px 12px;border-radius:6px;color:rgba(255,255,255,.7)">\uD83C\uDF93 ' + _hesc(destacada.nivell) + '</span>'
+      + '</div>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap">'
+        + '<button onclick="obrirPresentacio(\'' + destacada.id + '\')" '
+        + 'style="background:#fff;color:#0A1E35;border:none;border-radius:9px;padding:11px 22px;'
+        + 'font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb)">'
+        + '\u25B6 Veure presentaci\u00f3</button>'
+        + '<button onclick="window.open(\'' + destacada.url + '\',\'_blank\')" '
+        + 'style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);'
+        + 'border-radius:9px;padding:11px 22px;font-size:13px;font-weight:500;cursor:pointer;'
+        + 'font-family:var(--fb)">\u2197 Nova pestanya</button>'
+      + '</div>'
+    + '</div>';
+  }
+
+  var altres = PRESENTACIONS.filter(function(p){ return !p.destacat; });
+  if (altres.length > 0) {
+    html += '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;'
+      + 'letter-spacing:.09em;margin-bottom:14px">Altres presentacions</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">';
+    altres.forEach(function(p) {
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:20px;cursor:pointer" '
+        + 'onclick="obrirPresentacio(\'' + p.id + '\')">'
+        + '<div style="font-size:30px;margin-bottom:10px">' + p.icona + '</div>'
+        + '<div style="font-family:var(--fd);font-size:17px;font-weight:500;margin-bottom:4px">' + _hesc(p.titol) + '</div>'
+        + '<div style="font-size:11px;color:var(--g500);margin-bottom:10px">' + _hesc(p.subtitol) + '</div>'
+        + '<div style="font-size:12px;color:var(--g600);line-height:1.5">' + _hesc(p.descripcio) + '</div>'
+      + '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (role === 'admin') {
+    html += '<div style="margin-top:28px;background:#FBF6EC;border:1px solid #E4D2AC;border-left:3px solid #7A4A00;'
+      + 'border-radius:9px;padding:14px 18px;font-size:12.5px;color:var(--g600);line-height:1.6">'
+      + '<b style="color:#7A4A00">\uD83D\uDCA1 Per afegir presentacions:</b> edita l\'array '
+      + '<code>PRESENTACIONS</code> a <code>platform.html</code>.</div>';
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function obrirPresentacio(id) {
+  var p = PRESENTACIONS.filter(function(x){ return x.id === id; })[0];
+  if (!p) return;
+  var modal = document.createElement('div');
+  modal.id = 'modal-presentacio';
+  modal.style.cssText = 'position:fixed;inset:0;background:#0A0A0A;z-index:9999;display:flex;flex-direction:column';
+  var header = document.createElement('div');
+  header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;'
+    + 'padding:10px 18px;background:rgba(0,0,0,.9);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0';
+  header.innerHTML = '<div style="display:flex;align-items:center;gap:12px;color:#fff">'
+    + '<span style="font-size:18px">' + p.icona + '</span>'
+    + '<div><div style="font-family:var(--fd);font-size:14px;font-weight:500">' + _hesc(p.titol) + '</div>'
+    + '<div style="font-family:var(--fm);font-size:10px;color:rgba(255,255,255,.4)">'
+    + p.diapositives + ' diapositives \u00b7 ' + _hesc(p.durada) + '</div></div>'
+    + '</div>'
+    + '<div style="display:flex;gap:8px">'
+    + '<button onclick="window.open(\'' + p.url + '\',\'_blank\')" '
+    + 'style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);'
+    + 'border-radius:7px;padding:7px 13px;font-size:12px;cursor:pointer;font-family:var(--fb)">'
+    + '\u2197 Nova pestanya</button>'
+    + '<button onclick="tancarPresentacio()" '
+    + 'style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15);'
+    + 'border-radius:7px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;'
+    + 'align-items:center;justify-content:center">\u2715</button>'
+    + '</div>';
+  var iframe = document.createElement('iframe');
+  iframe.src = p.url;
+  iframe.style.cssText = 'flex:1;width:100%;border:none;background:#F7F6F4';
+  modal.appendChild(header);
+  modal.appendChild(iframe);
+  document.body.appendChild(modal);
+  var escFn = function(e){ if(e.key==='Escape') tancarPresentacio(); };
+  modal._esc = escFn;
+  document.addEventListener('keydown', escFn);
+}
+
+function tancarPresentacio() {
+  var m = document.getElementById('modal-presentacio');
+  if (m) { if(m._esc) document.removeEventListener('keydown', m._esc); m.remove(); }
+}
+
 function _hesc(s) {
   return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
