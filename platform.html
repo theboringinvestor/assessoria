@@ -1213,7 +1213,7 @@ var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
 // Data i hora de creació d'aquest arxiu platform.html per Claude.
 // Format: YYYY-MM-DD · HH:MMh (Barcelona). S'actualitza a cada build.
-var TBI_VERSION = '2026-05-29 · 11:19h';
+var TBI_VERSION = '2026-05-29 · 11:38h';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
@@ -1295,7 +1295,7 @@ var DEMO_ANALISIS = [
 ];
 
 // ══════════════════════════════════════════════════
-// TAXONOMIA D'ACTIUS — 21 categories definitives
+// TAXONOMIA D'ACTIUS — 25 categories definitives
 // Font única de veritat per a carteres, qüestionari,
 // posicions reals i la vista educativa.
 // ══════════════════════════════════════════════════
@@ -1422,6 +1422,51 @@ var ACTIUS_TAXONOMY = [
     risc:4, liquiditat:'Mitjana', horitzo:'≥ 5 anys', retorn:'4–8% anual',
     cicle:{expansio:4,pic:3,recessio:1,recuperacio:4},
     correlacioRV:'Mitjana-Alta (0,60–0,75)'
+  },
+  // ── FONS INDEXATS MIXTOS (all-in-one RV/RF) ──
+  {
+    id:'fons_8020', grup:'mixt', emoji:'🎚️',
+    ca:'Fons Indexat 80/20', es:'Fondo Indexado 80/20', color:'#0E7C66',
+    desc:'Fons indexat tot-en-un amb 80% renda variable global i 20% renda fixa. Una sola posició que rebalanceja automàticament. Ideal per qui vol simplicitat màxima amb biaix a creixement.',
+    exemples:'Vanguard LifeStrategy 80% Equity, Amundi Multi-Asset 80, iShares Multi-Asset Growth',
+    pros:['Diversificació RV+RF en un sol producte','Rebalanceig automàtic intern (sense feina)','Cost baix (TER 0,20–0,25%)','Disciplina inversora: una sola decisió'],
+    contres:['Menys flexibilitat per ajustar el mix','Volatilitat encara alta (-30% en crisi)','No optimitzable fiscalment per peces','Allocació RF poc personalitzable'],
+    risc:4, liquiditat:'Alta', horitzo:'≥ 7 anys', retorn:'5–8% anual',
+    cicle:{expansio:5,pic:3,recessio:2,recuperacio:4},
+    correlacioRV:'Alta (0,90–0,95)'
+  },
+  {
+    id:'fons_6040', grup:'mixt', emoji:'🎚️',
+    ca:'Fons Indexat 60/40', es:'Fondo Indexado 60/40', color:'#2A9182',
+    desc:'El clàssic 60% renda variable / 40% renda fixa en un sol fons indexat. La cartera equilibrada per excel·lència: creixement raonable amb volatilitat continguda. Rebalanceig automàtic.',
+    exemples:'Vanguard LifeStrategy 60% Equity, Amundi Multi-Asset 60, iShares Multi-Asset Balanced',
+    pros:['Equilibri històric creixement/estabilitat','Rebalanceig automàtic intern','Menys volàtil que el 80/20','Senzill de mantenir a llarg termini'],
+    contres:['Creixement inferior al 80/20 a llarg termini','El 40% RF llastra en mercats alcistes','Allocació fixa (no s’adapta al cicle)','Doble exposició a tipus d’interès via RF'],
+    risc:3, liquiditat:'Alta', horitzo:'≥ 5 anys', retorn:'4–7% anual',
+    cicle:{expansio:4,pic:3,recessio:2,recuperacio:4},
+    correlacioRV:'Alta (0,80–0,90)'
+  },
+  {
+    id:'fons_4060', grup:'mixt', emoji:'🎚️',
+    ca:'Fons Indexat 40/60', es:'Fondo Indexado 40/60', color:'#3E7CA8',
+    desc:'Fons indexat tot-en-un amb 40% renda variable i 60% renda fixa. Biaix defensiu: prioritza l’estabilitat per damunt del creixement. Adequat per horitzons mitjans o perfils prudents.',
+    exemples:'Vanguard LifeStrategy 40% Equity, Amundi Multi-Asset 40, iShares Multi-Asset Moderate',
+    pros:['Volatilitat baixa-moderada','Rebalanceig automàtic intern','Bona opció pre-retir o horitzó mitjà','Caigudes molt més suaus que el 60/40'],
+    contres:['Creixement limitat a llarg termini','Forta exposició a tipus via el 60% RF','Pot perdre poder adquisitiu si inflació alta','Menys interessant per a joves'],
+    risc:3, liquiditat:'Alta', horitzo:'≥ 4 anys', retorn:'3–6% anual',
+    cicle:{expansio:3,pic:3,recessio:3,recuperacio:3},
+    correlacioRV:'Mitjana (0,65–0,80)'
+  },
+  {
+    id:'fons_2080', grup:'mixt', emoji:'🎚️',
+    ca:'Fons Indexat 20/80', es:'Fondo Indexado 20/80', color:'#5566A8',
+    desc:'Fons indexat conservador amb 20% renda variable i 80% renda fixa. Màxima estabilitat dins dels fons mixtos. Pensat per capital que es necessitarà aviat o per perfils molt prudents.',
+    exemples:'Vanguard LifeStrategy 20% Equity, Amundi Multi-Asset 20, iShares Multi-Asset Conservative',
+    pros:['Molt baixa volatilitat','Rebalanceig automàtic intern','Protecció del capital a curt-mitjà termini','Petit motor de creixement via el 20% RV'],
+    contres:['Creixement molt limitat','Molt sensible als tipus d’interès','Rendiment real baix en inflació alta','No apte per a objectius llargs'],
+    risc:2, liquiditat:'Alta', horitzo:'≥ 3 anys', retorn:'2–5% anual',
+    cicle:{expansio:2,pic:3,recessio:4,recuperacio:3},
+    correlacioRV:'Mitjana-Baixa (0,45–0,65)'
   },
   // ── ALTERNATIUS REALS ──
   {
@@ -3601,7 +3646,7 @@ function navigateTo(viewId) {
     'portal-informes': APP.role === 'admin' ? ['Portal Client · Informes', '👁 Previsualització'] : ['Informes', 'Documents i informes generats'],
     'portal-carteres': APP.role === 'admin' ? ['Portal Client · Carteres Model', '👁 Previsualització'] : ['Carteres Model', '10 carteres personalitzades per perfil'],
     'portal-ajuda':    ['Ajuda', 'Com funciona la plataforma'],
-    'portal-actius': ['Guia d\'Actius', '21 categories d\'inversió — educació i referència'],
+    'portal-actius': ['Guia d\'Actius', '25 categories d\'inversió — educació i referència'],
     'portal-fire': APP.role === 'admin' ? ['Portal Client · FIRE', '👁 Previsualització'] : ['Calculadora FIRE', 'Financial Independence, Retire Early'],
     'portal-simulador': APP.role === 'admin' ? ['Portal Client · Simulador', '👁 Previsualització'] : ['Simulador d\'actius', 'Projecta el rendiment d\'una cartera segons μ i σ'],
     'portal-montecarlo': APP.role === 'admin' ? ['Portal Client · Monte Carlo', '👁 Previsualització'] : ['Monte Carlo', 'Simula milers d\'escenaris per la teva cartera'],
@@ -5893,6 +5938,7 @@ function renderPortalActius(el) {
   var GRUPS = [
     { id:'rv',    label:'Renda Variable',  emoji:'📈', desc:'Propietat d\'empreses. Major creixement, major risc.' },
     { id:'rf',    label:'Renda Fixa',      emoji:'🏦', desc:'Préstecs a governs i empreses. Estabilitat i renda.' },
+    { id:'mixt',  label:'Fons mixtos',     emoji:'🎚️', desc:'Fons indexats tot-en-un que combinen RV i RF amb rebalanceig automàtic.' },
     { id:'alt',   label:'Alternatius',     emoji:'🔀', desc:'Actius reals i estratègies fora dels mercats cotitzats.' },
     { id:'cash',  label:'Liquiditat',      emoji:'💧', desc:'Reserva de capital segura i accessible.' },
     { id:'altres',label:'Altres',          emoji:'📦', desc:'Categoria residual per a actius no classificats.' },
@@ -6011,7 +6057,7 @@ function renderPortalActius(el) {
     + '<div class="content-inner fade-in">'
       + '<div style="margin-bottom:24px">'
         + '<div style="font-size:13px;color:var(--g500);line-height:1.65;max-width:680px">'
-          + 'Les 21 categories d\'actius que usa The Boring Investor per a totes les carteres, el qüestionari i les posicions reals. Fes clic a qualsevol actiu per veure-\'n la descripció completa, exemples concrets i el comportament per cicle econòmic.'
+          + 'Les 25 categories d\'actius que usa The Boring Investor per a totes les carteres, el qüestionari i les posicions reals. Fes clic a qualsevol actiu per veure-\'n la descripció completa, exemples concrets i el comportament per cicle econòmic.'
         + '</div>'
       + '</div>'
       + tabsHtml
@@ -16168,6 +16214,10 @@ var _ASSET_DEFAULTS = {
   rf_gov_llarg:     {mu:3.0, sigma:9},
   rf_corp:          {mu:3.5, sigma:7},
   rf_hy:            {mu:5.5, sigma:11},
+  fons_8020:        {mu:6.6, sigma:14.7},
+  fons_6040:        {mu:5.7, sigma:11.5},
+  fons_4060:        {mu:4.8, sigma:8.7},
+  fons_2080:        {mu:3.9, sigma:6.6},
   or_metalls:       {mu:5.0, sigma:15},
   commodities:      {mu:4.0, sigma:18},
   liquiditat:       {mu:2.0, sigma:1},
@@ -16182,9 +16232,9 @@ var _ASSET_DEFAULTS = {
 
 // Grup de correlació per a cada actiu. Els actius del mateix grup comparteixen
 // correlació interna (diagonal de la matriu); entre grups s'usa la matriu.
-var _CORR_GRUPS = ['RV','RF','OR','COMMOD','CASH','CROWD','CRYPTO','PE','INFRA','HEDGE','ALTRES'];
+var _CORR_GRUPS = ['RV','RF','MIXT','OR','COMMOD','CASH','CROWD','CRYPTO','PE','INFRA','HEDGE','ALTRES'];
 var _CORR_GRUP_LBL = {
-  RV:'Renda Variable', RF:'Renda Fixa', OR:'Or i metalls', COMMOD:'Matèries primeres',
+  RV:'Renda Variable', RF:'Renda Fixa', MIXT:'Fons mixtos (RV/RF)', OR:'Or i metalls', COMMOD:'Matèries primeres',
   CASH:'Liquiditat', CROWD:'Crowdlending', CRYPTO:'Cripto / BTC', PE:'Private Equity',
   INFRA:'Infraestructures', HEDGE:'Hedge Funds', ALTRES:'Altres'
 };
@@ -16192,6 +16242,7 @@ function _grupCorrelacio(id){
   var G = {
     rv_global:'RV', rv_dividend:'RV', rv_reits:'RV', rv_growth:'RV', rv_value:'RV', rv_emergent:'RV',
     rf_global:'RF', rf_gov_curt:'RF', rf_gov_llarg:'RF', rf_corp:'RF', rf_hy:'RF',
+    fons_8020:'MIXT', fons_6040:'MIXT', fons_4060:'MIXT', fons_2080:'MIXT',
     or_metalls:'OR', commodities:'COMMOD', liquiditat:'CASH', crowdlending:'CROWD',
     crypto:'CRYPTO', private_equity:'PE', startups:'PE', infraestructures:'INFRA',
     hedge_funds:'HEDGE', altres:'ALTRES'
@@ -16203,13 +16254,15 @@ function _grupCorrelacio(id){
 // Diagonal 'A|A' = correlació interna del grup (rellevant si té >1 actiu).
 function _corrKey(a,b){ return a <= b ? a+'|'+b : b+'|'+a; }
 var _CORR_DEFAULT = (function(){
-  var diag = { RV:0.90, RF:0.75, OR:1, COMMOD:1, CASH:1, CROWD:0.50, CRYPTO:1, PE:0.70, INFRA:0.60, HEDGE:0.50, ALTRES:0.50 };
+  var diag = { RV:0.90, RF:0.75, MIXT:0.90, OR:1, COMMOD:1, CASH:1, CROWD:0.50, CRYPTO:1, PE:0.70, INFRA:0.60, HEDGE:0.50, ALTRES:0.50 };
   // Correlacions entre grups (valors raonables; admin pot ajustar-los)
   var off = {
     'RV|RF':0.20,  'OR|RV':0.05,  'COMMOD|RV':0.25, 'CASH|RV':0.00, 'CROWD|RV':0.15,
     'CRYPTO|RV':0.45, 'PE|RV':0.65, 'INFRA|RV':0.45, 'HEDGE|RV':0.50, 'ALTRES|RV':0.30,
     'OR|RF':0.10,  'COMMOD|RF':0.00, 'CASH|RF':0.10, 'CROWD|RF':0.10, 'CRYPTO|RF':0.10,
     'PE|RF':0.25,  'INFRA|RF':0.30, 'HEDGE|RF':0.20, 'ALTRES|RF':0.15,
+    'MIXT|RV':0.85, 'MIXT|RF':0.60, 'MIXT|OR':0.05, 'COMMOD|MIXT':0.20, 'CASH|MIXT':0.05,
+    'CROWD|MIXT':0.15, 'CRYPTO|MIXT':0.40, 'MIXT|PE':0.60, 'INFRA|MIXT':0.45, 'HEDGE|MIXT':0.45, 'ALTRES|MIXT':0.30,
     'COMMOD|OR':0.40, 'CASH|OR':0.00, 'CROWD|OR':0.05, 'CRYPTO|OR':0.20, 'OR|PE':0.05,
     'INFRA|OR':0.15, 'HEDGE|OR':0.15, 'ALTRES|OR':0.10,
     'CASH|COMMOD':0.00, 'COMMOD|CROWD':0.05, 'COMMOD|CRYPTO':0.20, 'COMMOD|PE':0.20,
@@ -16426,7 +16479,7 @@ function renderAdminParametres(el){
     + '<table class="pm-tbl">'
       + '<thead><tr><th>Actiu</th><th class="r">\u03BC \u00b7 rendiment mig (% / any)</th><th class="r">\u03C3 \u00b7 volatilitat (% / any)</th></tr></thead><tbody>';
 
-  var grupLbls = { rv:'Renda Variable', rf:'Renda Fixa', alt:'Alternatius', cash:'Liquiditat', altres:'Altres' };
+  var grupLbls = { rv:'Renda Variable', rf:'Renda Fixa', mixt:'Fons indexats mixtos', alt:'Alternatius', cash:'Liquiditat', altres:'Altres' };
   var grupActual = null;
   if (typeof ACTIUS_TAXONOMY !== 'undefined' && Array.isArray(ACTIUS_TAXONOMY)){
     for (var i = 0; i < ACTIUS_TAXONOMY.length; i++){
