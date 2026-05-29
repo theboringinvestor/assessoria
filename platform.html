@@ -1211,8 +1211,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 // ══════════════════════════════════════════════════
 var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
-// Format: YYYY-MM-DD.N — incrementar N cada deploy
-var TBI_VERSION = '2026-05-09.1';
+// Data i hora de creació d'aquest arxiu platform.html per Claude.
+// Format: YYYY-MM-DD · HH:MMh (Barcelona). S'actualitza a cada build.
+var TBI_VERSION = '2026-05-29 · 11:19h';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
@@ -1223,6 +1224,17 @@ var ANTHROPIC_KEY = '';
 
 var sb = null;
 try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.log('Supabase no disponible, mode demo only'); }
+
+// Client Supabase secundari AÏLLAT: s'usa per donar d'alta nous usuaris (signUp)
+// sense substituir la sessió de l'admin. signUp() al client principal canviaria
+// la sessió activa pel nou usuari; aquest client no persisteix sessió.
+function _sbSecondary(){
+  try {
+    return supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession:false, autoRefreshToken:false, detectSessionInUrl:false, storageKey:'tbi_signup_temp' }
+    });
+  } catch(e) { return null; }
+}
 
 var APP = {
   role: null,        // 'admin' or 'client'
@@ -2553,6 +2565,9 @@ async function enterApp(role, email, isDemo) {
   // Store session
   localStorage.setItem('tbi_session', JSON.stringify({ role: role, email: email, isDemo: isDemo }));
 
+  // Carregar paràmetres globals d'actius (μ/σ/correlacions) — no bloqueja si falla
+  try { await carregarConfigActius(); } catch(e) { console.warn('[enterApp] config actius:', e); }
+
   // Hide login, show app
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
@@ -2988,7 +3003,11 @@ function normalizeClient(raw) {
     cartera_actual_usuari: Array.isArray(raw.posicions) ? raw.posicions : [],
     informes: Array.isArray(raw.informes) ? raw.informes : [],
     snapshots_cartera: Array.isArray(raw.snapshots_cartera) ? raw.snapshots_cartera : [],
-    reunions: Array.isArray(raw.reunions) ? raw.reunions : [],
+    reunions: (function(){
+      var cloud = Array.isArray(raw.reunions) ? raw.reunions : [];
+      try { return (typeof _reuMerge === 'function' && raw.email) ? _reuMerge(cloud, _reuGetLocal(raw.email)) : cloud; }
+      catch(e){ return cloud; }
+    })(),
     // ── Qüestionari d'onboarding (respostes completes per a la vista d'admin) ──
     questionnaire_responses: raw.questionnaire_responses || null,
     questionnaire_date: raw.questionnaire_date || null,
@@ -3442,6 +3461,7 @@ var ADMIN_NAV = [
   {id:'admin-diagnostic',  icon:'🔍', label:'Diagn\u00f2stic'},
   {id:'admin-plans',       icon:'&#128142;', label:'Plans'},
   {id:'admin-ingressos',    icon:'&#128182;', label:'Ingressos'},
+  {id:'admin-parametres',  icon:'&#128202;', label:'Par\u00e0metres d\u2019actius'},
   {section:'Clients'},
   {id:'admin-pendents',    icon:'⏳', label:'Sol\u00b7licituds pendents'},
   {id:'admin-entrevista',  icon:'📋', label:'Entrevista inicial'},
@@ -3570,6 +3590,7 @@ function navigateTo(viewId) {
     'hub': ['Hub de l\'assessor', 'Vista general de la plataforma'],
     'admin-clients': ['Clients', 'Llistat i gestió de clients'],
     'admin-ingressos': ['Ingressos', 'Facturació i ingressos de l\'assessoria'],
+    'admin-parametres': ['Paràmetres d\'actius', 'Rendiments, volatilitats i correlacions \u2014 base de tots els anàlisis'],
     'admin-diagnostic': ['Diagn\u00f2stic de Client', 'Genera el pla financer personalitzat amb AI'],
     'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['Resum', 'Vista general del teu perfil inversor'],
     'portal-roadmap': APP.role === 'admin' ? ['Portal Client · Full de Ruta', '👁 Previsualització · Editable'] : ['Full de Ruta', 'El teu pla financer personalitzat'],
@@ -3658,6 +3679,7 @@ function renderView(viewId) {
       break;
     case 'admin-clients': renderClientsList(content); break;
     case 'admin-ingressos': renderAdminIngressos(content); break;
+    case 'admin-parametres': renderAdminParametres(content); break;
     case 'admin-diagnostic': renderAdminDiagnostic(content); break;
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
@@ -4078,10 +4100,11 @@ async function crearNouClient() {
   showMsg('Creant compte d\'autenticació...', false);
 
   try {
-    // 1. Crear usuari a Supabase Auth.
-    // NOTA: signUp pot enviar un email de confirmació segons la config de Supabase.
-    // Si està desactivat l'email confirm, l'usuari ja pot fer login amb la pwd directament.
-    var resAuth = await sb.auth.signUp({
+    // 1. Crear usuari a Supabase Auth amb un client AÏLLAT, perquè el signUp NO
+    //    substitueixi la sessió de l'admin (gotcha clàssic de Supabase JS).
+    //    NOTA: signUp pot enviar un email de confirmació segons la config de Supabase.
+    var sbReg = _sbSecondary() || sb;
+    var resAuth = await sbReg.auth.signUp({
       email: email,
       password: pwd,
       options: {
@@ -4089,6 +4112,8 @@ async function crearNouClient() {
         emailRedirectTo: 'https://theboringinvestor.github.io/assessoria/platform.html'
       }
     });
+    // Tancar la sessió del client aïllat (no afecta l'admin) per netejar
+    try { if (sbReg !== sb && sbReg.auth) await sbReg.auth.signOut(); } catch(e) {}
 
     // Cas especial: si l'email ja existeix a Auth, intentem només crear/upsert
     // la fila a clients (potser és un usuari Auth previ sense fila de clients).
@@ -5251,20 +5276,50 @@ function novaIdReunio() {
   return 'reu_' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
 }
 
+// ── Fallback local de reunions ──────────────────────────────────────
+// Mirall a localStorage per client (per si la columna clients.reunions no
+// existeix encara a Supabase o l'update falla). Es fusiona en carregar i
+// en mostrar el calendari, garantint que les cites es guardin sempre.
+var _REU_LSKEY = 'tbi_reunions_v1';
+function _reuLoadAll(){
+  try { var s = localStorage.getItem(_REU_LSKEY); return s ? JSON.parse(s) : {}; }
+  catch(e){ return {}; }
+}
+function _reuGetLocal(email){
+  if (!email) return [];
+  var all = _reuLoadAll();
+  return Array.isArray(all[email.toLowerCase()]) ? all[email.toLowerCase()] : [];
+}
+function _reuSetLocal(email, reunions){
+  if (!email) return;
+  var all = _reuLoadAll();
+  all[email.toLowerCase()] = reunions || [];
+  try { localStorage.setItem(_REU_LSKEY, JSON.stringify(all)); } catch(e){}
+}
+// Fusiona reunions del núvol amb les locals (per id), prioritzant el núvol.
+function _reuMerge(cloud, local){
+  var map = {};
+  (cloud || []).forEach(function(r){ if (r && r.id) map[r.id] = r; });
+  (local || []).forEach(function(r){ if (r && r.id && !map[r.id]) map[r.id] = r; });
+  return Object.keys(map).map(function(k){ return map[k]; });
+}
+
 // Obtenir totes les reunions de tots els clients (per a la vista admin)
 function getAllReunions() {
   var totes = [];
   (APP.clientsList||[]).forEach(function(cl){
-    (cl.reunions||[]).forEach(function(r){
+    var reus = _reuMerge(cl.reunions || [], _reuGetLocal(cl.email));
+    reus.forEach(function(r){
       totes.push(Object.assign({}, r, { client_nom: cl.nom, client_email: cl.email }));
     });
   });
   // Inclou les del client actual si no és a la llista
   var c = getClient();
-  if (c && c.reunions && c.reunions.length > 0) {
+  if (c && c.email) {
     var emailsJa = totes.map(function(r){ return r.client_email; });
     if (!emailsJa.includes(c.email)) {
-      c.reunions.forEach(function(r){
+      var reusC = _reuMerge(c.reunions || [], _reuGetLocal(c.email));
+      reusC.forEach(function(r){
         totes.push(Object.assign({}, r, { client_nom: c.nom, client_email: c.email }));
       });
     }
@@ -5512,15 +5567,23 @@ async function afegirReunioAClient(email, reunio) {
   var reunions = Array.isArray(clientObj.reunions) ? clientObj.reunions.slice() : [];
   var idx = reunions.findIndex(function(r){ return r.id===reunio.id; });
   if (idx>=0) { reunions[idx]=reunio; } else { reunions.push(reunio); }
-  try {
-    if (sb) await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase());
-    clientObj.reunions = reunions;
-    if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
-    var m = document.getElementById('modal-nova-reunio') || document.getElementById('modal-editar-reunio');
-    if (m) m.remove();
-    toast('\u2713 Reuni\u00f3 desada per a '+clientObj.nom);
-    renderView('admin-calendari');
-  } catch(e) { toast('Error: '+(e.message||e)); }
+  // 1) Actualitzar SEMPRE memòria + mirall local (garanteix persistència)
+  clientObj.reunions = reunions;
+  if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
+  _reuSetLocal(email, reunions);
+  var m = document.getElementById('modal-nova-reunio') || document.getElementById('modal-editar-reunio');
+  if (m) m.remove();
+  // 2) Intentar Supabase de forma no-fatal
+  var cloudOk = true;
+  if (sb) {
+    try {
+      var res = await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase());
+      if (res.error) throw res.error;
+    } catch(e) { cloudOk = false; console.warn('afegirReunioAClient (núvol):', e && e.message); }
+  }
+  toast(cloudOk ? ('\u2713 Reuni\u00f3 desada per a '+clientObj.nom)
+               : ('\u2713 Reuni\u00f3 desada localment'+(sb?' (revisa la columna clients.reunions)':'')));
+  renderView('admin-calendari');
 }
 
 function editarReunioAdmin(email, reunioId) {
@@ -5581,14 +5644,17 @@ async function desarEditorReunio(email, reunioId) {
     lloc:  document.getElementById('er-lloc').value,
     notes: document.getElementById('er-notes').value.trim(),
   });
-  try {
-    if (sb) await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase());
-    clientObj.reunions = reunions;
-    if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
-    document.getElementById('modal-editar-reunio').remove();
-    toast('\u2713 Reuni\u00f3 actualitzada');
-    renderView('admin-calendari');
-  } catch(e) { toast('Error: '+(e.message||e)); }
+  clientObj.reunions = reunions;
+  if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
+  _reuSetLocal(email, reunions);
+  var mEd = document.getElementById('modal-editar-reunio'); if (mEd) mEd.remove();
+  var okEd = true;
+  if (sb) {
+    try { var rE = await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase()); if (rE.error) throw rE.error; }
+    catch(e) { okEd = false; console.warn('desarEditorReunio (núvol):', e && e.message); }
+  }
+  toast(okEd ? '\u2713 Reuni\u00f3 actualitzada' : '\u2713 Actualitzada localment');
+  renderView('admin-calendari');
 }
 
 async function esborrarReunioAdmin(email, reunioId) {
@@ -5596,13 +5662,16 @@ async function esborrarReunioAdmin(email, reunioId) {
   var clientObj = (APP.clientsList||[]).find(function(cl){ return cl.email===email; });
   if (!clientObj) return;
   var reunions = (clientObj.reunions||[]).filter(function(r){ return r.id!==reunioId; });
-  try {
-    if (sb) await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase());
-    clientObj.reunions = reunions;
-    if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
-    toast('\u2713 Reuni\u00f3 eliminada');
-    renderView('admin-calendari');
-  } catch(e) { toast('Error: '+(e.message||e)); }
+  clientObj.reunions = reunions;
+  if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
+  _reuSetLocal(email, reunions);
+  var okDel = true;
+  if (sb) {
+    try { var rD = await sb.from('clients').update({ reunions: reunions }).eq('email', email.toLowerCase()); if (rD.error) throw rD.error; }
+    catch(e) { okDel = false; console.warn('esborrarReunioAdmin (núvol):', e && e.message); }
+  }
+  toast(okDel ? '\u2713 Reuni\u00f3 eliminada' : '\u2713 Eliminada localment');
+  renderView('admin-calendari');
 }
 
 // ── VISTA CLIENT: les seves reunions ─────────────────────────────────────
@@ -9252,15 +9321,27 @@ function renderPortalEducacio(el) {
    HELPERS MATEMÀTICS · sense canvis vs v2
    ──────────────────────────────────────────────────────────── */
 function _frCalcCartera(actius) {
+  var n = actius.length, i, j;
   var totalPes = 0;
-  for (var i = 0; i < actius.length; i++) totalPes += (parseFloat(actius[i].pes) || 0);
+  for (i = 0; i < n; i++) totalPes += (parseFloat(actius[i].pes) || 0);
   if (totalPes === 0) totalPes = 100;
-  var mu = 0, varC = 0;
-  for (var j = 0; j < actius.length; j++) {
-    var pes = (parseFloat(actius[j].pes) || 0) / totalPes;
-    mu += pes * (parseFloat(actius[j].mu) || 0);
-    varC += Math.pow(pes, 2) * Math.pow(parseFloat(actius[j].sigma) || 0, 2);
+  // Vectors de pes, sigma i id
+  var w = [], sig = [], ids = [], mu = 0;
+  for (i = 0; i < n; i++) {
+    w[i]   = (parseFloat(actius[i].pes) || 0) / totalPes;
+    sig[i] = parseFloat(actius[i].sigma) || 0;
+    ids[i] = actius[i].id || ('__sim_' + i); // sense id → grup propi (ρ=defecte)
+    mu    += w[i] * (parseFloat(actius[i].mu) || 0);
   }
+  // Variància de cartera amb correlacions: σ²ₚ = ΣᵢΣⱼ wᵢwⱼσᵢσⱼρᵢⱼ
+  var varC = 0;
+  for (i = 0; i < n; i++) {
+    for (j = 0; j < n; j++) {
+      var rho = (i === j) ? 1 : _corrActius(ids[i], ids[j]);
+      varC += w[i] * w[j] * sig[i] * sig[j] * rho;
+    }
+  }
+  if (varC < 0) varC = 0;
   return { mu: mu, sigma: Math.sqrt(varC) };
 }
 function _frSharpe(mu, sigma, rf) { return sigma > 0 ? (mu - rf) / sigma : 0; }
@@ -9348,15 +9429,18 @@ function _frRebalancingPremium(actius) {
   var total = 0;
   for (var i = 0; i < actius.length; i++) total += (parseFloat(actius[i].pes) || 0);
   if (total <= 0) return 0;
-  // Σ wᵢ(1−wᵢ)σᵢ² amb pesos normalitzats
-  var sum = 0;
+  // Σ wᵢσᵢ² (mitjana ponderada de variàncies individuals), en %²
+  var sumIndiv = 0;
   for (var j = 0; j < actius.length; j++) {
     var w = (parseFloat(actius[j].pes) || 0) / total;
     var s = (parseFloat(actius[j].sigma) || 0);
-    sum += w * (1 - w) * s * s;
+    sumIndiv += w * s * s;
   }
-  // El resultat de la suma està en %² → dividim entre 100 per portar-ho a % anual
-  return 0.5 * sum / 100;
+  // σ²ₚ de la cartera AMB correlacions reals → DR = ½·(Σwᵢσᵢ² − σ²ₚ)
+  var m = _frCalcCartera(actius);
+  var varCart = m.sigma * m.sigma; // %²
+  var dr = 0.5 * (sumIndiv - varCart) / 100; // → % anual
+  return dr > 0 ? dr : 0;
 }
 
 // Factor d'aplicació del DR teòric (0-100, default 60%).
@@ -10277,7 +10361,12 @@ function renderPortalRoadmap(el) {
     + '.fr-esc.actiu::before{content:"Recomanat";position:absolute;top:-9px;left:22px;background:#1B3A6B;color:#fff;padding:3px 10px;border-radius:99px;font-family:var(--fm);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}'
     + '.fr-esc-t{font-family:var(--fd);font-size:17px;font-weight:500;color:var(--black);margin-bottom:2px}'
     + '.fr-esc-s{font-family:var(--fm);font-size:10px;color:var(--g400);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}'
-    + '.fr-esc-d{width:100%;max-width:130px;margin:0 auto 14px;display:block}'
+    + '.fr-esc-d{width:100%;max-width:130px;margin:0 auto 12px;display:block}'
+    + '.fr-esc-legend{display:flex;flex-direction:column;gap:3px;margin:0 auto 14px;max-width:220px}'
+    + '.fr-esc-leg-item{display:flex;align-items:center;gap:7px;font-size:10.5px;line-height:1.3}'
+    + '.fr-esc-leg-sw{width:9px;height:9px;border-radius:2px;flex-shrink:0}'
+    + '.fr-esc-leg-nm{flex:1;color:var(--g600);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+    + '.fr-esc-leg-pc{font-family:var(--fm);font-size:10px;font-weight:600;color:var(--black);flex-shrink:0}'
     + '.fr-esc-k{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}'
     + '.fr-esc-ki{background:var(--g50);border-radius:7px;padding:9px 11px}'
     + '.fr-esc-kl{font-family:var(--fm);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);margin-bottom:4px}'
@@ -10771,16 +10860,17 @@ function renderPortalRoadmap(el) {
   // ─── 5. KPIs ────────────────────────────────────────────────
   // Mètriques addicionals: rendiment geomètric, TIR ponderada i plus de rebalanceig
   var muGeoCart = _frGeoReturn(mCart.mu, mCart.sigma);
-  // Per a la TIR i la projecció, usem mu efectiu = mu + DR aplicat (simula rebalanceig)
-  var projCartMain = _frProj(capitalSim, aportacio, mCart.mu + drCartApplied, mCart.sigma, horitzo);
-  var mwrCart = _frMWR(capitalSim, aportacio, projCartMain.median, horitzo);
-  var totalAportatMain = capitalSim + aportacio * 12 * horitzo;
-  // Rebalancing premium
+  // Plus de rebalanceig (cal calcular-lo ABANS de la projecció i la TIR,
+  // ja que el mu efectiu = mu + DR aplicat l'utilitza)
   var drCartTheor   = _frRebalancingPremium(cartera);           // DR teòric (%)
   var hairFactor    = _frHaircut();                              // 0-1
   var hairPct       = Math.round(hairFactor * 100);              // 0-100
   var drCartApplied = drCartTheor * hairFactor;
   var cagrTotalCart = muGeoCart + drCartApplied;
+  // Per a la TIR i la projecció, usem mu efectiu = mu + DR aplicat (simula rebalanceig)
+  var projCartMain = _frProj(capitalSim, aportacio, mCart.mu + drCartApplied, mCart.sigma, horitzo);
+  var mwrCart = _frMWR(capitalSim, aportacio, projCartMain.median, horitzo);
+  var totalAportatMain = capitalSim + aportacio * 12 * horitzo;
 
   html += '<div class="fr-section">'
     + '<div class="fr-label">04 · M\u00e8triques clau de la cartera</div>'
@@ -10838,7 +10928,7 @@ function renderPortalRoadmap(el) {
       + '<div class="fr-kpi"><div class="fr-kpi-lbl">Temps de recuperaci\u00f3</div><div class="fr-kpi-val navy">~' + recCart.toFixed(1).replace('.', ',') + '<span class="fr-kpi-unit"> anys</span></div><div class="fr-kpi-desc">Temps mig per recuperar el valor previ a una caiguda m\u00e0xima, assumint el rendiment esperat. \u00c9s el motiu clau per qu\u00e8 aquesta cartera necessita horitz\u00f3 llarg.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(recCart * 10, 100) + '%"></div></div></div>'
       + '<div class="fr-kpi"><div class="fr-kpi-lbl">VaR 95% · 1 any</div><div class="fr-kpi-val neg">' + (varCart < 0 ? '\u2212' : '+') + f1(Math.abs(varCart)) + '<span class="fr-kpi-unit">%</span></div><div class="fr-kpi-desc">P\u00e8rdua m\u00e0xima esperada amb un 95% de confian\u00e7a en qualsevol any. Cada 20 anys, aproximadament 1 any tindr\u00e0 una caiguda m\u00e9s gran que aquesta xifra.</div><div class="fr-kpi-bar"><div class="fr-kpi-bar-fill" style="width:' + Math.min(Math.abs(varCart) * 3, 100) + '%;background:#8B1A1A"></div></div></div>'
     + '</div>'
-    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Notes metodol\u00f2giques: \u03BC i \u03C3 calculats amb correlaci\u00f3 zero entre actius (model conservador). El <strong>CAGR geom\u00e8tric</strong> usa el drift de GBM (\u03BC\u2212\u03C3\u00b2/2). La <strong>TIR per fluxos</strong> resol Newton-Raphson sobre el flux real d\u2019aportacions assumint el valor mitj\u00e0 projectat. El <strong>plus de rebalanceig</strong> (DR=\u00bd\u00b7\u03A3w\u1d62(1\u2212w\u1d62)\u03C3\u1d62\u00b2) est\u00e0 <strong>incorporat a tota la simulaci\u00f3</strong> com a boost al drift (\u03BC\u209C\u1d52\u209C = \u03BC + DR aplicat); el factor d\u2019aplicaci\u00f3 descompta correlacions reals, costos i p\u00e8rdua en mercats tendencials. L\u2019escenari representa un inversor que rebalanceja regularment i dirigeix aportacions als actius infraponderats. Sharpe amb rf=2%. M\u00e0x. caiguda i VaR sota distribuci\u00f3 lognormal.</div>'
+    + '<div style="font-size:10.5px;color:var(--g400);line-height:1.7;margin-top:14px">Notes metodol\u00f2giques: \u03BC \u00e9s la mitjana ponderada del retorn de cada actiu i \u03C3 es calcula AMB la matriu de correlacions entre grups d\u2019actius (\u03C3\u00b2\u209A = \u03A3\u1d62\u03A3\u2c7c w\u1d62w\u2c7c\u03C3\u1d62\u03C3\u2c7c\u03C1\u1d62\u2c7c), editable per l\u2019assessor. El <strong>CAGR geom\u00e8tric</strong> usa el drift de GBM (\u03BC\u2212\u03C3\u00b2/2). La <strong>TIR per fluxos</strong> resol Newton-Raphson sobre el flux real d\u2019aportacions assumint el valor mitj\u00e0 projectat. El <strong>plus de rebalanceig</strong> (DR=\u00bd\u00b7(\u03A3w\u1d62\u03C3\u1d62\u00b2\u2212\u03C3\u00b2\u209A), amb correlacions reals) est\u00e0 <strong>incorporat a tota la simulaci\u00f3</strong> com a boost al drift (\u03BC\u209C\u1d52\u209C = \u03BC + DR aplicat); el factor d\u2019aplicaci\u00f3 descompta correlacions reals, costos i p\u00e8rdua en mercats tendencials. L\u2019escenari representa un inversor que rebalanceja regularment i dirigeix aportacions als actius infraponderats. Sharpe amb rf=2%. M\u00e0x. caiguda i VaR sota distribuci\u00f3 lognormal.</div>'
   + '</div>';
 
   // ─── 6. ANÀLISI ACTIU PER ACTIU ────────────────────────────
@@ -11023,6 +11113,16 @@ function renderPortalRoadmap(el) {
       + '<div class="fr-esc-t">' + titolHtml + '</div>'
       + '<div class="fr-esc-s">' + escSubHtml(target, currentArqId) + '</div>'
       + '<svg id="' + donutId + '" viewBox="0 0 100 100" class="fr-esc-d"></svg>'
+      + '<div class="fr-esc-legend">' + (actius && actius.length
+          ? actius.slice().sort(function(a,b){ return (b.pes||0)-(a.pes||0); }).map(function(a){
+              return '<div class="fr-esc-leg-item">'
+                + '<span class="fr-esc-leg-sw" style="background:' + (a.color||'#888') + '"></span>'
+                + '<span class="fr-esc-leg-nm">' + (a.nom||a.id||'') + '</span>'
+                + '<span class="fr-esc-leg-pc">' + f1(a.pes||0) + '%</span>'
+              + '</div>';
+            }).join('')
+          : '<div style="font-size:10px;color:var(--g400);text-align:center">Sense actius</div>')
+        + '</div>'
       + '<div class="fr-esc-k">'
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">\u03BC aritm\u00e8tic</div><div class="fr-esc-kv" style="color:#1A5C3A" id="fr-esc-kv-' + target + '-mu">+' + f1(mu) + '%</div></div>'
         + '<div class="fr-esc-ki"><div class="fr-esc-kl">CAGR geom.</div><div class="fr-esc-kv" style="color:#1B3A6B" id="fr-esc-kv-' + target + '-mugeo">+' + f1(muGeoEsc) + '%</div></div>'
@@ -11194,7 +11294,7 @@ function renderPortalRoadmap(el) {
   }
   html += '<div class="fr-disc">'
     + '<strong>Disclaimer.</strong> Aquest document \u00e9s una recomanaci\u00f3 personalitzada elaborada amb finalitat informativa i pedag\u00f2gica. The Boring Investor \u00e9s un assessor fee-only independent. Les projeccions s\u00f3n estimacions estad\u00edstiques i no garanteixen rendiments futurs. Tota inversi\u00f3 comporta risc.<br><br>'
-    + '<strong>Nota metodol\u00f2gica.</strong> Els c\u00e0lculs assumeixen <strong>correlaci\u00f3 zero entre actius</strong> \u2014 un model conservador que pot subestimar la volatilitat real en crisis globals. La frontera eficient real (Markowitz) sol situar-se entre un 10% i un 25% per sota de la \u03C3 calculada. Document elaborat sense la consideraci\u00f3 de documentaci\u00f3 regulada MiFID II.'
+    + '<strong>Nota metodol\u00f2gica.</strong> Els c\u00e0lculs incorporen una <strong>matriu de correlacions entre grups d\u2019actius</strong> (RV, RF, Or, Cripto, PE, Crowd\u2026), configurable per l\u2019assessor, per estimar la \u03C3 de cartera de forma realista. La frontera eficient real (Markowitz) pot variar segons les correlacions efectives del per\u00edode. Document elaborat sense la consideraci\u00f3 de documentaci\u00f3 regulada MiFID II.'
   + '</div>';
 
   // ─── 12. TRACKER PLEGABLE (coexistència vertical) ──────────
@@ -16047,30 +16147,349 @@ function renderPortalSimulador(el){
   simDraw();
 }
 
-function _muSigmaPerActiu(id){
-  // Defaults raonables per la taxonomia interna
-  var M = {
-    rv_global:    {mu:7.5, sigma:18},
-    rv_growth:    {mu:8.5, sigma:22},
-    rv_dividend:  {mu:6.0, sigma:14},
-    rv_emergent:  {mu:8.0, sigma:24},
-    rv_reits:     {mu:5.5, sigma:18},
-    rv_value:     {mu:7.0, sigma:16},
-    rv_smallcap:  {mu:8.0, sigma:22},
-    rv_quality:   {mu:7.0, sigma:16},
-    rf_gov:       {mu:2.5, sigma:5},
-    rf_gov_curt:  {mu:2.0, sigma:3},
-    rf_corp:      {mu:3.5, sigma:7},
-    rf_corp_hy:   {mu:5.5, sigma:11},
-    rf_emerg:     {mu:5.0, sigma:12},
-    rf_monetari:  {mu:2.0, sigma:1},
-    or_metalls:   {mu:5.0, sigma:15},
-    crypto:       {mu:15,  sigma:65},
-    crowdlending: {mu:6.0, sigma:8},
-    pe_startups:  {mu:9.0, sigma:25},
-    altres:       {mu:5.0, sigma:12},
+// ════════════════════════════════════════════════════════════════════
+// PARÀMETRES GLOBALS D'ACTIUS — font única de veritat (editable per admin)
+// μ (rendiment mig anual %), σ (volatilitat anual %) per cada actiu, i una
+// matriu de correlacions entre grups grans d'actius. Aquests valors es
+// guarden a Supabase (taula tbi_config, clau 'asset_params') amb fallback a
+// localStorage, i s'utilitzen a TOTS els anàlisis (informe, cartera, escenaris).
+// ════════════════════════════════════════════════════════════════════
+
+// Defaults μ/σ per als 21 actius de la taxonomia (alineats amb ACTIUS_TAXONOMY).
+var _ASSET_DEFAULTS = {
+  rv_global:        {mu:7.5, sigma:18},
+  rv_dividend:      {mu:6.0, sigma:14},
+  rv_reits:         {mu:5.5, sigma:18},
+  rv_growth:        {mu:8.5, sigma:22},
+  rv_value:         {mu:7.0, sigma:16},
+  rv_emergent:      {mu:8.0, sigma:24},
+  rf_global:        {mu:3.0, sigma:6},
+  rf_gov_curt:      {mu:2.0, sigma:3},
+  rf_gov_llarg:     {mu:3.0, sigma:9},
+  rf_corp:          {mu:3.5, sigma:7},
+  rf_hy:            {mu:5.5, sigma:11},
+  or_metalls:       {mu:5.0, sigma:15},
+  commodities:      {mu:4.0, sigma:18},
+  liquiditat:       {mu:2.0, sigma:1},
+  crowdlending:     {mu:7.0, sigma:8},
+  crypto:           {mu:15,  sigma:65},
+  private_equity:   {mu:10,  sigma:22},
+  startups:         {mu:12,  sigma:35},
+  infraestructures: {mu:6.5, sigma:13},
+  hedge_funds:      {mu:5.5, sigma:10},
+  altres:           {mu:5.0, sigma:12},
+};
+
+// Grup de correlació per a cada actiu. Els actius del mateix grup comparteixen
+// correlació interna (diagonal de la matriu); entre grups s'usa la matriu.
+var _CORR_GRUPS = ['RV','RF','OR','COMMOD','CASH','CROWD','CRYPTO','PE','INFRA','HEDGE','ALTRES'];
+var _CORR_GRUP_LBL = {
+  RV:'Renda Variable', RF:'Renda Fixa', OR:'Or i metalls', COMMOD:'Matèries primeres',
+  CASH:'Liquiditat', CROWD:'Crowdlending', CRYPTO:'Cripto / BTC', PE:'Private Equity',
+  INFRA:'Infraestructures', HEDGE:'Hedge Funds', ALTRES:'Altres'
+};
+function _grupCorrelacio(id){
+  var G = {
+    rv_global:'RV', rv_dividend:'RV', rv_reits:'RV', rv_growth:'RV', rv_value:'RV', rv_emergent:'RV',
+    rf_global:'RF', rf_gov_curt:'RF', rf_gov_llarg:'RF', rf_corp:'RF', rf_hy:'RF',
+    or_metalls:'OR', commodities:'COMMOD', liquiditat:'CASH', crowdlending:'CROWD',
+    crypto:'CRYPTO', private_equity:'PE', startups:'PE', infraestructures:'INFRA',
+    hedge_funds:'HEDGE', altres:'ALTRES'
   };
-  return M[id] || {mu:6, sigma:12};
+  return G[id] || 'ALTRES';
+}
+
+// Matriu de correlacions per defecte (simètrica). Clau canònica 'A|B' amb A<=B.
+// Diagonal 'A|A' = correlació interna del grup (rellevant si té >1 actiu).
+function _corrKey(a,b){ return a <= b ? a+'|'+b : b+'|'+a; }
+var _CORR_DEFAULT = (function(){
+  var diag = { RV:0.90, RF:0.75, OR:1, COMMOD:1, CASH:1, CROWD:0.50, CRYPTO:1, PE:0.70, INFRA:0.60, HEDGE:0.50, ALTRES:0.50 };
+  // Correlacions entre grups (valors raonables; admin pot ajustar-los)
+  var off = {
+    'RV|RF':0.20,  'OR|RV':0.05,  'COMMOD|RV':0.25, 'CASH|RV':0.00, 'CROWD|RV':0.15,
+    'CRYPTO|RV':0.45, 'PE|RV':0.65, 'INFRA|RV':0.45, 'HEDGE|RV':0.50, 'ALTRES|RV':0.30,
+    'OR|RF':0.10,  'COMMOD|RF':0.00, 'CASH|RF':0.10, 'CROWD|RF':0.10, 'CRYPTO|RF':0.10,
+    'PE|RF':0.25,  'INFRA|RF':0.30, 'HEDGE|RF':0.20, 'ALTRES|RF':0.15,
+    'COMMOD|OR':0.40, 'CASH|OR':0.00, 'CROWD|OR':0.05, 'CRYPTO|OR':0.20, 'OR|PE':0.05,
+    'INFRA|OR':0.15, 'HEDGE|OR':0.15, 'ALTRES|OR':0.10,
+    'CASH|COMMOD':0.00, 'COMMOD|CROWD':0.05, 'COMMOD|CRYPTO':0.20, 'COMMOD|PE':0.20,
+    'COMMOD|INFRA':0.30, 'COMMOD|HEDGE':0.20, 'ALTRES|COMMOD':0.20,
+    'CASH|CROWD':0.05, 'CASH|CRYPTO':0.00, 'CASH|PE':0.00, 'CASH|INFRA':0.05, 'CASH|HEDGE':0.05, 'ALTRES|CASH':0.05,
+    'CROWD|CRYPTO':0.10, 'CROWD|PE':0.20, 'CROWD|INFRA':0.15, 'CROWD|HEDGE':0.15, 'ALTRES|CROWD':0.15,
+    'CRYPTO|PE':0.30, 'CRYPTO|INFRA':0.15, 'CRYPTO|HEDGE':0.25, 'ALTRES|CRYPTO':0.25,
+    'INFRA|PE':0.45, 'HEDGE|PE':0.40, 'ALTRES|PE':0.35,
+    'HEDGE|INFRA':0.30, 'ALTRES|INFRA':0.25,
+    'ALTRES|HEDGE':0.30
+  };
+  var M = {};
+  _CORR_GRUPS.forEach(function(g){ M[g+'|'+g] = diag[g]; });
+  Object.keys(off).forEach(function(k){
+    var p = k.split('|'); M[_corrKey(p[0],p[1])] = off[k];
+  });
+  return M;
+})();
+
+// Estat global carregat a l'arrencada (enterApp → carregarConfigActius).
+var TBI_ASSET_CFG = { params:{}, corr:{}, loaded:false };
+var _TBI_CFG_LSKEY = 'tbi_asset_cfg_v1';
+
+// Correlació efectiva entre dos actius (1 si són el mateix actiu).
+function _corrActius(idA, idB){
+  if (idA === idB) return 1;
+  return _corrGrups(_grupCorrelacio(idA), _grupCorrelacio(idB));
+}
+function _corrGrups(gA, gB){
+  var k = _corrKey(gA, gB);
+  if (TBI_ASSET_CFG.corr && TBI_ASSET_CFG.corr[k] != null) return parseFloat(TBI_ASSET_CFG.corr[k]);
+  if (_CORR_DEFAULT[k] != null) return _CORR_DEFAULT[k];
+  return (gA === gB) ? 0.85 : 0.30;
+}
+
+// Font única de μ/σ: override global de l'admin → default de la taxonomia.
+function _muSigmaPerActiu(id){
+  var d  = _ASSET_DEFAULTS[id] || {mu:6, sigma:12};
+  var ov = (TBI_ASSET_CFG.params && TBI_ASSET_CFG.params[id]) || null;
+  return {
+    mu:    (ov && ov.mu    != null && !isNaN(parseFloat(ov.mu)))    ? parseFloat(ov.mu)    : d.mu,
+    sigma: (ov && ov.sigma != null && !isNaN(parseFloat(ov.sigma))) ? parseFloat(ov.sigma) : d.sigma
+  };
+}
+
+// Carrega la config global (Supabase → localStorage → defaults). No bloqueja l'app si falla.
+async function carregarConfigActius(){
+  var loaded = false;
+  try {
+    if (sb) {
+      var res = await sb.from('tbi_config').select('value').eq('key','asset_params').maybeSingle();
+      if (!res.error && res.data && res.data.value) {
+        var v = res.data.value;
+        TBI_ASSET_CFG.params = (v && v.params) ? v.params : {};
+        TBI_ASSET_CFG.corr   = (v && v.corr)   ? v.corr   : {};
+        loaded = true;
+      }
+    }
+  } catch(e) { console.warn('[carregarConfigActius] Supabase:', e && e.message); }
+  if (!loaded) {
+    try {
+      var ls = localStorage.getItem(_TBI_CFG_LSKEY);
+      if (ls) {
+        var p = JSON.parse(ls);
+        TBI_ASSET_CFG.params = p.params || {};
+        TBI_ASSET_CFG.corr   = p.corr   || {};
+        loaded = true;
+      }
+    } catch(e) { console.warn('[carregarConfigActius] localStorage:', e); }
+  }
+  TBI_ASSET_CFG.loaded = true;
+  return TBI_ASSET_CFG;
+}
+
+// Desa la config global a Supabase (upsert) i sempre a localStorage com a fallback.
+async function desarConfigActius(){
+  var payload = { params: TBI_ASSET_CFG.params || {}, corr: TBI_ASSET_CFG.corr || {} };
+  try { localStorage.setItem(_TBI_CFG_LSKEY, JSON.stringify(payload)); } catch(e) {}
+  if (!sb) return { ok:true, cloud:false };
+  try {
+    var res = await sb.from('tbi_config').upsert(
+      { key:'asset_params', value: payload, updated_at: new Date().toISOString() },
+      { onConflict:'key' }
+    );
+    if (res.error) throw res.error;
+    return { ok:true, cloud:true };
+  } catch(e) {
+    console.warn('[desarConfigActius]', e && e.message);
+    return { ok:true, cloud:false, err:(e && e.message) };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// VISTA ADMIN · PARÀMETRES D'ACTIUS (μ, σ i correlacions globals)
+// ════════════════════════════════════════════════════════════════════
+var _PARAM_DIRTY = false;
+function _paramMarkDirty(){
+  _PARAM_DIRTY = true;
+  var b = document.getElementById('param-save-btn');
+  if (b){ b.disabled = false; b.style.opacity = '1'; b.style.cursor = 'pointer'; }
+  var s = document.getElementById('param-save-status');
+  if (s){ s.textContent = '\u25CF Canvis sense desar'; s.style.color = '#8B1A1A'; }
+}
+function _paramSetMu(id, v){
+  if (!TBI_ASSET_CFG.params[id]) TBI_ASSET_CFG.params[id] = {};
+  var n = parseFloat(v);
+  TBI_ASSET_CFG.params[id].mu = isNaN(n) ? null : n;
+  _paramMarkDirty();
+}
+function _paramSetSigma(id, v){
+  if (!TBI_ASSET_CFG.params[id]) TBI_ASSET_CFG.params[id] = {};
+  var n = parseFloat(v);
+  if (n < 0) n = 0;
+  TBI_ASSET_CFG.params[id].sigma = isNaN(n) ? null : n;
+  _paramMarkDirty();
+}
+function _paramCorrBg(v){
+  var t = Math.max(0, Math.min(1, (v + 0.3) / 1.3)); // -0.3..1 → 0..1
+  var hue = Math.round(125 * (1 - t));               // verd (baixa) → vermell (alta)
+  return 'hsl(' + hue + ',58%,93%)';
+}
+function _paramColorCell(cellId, v){
+  var el = document.getElementById(cellId);
+  if (el) el.style.background = _paramCorrBg(v);
+}
+function _paramSetCorr(gA, gB, v){
+  var n = parseFloat(v);
+  if (isNaN(n)) return;
+  if (n > 1) n = 1; if (n < -1) n = -1;
+  TBI_ASSET_CFG.corr[_corrKey(gA, gB)] = n;
+  _paramMarkDirty();
+  // Sincronitzar la cel\u00b7la sim\u00e8trica (si no s\u2019est\u00e0 editant) + recolorar
+  var mirror = document.getElementById('corr-cell-' + gB + '-' + gA);
+  if (mirror && mirror !== document.activeElement) mirror.value = n;
+  _paramColorCell('corr-cell-' + gA + '-' + gB, n);
+  _paramColorCell('corr-cell-' + gB + '-' + gA, n);
+}
+async function desarParametresGlobals(){
+  var b = document.getElementById('param-save-btn');
+  if (b){ b.disabled = true; b.textContent = 'Desant\u2026'; }
+  var r = await desarConfigActius();
+  _PARAM_DIRTY = false;
+  var s = document.getElementById('param-save-status');
+  if (s){
+    s.textContent = r.cloud ? '\u2713 Desat al n\u00favol \u00b7 s\u2019aplica a tots els an\u00e0lisis' : '\u2713 Desat localment (Supabase no disponible)';
+    s.style.color = r.cloud ? '#1A5C3A' : '#7A4A00';
+  }
+  if (b){ b.textContent = '\u2713 Desat'; setTimeout(function(){ if(b){ b.textContent = 'Desar canvis'; b.style.opacity = '.5'; b.style.cursor = 'default'; } }, 1600); }
+  toast('\u2713 Par\u00e0metres desats');
+}
+async function restablirParametresGlobals(){
+  if (!confirm('Restablir TOTS els par\u00e0metres (\u03BC, \u03C3 i correlacions) als valors per defecte?\n\nAix\u00f2 esborra els teus valors personalitzats globals.')) return;
+  TBI_ASSET_CFG.params = {};
+  TBI_ASSET_CFG.corr = {};
+  await desarConfigActius();
+  toast('Par\u00e0metres restablerts als valors per defecte');
+  renderAdminParametres(document.getElementById('content'));
+}
+
+function renderAdminParametres(el){
+  function pf(n){ return (Math.round((parseFloat(n)||0) * 10) / 10).toString().replace('.', ','); }
+
+  var css = '<style>'
+    + '.pm-wrap{max-width:1080px}'
+    + '.pm-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid var(--g200);border-radius:12px;padding:14px 18px;margin-bottom:22px;box-shadow:0 2px 8px rgba(0,0,0,.04)}'
+    + '.pm-bar-l{font-size:12px;color:var(--g500);line-height:1.5;max-width:560px}'
+    + '.pm-bar-r{display:flex;align-items:center;gap:12px}'
+    + '.pm-btn{padding:10px 18px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)}'
+    + '.pm-btn-ghost{padding:9px 14px;background:#fff;color:var(--g600);border:1px solid var(--g200);border-radius:9px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)}'
+    + '.pm-status{font-size:11px;font-family:var(--fm)}'
+    + '.pm-sec{margin-bottom:34px}'
+    + '.pm-sec-lbl{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:#1B3A6B;margin-bottom:6px}'
+    + '.pm-sec-h{font-family:var(--fd);font-size:21px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px}'
+    + '.pm-sec-d{font-size:12.5px;color:var(--g500);line-height:1.6;margin-bottom:18px;max-width:680px}'
+    + '.pm-tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden}'
+    + '.pm-tbl th{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);text-align:left;padding:11px 14px;border-bottom:1px solid var(--g200);background:var(--g50)}'
+    + '.pm-tbl th.r,.pm-tbl td.r{text-align:right}'
+    + '.pm-tbl td{padding:8px 14px;border-bottom:1px solid var(--g100);font-size:12.5px;vertical-align:middle}'
+    + '.pm-grp-row td{background:#F7F9FC;font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#1B3A6B;font-weight:600;padding:7px 14px}'
+    + '.pm-sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:9px;vertical-align:-1px}'
+    + '.pm-badge{font-family:var(--fm);font-size:9px;color:var(--g500);background:var(--g100);padding:2px 7px;border-radius:5px;margin-left:8px}'
+    + '.pm-in{width:74px;padding:7px 9px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fm);text-align:right}'
+    + '.pm-in:focus{border-color:#1B3A6B;outline:none}'
+    + '.pm-in-mod{border-color:#1B3A6B;background:#F3F7FF}'
+    + '.pm-hint{font-size:9.5px;color:var(--g400);font-family:var(--fm);margin-left:6px}'
+    + '.pm-corr-scroll{overflow-x:auto;border:1px solid var(--g200);border-radius:12px;background:#fff}'
+    + '.pm-corr{border-collapse:collapse;font-size:11px}'
+    + '.pm-corr th{font-family:var(--fm);font-size:10px;color:var(--g500);padding:8px 6px;text-align:center;background:var(--g50);position:sticky;border-bottom:1px solid var(--g200)}'
+    + '.pm-corr th.row-h{text-align:left;white-space:nowrap;position:sticky;left:0;z-index:2;min-width:150px}'
+    + '.pm-corr td{padding:3px;border-bottom:1px solid var(--g100);text-align:center}'
+    + '.pm-corr td.row-h{font-family:var(--fb);font-size:11px;color:var(--black);text-align:left;white-space:nowrap;position:sticky;left:0;background:#fff;z-index:1;padding-left:12px;border-right:1px solid var(--g200)}'
+    + '.pm-corr-in{width:48px;padding:5px 2px;border:1px solid transparent;border-radius:6px;font-size:11px;font-family:var(--fm);text-align:center;background:transparent;color:var(--black)}'
+    + '.pm-corr-in:focus{border-color:#1B3A6B;outline:none;background:#fff}'
+    + '.pm-corr-in:disabled{color:var(--g400);font-weight:600}'
+    + '@media(max-width:680px){.pm-in{width:62px}}'
+    + '</style>';
+
+  // ── Barra superior ──
+  var html = css + '<div class="pm-wrap">'
+    + '<div class="pm-bar">'
+      + '<div class="pm-bar-l"><strong>Aquests valors s\u2019utilitzen a tots els an\u00e0lisis i eines</strong> (informe inicial, full de ruta, escenaris, cartera). No cal editar-los a cada estudi. Es desen al n\u00favol i s\u2019apliquen autom\u00e0ticament. Els valors en blau s\u00f3n personalitzats; la resta s\u00f3n els valors per defecte.</div>'
+      + '<div class="pm-bar-r">'
+        + '<span class="pm-status" id="param-save-status" style="color:var(--g400)">Sense canvis</span>'
+        + '<button class="pm-btn-ghost" onclick="restablirParametresGlobals()">Restablir defaults</button>'
+        + '<button class="pm-btn" id="param-save-btn" onclick="desarParametresGlobals()" style="opacity:.5;cursor:default" disabled>Desar canvis</button>'
+      + '</div>'
+    + '</div>';
+
+  // ── Secció A: μ / σ per actiu ──
+  html += '<div class="pm-sec">'
+    + '<div class="pm-sec-lbl">01 \u00b7 Rendiment i volatilitat</div>'
+    + '<div class="pm-sec-h">Rendiment mig anual (\u03BC) i volatilitat (\u03C3)</div>'
+    + '<div class="pm-sec-d">Edita el rendiment esperat i la volatilitat anual de cada actiu. Aquests valors alimenten el c\u00e0lcul de \u03BC i \u03C3 de cada cartera. Deixa un camp buit per recuperar el valor per defecte.</div>'
+    + '<table class="pm-tbl">'
+      + '<thead><tr><th>Actiu</th><th class="r">\u03BC \u00b7 rendiment mig (% / any)</th><th class="r">\u03C3 \u00b7 volatilitat (% / any)</th></tr></thead><tbody>';
+
+  var grupLbls = { rv:'Renda Variable', rf:'Renda Fixa', alt:'Alternatius', cash:'Liquiditat', altres:'Altres' };
+  var grupActual = null;
+  if (typeof ACTIUS_TAXONOMY !== 'undefined' && Array.isArray(ACTIUS_TAXONOMY)){
+    for (var i = 0; i < ACTIUS_TAXONOMY.length; i++){
+      var t = ACTIUS_TAXONOMY[i];
+      if (t.grup !== grupActual){
+        grupActual = t.grup;
+        html += '<tr class="pm-grp-row"><td colspan="3">' + (grupLbls[grupActual] || grupActual) + '</td></tr>';
+      }
+      var eff = _muSigmaPerActiu(t.id);
+      var def = _ASSET_DEFAULTS[t.id] || { mu:6, sigma:12 };
+      var ov  = TBI_ASSET_CFG.params[t.id] || {};
+      var muMod  = (ov.mu    != null);
+      var sigMod = (ov.sigma != null);
+      var corrG  = _grupCorrelacio(t.id);
+      html += '<tr>'
+        + '<td><span class="pm-sw" style="background:' + t.color + '"></span>' + t.ca
+          + '<span class="pm-badge" title="Grup de correlaci\u00f3">' + (_CORR_GRUP_LBL[corrG] || corrG) + '</span></td>'
+        + '<td class="r"><input class="pm-in' + (muMod ? ' pm-in-mod' : '') + '" type="number" step="0.1" min="-10" max="40" '
+          + 'value="' + eff.mu + '" onchange="_paramSetMu(\'' + t.id + '\', this.value); this.classList.add(\'pm-in-mod\')">'
+          + '<span class="pm-hint">def. ' + pf(def.mu) + '</span></td>'
+        + '<td class="r"><input class="pm-in' + (sigMod ? ' pm-in-mod' : '') + '" type="number" step="0.1" min="0" max="100" '
+          + 'value="' + eff.sigma + '" onchange="_paramSetSigma(\'' + t.id + '\', this.value); this.classList.add(\'pm-in-mod\')">'
+          + '<span class="pm-hint">def. ' + pf(def.sigma) + '</span></td>'
+      + '</tr>';
+    }
+  }
+  html += '</tbody></table></div>';
+
+  // ── Secció B: matriu de correlacions entre grups ──
+  html += '<div class="pm-sec">'
+    + '<div class="pm-sec-lbl">02 \u00b7 Correlacions</div>'
+    + '<div class="pm-sec-h">Matriu de correlacions entre grups d\u2019actius</div>'
+    + '<div class="pm-sec-d">La correlaci\u00f3 entre dos grups (valor de \u22121 a 1) determina com es combinen els riscos a la cartera: com m\u00e9s baixa, m\u00e9s diversificaci\u00f3 i menys volatilitat de cartera. La matriu \u00e9s sim\u00e8trica \u2014 en editar una cel\u00b7la s\u2019actualitza autom\u00e0ticament la seva sim\u00e8trica. La diagonal \u00e9s la correlaci\u00f3 interna del grup. Verd = baixa correlaci\u00f3; vermell = alta.</div>'
+    + '<div class="pm-corr-scroll"><table class="pm-corr"><thead><tr><th class="row-h">Grup</th>';
+  for (var c = 0; c < _CORR_GRUPS.length; c++){
+    html += '<th title="' + (_CORR_GRUP_LBL[_CORR_GRUPS[c]] || '') + '">' + _CORR_GRUPS[c] + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+  for (var r = 0; r < _CORR_GRUPS.length; r++){
+    var gR = _CORR_GRUPS[r];
+    html += '<tr><td class="row-h">' + (_CORR_GRUP_LBL[gR] || gR) + ' <span style="color:var(--g400);font-size:9px">(' + gR + ')</span></td>';
+    for (var k = 0; k < _CORR_GRUPS.length; k++){
+      var gC = _CORR_GRUPS[k];
+      var val = _corrGrups(gR, gC);
+      var cellId = 'corr-cell-' + gR + '-' + gC;
+      var bg = _paramCorrBg(val);
+      // Mostrem totes les cel\u00b7les editables (diagonal inclosa). La meitat inferior
+      // edita la mateixa clau can\u00f2nica que la superior (queden sincronitzades).
+      html += '<td style="background:' + bg + '">'
+        + '<input id="' + cellId + '" class="pm-corr-in" type="number" step="0.05" min="-1" max="1" '
+        + 'value="' + (Math.round(val * 100) / 100) + '" '
+        + 'onchange="_paramSetCorr(\'' + gR + '\', \'' + gC + '\', this.value)">'
+      + '</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table></div>';
+  html += '<div style="font-size:11px;color:var(--g400);line-height:1.6;margin-top:12px">Grups: '
+    + _CORR_GRUPS.map(function(g){ return '<strong>' + g + '</strong> ' + (_CORR_GRUP_LBL[g] || ''); }).join(' \u00b7 ')
+    + '</div>';
+  html += '</div></div>';
+
+  el.innerHTML = html;
 }
 
 function _renderSimActiusList(){
@@ -19162,15 +19581,40 @@ async function eliminarEdu(id) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 var _ING_CACHE = null;
+var _ING_LSKEY = 'tbi_ingressos_v1';
+
+// Fallback local: ingressos desats a localStorage (mirall, per si Supabase falla
+// o la taula no existeix encara). Es fusionen amb els del núvol.
+function _ingLoadLocal(){
+  try { var s = localStorage.getItem(_ING_LSKEY); return s ? JSON.parse(s) : []; }
+  catch(e){ return []; }
+}
+function _ingSaveLocal(arr){
+  try { localStorage.setItem(_ING_LSKEY, JSON.stringify(arr || [])); } catch(e){}
+}
+function _ingMerge(cloud, local){
+  var map = {};
+  (cloud || []).forEach(function(r){ if (r && r.id != null) map[String(r.id)] = r; });
+  (local || []).forEach(function(r){ if (r && r.id != null && !map[String(r.id)]) map[String(r.id)] = r; });
+  var out = Object.keys(map).map(function(k){ return map[k]; });
+  out.sort(function(a,b){ return (b.data||'').localeCompare(a.data||''); });
+  return out;
+}
 
 async function loadIngressos(forceRefresh) {
   if (_ING_CACHE && !forceRefresh) return _ING_CACHE;
-  if (!sb) { _ING_CACHE = []; return []; }
+  var local = _ingLoadLocal();
+  if (!sb) { _ING_CACHE = local; return _ING_CACHE; }
   try {
     var res = await sb.from('ingressos').select('*').order('data', { ascending: false });
-    _ING_CACHE = res.data || [];
+    if (res.error) throw res.error;
+    _ING_CACHE = _ingMerge(res.data || [], local);
     return _ING_CACHE;
-  } catch(e) { console.warn('loadIngressos error:', e); _ING_CACHE = []; return []; }
+  } catch(e) {
+    console.warn('loadIngressos (fallback local):', e && e.message);
+    _ING_CACHE = local;
+    return _ING_CACHE;
+  }
 }
 
 async function renderAdminIngressos(el) {
@@ -19517,7 +19961,6 @@ async function obrirModalIngres(id) {
 }
 
 async function desarIngres(existingId) {
-  if (!sb) { alert('Supabase no disponible'); return; }
   var msg = document.getElementById('ing-msg');
   var btn = document.getElementById('btn-desar-ingres');
   var payload = {
@@ -19531,30 +19974,48 @@ async function desarIngres(existingId) {
   if (!payload.data) { if(msg) msg.textContent='La data és obligatòria.'; return; }
   if (!payload.import || payload.import <= 0) { if(msg) msg.textContent='L\'import ha de ser > 0.'; return; }
   if (btn) { btn.disabled=true; btn.textContent='Desant...'; }
-  try {
-    var res = existingId
-      ? await sb.from('ingressos').update(payload).eq('id', existingId)
-      : await sb.from('ingressos').insert(payload);
-    if (res.error) throw res.error;
-    _ING_CACHE = null;
-    document.getElementById('modal-ingres').remove();
-    toast('\u2713 Ingrés ' + (existingId?'actualitzat':'afegit'));
-    renderAdminIngressos(document.getElementById('content'));
-  } catch(e) {
-    if (btn) { btn.disabled=false; btn.textContent='Desar →'; }
-    if (msg) msg.textContent='Error: ' + (e.message||e);
+
+  // Sempre desem al mirall local primer (garanteix persistència encara que el núvol falli)
+  var local = _ingLoadLocal();
+  var rowId = existingId || ('loc_' + Date.now() + '_' + Math.floor(Math.random()*1000));
+  var rowLocal = Object.assign({ id: rowId }, payload);
+  var li = local.findIndex(function(x){ return String(x.id) === String(rowId); });
+  if (li >= 0) local[li] = rowLocal; else local.push(rowLocal);
+  _ingSaveLocal(local);
+
+  var cloudOk = false, cloudErr = '';
+  if (sb) {
+    try {
+      var res = existingId
+        ? await sb.from('ingressos').update(payload).eq('id', existingId)
+        : await sb.from('ingressos').insert(payload);
+      if (res.error) throw res.error;
+      cloudOk = true;
+      // Si el núvol ha desat un registre nou, el local provisional ja no cal
+      if (!existingId) { local = local.filter(function(x){ return String(x.id) !== String(rowId); }); _ingSaveLocal(local); }
+    } catch(e) { cloudErr = (e && e.message) || ''; console.warn('desarIngres (guardat local):', cloudErr); }
   }
+  _ING_CACHE = null;
+  var modal = document.getElementById('modal-ingres'); if (modal) modal.remove();
+  toast(cloudOk ? ('\u2713 Ingrés ' + (existingId?'actualitzat':'afegit'))
+               : ('\u2713 Ingrés desat localment' + (sb ? ' (revisa la taula Supabase)' : '')));
+  renderAdminIngressos(document.getElementById('content'));
 }
 
 async function eliminarIngres(id) {
   if (!confirm('Eliminar aquest ingrés? Acció irreversible.')) return;
-  if (!sb) return;
-  try {
-    var res = await sb.from('ingressos').delete().eq('id', id);
-    if (res.error) throw res.error;
-    _ING_CACHE = null;
-    toast('Ingrés eliminat');
-    renderAdminIngressos(document.getElementById('content'));
-  } catch(e) { toast('Error: '+(e.message||e)); }
+  // Esborrar del mirall local
+  var local = _ingLoadLocal().filter(function(x){ return String(x.id) !== String(id); });
+  _ingSaveLocal(local);
+  if (sb) {
+    try {
+      var res = await sb.from('ingressos').delete().eq('id', id);
+      if (res.error) throw res.error;
+    } catch(e) { console.warn('eliminarIngres (núvol):', e && e.message); }
+  }
+  _ING_CACHE = null;
+  toast('Ingrés eliminat');
+  renderAdminIngressos(document.getElementById('content'));
 }
+
 </script>
