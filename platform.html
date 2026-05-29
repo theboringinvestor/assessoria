@@ -114,6 +114,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 .sidebar-role{font-size:10px;color:rgba(255,255,255,.3);margin-top:2px;padding-left:38px}
 .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
 .sidebar-section{font-size:9px;font-weight:500;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.1em;padding:12px 10px 6px}
+.sidebar-section-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:none;cursor:pointer;font-family:var(--fb);transition:color .12s}
+.sidebar-section-toggle:hover{color:rgba(255,255,255,.45)}
+.sidebar-section-chevron{font-size:8px}
+.sidebar-group{display:flex;flex-direction:column;gap:2px}
 .sidebar-item{
   display:flex;align-items:center;gap:10px;padding:10px 12px;
   border-radius:8px;cursor:pointer;color:rgba(255,255,255,.5);
@@ -3167,6 +3171,40 @@ function getMovimentsV2() {
   return Array.isArray(c.moviments_posicions) ? c.moviments_posicions : [];
 }
 
+// ── ALERTA DE VALORS DESACTUALITZATS ──────────────────────────────────────
+// Retorna els dies des de l'última vegada que es va introduir un valor de
+// mercat. null = no hi ha cartera. Infinity = hi ha posicions però cap valor.
+function diesDesActualitzacioValors() {
+  var posicions = getPosicionsV2();
+  if (!posicions.length) return null;
+  var dates = posicions.map(function(p){ return p.valor_data; }).filter(Boolean);
+  if (!dates.length) return Infinity;
+  dates.sort();
+  var ultima = new Date(dates[dates.length - 1]);
+  if (isNaN(ultima.getTime())) return Infinity;
+  return Math.floor((new Date() - ultima) / (1000 * 60 * 60 * 24));
+}
+
+// Banner que recorda actualitzar valors si fa >30 dies (o si no s'ha fet mai).
+// Retorna '' quan no cal mostrar res, així es pot concatenar sense condicions.
+function renderAlertaValors() {
+  var dies = diesDesActualitzacioValors();
+  if (dies === null) return '';            // sense cartera
+  if (dies !== Infinity && dies < 30) return ''; // recent → tot OK
+  var mai = (dies === Infinity);
+  var txt = mai
+    ? 'Encara no has introduït el valor de mercat de les teves posicions. Fes-ho per veure el rendiment real.'
+    : 'Fa ' + dies + ' dies que no actualitzes els valors de mercat. Posa\u2019ls al dia perquè el rendiment i els KPIs siguin reals.';
+  return '<div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:#FEF5E7;border:1px solid #E8C285;border-radius:11px;margin-bottom:18px">'
+    + '<div style="font-size:22px;flex-shrink:0">\ud83d\udd14</div>'
+    + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:12px;font-weight:600;color:#7A4A00">Toca posar la cartera al dia</div>'
+      + '<div style="font-size:11px;color:#9A6B1F;line-height:1.5;margin-top:2px">' + txt + '</div>'
+    + '</div>'
+    + '<button onclick="obrirModalActualitzarValors()" style="padding:8px 16px;background:#7A4A00;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap;flex-shrink:0">\ud83d\udcb1 Actualitzar ara</button>'
+  + '</div>';
+}
+
 // Genera un id local nou (per posicions i moviments)
 function novaIdLocal(prefix) {
   return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
@@ -3539,32 +3577,34 @@ var ADMIN_NAV = [
   {id:'settings',          icon:'⚙️', label:'Configuraci\u00f3'},
 ];
 
+// Menú simplificat estil Trade Republic: poques opcions essencials visibles
+// sempre, i la resta agrupada en seccions plegables (collapsible) per reduir
+// soroll. No s'elimina cap funcionalitat — només es desa un clic enrere.
 var CLIENT_NAV = [
   {section:'El meu espai'},
-  {id:'portal-perfil', icon:'📊', label:'Resum'},
-  {id:'plans', icon:'💎', label:'El meu pla'},
-  {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
+  {id:'portal-perfil', icon:'📊', label:'Resum'},
   {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
-  {id:'portal-oportunitat', icon:'&#128201;', label:'Oportunitat de reforç'},
-  {section:'Comunicació'},
+  {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-missatges', icon:'💬', label:'Missatges'},
-  {section:'Contingut'},
-  {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
+  {section:'Contingut', collapsible:true},
   {id:'portal-informes', icon:'📋', label:'Informes'},
-  {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
+  {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
   {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
-  {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
   {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
   {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
-  {section:'Eines'},
+  {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
+  {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
+  {section:'Eines i calculadores', collapsible:true},
+  {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
+  {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
+  {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
+  {id:'portal-oportunitat', icon:'&#128201;', label:'Oportunitat de reforç'},
   {id:'portal-simulador', icon:'📊', label:'Simulador d\'actius'},
   {id:'portal-montecarlo', icon:'🎲', label:'Monte Carlo'},
   {id:'portal-fiscalitat', icon:'🧾', label:'Calculadora fiscal'},
-  {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
-  {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
-  {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
-  {section:'Suport'},
+  {section:'Compte i suport', collapsible:true},
+  {id:'plans', icon:'💎', label:'El meu pla'},
   {id:'portal-calendari', icon:'📆', label:'Reunions'},
   {id:'portal-notificacions', icon:'🔔', label:'Notificacions'},
   {id:'portal-ajuda', icon:'❓', label:'Ajuda'},
@@ -3606,9 +3646,21 @@ function setupSidebar() {
   }
 
   var html = '';
+  var grpCount = 0;
+  var grpOpen = false;
   items.forEach(function(item) {
     if (item.section) {
-      html += '<div class="sidebar-section">' + item.section + '</div>';
+      if (grpOpen) { html += '</div>'; grpOpen = false; }
+      if (item.collapsible) {
+        grpCount++;
+        var gid = 'sidegrp-' + grpCount;
+        html += '<button class="sidebar-section sidebar-section-toggle" data-grp="' + gid + '" onclick="toggleSidebarSection(\'' + gid + '\')">'
+          + '<span>' + item.section + '</span><span class="sidebar-section-chevron">\u25b8</span></button>';
+        html += '<div class="sidebar-group" id="' + gid + '" style="display:none">';
+        grpOpen = true;
+      } else {
+        html += '<div class="sidebar-section">' + item.section + '</div>';
+      }
     } else if (item.external) {
       html += '<button class="sidebar-item" onclick="openExternal(\'' + item.external + '\')">'
         + '<span class="sidebar-item-icon">' + item.icon + '</span>'
@@ -3623,7 +3675,18 @@ function setupSidebar() {
         + '</button>';
     }
   });
+  if (grpOpen) { html += '</div>'; }
   nav.innerHTML = html;
+}
+
+// Desplega/plega una secció del menú lateral
+function toggleSidebarSection(gid) {
+  var g = document.getElementById(gid);
+  if (!g) return;
+  var obert = g.style.display !== 'none';
+  g.style.display = obert ? 'none' : 'block';
+  var chev = document.querySelector('.sidebar-section-toggle[data-grp="' + gid + '"] .sidebar-section-chevron');
+  if (chev) chev.textContent = obert ? '\u25b8' : '\u25be';
 }
 
 function navigateTo(viewId) {
@@ -3633,6 +3696,16 @@ function navigateTo(viewId) {
   document.querySelectorAll('.sidebar-item').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.view === viewId);
   });
+  // Si la vista activa viu dins d'un grup plegat, desplega'l perquè es vegi
+  var actBtn = document.querySelector('.sidebar-item.active');
+  if (actBtn && actBtn.closest) {
+    var grp = actBtn.closest('.sidebar-group');
+    if (grp) {
+      grp.style.display = 'block';
+      var chev = document.querySelector('.sidebar-section-toggle[data-grp="' + grp.id + '"] .sidebar-section-chevron');
+      if (chev) chev.textContent = '\u25be';
+    }
+  }
 
   // Update topbar
   var titles = {
@@ -4668,6 +4741,7 @@ function _renderPortalPerfilImpl(el) {
   } // ← tanca else (block hasPortfolio)
 
   // Unread messages alert — dinàmic amb id per actualitzar després
+  html += renderAlertaValors();
   html += '<div id="unread-banner" style="display:none"></div>';
 
   // Placeholder per a Accions pendents — es renderitzarà dinàmicament
@@ -6446,46 +6520,48 @@ function renderPortalCartera(el) {
   });
   tabHtml += '</div>';
 
-  // Botons d'acció globals (apareixen a totes les pestanyes)
-  var accionsBtns = '<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">'
-    + '<button onclick="obrirModalMoviment()" style="padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Registrar moviment</button>'
-    + '<button onclick="obrirModalActualitzarValors()" style="padding:9px 16px;background:var(--white);color:var(--black);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">💱 Actualitzar valors</button>'
-    + '<button onclick="obrirModalAfegirPosicio()" style="padding:9px 16px;background:var(--white);color:var(--g600);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Afegir posició</button>'
-    + '<button onclick="guardarSnapshotManual()" title="Desar snapshot del mes actual amb els valors actuals" style="padding:9px 14px;background:var(--white);color:#7A4A00;border:1.5px solid #E8C285;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">📸 Snapshot</button>'
+  // Barra d'accions simplificada: 2 accions primàries + ajuda contextual.
+  // Les opcions avançades queden en una segona línia discreta.
+  var accionsBtns = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">'
+    + '<button onclick="obrirModalActualitzarValors()" style="padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">💱 Actualitzar valors</button>'
+    + '<button onclick="obrirModalMoviment()" style="padding:9px 16px;background:var(--white);color:var(--black);border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">+ Moviment</button>'
     + '<div style="flex:1"></div>'
-    + '<button onclick="exportarCarteraCSV()" style="padding:9px 14px;background:transparent;color:var(--g500);border:1.5px solid var(--g200);border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb)">📄 CSV</button>'
+    + '<button onclick="obrirAjudaContextual(\'portal-cartera\')" style="padding:8px 13px;background:transparent;color:var(--g500);border:1.5px solid var(--g200);border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb)">\u24d8 Com funciona</button>'
+  + '</div>'
+  + '<div style="display:flex;gap:16px;margin-bottom:20px;font-size:11px;flex-wrap:wrap">'
+    + '<span onclick="obrirModalAfegirPosicio()" style="cursor:pointer;color:var(--g500)">+ Afegir posició</span>'
+    + '<span onclick="guardarSnapshotManual()" style="cursor:pointer;color:var(--g500)">📸 Desar snapshot</span>'
+    + '<span onclick="exportarCarteraCSV()" style="cursor:pointer;color:var(--g500)">📄 Exportar CSV</span>'
   + '</div>';
 
-  var html = tabHtml + accionsBtns;
+  var html = tabHtml + renderAlertaValors() + accionsBtns;
 
   // ── PESTANYA 1: RESUM ─────────────────────────────────────────────
   if (tabParam === 'resum') {
-    var bgPnl = kpis.pnl_eur >= 0 ? '#EAF3DE' : '#FDF0F0';
-    var colPnl = kpis.pnl_eur >= 0 ? '#1A5C3A' : '#C0392B';
-    var bgCagr = kpis.cagr >= 0 ? '#EAF3DE' : '#FDF0F0';
-    var colCagr = kpis.cagr >= 0 ? '#1A5C3A' : '#C0392B';
+    // Helper local per als indicadors secundaris del hero
+    function miniKpi(l, v, c) {
+      return '<div><div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">' + l + '</div>'
+        + '<div style="font-family:var(--fm);font-size:15px;font-weight:600;color:' + c + '">' + v + '</div></div>';
+    }
 
-    // KPIs hero (4 cards)
-    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px" class="mob-grid">'
-      + '<div style="padding:16px;background:var(--white);border:1px solid var(--g200);border-radius:11px">'
-        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">💼 Valor cartera</div>'
-        + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:var(--black)">'+kpis.valor_total.toLocaleString('ca-ES')+'€</div>'
-        + '<div style="font-size:10px;color:var(--g400);margin-top:4px">'+kpis.num_posicions+' posicions actives</div>'
+    var pnlUp = kpis.pnl_eur >= 0;
+    var heroCol = pnlUp ? '#1A5C3A' : '#C0392B';
+    var heroArrow = pnlUp ? '\u25b2' : '\u25bc';
+
+    // Hero estil Trade Republic: el valor i el rendiment manen
+    html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:26px 28px;margin-bottom:18px">'
+      + '<div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Valor total de la cartera</div>'
+      + '<div style="font-family:var(--fm);font-size:40px;font-weight:600;letter-spacing:-1px;color:var(--black);line-height:1">' + kpis.valor_total.toLocaleString('ca-ES') + ' \u20ac</div>'
+      + '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap">'
+        + '<span style="font-family:var(--fm);font-size:15px;font-weight:600;color:' + heroCol + '">' + heroArrow + ' ' + (pnlUp ? '+' : '') + kpis.pnl_eur.toLocaleString('ca-ES') + ' \u20ac</span>'
+        + '<span style="padding:3px 9px;border-radius:99px;font-size:12px;font-weight:600;background:' + (pnlUp ? '#EAF3DE' : '#FDF0F0') + ';color:' + heroCol + '">' + (pnlUp ? '+' : '') + kpis.pnl_pct.toFixed(1) + '%</span>'
+        + '<span style="font-size:11px;color:var(--g400)">des de l\u2019inici</span>'
       + '</div>'
-      + '<div style="padding:16px;background:var(--white);border:1px solid var(--g200);border-radius:11px">'
-        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">💰 Capital invertit</div>'
-        + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:var(--black)">'+kpis.cost_total.toLocaleString('ca-ES')+'€</div>'
-        + '<div style="font-size:10px;color:var(--g400);margin-top:4px">'+kpis.num_moviments+' moviments registrats</div>'
-      + '</div>'
-      + '<div style="padding:16px;background:'+bgPnl+';border-radius:11px">'
-        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">📈 Guany absolut</div>'
-        + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:'+colPnl+'">'+(kpis.pnl_eur>=0?'+':'')+kpis.pnl_eur.toLocaleString('ca-ES')+'€</div>'
-        + '<div style="font-size:10px;color:'+colPnl+';margin-top:4px;font-weight:500">'+(kpis.pnl_pct>=0?'+':'')+kpis.pnl_pct.toFixed(1)+'%</div>'
-      + '</div>'
-      + '<div style="padding:16px;background:'+bgCagr+';border-radius:11px">'
-        + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">⚡ Rendiment anual</div>'
-        + '<div style="font-family:var(--fm);font-size:22px;font-weight:500;color:'+colCagr+'">'+(kpis.cagr>=0?'+':'')+kpis.cagr.toFixed(1)+'%</div>'
-        + '<div style="font-size:10px;color:var(--g400);margin-top:4px">'+kpis.anys_actiu.toFixed(1)+' anys actiu</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:18px;padding-top:16px;border-top:1px solid var(--g100)">'
+        + miniKpi('Capital invertit', kpis.cost_total.toLocaleString('ca-ES') + ' \u20ac', 'var(--black)')
+        + miniKpi('Rendiment anual', (kpis.cagr >= 0 ? '+' : '') + kpis.cagr.toFixed(1) + '%', kpis.cagr >= 0 ? '#1A5C3A' : '#C0392B')
+        + miniKpi('Posicions', String(kpis.num_posicions), 'var(--black)')
+        + miniKpi('Antiguitat', kpis.anys_actiu.toFixed(1) + ' anys', 'var(--g600)')
       + '</div>'
     + '</div>';
 
