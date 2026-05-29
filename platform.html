@@ -1213,7 +1213,7 @@ var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
 // Data i hora de creació d'aquest arxiu platform.html per Claude.
 // Format: YYYY-MM-DD · HH:MMh (Barcelona). S'actualitza a cada build.
-var TBI_VERSION = '2026-05-29 · 11:38h';
+var TBI_VERSION = '2026-05-29 · 11:52h';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
@@ -2612,6 +2612,7 @@ async function enterApp(role, email, isDemo) {
 
   // Carregar paràmetres globals d'actius (μ/σ/correlacions) — no bloqueja si falla
   try { await carregarConfigActius(); } catch(e) { console.warn('[enterApp] config actius:', e); }
+  try { await carregarOppConfig(); } catch(e) { console.warn('[enterApp] config oportunitats:', e); }
 
   // Hide login, show app
   document.getElementById('login-screen').classList.add('hidden');
@@ -3507,6 +3508,7 @@ var ADMIN_NAV = [
   {id:'admin-plans',       icon:'&#128142;', label:'Plans'},
   {id:'admin-ingressos',    icon:'&#128182;', label:'Ingressos'},
   {id:'admin-parametres',  icon:'&#128202;', label:'Par\u00e0metres d\u2019actius'},
+  {id:'admin-radar',       icon:'&#128201;', label:'Radar d\u2019Oportunitats'},
   {section:'Clients'},
   {id:'admin-pendents',    icon:'⏳', label:'Sol\u00b7licituds pendents'},
   {id:'admin-entrevista',  icon:'📋', label:'Entrevista inicial'},
@@ -3521,6 +3523,7 @@ var ADMIN_NAV = [
   {id:'portal-roadmap',    icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-cartera',    icon:'💼', label:'La meva cartera'},
   {id:'portal-aportacions',icon:'📅', label:"Pla d'aportacions"},
+  {id:'portal-oportunitat',icon:'&#128201;', label:'Oportunitat de reforç'},
   {id:'portal-assessoria', icon:'📈', label:'An\u00e0lisi de mercat'},
   {id:'portal-informes',   icon:'📋', label:'Informes'},
   {id:'portal-carteres',   icon:'🗂', label:'Carteres Model'},
@@ -3543,6 +3546,7 @@ var CLIENT_NAV = [
   {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
   {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
+  {id:'portal-oportunitat', icon:'&#128201;', label:'Oportunitat de reforç'},
   {section:'Comunicació'},
   {id:'portal-missatges', icon:'💬', label:'Missatges'},
   {section:'Contingut'},
@@ -3636,6 +3640,8 @@ function navigateTo(viewId) {
     'admin-clients': ['Clients', 'Llistat i gestió de clients'],
     'admin-ingressos': ['Ingressos', 'Facturació i ingressos de l\'assessoria'],
     'admin-parametres': ['Paràmetres d\'actius', 'Rendiments, volatilitats i correlacions \u2014 base de tots els anàlisis'],
+    'admin-radar': ['Radar d\'Oportunitats', 'Detecció de caigudes i reforç dinàmic d\'aportacions'],
+    'portal-oportunitat': APP.role === 'admin' ? ['Portal Client · Oportunitat', '👁 Previsualització'] : ['Oportunitat de reforç', 'Aprofita les caigudes per millorar el preu d\'entrada'],
     'admin-diagnostic': ['Diagn\u00f2stic de Client', 'Genera el pla financer personalitzat amb AI'],
     'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '👁 Previsualització'] : ['Resum', 'Vista general del teu perfil inversor'],
     'portal-roadmap': APP.role === 'admin' ? ['Portal Client · Full de Ruta', '👁 Previsualització · Editable'] : ['Full de Ruta', 'El teu pla financer personalitzat'],
@@ -3725,6 +3731,8 @@ function renderView(viewId) {
     case 'admin-clients': renderClientsList(content); break;
     case 'admin-ingressos': renderAdminIngressos(content); break;
     case 'admin-parametres': renderAdminParametres(content); break;
+    case 'admin-radar': renderAdminRadar(content); break;
+    case 'portal-oportunitat': renderPortalOportunitat(content); break;
     case 'admin-diagnostic': renderAdminDiagnostic(content); break;
     case 'plans': renderPlansScreen(content); break;
     case 'admin-plans': renderAdminPlans(content); break;
@@ -16543,6 +16551,304 @@ function renderAdminParametres(el){
   html += '</div></div>';
 
   el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RADAR D'OPORTUNITATS — detecció de caigudes i reforç dinàmic d'aportacions
+// Capa A (snapshots de cartera) + Capa C (override manual de l'admin).
+// No depèn de cap API externa. Es desa a tbi_config (clau 'opp_config').
+// ════════════════════════════════════════════════════════════════════
+var TBI_OPP_CFG = {
+  tiers: [
+    { min:5,  mult:1.25, label:'Correcció lleu',          deploy:0.10 },
+    { min:10, mult:1.5,  label:'Correcció',               deploy:0.25 },
+    { min:20, mult:2.0,  label:'Mercat baixista',         deploy:0.40 },
+    { min:30, mult:3.0,  label:'Crisi · gran oportunitat',deploy:1.00 },
+  ],
+  manual: { actiu:false, caiguda:0, missatge:'', fins:'' },
+  loaded:false
+};
+var _OPP_CFG_LSKEY = 'tbi_opp_cfg_v1';
+var _OPP_RES_LSKEY = 'tbi_opp_reserva_v1';
+
+async function carregarOppConfig(){
+  var loaded=false;
+  try {
+    if (sb) {
+      var res = await sb.from('tbi_config').select('value').eq('key','opp_config').maybeSingle();
+      if (!res.error && res.data && res.data.value){
+        var v=res.data.value;
+        if (Array.isArray(v.tiers)) TBI_OPP_CFG.tiers = v.tiers;
+        if (v.manual) TBI_OPP_CFG.manual = v.manual;
+        loaded=true;
+      }
+    }
+  } catch(e){ console.warn('[carregarOppConfig] Supabase:', e && e.message); }
+  if (!loaded){
+    try { var ls=localStorage.getItem(_OPP_CFG_LSKEY); if (ls){ var p=JSON.parse(ls); if (Array.isArray(p.tiers)) TBI_OPP_CFG.tiers=p.tiers; if (p.manual) TBI_OPP_CFG.manual=p.manual; } } catch(e){}
+  }
+  TBI_OPP_CFG.loaded=true;
+  return TBI_OPP_CFG;
+}
+async function desarOppConfig(){
+  var payload = { tiers: TBI_OPP_CFG.tiers, manual: TBI_OPP_CFG.manual };
+  try { localStorage.setItem(_OPP_CFG_LSKEY, JSON.stringify(payload)); } catch(e){}
+  if (!sb) return { ok:true, cloud:false };
+  try {
+    var res = await sb.from('tbi_config').upsert({ key:'opp_config', value:payload, updated_at:new Date().toISOString() }, { onConflict:'key' });
+    if (res.error) throw res.error;
+    return { ok:true, cloud:true };
+  } catch(e){ console.warn('[desarOppConfig]', e && e.message); return { ok:true, cloud:false }; }
+}
+
+function _oppEur(n){ return new Intl.NumberFormat('ca-ES',{maximumFractionDigits:0}).format(Math.round(n||0))+'\u20AC'; }
+function _oppParseAport(c){
+  var v = c && c.perfil && c.perfil.aportacioMensual;
+  var n = parseFloat(String(v==null?'':v).replace(/[^0-9.,]/g,'').replace(',','.'));
+  return isNaN(n)?0:n;
+}
+function _oppReserva(email){
+  var def={ total:0, disponible:0 };
+  if(!email) return def;
+  try { var all=JSON.parse(localStorage.getItem(_OPP_RES_LSKEY)||'{}'); var r=all[email.toLowerCase()];
+    if(r) return { total:parseFloat(r.total)||0, disponible:(r.disponible==null?(parseFloat(r.total)||0):parseFloat(r.disponible)||0) };
+  } catch(e){}
+  return def;
+}
+function _oppSetReserva(email,total,disponible){
+  if(!email) return;
+  try { var all=JSON.parse(localStorage.getItem(_OPP_RES_LSKEY)||'{}');
+    all[email.toLowerCase()]={ total:parseFloat(total)||0, disponible:(disponible==null?(parseFloat(total)||0):parseFloat(disponible)||0) };
+    localStorage.setItem(_OPP_RES_LSKEY, JSON.stringify(all));
+  } catch(e){}
+}
+// Caiguda (%) des del pic dels snapshots de cartera
+function _oppDrawdownSnapshots(c){
+  var snaps = (c && Array.isArray(c.snapshots_cartera)) ? c.snapshots_cartera : [];
+  if (snaps.length < 2) return null;
+  var ord = snaps.slice().sort(function(a,b){ return String(a.mes||a.data||'').localeCompare(String(b.mes||b.data||'')); });
+  var peak=0, peakMes='';
+  for (var i=0;i<ord.length;i++){ var v=parseFloat(ord[i].valor)||0; if (v>peak){ peak=v; peakMes=ord[i].mes||ord[i].data||''; } }
+  var last=parseFloat(ord[ord.length-1].valor)||0;
+  if (peak<=0) return null;
+  var dd=(last-peak)/peak*100;
+  return { caiguda: dd<0?dd:0, peak:peak, actual:last, peakMes:peakMes };
+}
+function _oppNivell(caigudaPct){
+  var abs=Math.abs(caigudaPct||0), tiers=TBI_OPP_CFG.tiers||[];
+  var sel={ nivell:0, mult:1, label:'Normal', deploy:0 };
+  for (var i=0;i<tiers.length;i++){ if (abs>=tiers[i].min){ sel={ nivell:i+1, mult:tiers[i].mult, label:tiers[i].label, deploy:tiers[i].deploy }; } }
+  return sel;
+}
+// Senyal complet per a un client (combina snapshots + override manual de l'admin)
+function _oppSenyalClient(c){
+  var dd=_oppDrawdownSnapshots(c);
+  var caiguda = dd ? dd.caiguda : 0;
+  var font = dd ? 'snapshots' : 'cap';
+  var man=TBI_OPP_CFG.manual;
+  if (man && man.actiu && Math.abs(parseFloat(man.caiguda)||0) > Math.abs(caiguda)){
+    caiguda = -Math.abs(parseFloat(man.caiguda)||0); font='manual';
+  }
+  var niv=_oppNivell(caiguda);
+  var aport=_oppParseAport(c);
+  var reforc=aport*niv.mult;
+  var reserva=_oppReserva(c.email);
+  var desplegament=Math.max(0, Math.min(reserva.disponible, reserva.total*niv.deploy));
+  return {
+    caiguda:caiguda, font:font, nivell:niv.nivell, mult:niv.mult, label:niv.label, deploy:niv.deploy,
+    aportBase:aport, aportReforc:reforc, extra:Math.max(0,reforc-aport),
+    reservaTotal:reserva.total, reservaDisp:reserva.disponible, desplegament:desplegament,
+    peak: dd?dd.peak:0, actual: dd?dd.actual:0, missatgeManual:(man&&man.actiu?man.missatge:'')
+  };
+}
+
+// ── VISTA ADMIN · RADAR ──────────────────────────────────────────────
+var _OPP_DIRTY=false;
+function _oppMarkDirty(){ _OPP_DIRTY=true; var b=document.getElementById('opp-save-btn'); if(b){ b.disabled=false; b.style.opacity='1'; b.style.cursor='pointer'; } }
+function _oppSetManual(field,val){
+  if (field==='actiu') TBI_OPP_CFG.manual.actiu=!!val;
+  else if (field==='caiguda') TBI_OPP_CFG.manual.caiguda=parseFloat(val)||0;
+  else TBI_OPP_CFG.manual[field]=val;
+  _oppMarkDirty();
+}
+function _oppSetTier(i,field,val){ var t=TBI_OPP_CFG.tiers[i]; if(!t) return; t[field]=parseFloat(val)||0; _oppMarkDirty(); }
+async function desarOppConfigUI(){
+  var b=document.getElementById('opp-save-btn'); if(b){ b.disabled=true; b.textContent='Desant\u2026'; }
+  var r=await desarOppConfig(); _OPP_DIRTY=false;
+  if(b){ b.textContent='\u2713 Desat'; setTimeout(function(){ if(b){ b.textContent='Desar config'; b.style.opacity='.5'; b.style.cursor='default'; } },1500); }
+  toast(r.cloud?'\u2713 Configuració desada al núvol':'\u2713 Desada localment');
+  renderAdminRadar(document.getElementById('content'));
+}
+function _oppAvisar(email){
+  var c=(APP.clientsList||[]).find(function(x){ return x.email===email; });
+  if(!c){ toast('Client no trobat'); return; }
+  var s=_oppSenyalClient(c);
+  var msg='Hola '+(c.nom||'')+'! El mercat ha caigut un '+Math.abs(s.caiguda).toFixed(1).replace('.',',')+'% ('+s.label+'). '
+    + 'És una oportunitat per millorar el preu mitjà d\u2019entrada: et suggereixo reforçar l\u2019aportació d\u2019aquest mes de '
+    + _oppEur(s.aportBase)+' a '+_oppEur(s.aportReforc)+' (×'+s.mult+'). '
+    + (s.desplegament>0?('Desplegament suggerit de la reserva: '+_oppEur(s.desplegament)+'. '):'')
+    + 'Recorda: invertim de forma planificada, no intentem encertar el terra. Em dius si vols que ho activem?';
+  if (typeof obrirCompositorMissatge==='function'){ try{ obrirCompositorMissatge(email,msg); return; }catch(e){} }
+  try { navigator.clipboard.writeText(msg); toast('\u2713 Missatge copiat al porta-retalls'); }
+  catch(e){ alert(msg); }
+}
+function renderAdminRadar(el){
+  function pf(n){ return (Math.round((parseFloat(n)||0)*10)/10).toString().replace('.',','); }
+  var man=TBI_OPP_CFG.manual||{};
+  var css='<style>'
+    + '.rd-wrap{max-width:1080px}'
+    + '.rd-bar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid var(--g200);border-radius:12px;padding:14px 18px;margin-bottom:22px}'
+    + '.rd-bar-l{font-size:12px;color:var(--g500);line-height:1.5;max-width:600px}'
+    + '.rd-btn{padding:10px 18px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)}'
+    + '.rd-sec{margin-bottom:30px}'
+    + '.rd-h{font-family:var(--fd);font-size:19px;font-weight:400;margin-bottom:4px}'
+    + '.rd-d{font-size:12.5px;color:var(--g500);line-height:1.6;margin-bottom:16px;max-width:680px}'
+    + '.rd-panel{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 20px}'
+    + '.rd-field{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}'
+    + '.rd-field label{font-size:12px;color:var(--g600);min-width:150px}'
+    + '.rd-in{padding:8px 10px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fm)}'
+    + '.rd-tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden}'
+    + '.rd-tbl th{font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);text-align:left;padding:10px 12px;border-bottom:1px solid var(--g200);background:var(--g50)}'
+    + '.rd-tbl th.r,.rd-tbl td.r{text-align:right}'
+    + '.rd-tbl td{padding:9px 12px;border-bottom:1px solid var(--g100);font-size:12.5px;vertical-align:middle}'
+    + '.rd-badge{font-family:var(--fm);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px}'
+    + '.rd-lv0{background:var(--g100);color:var(--g500)}.rd-lv1{background:#FAEEDA;color:#7A4A00}.rd-lv2{background:#FAEEDA;color:#7A4A00}'
+    + '.rd-lv3{background:#FBE3DA;color:#8A3A1A}.rd-lv4{background:#F7D9D9;color:#8B1A1A}'
+    + '.rd-mini{padding:6px 11px;background:#fff;border:1.5px solid #1B3A6B;color:#1B3A6B;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)}'
+    + '</style>';
+  var html=css+'<div class="rd-wrap">'
+    + '<div class="rd-bar"><div class="rd-bar-l"><strong>Detecta caigudes i proposa reforços d\u2019aportació dinàmics.</strong> La caiguda es calcula des del pic dels snapshots de cartera de cada client. Pots forçar un senyal global manualment (capa override) per a esdeveniments de mercat.</div>'
+    + '<button class="rd-btn" id="opp-save-btn" onclick="desarOppConfigUI()" style="opacity:.5;cursor:default" disabled>Desar config</button></div>';
+
+  // Override manual
+  html+='<div class="rd-sec"><div class="rd-h">Senyal manual de mercat (override)</div>'
+    + '<div class="rd-d">Quan l\u2019actives, s\u2019aplica a tots els clients amb la caiguda que indiquis (si és més severa que la seva pròpia). Útil quan saps que hi ha hagut una correcció general.</div>'
+    + '<div class="rd-panel">'
+    + '<div class="rd-field"><label>Senyal actiu</label><input type="checkbox" '+(man.actiu?'checked':'')+' onchange="_oppSetManual(\'actiu\',this.checked)"> <span style="font-size:11px;color:var(--g400)">marca per forçar l\u2019alerta a tots els clients</span></div>'
+    + '<div class="rd-field"><label>Caiguda de mercat (%)</label><input class="rd-in" type="number" step="0.5" min="0" max="80" style="width:90px" value="'+(Math.abs(man.caiguda)||'')+'" onchange="_oppSetManual(\'caiguda\',this.value)"><span style="font-size:11px;color:var(--g400)">p. ex. 12 = caiguda del 12%</span></div>'
+    + '<div class="rd-field"><label>Missatge (opcional)</label><input class="rd-in" type="text" style="flex:1;min-width:240px" value="'+(man.missatge||'').replace(/"/g,'&quot;')+'" placeholder="Correcció per tensions geopolítiques\u2026" onchange="_oppSetManual(\'missatge\',this.value)"></div>'
+    + '</div></div>';
+
+  // Escala de nivells (editable)
+  html+='<div class="rd-sec"><div class="rd-h">Escala de reforç</div>'
+    + '<div class="rd-d">Multiplicador d\u2019aportació i % de la reserva d\u2019oportunitat a desplegar segons la severitat de la caiguda. Aquests valors s\u2019apliquen a tots els clients.</div>'
+    + '<table class="rd-tbl"><thead><tr><th>Nivell</th><th class="r">Caiguda des de màxim (≥ %)</th><th class="r">Multiplicador aportació</th><th class="r">Desplegament reserva (%)</th></tr></thead><tbody>';
+  (TBI_OPP_CFG.tiers||[]).forEach(function(t,i){
+    html+='<tr><td><span class="rd-badge rd-lv'+(i+1)+'">Nivell '+(i+1)+'</span> '+t.label+'</td>'
+      + '<td class="r"><input class="rd-in" type="number" step="1" min="1" style="width:74px;text-align:right" value="'+t.min+'" onchange="_oppSetTier('+i+',\'min\',this.value)"></td>'
+      + '<td class="r"><input class="rd-in" type="number" step="0.05" min="1" style="width:74px;text-align:right" value="'+t.mult+'" onchange="_oppSetTier('+i+',\'mult\',this.value)"></td>'
+      + '<td class="r"><input class="rd-in" type="number" step="0.05" min="0" max="1" style="width:74px;text-align:right" value="'+t.deploy+'" onchange="_oppSetTier('+i+',\'deploy\',this.value)"></td></tr>';
+  });
+  html+='</tbody></table></div>';
+
+  // Llista de clients amb senyal
+  html+='<div class="rd-sec"><div class="rd-h">Clients · senyal actual</div>'
+    + '<div class="rd-d">Caiguda detectada, reforç suggerit i reserva disponible de cada client. El botó «Avisar» prepara el missatge.</div>'
+    + '<table class="rd-tbl"><thead><tr><th>Client</th><th class="r">Caiguda</th><th>Nivell</th><th class="r">Aportació</th><th class="r">Reserva / desplegar</th><th></th></tr></thead><tbody>';
+  var clients=(APP.clientsList||[]);
+  if (!clients.length){ html+='<tr><td colspan="6" style="color:var(--g400);text-align:center;padding:18px">Carrega la llista de clients per veure els senyals.</td></tr>'; }
+  clients.forEach(function(c){
+    var s=_oppSenyalClient(c);
+    var caigStr = s.caiguda<0 ? ('−'+Math.abs(s.caiguda).toFixed(1).replace('.',',')+'%') : '—';
+    html+='<tr><td><strong>'+(c.nom||c.email)+'</strong><br><span style="font-size:10px;color:var(--g400)">font: '+(s.font==='manual'?'manual':(s.font==='snapshots'?'snapshots':'sense dades'))+'</span></td>'
+      + '<td class="r" style="font-family:var(--fm);color:'+(s.caiguda<0?'#8B1A1A':'var(--g400)')+'">'+caigStr+'</td>'
+      + '<td><span class="rd-badge rd-lv'+s.nivell+'">'+(s.nivell===0?'Normal':('N'+s.nivell+' · ×'+s.mult))+'</span></td>'
+      + '<td class="r" style="font-family:var(--fm)">'+(s.nivell>0?(_oppEur(s.aportBase)+' → <strong>'+_oppEur(s.aportReforc)+'</strong>'):_oppEur(s.aportBase))+'</td>'
+      + '<td class="r" style="font-family:var(--fm)">'+_oppEur(s.reservaDisp)+(s.desplegament>0?(' / <strong>'+_oppEur(s.desplegament)+'</strong>'):'')+'</td>'
+      + '<td class="r">'+(s.nivell>0?'<button class="rd-mini" onclick="_oppAvisar(\''+c.email+'\')">Avisar</button>':'')+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  html+='<div style="font-size:11px;color:var(--g400);line-height:1.6">Nota: el reforç és sempre informatiu i s\u2019ha de finançar amb la reserva d\u2019oportunitat (mai amb el fons d\u2019emergència ni amb deute). Les caigudes poden continuar; l\u2019objectiu és millorar el preu mitjà d\u2019entrada i la disciplina, no encertar el mínim.</div>';
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+// ── VISTA CLIENT · OPORTUNITAT DE REFORÇ ─────────────────────────────
+function _oppSetReservaUI(){
+  var c=getClient(); if(!c) return;
+  var total=document.getElementById('opp-res-total').value;
+  _oppSetReserva(c.email, total, total);
+  toast('\u2713 Reserva d\u2019oportunitat actualitzada');
+  renderPortalOportunitat(document.getElementById('content'));
+}
+function _oppVullReforcar(){
+  var c=getClient(); if(!c) return;
+  var s=_oppSenyalClient(c);
+  var msg='Vull reforçar la meva aportació aprofitant la caiguda del '+Math.abs(s.caiguda).toFixed(1).replace('.',',')+'%. '
+    + 'Passar de '+_oppEur(s.aportBase)+' a '+_oppEur(s.aportReforc)+' aquest mes.';
+  if (typeof renderView==='function'){ try{ navigator.clipboard.writeText(msg); }catch(e){} toast('\u2713 Enviat a l\u2019assessor (missatge preparat)'); renderView('portal-missatges'); return; }
+  alert(msg);
+}
+function renderPortalOportunitat(el){
+  var c=getClient();
+  var s=c?_oppSenyalClient(c):null;
+  var blau='#1B3A6B';
+  var css='<style>'
+    + '.op-wrap{max-width:760px}'
+    + '.op-hero{border-radius:14px;padding:24px 26px;margin-bottom:22px}'
+    + '.op-hero.act{background:#FBF3E6;border:1px solid #E8C285}'
+    + '.op-hero.calm{background:#F4F7FC;border:1px solid #D6E2F2}'
+    + '.op-k{font-family:var(--fm);font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}'
+    + '.op-big{font-family:var(--fd);font-size:30px;font-weight:400;letter-spacing:-.5px;line-height:1.15;margin-bottom:6px}'
+    + '.op-sub{font-size:13px;line-height:1.6}'
+    + '.op-cta{margin-top:18px;padding:12px 22px;background:'+blau+';color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)}'
+    + '.op-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}'
+    + '.op-card{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px}'
+    + '.op-card .l{font-size:11px;color:var(--g500);margin-bottom:6px}'
+    + '.op-card .v{font-family:var(--fd);font-size:22px;font-weight:400}'
+    + '.op-ladder{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:8px 4px;margin-bottom:22px}'
+    + '.op-row{display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid var(--g100);font-size:12.5px}'
+    + '.op-row:last-child{border-bottom:none}'
+    + '.op-row .lv{font-family:var(--fm);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;min-width:64px;text-align:center}'
+    + '.op-row .rng{flex:1;color:var(--g600)}.op-row .mx{font-family:var(--fm);font-weight:600}'
+    + '.op-resbox{background:#F4F7FC;border:1px solid #D6E2F2;border-radius:12px;padding:16px 18px;margin-bottom:18px}'
+    + '.op-resin{padding:9px 11px;border:1.5px solid #B7CCE6;border-radius:8px;font-size:13px;font-family:var(--fm);width:120px}'
+    + '.op-note{font-size:11.5px;color:var(--g400);line-height:1.6}'
+    + '</style>';
+  var html=css+'<div class="op-wrap">';
+
+  if (s && s.nivell>0){
+    var caigStr=Math.abs(s.caiguda).toFixed(1).replace('.',',');
+    html+='<div class="op-hero act">'
+      + '<div class="op-k" style="color:#7A4A00">Oportunitat de reforç · '+s.label+'</div>'
+      + '<div class="op-big" style="color:#5A3600">El mercat ha caigut un '+caigStr+'%</div>'
+      + '<div class="op-sub" style="color:#6A4A1A">'+(s.missatgeManual?(s.missatgeManual+' '):'')+'Aprofitar les caigudes millora el teu preu mitjà d\u2019entrada. Reforç suggerit aquest mes:</div>'
+      + '<div style="margin-top:16px;font-family:var(--fd);font-size:26px;color:#5A3600">'+_oppEur(s.aportBase)+' <span style="color:#A87B30">→</span> '+_oppEur(s.aportReforc)+' <span style="font-size:14px;color:#A87B30">(×'+s.mult+')</span></div>'
+      + (s.desplegament>0?('<div class="op-sub" style="color:#6A4A1A;margin-top:6px">Desplegament suggerit de la teva reserva d\u2019oportunitat: <strong>'+_oppEur(s.desplegament)+'</strong></div>'):'')
+      + '<button class="op-cta" onclick="_oppVullReforcar()">Vull reforçar →</button>'
+      + '</div>';
+    html+='<div class="op-cards">'
+      + '<div class="op-card"><div class="l">Aportació extra</div><div class="v">'+_oppEur(s.extra)+'</div></div>'
+      + '<div class="op-card"><div class="l">Reserva disponible</div><div class="v">'+_oppEur(s.reservaDisp)+'</div></div>'
+      + '</div>';
+  } else {
+    html+='<div class="op-hero calm">'
+      + '<div class="op-k" style="color:'+blau+'">Radar d\u2019oportunitats</div>'
+      + '<div class="op-big" style="color:#1B2A44">Sense caigudes rellevants ara mateix</div>'
+      + '<div class="op-sub" style="color:#3A4A66">Quan el mercat caigui de forma significativa, aquí veuràs un reforç d\u2019aportació suggerit per comprar a millor preu. Mentrestant, prepara la teva reserva d\u2019oportunitat.</div>'
+      + '</div>';
+  }
+
+  // Reserva d'oportunitat
+  var res=c?_oppReserva(c.email):{total:0,disponible:0};
+  html+='<div class="op-resbox"><div style="font-size:13px;font-weight:500;color:'+blau+';margin-bottom:6px">La teva reserva d\u2019oportunitat</div>'
+    + '<div class="op-note" style="margin-bottom:10px">Capital que reserves expressament per desplegar en caigudes (separat del fons d\u2019emergència). Recomanació: 3–6 mesos d\u2019aportacions.</div>'
+    + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><input id="opp-res-total" class="op-resin" type="number" min="0" step="100" value="'+(res.total||'')+'" placeholder="0"><span style="font-size:12px;color:var(--g500)">€ reservats</span>'
+    + '<button class="rd-mini" style="padding:8px 14px;border-color:'+blau+';color:'+blau+';background:#fff;border:1.5px solid '+blau+';border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)" onclick="_oppSetReservaUI()">Desar</button></div></div>';
+
+  // Escala
+  html+='<div style="font-size:13px;font-weight:500;margin:0 0 8px 2px">Com funciona el reforç</div><div class="op-ladder">';
+  var cls=['','rd-lv1','rd-lv2','rd-lv3','rd-lv4'];
+  var bg=['','#FAEEDA','#FAEEDA','#FBE3DA','#F7D9D9'], fg=['','#7A4A00','#7A4A00','#8A3A1A','#8B1A1A'];
+  (TBI_OPP_CFG.tiers||[]).forEach(function(t,i){
+    var maxStr=(TBI_OPP_CFG.tiers[i+1]?('fins '+TBI_OPP_CFG.tiers[i+1].min+'%'):'i més');
+    html+='<div class="op-row"><span class="lv" style="background:'+bg[i+1]+';color:'+fg[i+1]+'">×'+t.mult+'</span>'
+      + '<span class="rng">Caiguda del '+t.min+'% '+maxStr+' · '+t.label+'</span></div>';
+  });
+  html+='</div>';
+  html+='<div class="op-note">Aquesta eina és informativa: tu decideixes. El reforç es finança amb la reserva d\u2019oportunitat, mai amb el fons d\u2019emergència ni amb deute. Les caigudes poden continuar — l\u2019objectiu és millorar el preu mitjà d\u2019entrada i mantenir la disciplina, no encertar el mínim exacte.</div>';
+  html+='</div>';
+  el.innerHTML=html;
 }
 
 function _renderSimActiusList(){
