@@ -2746,6 +2746,7 @@ async function enterApp(role, email, isDemo) {
   if (role === 'client') {
     setTimeout(function() {
       try { actualitzarBannerMissatges(); } catch(e) {}
+      try { comprovarRecordatoriMensual(); } catch(e) {}
     }, 800);
   }
   if (role === 'admin') {
@@ -3188,13 +3189,15 @@ function diesDesActualitzacioValors() {
 // Banner que recorda actualitzar valors si fa >30 dies (o si no s'ha fet mai).
 // Retorna '' quan no cal mostrar res, així es pot concatenar sense condicions.
 function renderAlertaValors() {
+  var posicions = getPosicionsV2();
+  if (!posicions.length) return '';
+  if (carteraActualitzadaAquestMes()) return '';
   var dies = diesDesActualitzacioValors();
-  if (dies === null) return '';            // sense cartera
-  if (dies !== Infinity && dies < 30) return ''; // recent → tot OK
-  var mai = (dies === Infinity);
+  var mai = (dies === null || dies === Infinity);
+  var nomMes = _nomMesCA(_mesActual());
   var txt = mai
-    ? 'Encara no has introduït el valor de mercat de les teves posicions. Fes-ho per veure el rendiment real.'
-    : 'Fa ' + dies + ' dies que no actualitzes els valors de mercat. Posa\u2019ls al dia perquè el rendiment i els KPIs siguin reals.';
+    ? 'Encara no has registrat el valor de mercat de les teves posicions. Fes-ho per veure el rendiment real.'
+    : 'Encara no has actualitzat la cartera de ' + nomMes + '. Posa-la al dia (1 min) perqu\u00e8 el rendiment i els KPIs siguin reals.';
   return '<div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:#FEF5E7;border:1px solid #E8C285;border-radius:11px;margin-bottom:18px">'
     + '<div style="font-size:22px;flex-shrink:0">\ud83d\udd14</div>'
     + '<div style="flex:1;min-width:0">'
@@ -6621,7 +6624,7 @@ function renderPortalCartera(el) {
     // Gràfic d'evolució
     html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px;margin-bottom:24px">'
       + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">📈 Evolució de la cartera</div>'
-      + renderEvolucioSVG()
+      + renderEvolucioWrap()
     + '</div>';
 
     // Taula de posicions detallada
@@ -7097,7 +7100,15 @@ function obrirModalAfegirPosicio() {
       + '</div>'
     + '</div>'
 
+    // Seguiment del valor (auto/manual) per a actius sense ISIN
+    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:10px">Seguiment del valor</div>'
+    + '<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">'
+      + '<div>' + lbl('Com s\u2019actualitza?') + '<select id="pos-seguiment" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)"><option value="auto">Autom\u00e0tic (t\u00e9 ISIN cotitzat)</option><option value="manual">Manual (fons no cotitzat, compte remunerat\u2026)</option></select></div>'
+      + '<div>' + lbl('Pista d\u2019actualitzaci\u00f3', true) + inp('pos-hint','text','Ex: consulta-ho a l\u2019app de Finizens') + '</div>'
+    + '</div>'
+
     // Bloc 2: Compra inicial
+
     + '<div style="background:var(--g50);border-radius:10px;padding:16px 18px;margin-bottom:20px">'
       + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:12px">💰 Compra inicial</div>'
       + '<div style="display:flex;flex-direction:column;gap:12px">'
@@ -7127,6 +7138,8 @@ async function guardarPosicioNova() {
   var nom    = document.getElementById('pos-nom').value.trim();
   var isin   = document.getElementById('pos-isin').value.trim().toUpperCase();
   var broker = document.getElementById('pos-broker').value.trim();
+  var seguiment = (document.getElementById('pos-seguiment')||{}).value || (isin ? 'auto' : 'manual');
+  var hint = ((document.getElementById('pos-hint')||{}).value||'').trim();
   var data   = document.getElementById('pos-data').value || new Date().toISOString().slice(0,10);
   var cost   = parseFloat(document.getElementById('pos-cost').value) || 0;
   var valorInp = parseFloat(document.getElementById('pos-valor').value);
@@ -7142,6 +7155,8 @@ async function guardarPosicioNova() {
     id: posId, cat: cat, nom: nom, isin: isin, broker: broker,
     valor_actual: valor,
     valor_data: data,
+    seguiment: seguiment,
+    nota_actualitzacio: hint,
     nota: ''
   };
 
@@ -7206,89 +7221,214 @@ async function esborrarPosicioV2(posId) {
 }
 
 // ── Modal: Actualitzar valors de mercat ──────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// ACTUALITZACIO MENSUAL GUIADA — valors + moviments + snapshot (error-proof)
+// ════════════════════════════════════════════════════════════════════
 function obrirModalActualitzarValors() {
   var posicions = getPosicionsV2();
   if (posicions.length === 0) { toast('Encara no hi ha posicions'); return; }
 
   var modal = document.createElement('div');
   modal.id = 'modal-valors';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto';
 
   var inner = document.createElement('div');
-  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:560px;width:100%;padding:28px 32px;max-height:90vh;overflow-y:auto';
+  inner.style.cssText = 'background:#fff;border-radius:16px;max-width:600px;width:100%;padding:26px 28px;margin:auto';
 
-  var rows = posicions.map(function(p, i){
+  var avui = new Date().toISOString().slice(0,10);
+  var nomMes = _nomMesCA(_mesActual());
+
+  var cards = posicions.map(function(p){
     var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; });
-    var emoji = taxon ? taxon.emoji : '•';
-    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--g50)">'
-      + '<div style="font-size:18px">'+emoji+'</div>'
-      + '<div style="flex:1;min-width:0">'
-        + '<div style="font-size:12px;font-weight:500;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(p.nom||(taxon?taxon.ca:p.cat))+'</div>'
-        + '<div style="font-size:10px;color:var(--g400);margin-top:1px">'+(taxon?taxon.ca:'')+' · actual: '+(p.valor_actual||0).toLocaleString('ca-ES')+'€</div>'
+    var emoji = taxon ? taxon.emoji : '\u2022';
+    var oldv = parseFloat(p.valor_actual) || 0;
+    var seg = posSeguiment(p);
+    var diesTxt;
+    if (p.valor_data) {
+      var d = Math.floor((new Date() - new Date(p.valor_data)) / 86400000);
+      diesTxt = isNaN(d) ? '' : (d <= 0 ? 'avui' : ('fa ' + d + ' dies'));
+    } else { diesTxt = 'mai'; }
+    var hint = (seg === 'manual' && p.nota_actualitzacio) ? p.nota_actualitzacio : '';
+    var segBadge = seg === 'auto'
+      ? '<span style="font-size:9px;padding:1px 6px;border-radius:99px;background:#EEF3EE;color:#1A5C3A">ISIN</span>'
+      : '<span style="font-size:9px;padding:1px 6px;border-radius:99px;background:#F4EEE2;color:#8A6A2A">Manual</span>';
+    return '<div style="padding:13px 0;border-bottom:1px solid var(--g50)">'
+      + '<div style="display:flex;align-items:center;gap:11px">'
+        + '<div style="font-size:18px">' + emoji + '</div>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;font-weight:500;color:var(--black);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (p.nom||(taxon?taxon.ca:p.cat)) + '</span>' + segBadge + '</div>'
+          + '<div style="font-size:10px;color:var(--g400);margin-top:1px">' + (p.broker?p.broker+' \u00b7 ':'') + 'anterior: ' + oldv.toLocaleString('ca-ES') + '\u20ac \u00b7 ' + diesTxt + '</div>'
+        + '</div>'
+        + '<input type="text" inputmode="decimal" class="valm-input" data-pos-id="' + p.id + '" data-old="' + oldv + '" value="' + oldv + '" oninput="_wizRecalc()" style="width:118px;padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:13px;font-family:var(--fm);text-align:right">'
+        + '<span style="font-size:11px;color:var(--g400)">\u20ac</span>'
       + '</div>'
-      + '<input type="number" class="val-input" data-pos-id="'+p.id+'" min="0" step="0.01" value="'+(p.valor_actual||0)+'" style="width:110px;padding:7px 10px;border:1.5px solid var(--g200);border-radius:6px;font-size:12px;font-family:var(--fm);text-align:right">'
-      + '<span style="font-size:11px;color:var(--g400)">€</span>'
+      + (hint ? '<div style="font-size:10px;color:#8A6A2A;margin-top:5px;margin-left:29px">\ud83d\udca1 ' + hint + '</div>' : '')
+      + '<div class="valm-sani" id="sani-' + p.id + '" style="display:none;font-size:10px;color:#C0392B;margin-top:5px;margin-left:29px"></div>'
     + '</div>';
   }).join('');
 
-  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:6px">💱 Actualitzar valors de mercat</div>'
-    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.6">Posa el valor de mercat actual de cada posició. La data es guardarà automàticament.</div>'
-    + '<div style="margin-bottom:18px">'+rows+'</div>'
-    + '<div style="display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--g100);padding-top:16px">'
-      + '<button onclick="document.getElementById(\'modal-valors\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
-      + '<button onclick="guardarValorsActualitzats()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar valors →</button>'
+  var optsPos = posicions.map(function(p){
+    var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; });
+    var label = (taxon?taxon.emoji+' ':'') + (p.nom||(taxon?taxon.ca:p.cat));
+    return '<option value="' + p.id + '">' + label + '</option>';
+  }).join('');
+  window._wizOptsPos = optsPos;
+  window._wizAvui = avui;
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:23px;font-weight:400;margin-bottom:4px">\ud83d\udcb1 Actualitzaci\u00f3 de ' + nomMes + '</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:20px;line-height:1.6">Confirma el valor actual de cada posici\u00f3 (deixa\u2019l igual si no ha canviat) i registra les compres o vendes del mes. Es desar\u00e0 un punt al gr\u00e0fic.</div>'
+
+    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:6px">1 \u00b7 Valor de mercat</div>'
+    + '<div style="margin-bottom:22px">' + cards + '</div>'
+
+    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:8px">2 \u00b7 Moviments del mes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--g400)">(opcional)</span></div>'
+    + '<div id="movw-rows"></div>'
+    + '<button onclick="_afegirFilaMovWizard()" style="margin-bottom:22px;padding:7px 13px;background:var(--g50);border:1px dashed var(--g200);border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">+ Afegir compra / venda / dividend</button>'
+
+    + '<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--g100);padding-top:16px;gap:12px;flex-wrap:wrap">'
+      + '<div style="font-size:11px;color:var(--g500)">Nou valor total<br><span id="wiz-total" style="font-family:var(--fm);font-size:18px;font-weight:600;color:var(--black)">\u2014</span></div>'
+      + '<div style="display:flex;gap:10px">'
+        + '<button onclick="document.getElementById(\'modal-valors\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel\u00b7lar</button>'
+        + '<button onclick="guardarActualitzacioMensual()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar actualitzaci\u00f3 \u2192</button>'
+      + '</div>'
     + '</div>';
 
   modal.appendChild(inner);
-  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
   document.body.appendChild(modal);
+  _wizRecalc();
 }
 
-async function guardarValorsActualitzats() {
+function _wizRecalc() {
+  var total = 0;
+  var inputs = document.querySelectorAll('.valm-input');
+  for (var i=0;i<inputs.length;i++) {
+    var inp = inputs[i];
+    var v = _parseNumCA(inp.value);
+    var oldv = parseFloat(inp.getAttribute('data-old')) || 0;
+    var sani = document.getElementById('sani-' + inp.getAttribute('data-pos-id'));
+    if (isNaN(v) || v < 0) {
+      if (sani) { sani.style.display = 'block'; sani.textContent = '\u26a0 Valor no v\u00e0lid \u2014 s\u2019usar\u00e0 l\u2019anterior (' + oldv.toLocaleString('ca-ES') + '\u20ac).'; }
+      total += oldv;
+    } else {
+      total += v;
+      if (sani) {
+        if (oldv > 0 && Math.abs(v-oldv)/oldv > 0.4) {
+          sani.style.display = 'block';
+          sani.textContent = '\u26a0 Canvi gran respecte de ' + oldv.toLocaleString('ca-ES') + '\u20ac. Comprova que no sigui un error.';
+        } else { sani.style.display = 'none'; sani.textContent = ''; }
+      }
+    }
+  }
+  var el = document.getElementById('wiz-total');
+  if (el) el.textContent = Math.round(total).toLocaleString('ca-ES') + '\u20ac';
+}
+
+function _afegirFilaMovWizard() {
+  var cont = document.getElementById('movw-rows'); if (!cont) return;
+  var row = document.createElement('div');
+  row.className = 'movw-row';
+  row.style.cssText = 'display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap';
+  row.innerHTML = '<select class="movw-pos" style="flex:1;min-width:120px;padding:7px 8px;border:1.5px solid var(--g200);border-radius:7px;font-size:11px;font-family:var(--fb)">' + (window._wizOptsPos||'') + '</select>'
+    + '<select class="movw-tip" style="padding:7px 8px;border:1.5px solid var(--g200);border-radius:7px;font-size:11px;font-family:var(--fb)">'
+      + '<option value="compra">Compra</option><option value="venda">Venda</option><option value="dividend">Dividend</option><option value="comissio">Comissi\u00f3</option>'
+    + '</select>'
+    + '<input type="text" inputmode="decimal" class="movw-imp" placeholder="\u20ac" style="width:78px;padding:7px 8px;border:1.5px solid var(--g200);border-radius:7px;font-size:11px;font-family:var(--fm);text-align:right">'
+    + '<input type="date" class="movw-data" value="' + (window._wizAvui||'') + '" style="padding:7px 8px;border:1.5px solid var(--g200);border-radius:7px;font-size:11px;font-family:var(--fb)">'
+    + '<button onclick="var rr=this.parentNode; rr.parentNode.removeChild(rr)" style="padding:6px 9px;background:transparent;border:none;color:var(--g400);font-size:14px;cursor:pointer">\u00d7</button>';
+  cont.appendChild(row);
+}
+
+async function guardarActualitzacioMensual() {
   var data = new Date().toISOString().slice(0,10);
-  var mes = data.slice(0,7);  // YYYY-MM
+  var mes = data.slice(0,7);
   var posicions = getPosicionsV2().slice();
-  var inputs = document.querySelectorAll('.val-input');
-  inputs.forEach(function(inp){
-    var posId = inp.getAttribute('data-pos-id');
-    var v = parseFloat(inp.value) || 0;
-    var p = posicions.find(function(x){ return x.id === posId; });
-    if (p) { p.valor_actual = v; p.valor_data = data; }
+
+  var suspects = [];
+  var pendents = [];
+  var inputs = document.querySelectorAll('.valm-input');
+  for (var i=0;i<inputs.length;i++) {
+    var inp = inputs[i];
+    var id = inp.getAttribute('data-pos-id');
+    var oldv = parseFloat(inp.getAttribute('data-old')) || 0;
+    var v = _parseNumCA(inp.value);
+    if (isNaN(v) || v < 0) v = oldv;
+    if (oldv > 0 && Math.abs(v-oldv)/oldv > 0.4) {
+      var pp = posicions.find(function(x){ return x.id === id; });
+      suspects.push((pp && pp.nom ? pp.nom : 'Posici\u00f3') + ': ' + oldv.toLocaleString('ca-ES') + '\u20ac \u2192 ' + v.toLocaleString('ca-ES') + '\u20ac');
+    }
+    pendents.push({ id:id, v:v });
+  }
+  if (suspects.length) {
+    if (!window.confirm('Alguns valors canvien molt respecte del mes anterior:\n\n' + suspects.join('\n') + '\n\nVols desar-los igualment?')) return;
+  }
+  pendents.forEach(function(x){
+    var p = posicions.find(function(y){ return y.id === x.id; });
+    if (p) { p.valor_actual = x.v; p.valor_data = data; }
   });
 
-  // Calcular totals per al snapshot mensual
-  var valorTotal = posicions.reduce(function(s,p){ return s+(parseFloat(p.valor_actual)||0); }, 0);
-  var invertitTotal = (function(){
-    var movs = getMovimentsV2();
-    var cum = 0;
-    movs.forEach(function(m){
-      var imp = parseFloat(m.import)||0;
-      if (m.tipus==='compra') cum+=imp;
-      if (m.tipus==='venda')  cum-=imp;
-    });
-    return cum;
-  })();
+  var moviments = getMovimentsV2().slice();
+  var rows = document.querySelectorAll('.movw-row');
+  for (var r=0;r<rows.length;r++) {
+    var row = rows[r];
+    var selPos = row.querySelector('.movw-pos');
+    var selTip = row.querySelector('.movw-tip');
+    var inImp = row.querySelector('.movw-imp');
+    var inData = row.querySelector('.movw-data');
+    var pid = selPos ? selPos.value : '';
+    var tip = selTip ? selTip.value : '';
+    var imp = _parseNumCA(inImp ? inImp.value : '');
+    var dt = (inData && inData.value) ? inData.value : data;
+    if (pid && tip && !isNaN(imp) && imp > 0) {
+      moviments.push({ id:novaIdLocal('mov'), posicio_id:pid, data:dt, tipus:tip, import:imp, unitats:null, preu_unitat:null, nota:'Actualitzaci\u00f3 mensual' });
+    }
+  }
 
-  // Actualitzar o afegir snapshot del mes actual
+  var valorTotal = posicions.reduce(function(s,p){ return s + (parseFloat(p.valor_actual)||0); }, 0);
+  var invertitTotal = 0;
+  moviments.forEach(function(m){ var im = parseFloat(m.import)||0; if (m.tipus==='compra') invertitTotal += im; if (m.tipus==='venda') invertitTotal -= im; });
+
   var snapshots = Array.isArray(APP.clientData && APP.clientData.snapshots_cartera) ? APP.clientData.snapshots_cartera.slice() : [];
   var idxSnap = snapshots.findIndex(function(s){ return s.mes === mes; });
-  var nouSnap = { mes: mes, data: data, valor: valorTotal, invertit: invertitTotal };
-  if (idxSnap >= 0) { snapshots[idxSnap] = nouSnap; }
-  else { snapshots.push(nouSnap); }
+  var nouSnap = { mes:mes, data:data, valor:valorTotal, invertit:invertitTotal };
+  if (idxSnap >= 0) snapshots[idxSnap] = nouSnap; else snapshots.push(nouSnap);
   snapshots.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
 
   try {
     if (sb && APP.user && APP.user.email) {
-      await sb.from('clients').update({ posicions: posicions, snapshots_cartera: snapshots }).eq('email', getClientEmail());
+      var res = await sb.from('clients').update({ posicions: posicions, moviments_posicions: moviments, snapshots_cartera: snapshots }).eq('email', getClientEmail());
+      if (res.error) throw res.error;
     }
     if (APP.clientData) {
       APP.clientData.posicions = posicions;
+      APP.clientData.moviments_posicions = moviments;
       APP.clientData.snapshots_cartera = snapshots;
     }
-    document.getElementById('modal-valors').remove();
-    toast('✓ Valors actualitzats · Snapshot '+mes+' desat');
+    try { localStorage.setItem('tbi_recordatori_' + ((APP.user && APP.user.email)||'') + '_' + mes, '1'); } catch(e){}
+    var mEl = document.getElementById('modal-valors'); if (mEl) mEl.remove();
+    toast('\u2713 Cartera actualitzada \u00b7 ' + Math.round(valorTotal).toLocaleString('ca-ES') + '\u20ac');
     renderView('portal-cartera');
-  } catch(e) { toast('Error: '+(e.message||e)); }
+  } catch(e) { toast('Error: ' + (e.message||e)); }
+}
+
+// ── Recordatori mensual: insereix un missatge a la safata un cop al mes ──
+async function comprovarRecordatoriMensual() {
+  if (APP.role !== 'client' || APP.isDemo) return;
+  var c = getClient(); if (!c) return;
+  if (!getPosicionsV2().length) return;
+  if (carteraActualitzadaAquestMes()) return;
+  var mes = _mesActual();
+  var key = 'tbi_recordatori_' + ((APP.user && APP.user.email)||'') + '_' + mes;
+  try { if (localStorage.getItem(key)) return; } catch(e){}
+  if (!(sb && APP.user && APP.user.email)) return;
+  try {
+    var nomMes = _nomMesCA(mes);
+    var msg = '\ud83d\udd14 Recordatori mensual\n\n\u00c9s hora d\u2019actualitzar la teva cartera del mes de ' + nomMes + '. Entra a \u00abLa meva cartera\u00bb i prem \u00abActualitzar valors\u00bb: nom\u00e9s et portar\u00e0 un minut i aix\u00ed el seguiment i els KPIs es mantenen reals.\n\n\u2014 The Boring Investor';
+    var res = await sb.from('messages').insert({ client_email: APP.user.email.toLowerCase(), from_email: 'guillem@theboringinvestor.com', from_role: 'admin', content: msg, read_by_admin: true, read_by_client: false });
+    if (res && res.error) throw res.error;
+    try { localStorage.setItem(key, '1'); } catch(e){}
+    try { actualitzarBannerMissatges(); } catch(e){}
+  } catch(e) { console.warn('[recordatori]', e); }
 }
 
 // ── Render auxiliars: taules i gràfic d'evolució ────────────────────────
@@ -7387,129 +7527,224 @@ function renderMatchingTable(match) {
 }
 
 // Gràfic SVG d'evolució (invertit acumulat + valor cartera, àrea de guany)
-function renderEvolucioSVG(width) {
-  var MESOS_CA = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
-  function fmtMes(yyyymm) {
-    var p = yyyymm.split('-');
-    return MESOS_CA[parseInt(p[1])-1] + ' ' + p[0].slice(2);
-  }
+// ════════════════════════════════════════════════════════════════════
+// GRAFIC D'EVOLUCIO — versio interactiva (eix adaptatiu + tooltip)
+// ════════════════════════════════════════════════════════════════════
+function _evoStateInit() {
+  if (!window._evoState) window._evoState = { periode: 'tot', yZero: false };
+  return window._evoState;
+}
 
-  // Obtenir snapshots guardats (historial real de valors mensuals)
+// Serie mensual real (snapshots + punt actual en memoria). Sense punts ficticis.
+function _evoSerie() {
   var c = getClient();
   var snapshots = (c && Array.isArray(c.snapshots_cartera)) ? c.snapshots_cartera.slice() : [];
-  var kpis = (typeof calcKPIsCartera === 'function') ? calcKPIsCartera() : {valor_total:0, cost_total:0};
+  var kpis = (typeof calcKPIsCartera === 'function') ? calcKPIsCartera() : { valor_total:0, cost_total:0 };
   var mesAvui = new Date().toISOString().slice(0,7);
-
-  // Afegir/actualitzar punt actual en memòria (no persistit)
-  var serie = snapshots.slice();
-  var idxAvui = serie.findIndex(function(s){ return s.mes === mesAvui; });
-  if (idxAvui >= 0) { serie[idxAvui] = { mes:mesAvui, valor:kpis.valor_total, invertit:kpis.cost_total }; }
-  else { serie.push({ mes:mesAvui, valor:kpis.valor_total, invertit:kpis.cost_total }); }
-
-  // Completar amb moviments mensuals si hi ha pocs snapshots
-  if (serie.length < 2) {
-    var moviments = (typeof getMovimentsV2 === 'function') ? getMovimentsV2().slice().sort(function(a,b){ return (a.data||'').localeCompare(b.data||''); }) : [];
-    var mesAcum = {}, cumAcc = 0;
-    moviments.forEach(function(m){
-      var mes = (m.data||'').slice(0,7); if (!mes) return;
-      var imp = parseFloat(m.import)||0;
-      if (m.tipus==='compra') cumAcc+=imp; if (m.tipus==='venda') cumAcc-=imp;
-      mesAcum[mes] = cumAcc;
-    });
-    Object.keys(mesAcum).forEach(function(mes){
-      if (!serie.find(function(s){ return s.mes === mes; })) {
-        serie.push({ mes:mes, invertit:mesAcum[mes], valor:mesAcum[mes] });
-      }
-    });
-  }
-
+  var serie = snapshots.map(function(s){ return { mes:s.mes, valor:(s.valor||0), invertit:(s.invertit||0) }; });
+  var idx = serie.findIndex(function(s){ return s.mes === mesAvui; });
+  var punt = { mes:mesAvui, valor:(kpis.valor_total||0), invertit:(kpis.cost_total||0) };
+  if (idx >= 0) serie[idx] = punt; else serie.push(punt);
   serie.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+  return serie;
+}
 
-  // Si un sol punt, afegir mes anterior fictici
-  if (serie.length < 2) {
-    var ym = serie[0].mes.split('-'), y2=parseInt(ym[0]), mo2=parseInt(ym[1]);
-    var ant = mo2===1?(y2-1)+'-12':y2+'-'+String(mo2-1).padStart(2,'0');
-    serie = [{ mes:ant, valor:0, invertit:0 }].concat(serie);
+function _evoFiltraPeriode(serie) {
+  var st = _evoStateInit();
+  var nMap = { '3M':3, '6M':6, '1A':12 };
+  var k = nMap[st.periode];
+  if (!k || serie.length <= k) return serie;
+  return serie.slice(serie.length - k);
+}
+
+function _niceNum(x, round) {
+  if (x <= 0) return 1;
+  var exp = Math.floor(Math.log(x)/Math.LN10);
+  var f = x / Math.pow(10, exp), nf;
+  if (round) { nf = f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10; }
+  else { nf = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10; }
+  return nf * Math.pow(10, exp);
+}
+function _niceScale(min, max, ticks) {
+  if (max <= min) max = min + 1;
+  var range = _niceNum(max - min, false);
+  var step = _niceNum(range / Math.max(ticks-1,1), true);
+  return { min: Math.floor(min/step)*step, max: Math.ceil(max/step)*step, step: step };
+}
+
+function renderEvolucioWrap() {
+  var st = _evoStateInit();
+  var serie = _evoSerie();
+  if (serie.length === 0) {
+    return '<div style="padding:30px;text-align:center;color:var(--g400);font-size:12px">Encara no hi ha dades. Actualitza la cartera per crear el primer punt d\u2019evoluci\u00f3.</div>';
   }
+  var periodes = [['3M','3M'],['6M','6M'],['1A','1 any'],['tot','Tot']];
+  var ctrl = '<div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-bottom:10px;flex-wrap:wrap">';
+  ctrl += '<button onclick="toggleEvoZero()" style="padding:4px 9px;border:1px solid var(--g200);border-radius:6px;background:var(--white);font-size:10px;cursor:pointer;font-family:var(--fb);color:var(--g500)">' + (st.yZero ? '\u2199 Des de 0' : '\u2197 Zoom') + '</button>';
+  ctrl += '<div style="width:1px;height:16px;background:var(--g100)"></div>';
+  periodes.forEach(function(p){
+    var on = st.periode === p[0];
+    ctrl += '<button onclick="setEvoPeriode(\'' + p[0] + '\')" style="padding:4px 10px;border:none;border-radius:6px;background:' + (on?'var(--black)':'transparent') + ';color:' + (on?'#fff':'var(--g400)') + ';font-size:10px;font-weight:500;cursor:pointer;font-family:var(--fb)">' + p[1] + '</button>';
+  });
+  ctrl += '</div>';
+  return '<div style="position:relative">' + ctrl + renderEvolucioSVG(720, _evoFiltraPeriode(serie))
+    + '<div id="evo-tip" style="position:absolute;top:36px;pointer-events:none;display:none;background:rgba(20,20,20,.94);color:#fff;padding:8px 11px;border-radius:8px;font-size:11px;font-family:var(--fb);line-height:1.5;white-space:nowrap;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.2)"></div>'
+  + '</div>';
+}
+
+function setEvoPeriode(p){ _evoStateInit().periode = p; renderView('portal-cartera'); }
+function toggleEvoZero(){ var st = _evoStateInit(); st.yZero = !st.yZero; renderView('portal-cartera'); }
+
+function renderEvolucioSVG(width, serieArg) {
+  var MESOS_CA = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
+  function fmtMes(yyyymm){ var p = yyyymm.split('-'); return MESOS_CA[parseInt(p[1])-1] + ' ' + p[0].slice(2); }
+  var st = _evoStateInit();
+  var serie = serieArg || _evoFiltraPeriode(_evoSerie());
+  if (!serie || serie.length === 0) return '';
 
   var n = serie.length;
-  width = width||720;
-  var H=260, pad={t:24,r:90,b:40,l:68}, W=width-pad.l-pad.r, HH=H-pad.t-pad.b;
+  width = width || 720;
+  var H = 270, pad = { t:26, r:98, b:38, l:64 }, W = width - pad.l - pad.r, HH = H - pad.t - pad.b;
 
-  var tots = [];
-  serie.forEach(function(s){ tots.push(s.valor||0); tots.push(s.invertit||0); });
-  var vMax = Math.max.apply(null,tots)*1.15||1000;
-  if (vMax===0) vMax=1000;
+  var vals = [];
+  serie.forEach(function(s){ vals.push(s.valor||0); vals.push(s.invertit||0); });
+  var dMax = Math.max.apply(null, vals), dMin = Math.min.apply(null, vals);
+  var yMin, yMax, step;
+  if (st.yZero || dMin <= 0 || n < 2) {
+    var top = dMax > 0 ? dMax : 1000;
+    var sc0 = _niceScale(0, top, 5);
+    yMin = 0; yMax = sc0.max; step = sc0.step;
+  } else {
+    var span = dMax - dMin;
+    var padv = span > 0 ? span * 0.35 : dMax * 0.05;
+    var sc = _niceScale(Math.max(0, dMin - padv), dMax + padv, 5);
+    yMin = sc.min; yMax = sc.max; step = sc.step;
+  }
+  if (yMax <= yMin) yMax = yMin + 1;
+  if (!(step > 0)) step = (yMax - yMin) / 4;
 
-  function xpx(i){ return pad.l + i/Math.max(n-1,1)*W; }
-  function ypx(v){ return pad.t + (1-Math.min(v,vMax)/vMax)*HH; }
+  function xpx(i){ return n === 1 ? pad.l + W*0.5 : pad.l + i/(n-1)*W; }
+  function ypx(v){ var t = (v - yMin)/(yMax - yMin); t = Math.max(0, Math.min(1, t)); return pad.t + (1-t)*HH; }
 
-  // Guies horitzontals
-  var guides='';
-  for (var gi=0; gi<=4; gi++) {
-    var gv=vMax*gi/4, gy=ypx(gv);
+  var guides = '';
+  for (var gv = yMin; gv <= yMax + step*0.5; gv += step) {
+    var gy = ypx(gv);
     guides += '<line x1="' + pad.l + '" y1="' + gy.toFixed(1) + '" x2="' + (pad.l+W) + '" y2="' + gy.toFixed(1) + '" stroke="#F0EEEB" stroke-width="1"/>';
-    guides += '<text x="' + (pad.l-6) + '" y="' + (gy+3.5).toFixed(1) + '" font-size="9" fill="#BBBBBB" text-anchor="end" font-family="ui-monospace,monospace">' + Math.round(gv).toLocaleString('ca-ES') + '\u20ac</text>';
+    guides += '<text x="' + (pad.l-7) + '" y="' + (gy+3.5).toFixed(1) + '" font-size="9" fill="#BBB" text-anchor="end" font-family="ui-monospace,monospace">' + Math.round(gv).toLocaleString('ca-ES') + '\u20ac</text>';
   }
 
   var last = serie[n-1];
-  var esPlusvalua = (last.valor||0) >= (last.invertit||0);
+  var esPlus = (last.valor||0) >= (last.invertit||0);
   var colInv = '#C8A95A';
-  var colVal = esPlusvalua ? '#7A3B10' : '#C0392B';
-  var colBen = esPlusvalua ? 'rgba(185,100,30,.75)' : 'rgba(192,57,43,.75)';
-  var colBenArea = esPlusvalua ? 'rgba(185,100,30,.15)' : 'rgba(192,57,43,.12)';
+  var colVal = esPlus ? '#7A3B10' : '#C0392B';
+  var colBenArea = esPlus ? 'rgba(185,100,30,.13)' : 'rgba(192,57,43,.11)';
 
-  // Paths
-  var pathInv = serie.map(function(s,i){ return (i===0?'M':'L')+xpx(i).toFixed(1)+','+ypx(s.invertit||0).toFixed(1); }).join(' ');
-  var pathVal = serie.map(function(s,i){ return (i===0?'M':'L')+xpx(i).toFixed(1)+','+ypx(s.valor||0).toFixed(1); }).join(' ');
-  var yBase=ypx(0);
-  var areaInv = pathInv + ' L'+xpx(n-1).toFixed(1)+','+yBase.toFixed(1)+' L'+pad.l+','+yBase.toFixed(1)+' Z';
-  // Àrea benefici: entre línia valor (endavant) i línia invertit (enrere)
-  var pathValFwd = serie.map(function(s,i){ return (i===0?'M':'L')+xpx(i).toFixed(1)+','+ypx(s.valor||0).toFixed(1); }).join(' ');
-  var pathInvBwd = serie.slice().reverse().map(function(s,i){ return 'L'+xpx(n-1-i).toFixed(1)+','+ypx(s.invertit||0).toFixed(1); }).join(' ');
-  var areaBen = pathValFwd + ' ' + pathInvBwd + ' Z';
+  var pathInv = serie.map(function(s,i){ return (i===0?'M':'L') + xpx(i).toFixed(1) + ',' + ypx(s.invertit||0).toFixed(1); }).join(' ');
+  var pathVal = serie.map(function(s,i){ return (i===0?'M':'L') + xpx(i).toFixed(1) + ',' + ypx(s.valor||0).toFixed(1); }).join(' ');
+  var areaBen = '';
+  if (n >= 2) {
+    var fwd = serie.map(function(s,i){ return (i===0?'M':'L') + xpx(i).toFixed(1) + ',' + ypx(s.valor||0).toFixed(1); }).join(' ');
+    var bwd = serie.slice().reverse().map(function(s,i){ return 'L' + xpx(n-1-i).toFixed(1) + ',' + ypx(s.invertit||0).toFixed(1); }).join(' ');
+    areaBen = '<path d="' + fwd + ' ' + bwd + ' Z" fill="' + colBenArea + '" stroke="none"/>';
+  }
 
-  // Eix X
-  var xAxis='', pas=Math.ceil(n/8);
+  var xAxis = '', pas = Math.max(1, Math.ceil(n/7));
   serie.forEach(function(s,i){
-    if (i%pas===0||i===n-1) xAxis+='<text x="'+xpx(i).toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#BBBBBB" text-anchor="middle">'+fmtMes(s.mes)+'</text>';
+    if (i % pas === 0 || i === n-1) xAxis += '<text x="' + xpx(i).toFixed(1) + '" y="' + (H-8) + '" font-size="9" fill="#BBB" text-anchor="middle">' + fmtMes(s.mes) + '</text>';
   });
 
-  // Punts intermedis de la línia valor
-  var valDots = serie.map(function(s,i){
-    if (i===0||i===n-1) return '';
-    return '<circle cx="'+xpx(i).toFixed(1)+'" cy="'+ypx(s.valor||0).toFixed(1)+'" r="2.5" fill="'+colVal+'" opacity=".5"/>';
+  var dots = serie.map(function(s,i){
+    var c1 = '<circle cx="' + xpx(i).toFixed(1) + '" cy="' + ypx(s.valor||0).toFixed(1) + '" r="' + (i===n-1?5:2.6) + '" fill="' + colVal + '" ' + (i===n-1?'stroke="#fff" stroke-width="2"':'opacity=".55"') + '/>';
+    var c2 = (i===n-1) ? '<circle cx="' + xpx(i).toFixed(1) + '" cy="' + ypx(s.invertit||0).toFixed(1) + '" r="4" fill="' + colInv + '" stroke="#fff" stroke-width="1.5"/>' : '';
+    return c1 + c2;
   }).join('');
 
-  // Punt i etiquetes finals
-  var xFi=xpx(n-1), yFiV=ypx(last.valor||0), yFiI=ypx(last.invertit||0);
-  var beneficiEur=Math.round((last.valor||0)-(last.invertit||0));
-  var beneficiPct=(last.invertit||0)>0?(((last.valor||0)/(last.invertit||0)-1)*100).toFixed(1):'0.0';
-  var signB=beneficiEur>=0?'+':'';
-  var yMidBen=(Math.min(yFiV,yFiI)+Math.abs(yFiV-yFiI)/2).toFixed(1);
+  var xFi = xpx(n-1), yFiV = ypx(last.valor||0), yFiI = ypx(last.invertit||0);
+  var ben = Math.round((last.valor||0) - (last.invertit||0));
+  var benPct = (last.invertit||0) > 0 ? (((last.valor||0)/(last.invertit||0)-1)*100) : 0;
+  var sg = ben >= 0 ? '+' : '';
+  var by = Math.max(pad.t+14, Math.min(pad.t+HH-22, (yFiV+yFiI)/2));
+  var tx = xFi + 9;
+  var lblBlock = '<text x="' + tx + '" y="' + (by-9) + '" font-size="13" font-weight="700" fill="' + colVal + '" font-family="ui-monospace,monospace">' + Math.round(last.valor||0).toLocaleString('ca-ES') + '\u20ac</text>'
+    + '<text x="' + tx + '" y="' + (by+5) + '" font-size="10" fill="' + colInv + '" font-family="ui-monospace,monospace">' + Math.round(last.invertit||0).toLocaleString('ca-ES') + '\u20ac</text>'
+    + '<text x="' + tx + '" y="' + (by+19) + '" font-size="10" font-weight="600" fill="' + (esPlus?'#1A7A45':'#C0392B') + '" font-family="ui-monospace,monospace">' + sg + ben.toLocaleString('ca-ES') + '\u20ac (' + sg + benPct.toFixed(1) + '%)</text>';
 
-  var dotV='<circle cx="'+xFi.toFixed(1)+'" cy="'+yFiV.toFixed(1)+'" r="5.5" fill="'+colVal+'" stroke="#fff" stroke-width="2"/>';
-  var dotI='<circle cx="'+xFi.toFixed(1)+'" cy="'+yFiI.toFixed(1)+'" r="4" fill="'+colInv+'" stroke="#fff" stroke-width="1.5"/>';
-  var lblV='<text x="'+(xFi+10)+'" y="'+(yFiV+4).toFixed(1)+'" font-size="12" font-weight="700" fill="'+colVal+'" font-family="ui-monospace,monospace">'+Math.round(last.valor||0).toLocaleString('ca-ES')+'\u20ac</text>';
-  var lblI='<text x="'+(xFi+10)+'" y="'+(yFiI+4).toFixed(1)+'" font-size="10" fill="'+colInv+'" font-family="ui-monospace,monospace">'+Math.round(last.invertit||0).toLocaleString('ca-ES')+'\u20ac</text>';
-  var lblB='<text x="'+(xFi+10)+'" y="'+yMidBen+'" font-size="10" font-weight="600" fill="'+colBen+'" font-family="ui-monospace,monospace">'+signB+beneficiEur.toLocaleString('ca-ES')+'\u20ac ('+signB+beneficiPct+'%)</text>';
+  var legend = '<rect x="' + pad.l + '" y="10" width="10" height="10" rx="2" fill="' + colVal + '"/>'
+    + '<text x="' + (pad.l+14) + '" y="18.5" font-size="10" fill="#777" font-family="system-ui">Valor</text>'
+    + '<rect x="' + (pad.l+62) + '" y="10" width="10" height="10" rx="2" fill="' + colInv + '"/>'
+    + '<text x="' + (pad.l+76) + '" y="18.5" font-size="10" fill="#777" font-family="system-ui">Invertit</text>';
 
-  // Llegenda
-  var legend='<rect x="'+pad.l+'" y="12" width="10" height="10" rx="2" fill="'+colVal+'" opacity=".8"/>'
-    +'<text x="'+(pad.l+14)+'" y="20" font-size="10" fill="#666" font-family="system-ui">Valor cartera</text>'
-    +'<rect x="'+(pad.l+120)+'" y="12" width="10" height="10" rx="2" fill="'+colInv+'" opacity=".8"/>'
-    +'<text x="'+(pad.l+134)+'" y="20" font-size="10" fill="#666" font-family="system-ui">Capital invertit</text>'
-    +'<rect x="'+(pad.l+255)+'" y="12" width="10" height="10" rx="2" fill="'+colBen+'" opacity=".8"/>'
-    +'<text x="'+(pad.l+269)+'" y="20" font-size="10" fill="#666" font-family="system-ui">'+(esPlusvalua?'Benefici':'P\u00e8rdua')+'</text>';
+  var cross = '<line id="evo-cross" x1="0" y1="' + pad.t + '" x2="0" y2="' + (pad.t+HH) + '" stroke="#999" stroke-width="1" stroke-dasharray="3,3" pointer-events="none" style="display:none"/>';
+  var focusV = '<circle id="evo-focusV" r="5" fill="' + colVal + '" stroke="#fff" stroke-width="2" pointer-events="none" style="display:none"/>';
+  var focusI = '<circle id="evo-focusI" r="4" fill="' + colInv + '" stroke="#fff" stroke-width="1.5" pointer-events="none" style="display:none"/>';
+  var overlay = '<rect x="' + pad.l + '" y="' + pad.t + '" width="' + W + '" height="' + HH + '" fill="transparent" pointer-events="all" style="cursor:crosshair" onmousemove="_evoMove(event)" onmouseleave="_evoLeave()" ontouchstart="_evoMove(event)" ontouchmove="_evoMove(event)" ontouchend="_evoLeave()"/>';
 
-  return '<svg viewBox="0 0 '+width+' '+H+'" style="width:100%;height:auto;display:block;overflow:visible">'
-    +guides
-    +'<path d="'+areaInv+'" fill="rgba(200,169,90,.14)" stroke="none"/>'
-    +'<path d="'+areaBen+'" fill="'+colBenArea+'" stroke="none"/>'
-    +'<path d="'+pathInv+'" stroke="'+colInv+'" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
-    +'<path d="'+pathVal+'" stroke="'+colVal+'" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
-    +valDots+dotV+dotI+lblV+lblI+lblB
-    +xAxis+legend+'</svg>';
+  window._EVO = { vbW: width, pts: serie.map(function(s,i){
+    return { cx: xpx(i), cyV: ypx(s.valor||0), cyI: ypx(s.invertit||0), valor:(s.valor||0), invertit:(s.invertit||0), mes:s.mes };
+  }) };
+
+  return '<svg id="evo-svg" viewBox="0 0 ' + width + ' ' + H + '" style="width:100%;height:auto;display:block;overflow:visible">'
+    + guides + areaBen
+    + '<path d="' + pathInv + '" stroke="' + colInv + '" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
+    + '<path d="' + pathVal + '" stroke="' + colVal + '" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>'
+    + dots + cross + focusV + focusI + lblBlock + xAxis + legend + overlay
+  + '</svg>';
+}
+
+function _evoMove(evt) {
+  var E = window._EVO; if (!E || !E.pts || !E.pts.length) return;
+  var svg = document.getElementById('evo-svg'); if (!svg) return;
+  if (evt && evt.preventDefault && (evt.type === 'touchmove' || evt.type === 'touchstart')) evt.preventDefault();
+  var rect = svg.getBoundingClientRect();
+  var clientX = (evt.touches && evt.touches[0]) ? evt.touches[0].clientX : evt.clientX;
+  if (clientX === undefined) return;
+  var vbx = (clientX - rect.left) / rect.width * E.vbW;
+  var best = 0, bd = 1e12;
+  for (var i=0;i<E.pts.length;i++){ var d = Math.abs(E.pts[i].cx - vbx); if (d < bd) { bd = d; best = i; } }
+  var p = E.pts[best];
+  var cr = document.getElementById('evo-cross'); if (cr) { cr.setAttribute('x1', p.cx); cr.setAttribute('x2', p.cx); cr.style.display = 'block'; }
+  var fV = document.getElementById('evo-focusV'); if (fV) { fV.setAttribute('cx', p.cx); fV.setAttribute('cy', p.cyV); fV.style.display = 'block'; }
+  var fI = document.getElementById('evo-focusI'); if (fI) { fI.setAttribute('cx', p.cx); fI.setAttribute('cy', p.cyI); fI.style.display = 'block'; }
+  var tip = document.getElementById('evo-tip'); if (!tip) return;
+  var MESOS_CA = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
+  var mp = p.mes.split('-'); var mesTxt = MESOS_CA[parseInt(mp[1])-1] + ' ' + mp[0];
+  var ben = p.valor - p.invertit; var benPct = p.invertit > 0 ? (ben/p.invertit*100) : 0; var sg = ben >= 0 ? '+' : '';
+  var benCol = ben >= 0 ? '#7BE3A8' : '#F2A6A0';
+  tip.innerHTML = '<div style="font-size:9px;opacity:.6;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">' + mesTxt + '</div>'
+    + '<div>Valor: <b>' + Math.round(p.valor).toLocaleString('ca-ES') + '\u20ac</b></div>'
+    + '<div style="opacity:.75">Invertit: ' + Math.round(p.invertit).toLocaleString('ca-ES') + '\u20ac</div>'
+    + '<div style="color:' + benCol + ';margin-top:2px">' + sg + Math.round(ben).toLocaleString('ca-ES') + '\u20ac (' + sg + benPct.toFixed(1) + '%)</div>';
+  var pxX = p.cx / E.vbW * rect.width;
+  var tipW = tip.offsetWidth || 130;
+  var left = pxX + 12; if (left + tipW > rect.width) left = pxX - tipW - 12; if (left < 0) left = 4;
+  tip.style.left = left + 'px';
+  tip.style.display = 'block';
+}
+function _evoLeave() {
+  ['evo-cross','evo-focusV','evo-focusI','evo-tip'].forEach(function(id){ var e = document.getElementById(id); if (e) e.style.display = 'none'; });
+}
+
+// ── Helpers compartits (mes, seguiment, parse de numeros) ──────────────
+function posSeguiment(p){ return (p && p.seguiment) ? p.seguiment : ((p && p.isin) ? 'auto' : 'manual'); }
+function _mesActual(){ return new Date().toISOString().slice(0,7); }
+function _nomMesCA(yyyymm){
+  var M = ['gener','febrer','mar\u00e7','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+  var p = String(yyyymm||'').split('-');
+  return (M[parseInt(p[1])-1] || '') + ' de ' + (p[0]||'');
+}
+function carteraActualitzadaAquestMes(){
+  var c = getClient();
+  var snaps = (c && Array.isArray(c.snapshots_cartera)) ? c.snapshots_cartera : [];
+  var m = _mesActual();
+  return snaps.some(function(s){ return s.mes === m; });
+}
+function _parseNumCA(s){
+  if (s === null || s === undefined) return NaN;
+  s = String(s).trim().replace(/\s/g,'').replace(/\u20ac/g,'');
+  if (s === '') return NaN;
+  if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) { s = s.replace(/\./g,'').replace(',', '.'); }
+  else if (s.indexOf(',') >= 0) { s = s.replace(',', '.'); }
+  return parseFloat(s);
 }
 
 
