@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invertir en REITs · El cas de Realty Income · The Boring Investor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --black:#0A0A0A; --bg:#F7F6F4; --paper:#FFFFFF;
+    --g200:#E8E6E1; --g300:#C8C5BE; --g400:#9A9690; --g500:#6B6762; --g600:#4A4845; --g700:#3A3835;
+    --accent:#1B3A6B; --green:#1A5C3A; --amber:#7A4A00; --red:#8B1A1A; --purple:#534AB7;
+    --fd:'Playfair Display',Georgia,serif;
+    --fb:'DM Sans',system-ui,sans-serif;
+    --fm:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--fb); background:var(--black); color:var(--g700);
+    overflow:hidden; -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- DECK ---------- */
+  .deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    padding:clamp(32px,5.5vw,90px);
+    background:var(--bg);
+    opacity:0;transform:translateX(40px);
+    transition:opacity .55s ease,transform .55s ease;
+    pointer-events:none;
+    overflow-y:auto;
+  }
+  .slide.active{opacity:1;transform:translateX(0);pointer-events:auto}
+  .slide.prev{transform:translateX(-40px)}
+
+  .slide::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(27,58,107,.04), transparent 38%),
+      radial-gradient(circle at 88% 90%, rgba(122,74,0,.045), transparent 40%);
+  }
+  .slide > *{position:relative;z-index:1}
+
+  /* ---------- SHARED TYPE ---------- */
+  .kicker{
+    font-family:var(--fm);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:18px;display:flex;align-items:center;gap:12px;
+  }
+  .kicker::before{content:"";width:34px;height:1px;background:var(--accent);display:inline-block}
+  .kicker.green{color:var(--green)} .kicker.green::before{background:var(--green)}
+  h1{
+    font-family:var(--fd);font-weight:600;color:var(--black);
+    font-size:clamp(34px,4.6vw,62px);line-height:1.05;letter-spacing:-.01em;
+  }
+  h2{
+    font-family:var(--fd);font-weight:600;color:var(--black);
+    font-size:clamp(28px,3.5vw,46px);line-height:1.1;margin-bottom:8px;letter-spacing:-.01em;
+  }
+  .lead{font-size:clamp(15px,1.35vw,19px);color:var(--g600);line-height:1.6;max-width:64ch}
+  p{line-height:1.62}
+  .em{color:var(--accent);font-weight:500}
+
+  /* ---------- COVER ---------- */
+  .cover{justify-content:center}
+  .cover .brand{
+    font-family:var(--fm);font-size:12px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--g400);margin-bottom:auto;padding-top:4px;
+  }
+  .cover h1{font-size:clamp(40px,6.4vw,92px);margin:8px 0 26px}
+  .cover .sub{font-size:clamp(15px,1.5vw,21px);color:var(--g500);max-width:56ch;line-height:1.6}
+  .cover .steps-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:38px}
+  .pill{
+    font-family:var(--fm);font-size:11.5px;letter-spacing:.04em;
+    border:1px solid var(--g300);border-radius:40px;padding:8px 16px;color:var(--g600);
+    background:var(--paper);
+  }
+  .pill b{color:var(--accent)}
+  .cover .footline{
+    margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;
+    font-family:var(--fm);font-size:11px;color:var(--g400);letter-spacing:.05em;padding-top:30px;
+  }
+
+  /* ---------- LAYOUT HELPERS ---------- */
+  .head{margin-bottom:26px;flex-shrink:0}
+  .body-grid{display:grid;gap:clamp(20px,2.4vw,40px);align-items:start}
+  .cols-2{grid-template-columns:1fr 1fr}
+  .cols-5-7{grid-template-columns:5fr 7fr}
+  .cols-7-5{grid-template-columns:7fr 5fr}
+  .stack{display:flex;flex-direction:column;gap:16px}
+  .grow{flex:1}
+
+  /* ---------- CARD ---------- */
+  .card{
+    background:var(--paper);border:1px solid var(--g200);border-radius:14px;
+    padding:clamp(18px,1.8vw,28px);
+  }
+  .card.tint-accent{border-color:#C9D4E4;background:linear-gradient(180deg,#F4F7FB,#fff)}
+  .card.tint-green{border-color:#BFD4C5;background:linear-gradient(180deg,#F1F6F2,#fff)}
+  .card.tint-amber{border-color:#E4D2AC;background:linear-gradient(180deg,#FBF6EC,#fff)}
+  .card.tint-red{border-color:#E0BFBF;background:linear-gradient(180deg,#FBF1F1,#fff)}
+  .card-title{
+    font-family:var(--fd);font-size:clamp(17px,1.5vw,22px);font-weight:600;color:var(--black);
+    margin-bottom:8px;line-height:1.2;
+  }
+  .card-text{font-size:13.5px;color:var(--g600);line-height:1.62}
+  .card-text + .card-text{margin-top:8px}
+
+  /* ---------- BULLET LIST ---------- */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:11px;margin-top:4px}
+  ul.clean li{font-size:13.5px;color:var(--g600);line-height:1.55;padding-left:22px;position:relative}
+  ul.clean li::before{content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:2px;background:var(--accent)}
+  ul.clean.green li::before{background:var(--green)}
+  ul.clean.red li::before{background:var(--red)}
+  ul.clean.amber li::before{background:var(--amber)}
+  ul.clean li b{color:var(--g700)}
+
+  /* ---------- ASSET GRID ---------- */
+  .asset-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
+  .asset-card{
+    background:var(--paper);border:1px solid var(--g200);border-radius:11px;
+    padding:14px 14px 15px;display:flex;flex-direction:column;gap:5px;
+    transition:transform .15s,border-color .15s;
+  }
+  .asset-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .asset-card .e{font-size:22px;line-height:1}
+  .asset-card .nm{font-family:var(--fb);font-weight:700;font-size:12.5px;color:var(--black);margin-top:6px}
+  .asset-card .ds{font-size:10.5px;color:var(--g500);line-height:1.5}
+  .asset-card .tag{font-family:var(--fm);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--g400);margin-top:auto;padding-top:6px}
+  .asset-card.rv{border-left:3px solid var(--accent)}
+  .asset-card.imm{border-left:3px solid var(--green)}
+  .asset-card.alt{border-left:3px solid var(--purple)}
+  .asset-card.amb{border-left:3px solid var(--amber)}
+
+  /* ---------- STAT BIG ---------- */
+  .stat-big{
+    background:var(--paper);border:1px solid var(--g200);border-radius:12px;
+    padding:20px 22px;text-align:center;display:flex;flex-direction:column;gap:6px;
+  }
+  .stat-big.tint-accent{border-color:#C9D4E4;background:linear-gradient(180deg,#F4F7FB,#fff)}
+  .stat-big.tint-green{border-color:#BFD4C5;background:linear-gradient(180deg,#F1F6F2,#fff)}
+  .stat-big.tint-red{border-color:#E0BFBF;background:linear-gradient(180deg,#FBF1F1,#fff)}
+  .stat-big .num{font-family:var(--fd);font-weight:700;font-size:clamp(30px,3.4vw,46px);line-height:1;color:var(--accent)}
+  .stat-big.tint-green .num{color:var(--green)}
+  .stat-big.tint-red .num{color:var(--red)}
+  .stat-big .lbl{font-family:var(--fb);font-size:12px;color:var(--g500);line-height:1.5;font-weight:500}
+  .stat-big .sub{font-family:var(--fm);font-size:10px;color:var(--g400);letter-spacing:.04em;margin-top:3px}
+  .stat-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .stat-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+  /* ---------- COMPARE TABLE ---------- */
+  .compare{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:0;background:var(--paper);border:1px solid var(--g200);border-radius:12px;overflow:hidden}
+  .compare .ch{padding:13px 16px;font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--g500);background:#FAFAF8;border-bottom:1px solid var(--g200)}
+  .compare .ch.a{color:var(--green);font-weight:600}
+  .compare .ch.b{color:var(--accent);font-weight:600}
+  .compare .row-l{padding:13px 16px;font-size:13px;color:var(--g700);font-weight:500;border-bottom:1px solid var(--g200)}
+  .compare .row-v{padding:13px 16px;font-size:12.5px;color:var(--g600);border-bottom:1px solid var(--g200);border-left:1px solid var(--g200);line-height:1.45}
+  .compare .row-v.win{color:var(--green);font-weight:500;background:#F6FAF7}
+  .compare .row-v.lose{color:var(--red);background:#FCF6F6}
+  .compare > *:nth-last-child(-n+3){border-bottom:none}
+
+  /* ---------- FLOW 3 STEP ---------- */
+  .flow{display:grid;grid-template-columns:1fr 44px 1fr 44px 1fr;align-items:stretch;gap:0;margin-top:6px}
+  .flow .node{
+    background:var(--paper);border:1px solid var(--g200);border-radius:13px;padding:20px 20px 22px;
+    display:flex;flex-direction:column;gap:9px;border-top:3px solid var(--accent);
+  }
+  .flow .node.n2{border-top-color:var(--green)}
+  .flow .node.n3{border-top-color:var(--amber)}
+  .flow .node .e{font-size:26px;line-height:1}
+  .flow .node .t{font-family:var(--fd);font-weight:600;font-size:17px;color:var(--black);line-height:1.2;margin-top:2px}
+  .flow .node .d{font-size:12.5px;color:var(--g600);line-height:1.55}
+  .flow .arrow{display:grid;place-items:center;font-family:var(--fm);font-size:22px;color:var(--g300)}
+
+  /* ---------- CAR / ROW ANALOGY ---------- */
+  .rows{display:flex;flex-direction:column;gap:11px}
+  .rrow{display:grid;grid-template-columns:170px 1fr;gap:18px;align-items:center;background:var(--paper);border:1px solid var(--g200);border-radius:12px;padding:14px 18px}
+  .rrow .part{font-family:var(--fd);font-weight:600;font-size:15.5px;color:var(--black);display:flex;align-items:center;gap:9px}
+  .rrow .part .e{font-size:20px}
+  .rrow .desc{font-size:13px;color:var(--g600);line-height:1.55}
+  .rrow .desc b{color:var(--accent)}
+
+  /* ---------- BAR CHART (yield-on-cost / streak) ---------- */
+  .barchart{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .brow{display:grid;grid-template-columns:172px 1fr 96px;gap:14px;align-items:center}
+  .brow .lab{font-size:12.5px;color:var(--g600);line-height:1.35}
+  .brow .lab b{color:var(--black)}
+  .brow .track{height:16px;background:var(--g200);border-radius:8px;overflow:hidden;position:relative}
+  .brow .fill{height:100%;background:linear-gradient(90deg,var(--accent),#3a5b8f);border-radius:8px}
+  .brow .fill.green{background:linear-gradient(90deg,var(--green),#2f7d57)}
+  .brow .fill.amber{background:linear-gradient(90deg,var(--amber),#a86a16)}
+  .brow .val{font-family:var(--fm);font-size:14px;font-weight:600;color:var(--accent);text-align:right}
+  .brow .val.green{color:var(--green)}
+  .brow .val.amber{color:var(--amber)}
+
+  /* ---------- KEY LINE ---------- */
+  .key-line{background:linear-gradient(180deg,#FBF6EC,#fff);border:1px solid #E4D2AC;border-radius:11px;padding:16px 22px;font-size:14px;color:var(--g700);line-height:1.55;border-left:3px solid var(--amber)}
+  .key-line b{color:var(--amber)}
+  .key-line.accent{background:linear-gradient(180deg,#F4F7FB,#fff);border-color:#C9D4E4;border-left-color:var(--accent)}
+  .key-line.accent b{color:var(--accent)}
+  .key-line.green{background:linear-gradient(180deg,#F1F6F2,#fff);border-color:#BFD4C5;border-left-color:var(--green)}
+  .key-line.green b{color:var(--green)}
+
+  /* ---------- QUOTE ---------- */
+  .quote{font-family:var(--fd);font-style:italic;font-size:clamp(17px,1.7vw,24px);color:var(--g700);line-height:1.45;border-left:2px solid var(--accent);padding-left:22px}
+  .quote .by{display:block;font-style:normal;font-family:var(--fm);font-size:11px;letter-spacing:.06em;color:var(--g400);margin-top:12px}
+
+  /* ---------- DARK CALLOUT ---------- */
+  .dark{background:linear-gradient(135deg,#0F2847 0%,#0A1E35 100%);color:#fff;border-radius:14px;padding:26px 30px}
+  .dark .htitle{font-family:var(--fd);font-size:20px;font-weight:500;margin-bottom:6px;color:#fff}
+  .dark .sub{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#C8A54A}
+  .dark p{font-size:13.5px;color:rgba(255,255,255,.82);line-height:1.6;margin-top:12px}
+  .dark .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+  .dark .dstat{display:flex;flex-direction:column;gap:4px}
+  .dark .dstat .n{font-family:var(--fd);font-weight:700;font-size:clamp(24px,2.6vw,34px);line-height:1;color:#fff}
+  .dark .dstat .l{font-size:10.5px;color:rgba(255,255,255,.6);line-height:1.4}
+  .dark .dstat.gold .n{color:#C8A54A}
+  .dark .dstat.mint .n{color:#5DCAA5}
+
+  /* ---------- CASHFLOW WATERFALL ---------- */
+  .cf-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cf-col{background:var(--paper);border:1px solid var(--g200);border-radius:13px;padding:20px 22px;display:flex;flex-direction:column;gap:10px}
+  .cf-col.a{border-top:3px solid var(--green)}
+  .cf-col.b{border-top:3px solid var(--accent)}
+  .cf-col .cf-head{font-family:var(--fd);font-weight:600;font-size:17px;color:var(--black);display:flex;align-items:center;gap:8px}
+  .cf-col .cf-head .e{font-size:20px}
+  .cf-line{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--g600);padding:6px 0;border-bottom:1px dashed var(--g200)}
+  .cf-line .v{font-family:var(--fm);font-size:13px;font-weight:500}
+  .cf-line.minus .v{color:var(--red)}
+  .cf-line.plus .v{color:var(--green)}
+  .cf-line.net{border-bottom:none;border-top:1px solid var(--g300);margin-top:4px;padding-top:10px;font-weight:600;color:var(--black)}
+  .cf-line.net .v{font-family:var(--fd);font-size:18px;font-weight:700}
+  .cf-col.a .cf-line.net .v{color:var(--green)}
+  .cf-col.b .cf-line.net .v{color:var(--accent)}
+  .cf-note{font-family:var(--fm);font-size:10.5px;color:var(--g400);line-height:1.5;margin-top:auto;padding-top:8px}
+
+  /* ---------- PROS/CONS DUO ---------- */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .duo .panel{background:var(--paper);border:1px solid var(--g200);border-radius:13px;padding:20px 24px}
+  .duo .panel.pros{border-top:3px solid var(--green)}
+  .duo .panel.cons{border-top:3px solid var(--red)}
+  .duo .panel h4{font-family:var(--fd);font-weight:600;font-size:18px;margin-bottom:12px;color:var(--black);display:flex;align-items:center;gap:9px}
+  .duo .panel.pros h4{color:var(--green)} .duo .panel.cons h4{color:var(--red)}
+
+  /* ---------- RISK GRID ---------- */
+  .risk-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+  .risk{background:var(--paper);border:1px solid var(--g200);border-radius:11px;padding:16px 18px;border-top:3px solid var(--red)}
+  .risk .ic{font-size:20px;margin-bottom:7px}
+  .risk .nm{font-family:var(--fd);font-weight:600;font-size:15px;color:var(--black);margin-bottom:5px;line-height:1.25}
+  .risk .ds{font-size:12px;color:var(--g600);line-height:1.55}
+
+  /* ---------- RECAP ---------- */
+  .recap{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px}
+  .recap .step{background:var(--paper);border:1px solid var(--g200);border-radius:13px;padding:20px 18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+  .recap .step::after{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:var(--accent)}
+  .recap .step:nth-child(2)::after{background:var(--green)}
+  .recap .step:nth-child(3)::after{background:var(--amber)}
+  .recap .step:nth-child(4)::after{background:var(--purple)}
+  .recap .n{font-family:var(--fm);font-size:12px;color:var(--g400)}
+  .recap .t{font-family:var(--fd);font-weight:600;font-size:18px;color:var(--black);line-height:1.15}
+  .recap .d{font-size:12px;color:var(--g500);line-height:1.55}
+
+  /* ---------- NAV / CHROME ---------- */
+  .chrome{position:fixed;left:0;right:0;bottom:0;height:54px;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,3vw,46px);background:linear-gradient(180deg,rgba(247,246,244,0),rgba(247,246,244,.96) 55%);pointer-events:none}
+  .chrome > *{pointer-events:auto}
+  .progress{display:flex;gap:6px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--g300);cursor:pointer;transition:all .3s;border:none;padding:0}
+  .dot.on{background:var(--accent);width:24px;border-radius:5px}
+  .nav-btns{display:flex;gap:8px;align-items:center}
+  .nav-btn{font-family:var(--fm);font-size:12px;letter-spacing:.04em;background:var(--black);color:#fff;border:none;border-radius:8px;padding:9px 15px;cursor:pointer;transition:opacity .2s,transform .15s}
+  .nav-btn:hover{opacity:.82}
+  .nav-btn:active{transform:translateY(1px)}
+  .nav-btn.ghost{background:transparent;color:var(--g500);border:1px solid var(--g300)}
+  .nav-btn:disabled{opacity:.32;cursor:default}
+  .counter{font-family:var(--fm);font-size:11.5px;color:var(--g400);letter-spacing:.05em;min-width:46px;text-align:center}
+  .topbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:50;background:var(--g200)}
+  .topbar .fill{height:100%;background:var(--accent);transition:width .5s ease;width:0}
+  .corner{position:fixed;top:18px;right:clamp(20px,3vw,46px);z-index:50;font-family:var(--fm);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--g400)}
+
+  .footnote{font-family:var(--fm);font-size:10.5px;color:var(--g400);line-height:1.5;margin-top:18px}
+
+  /* ---------- ASSET CARD EXAMPLE LINE ---------- */
+  .asset-card .ex{font-family:var(--fm);font-size:9px;letter-spacing:.02em;color:var(--accent);line-height:1.45;margin-top:2px}
+  .asset-card.alt .ex{color:var(--purple)}
+
+  /* ---------- TYPE STRIP (profile mini-cards) ---------- */
+  .typestrip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .tcard{background:var(--paper);border:1px solid var(--g200);border-radius:11px;padding:14px 16px;border-left:3px solid var(--green)}
+  .tcard.t2{border-left-color:var(--purple)} .tcard.t3{border-left-color:var(--red)}
+  .tcard .th{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:5px}
+  .tcard.t2 .th{color:var(--purple)} .tcard.t3 .th{color:var(--red)}
+  .tcard .tt{font-family:var(--fd);font-weight:600;font-size:15px;color:var(--black);line-height:1.2;margin-bottom:4px}
+  .tcard .td{font-size:11.5px;color:var(--g600);line-height:1.5}
+
+  /* ---------- PAYOUT SPLIT BAR ---------- */
+  .splitbar{display:flex;height:30px;border-radius:8px;overflow:hidden;border:1px solid var(--g200);margin-top:6px}
+  .splitbar .seg{display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;font-weight:500;color:#fff;letter-spacing:.02em}
+  .splitbar .seg.div{background:linear-gradient(90deg,var(--green),#2f7d57)}
+  .splitbar .seg.rein{background:linear-gradient(90deg,var(--accent),#3a5b8f)}
+  .splitleg{display:flex;gap:16px;margin-top:10px;font-family:var(--fm);font-size:10.5px;color:var(--g500)}
+  .splitleg .k{display:flex;align-items:center;gap:6px}
+  .splitleg .sw{width:10px;height:10px;border-radius:3px}
+  .splitleg .sw.g{background:var(--green)} .splitleg .sw.a{background:var(--accent)}
+
+  /* ---------- MONTH CADENCE STRIP ---------- */
+  .monthstrip{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin-top:14px}
+  .mchip{background:var(--bg);border:1px solid var(--g200);border-radius:8px;padding:9px 2px 8px;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .mchip .coin{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#5DCAA5,#1A5C3A)}
+  .mchip .mm{font-family:var(--fm);font-size:8.5px;letter-spacing:.02em;color:var(--g500)}
+
+  /* ---------- ETF SPEC LIST ---------- */
+  .spec{display:flex;flex-direction:column;gap:0}
+  .spec .srow{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:9px 0;border-bottom:1px dashed var(--g200);align-items:baseline}
+  .spec .srow:last-child{border-bottom:none}
+  .spec .sk{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--g400);white-space:nowrap}
+  .spec .sv{font-size:13px;color:var(--g700);line-height:1.45;text-align:right}
+  .spec .sv b{color:var(--accent)}
+
+  @media (max-width:860px){
+    .cols-2,.cols-5-7,.cols-7-5{grid-template-columns:1fr}
+    .asset-grid{grid-template-columns:repeat(2,1fr)}
+    .stat-grid-3,.stat-grid-4{grid-template-columns:1fr 1fr}
+    .compare{grid-template-columns:1fr}
+    .compare .ch:first-child{display:none}
+    .flow{grid-template-columns:1fr;gap:10px}
+    .flow .arrow{transform:rotate(90deg);height:24px}
+    .rrow{grid-template-columns:1fr}
+    .brow{grid-template-columns:1fr;gap:5px}
+    .dark .dgrid{grid-template-columns:1fr 1fr}
+    .cf-grid,.duo,.risk-grid{grid-template-columns:1fr}
+    .recap{grid-template-columns:1fr 1fr}
+    .typestrip{grid-template-columns:1fr}
+    .monthstrip{grid-template-columns:repeat(6,1fr)}
+    .spec .srow{grid-template-columns:1fr;gap:2px}
+    .spec .sv{text-align:left}
+    .corner{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="fill" id="topfill"></div></div>
+<div class="corner">The Boring Investor</div>
+
+<div class="deck" id="deck">
+
+  <!-- ===== 1 · COVER ===== -->
+  <section class="slide cover active">
+    <div class="brand">The Boring Investor · Educació financera</div>
+    <div class="kicker">Guia per a clients · Renda variable immobiliària</div>
+    <h1>Invertir en REITs<br>i el cas de Realty Income</h1>
+    <p class="sub">L'immobiliari sense maons: què és un REIT, com funciona i per què pot generar fluxos recurrents i previsibles. I un cas d'estudi a fons — Realty Income — i com aprofitar les baixades de preu per maximitzar el retorn del dividend a llarg termini.</p>
+    <div class="steps-row">
+      <span class="pill"><b>01</b>&nbsp; Què és un REIT i com funciona</span>
+      <span class="pill"><b>02</b>&nbsp; Pros, contres i vs comprar un pis</span>
+      <span class="pill"><b>03</b>&nbsp; Cas d'estudi · Realty Income</span>
+      <span class="pill"><b>04</b>&nbsp; Aprofitar baixades · yield-on-cost</span>
+      <span class="pill"><b>05</b>&nbsp; Fluxos recurrents a llarg termini</span>
+    </div>
+    <div class="footline">
+      <span>Material educatiu &middot; No constitueix assessorament personalitzat</span>
+      <span>Fes servir &rarr; o l'espai per avançar</span>
+    </div>
+  </section>
+
+  <!-- ===== 2 · QUÈ ÉS UN REIT ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Concepte &middot; L'immobiliari cotitzat</div>
+      <h2>Què és un REIT</h2>
+      <p class="lead">Un <span class="em">REIT</span> (Real Estate Investment Trust, o <em>SOCIMI</em> a Espanya) és una empresa cotitzada que es dedica a comprar i llogar immobles. Quan en compres accions, ets co-propietari d'una cartera d'edificis &mdash; sense tractar amb cap inquilí.</p>
+    </div>
+    <div class="body-grid cols-7-5 grow">
+      <div class="stack">
+        <div class="card tint-green">
+          <div class="card-title">La idea en una frase</div>
+          <p class="card-text">És <b>borsa amb sabor immobiliari</b>. En lloc de comprar un pis amb 200.000&euro;, compres un tros de centenars d'edificis amb 100&euro; &mdash; i cobres la teva part del lloguer en forma de dividend.</p>
+        </div>
+        <div class="key-line"><b>La clau legal:</b> un REIT està obligat a repartir com a mínim el <b>90% del benefici</b> entre els accionistes. A canvi, gairebé no paga impost de societats. Per això els REITs solen pagar dividends elevats i constants (sovint 3&ndash;6% anual).</div>
+        <ul class="clean green">
+          <li><b>Tangible per dins, líquid per fora:</b> hi ha edificis reals al darrere, però pots comprar i vendre en un dia de borsa.</li>
+          <li><b>Diversificat de sèrie:</b> un sol REIT pot tenir desenes o milers d'immobles repartits per sectors i països.</li>
+          <li><b>Renda visible:</b> el dividend arriba periòdicament i actua com a ancoratge psicològic.</li>
+        </ul>
+      </div>
+      <div class="stack">
+        <div class="stat-big tint-green">
+          <div class="num">&ge; 90%</div>
+          <div class="lbl">del benefici repartit obligatòriament als accionistes</div>
+          <div class="sub">El motiu pel qual els REITs paguen tant</div>
+        </div>
+        <div class="stat-big tint-accent">
+          <div class="num">100&euro;</div>
+          <div class="lbl">capital mínim per començar &mdash; vs l'entrada d'un pis</div>
+          <div class="sub">Accessibilitat i fraccionament</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3 · TIPUS DE REIT ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Diversitat &middot; No tots els REITs són iguals</div>
+      <h2>Quins tipus de REIT existeixen</h2>
+      <p class="lead">L'immobiliari cotitzat va molt més enllà dels pisos. Cada categoria té una dinàmica, un risc i una sensibilitat als tipus d'interès diferents.</p>
+    </div>
+    <div class="asset-grid">
+      <div class="asset-card imm">
+        <div class="e">🏪</div>
+        <div class="nm">Net-lease / comerç</div>
+        <div class="ds">Locals individuals llogats a llarg termini: supermercats, farmàcies, conveniència. Contractes triple-net.</div>
+        <div class="ex">Realty Income (O) · Agree Realty (ADC) · W. P. Carey (WPC)</div>
+        <div class="tag">Retail essencial · yield ~5%</div>
+      </div>
+      <div class="asset-card imm">
+        <div class="e">📦</div>
+        <div class="nm">Logístics</div>
+        <div class="ds">Naus i centres de distribució. Beneficiats per l'auge del comerç electrònic i la relocalització industrial.</div>
+        <div class="ex">Prologis (PLD) · Segro (UK) · Merlin Properties (ES)</div>
+        <div class="tag">Industrial · yield ~3%</div>
+      </div>
+      <div class="asset-card imm">
+        <div class="e">🏢</div>
+        <div class="nm">Residencial</div>
+        <div class="ds">Pisos, residències d'estudiants i lloguer multifamiliar. Demanda estructural i resilient.</div>
+        <div class="ex">AvalonBay (AVB) · Vonovia (DE) · Colonial (ES)</div>
+        <div class="tag">Habitatge · yield ~3-4%</div>
+      </div>
+      <div class="asset-card imm">
+        <div class="e">🏥</div>
+        <div class="nm">Sanitari</div>
+        <div class="ds">Hospitals, residències de gent gran i laboratoris. Lligat a una demografia que envelleix.</div>
+        <div class="ex">Welltower (WELL) · Ventas (VTR)</div>
+        <div class="tag">Healthcare · yield ~3-4%</div>
+      </div>
+      <div class="asset-card alt">
+        <div class="e">🖥️</div>
+        <div class="nm">Data centers / torres</div>
+        <div class="ds">Centres de dades i torres de telecomunicació. El motor físic del núvol i de la IA.</div>
+        <div class="ex">Equinix (EQIX) · Digital Realty (DLR) · American Tower (AMT)</div>
+        <div class="tag">Infraestructura digital · yield ~2-3%</div>
+      </div>
+    </div>
+    <div class="typestrip">
+      <div class="tcard">
+        <div class="th">Més renda</div>
+        <div class="tt">Net-lease i sanitari</div>
+        <div class="td">Dividends més alts i estables (4&ndash;6%). El que busques si vius de la renda.</div>
+      </div>
+      <div class="tcard t2">
+        <div class="th">Més creixement</div>
+        <div class="tt">Logística i data centers</div>
+        <div class="td">Dividend més baix però revaloració més alta. Pesen el preu, no només la renda.</div>
+      </div>
+      <div class="tcard t3">
+        <div class="th">Atenció als tipus</div>
+        <div class="tt">Tots, sobretot els endeutats</div>
+        <div class="td">Quan pugen els tipus d'interès, els REITs molt apalancats són els que més pateixen.</div>
+      </div>
+    </div>
+    <div class="key-line accent" style="margin-top:16px"><b>Idea clau:</b> els REITs no són un bloc homogeni. Un REIT de data centers s'assembla més a una tecnològica que a un caseter. Quan diem &laquo;immobiliari cotitzat&raquo;, parlem d'un univers sencer.</div>
+  </section>
+
+  <!-- ===== 4 · COM FUNCIONA ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker green">Mecànica &middot; D'on surt el dividend</div>
+      <h2>Com funciona un REIT, pas a pas</h2>
+      <p class="lead">El circuit és senzill i és precisament el que el fa previsible: els llogaters paguen, l'empresa gestiona, i la llei obliga a repartir gairebé tot.</p>
+    </div>
+    <div class="flow">
+      <div class="node n1">
+        <div class="e">🔑</div>
+        <div class="t">1 · Els llogaters paguen</div>
+        <div class="d">Empreses solvents firmen contractes de lloguer de molts anys. Cada mes ingressa una renda contractual, coneguda per endavant.</div>
+      </div>
+      <div class="arrow">&rarr;</div>
+      <div class="node n2">
+        <div class="e">⚙️</div>
+        <div class="t">2 · El REIT gestiona</div>
+        <div class="d">L'empresa cobra, manté els edificis, renova contractes i en compra de nous. Tu no truques a cap llanterner ni persegueixes cap impagament.</div>
+      </div>
+      <div class="arrow">&rarr;</div>
+      <div class="node n3">
+        <div class="e">💸</div>
+        <div class="t">3 · Reparteix ≥90%</div>
+        <div class="d">Per llei, el gruix del benefici torna a l'accionista com a dividend. És el flux que tu cobres, periòdic i recurrent.</div>
+      </div>
+    </div>
+    <div class="body-grid cols-2 grow" style="margin-top:18px">
+      <div class="card tint-green">
+        <div class="card-title">Un exemple concret</div>
+        <p class="card-text">Realty Income lloga un supermercat per <b>100.000&euro;/any</b> amb un contracte a <b>15 anys</b> i pujada automàtica del ~1% anual. El llogater paga impostos, assegurança i manteniment (<b>triple-net</b>).</p>
+        <p class="card-text">Resultat: l'ingrés futur és gairebé conegut. Multiplicat per 15.571 propietats, obtens un flux de caixa enorme i molt estable &mdash; del qual el gruix t'arriba a tu com a dividend.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Què passa amb cada 100&euro; de benefici (AFFO)</div>
+        <div class="splitbar">
+          <div class="seg div" style="width:75%">~75&euro; · dividend</div>
+          <div class="seg rein" style="width:25%">~25&euro;</div>
+        </div>
+        <div class="splitleg">
+          <div class="k"><span class="sw g"></span> Repartit a l'accionista</div>
+          <div class="k"><span class="sw a"></span> Reinvertit en créixer</div>
+        </div>
+        <p class="card-text" style="margin-top:14px">Aquest <b>payout</b> de ~75% deixa marge de seguretat: encara que un any l'ingrés baixés una mica, el dividend quedaria cobert. Per això un payout prudent és senyal d'un dividend sostenible.</p>
+      </div>
+    </div>
+    <div class="key-line green" style="margin-top:16px"><b>Per què és previsible:</b> a diferència d'una empresa que depèn de vendre productes, l'ingrés d'un bon REIT ve de <b>contractes de lloguer firmats a anys vista</b>. Saps amb força exactitud quant entrarà &mdash; i això es trasllada al dividend.</div>
+  </section>
+
+  <!-- ===== 5 · PROS I CONTRES ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Balanç honest &middot; Cap inversió és perfecta</div>
+      <h2>Pros i contres dels REITs</h2>
+      <p class="lead">Inverteixes en immobiliari amb la comoditat de la borsa &mdash; però hereves també la volatilitat de la borsa. Cal tenir les dues cares clares.</p>
+    </div>
+    <div class="duo grow">
+      <div class="panel pros">
+        <h4>👍 A favor</h4>
+        <ul class="clean green">
+          <li><b>Renda recurrent i visible</b> &mdash; dividends elevats (3&ndash;6%), sovint trimestrals o mensuals.</li>
+          <li><b>Accessibilitat</b> &mdash; comences amb 100&euro;, sense entrada ni hipoteca.</li>
+          <li><b>Liquiditat total</b> &mdash; vens en un dia, no en mesos.</li>
+          <li><b>Diversificació immediata</b> &mdash; desenes o milers d'immobles en una sola acció.</li>
+          <li><b>Zero gestió</b> &mdash; ni inquilins, ni reformes, ni burocràcia.</li>
+          <li><b>Cobertura parcial d'inflació</b> &mdash; molts lloguers s'actualitzen amb l'IPC.</li>
+        </ul>
+      </div>
+      <div class="panel cons">
+        <h4>👎 En contra</h4>
+        <ul class="clean red">
+          <li><b>Volatilitat de borsa</b> &mdash; el preu fluctua cada dia, encara que els edificis no.</li>
+          <li><b>Sensibilitat als tipus d'interès</b> &mdash; quan pugen els tipus, el preu dels REITs sol patir.</li>
+          <li><b>No tens un pis al teu nom</b> &mdash; ni el pots fer servir ni t'apalanques amb hipoteca barata.</li>
+          <li><b>Risc de retallada de dividend</b> &mdash; en crisi greu, alguns REITs el redueixen.</li>
+          <li><b>Fiscalitat del dividend</b> &mdash; tributa cada any; si és estranger, hi ha retenció a l'origen.</li>
+          <li><b>Creixement moderat</b> &mdash; són vehicles de renda, no de revaloració explosiva.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 6 · REIT vs PIS ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">El gran debat &middot; Maons vs accions</div>
+      <h2>REIT vs comprar un pis per llogar</h2>
+      <p class="lead">Tots dos donen exposició al mateix actiu &mdash; l'immobiliari &mdash; però l'experiència, el capital i la liquiditat no s'assemblen gens.</p>
+    </div>
+    <div class="compare grow">
+      <div class="ch">Criteri</div>
+      <div class="ch a">REIT (p. ex. Realty Income)</div>
+      <div class="ch b">Pis directe</div>
+
+      <div class="row-l">Capital per entrar</div>
+      <div class="row-v win">Des de 100&euro;</div>
+      <div class="row-v lose">Entrada 20&ndash;30% + impostos (ITP ~10%), notari, registre</div>
+
+      <div class="row-l">Liquiditat</div>
+      <div class="row-v win">Vens en segons, en un dia de borsa</div>
+      <div class="row-v lose">Vendre pot trigar mesos</div>
+
+      <div class="row-l">Diversificació</div>
+      <div class="row-v win">Milers d'immobles, sectors i països</div>
+      <div class="row-v lose">Un sol actiu, concentrat</div>
+
+      <div class="row-l">Gestió</div>
+      <div class="row-v win">Cap: ho fa el REIT</div>
+      <div class="row-v lose">Inquilins, reformes, impagaments, IBI, comunitat</div>
+
+      <div class="row-l">Flux d'ingrés</div>
+      <div class="row-v win">Dividend regular, previsible (fins i tot mensual)</div>
+      <div class="row-v">Lloguer mensual, però amb buits i morositat</div>
+
+      <div class="row-l">Palanquejament</div>
+      <div class="row-v">Limitat (es pot fer amb marge, arriscat)</div>
+      <div class="row-v win">Hipoteca: multiplica el capital propi</div>
+
+      <div class="row-l">Volatilitat visible</div>
+      <div class="row-v lose">Alta: preu cada dia a la pantalla</div>
+      <div class="row-v win">Baixa percebuda: no veus el preu diari</div>
+    </div>
+    <p class="footnote">Ni l'un és sempre millor que l'altre: són eines diferents per a situacions diferents. El pis brilla amb capital alt i hipoteca barata; el REIT brilla per accessibilitat, liquiditat i diversificació.</p>
+  </section>
+
+  <!-- ===== 7 · MONÒLIT · REALTY INCOME (intro) ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Cas d'estudi a fons &middot; Monòlit 1/3</div>
+      <h2>Realty Income · «The Monthly Dividend Company»</h2>
+    </div>
+    <div class="dark">
+      <div class="sub">NYSE: O &middot; Fundada el 1969 &middot; Cotitza des de 1994 &middot; S&amp;P 500</div>
+      <div class="htitle">El REIT net-lease més emblemàtic del món: lloga locals individuals a empreses solvents amb contractes a llarguíssim termini, i en paga el lloguer als accionistes <b>cada mes</b>.</div>
+      <p>El seu model és tan avorrit com previsible &mdash; i això, per a un inversor de renda a llarg termini, és exactament la gràcia. La seva marca registrada és literalment «la companyia del dividend mensual».</p>
+      <div class="dgrid">
+        <div class="dstat gold"><div class="n">15.571</div><div class="l">propietats en EUA, Regne Unit i Europa</div></div>
+        <div class="dstat"><div class="n">98,9%</div><div class="l">d'ocupació de la cartera</div></div>
+        <div class="dstat"><div class="n">1.786</div><div class="l">clients llogaters · 92 indústries</div></div>
+        <div class="dstat mint"><div class="n">~8,7 anys</div><div class="l">termini mitjà restant dels contractes</div></div>
+      </div>
+    </div>
+    <div class="body-grid cols-7-5 grow" style="margin-top:16px">
+      <div class="card">
+        <div class="card-title">La cadència que la fa única: 12 pagaments l'any</div>
+        <div class="monthstrip">
+          <div class="mchip"><span class="coin"></span><span class="mm">GEN</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">FEB</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">MAR</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">ABR</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">MAI</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">JUN</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">JUL</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">AGO</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">SET</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">OCT</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">NOV</span></div>
+          <div class="mchip"><span class="coin"></span><span class="mm">DES</span></div>
+        </div>
+        <p class="card-text" style="margin-top:14px">La majoria d'empreses paguen dividend un o dos cops l'any. Realty Income el paga <b>cada mes</b>: ideal per reinvertir sovint (interès compost més freqüent) i per a qui vol un ingrés mensual estable, com un lloguer.</p>
+      </div>
+      <div class="card tint-accent">
+        <div class="card-title">Mida i empremta</div>
+        <div class="spec" style="margin-top:8px">
+          <div class="srow"><span class="sk">Capitalització</span><span class="sv"><b>~55.000 M$</b></span></div>
+          <div class="srow"><span class="sk">Accions</span><span class="sv">~932 milions</span></div>
+          <div class="srow"><span class="sk">Geografia</span><span class="sv">50 estats EUA, Regne Unit i diversos països d'Europa</span></div>
+          <div class="srow"><span class="sk">Model</span><span class="sv">Triple-net, comerç essencial</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="footnote">Xifres del tancament del 1r trimestre de 2026 i mercat (fonts oficials de la companyia). The Boring Investor · material educatiu, no és una recomanació de compra. Coins il&middot;lustratives.</p>
+  </section>
+
+  <!-- ===== 8 · MODEL TRIPLE-NET ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker green">Monòlit 2/3 &middot; Per què és tan previsible</div>
+      <h2>El secret: el contracte «triple-net»</h2>
+      <p class="lead">La majoria dels seus lloguers són <span class="em">triple-net (NNN)</span>: el llogater paga el lloguer <em>i</em> assumeix impostos, assegurança i manteniment de l'immoble. Realty Income es queda amb un ingrés gairebé net, blindat i creixent.</p>
+    </div>
+    <div class="rows grow">
+      <div class="rrow">
+        <div class="part"><span class="e">📜</span> Contractes llargs</div>
+        <div class="desc">Lloguers de <b>10&ndash;20 anys</b> amb pujades automàtiques pactades. L'ingrés futur és, en bona part, conegut per endavant.</div>
+      </div>
+      <div class="rrow">
+        <div class="part"><span class="e">🛡️</span> Triple-net</div>
+        <div class="desc">El llogater paga impostos, assegurança i manteniment. Realty Income <b>no carrega aquests costos</b> — el marge és estable i previsible.</div>
+      </div>
+      <div class="rrow">
+        <div class="part"><span class="e">🧩</span> Diversificació extrema</div>
+        <div class="desc">1.786 clients en 92 indústries i diversos països. Si un llogater fa fallida, l'impacte sobre el total és <b>diminut</b>.</div>
+      </div>
+      <div class="rrow">
+        <div class="part"><span class="e">🏪</span> Comerç essencial</div>
+        <div class="desc">Supermercats, farmàcies, botigues de conveniència, gimnasos — negocis que <b>resisteixen l'e-commerce i les recessions</b>.</div>
+      </div>
+    </div>
+    <div class="key-line green" style="margin-top:18px"><b>Resultat:</b> una màquina de generar caixa contractual. El 2025 va ser el <b>15è any consecutiu</b> de creixement del benefici operatiu per acció (AFFO). Avorrit, però implacable.</div>
+  </section>
+
+  <!-- ===== 9 · LA RATXA DE DIVIDENDS ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Monòlit 3/3 &middot; La ratxa que ho explica tot</div>
+      <h2>671 dividends mensuals seguits</h2>
+      <p class="lead">La història de Realty Income és, sobretot, una història de constància. Ha pagat — i apujat — el dividend a través de la bombolla puntcom, la crisi financera del 2008, la COVID i el xoc de tipus del 2022&ndash;23.</p>
+    </div>
+    <div class="body-grid cols-2 grow">
+      <div class="stack">
+        <div class="stat-grid-3">
+          <div class="stat-big tint-green"><div class="num">671</div><div class="lbl">dividends mensuals consecutius</div><div class="sub">declarat al maig de 2026</div></div>
+          <div class="stat-big tint-accent"><div class="num">134</div><div class="lbl">pujades de dividend des de 1994</div><div class="sub">114 trimestres seguits a l'alça</div></div>
+          <div class="stat-big tint-amber"><div class="num">+30 anys</div><div class="lbl">com a «Dividend Aristocrat» de l'S&amp;P 500</div><div class="sub">l'elit dels pagadors fiables</div></div>
+        </div>
+        <div class="key-line accent"><b>Què vol dir &laquo;Aristocrat&raquo;:</b> empreses de l'S&amp;P 500 que han apujat el dividend cada any durant 25 anys o més. És un segell de disciplina i resiliència, no una garantia de futur.</div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div class="card-title">El dividend que has cobrat creix amb tu</div>
+          <div class="barchart" style="margin-top:14px">
+            <div class="brow"><div class="lab">Dividend anual <b>2020</b></div><div class="track"><div class="fill green" style="width:70%"></div></div><div class="val green">~2,80&nbsp;$</div></div>
+            <div class="brow"><div class="lab">Dividend anual <b>2024</b></div><div class="track"><div class="fill green" style="width:85%"></div></div><div class="val green">~3,13&nbsp;$</div></div>
+            <div class="brow"><div class="lab">Dividend anual <b>2026</b></div><div class="track"><div class="fill green" style="width:100%"></div></div><div class="val green">~3,25&nbsp;$</div></div>
+          </div>
+          <p class="card-text" style="margin-top:14px">Cada any reparteix una mica més. Si vas comprar fa anys, avui cobres més dividend per la mateixa acció que tens. Aquest és el motor del <b>yield-on-cost</b> de la propera diapositiva.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 10 · APROFITAR LES BAIXADES · YIELD ON COST ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker green">Estratègia &middot; El preu d'entrada ho és tot per a la renda</div>
+      <h2>Aprofitar les baixades: el yield-on-cost</h2>
+      <p class="lead">El dividend per acció és gairebé fix a curt termini (~3,25&nbsp;$ a l'any). Per tant, <span class="em">com més baix compres, més alt és el rendiment que bloqueges per sempre</span> sobre el teu cost. Comprar les caigudes no és especular: és optimitzar la renda.</p>
+    </div>
+    <div class="body-grid cols-7-5 grow">
+      <div class="card">
+        <div class="card-title">Mateix dividend (~3,25&nbsp;$), diferents preus d'entrada</div>
+        <div class="barchart" style="margin-top:16px">
+          <div class="brow"><div class="lab">Comprant a <b>68&nbsp;$</b> (màxim 52s)</div><div class="track"><div class="fill amber" style="width:78%"></div></div><div class="val amber">4,8%</div></div>
+          <div class="brow"><div class="lab">Comprant a <b>62&nbsp;$</b></div><div class="track"><div class="fill" style="width:86%"></div></div><div class="val">5,2%</div></div>
+          <div class="brow"><div class="lab">Comprant a <b>~60&nbsp;$</b> (preu recent)</div><div class="track"><div class="fill" style="width:89%"></div></div><div class="val">5,4%</div></div>
+          <div class="brow"><div class="lab">Comprant a <b>55,5&nbsp;$</b> (mínim 52s)</div><div class="track"><div class="fill green" style="width:96%"></div></div><div class="val green">5,9%</div></div>
+        </div>
+        <p class="card-text" style="margin-top:14px">Comprar al mínim de l'any en lloc del màxim eleva el rendiment bloquejat de <b>4,8% a ~5,9%</b> — més d'un punt sencer de renda extra, cada any, per sempre, només pel preu d'entrada.</p>
+      </div>
+      <div class="stack">
+        <div class="card tint-green">
+          <div class="card-title">I el temps ho amplifica</div>
+          <p class="card-text">Si compres a 55,5&nbsp;$ amb un 5,9% inicial i el dividend creix ~3% anual:</p>
+          <ul class="clean green" style="margin-top:10px">
+            <li><b>Avui</b> &mdash; yield-on-cost ~5,9%</li>
+            <li><b>D'aquí 10 anys</b> &mdash; ~7,9% sobre el teu cost</li>
+            <li><b>D'aquí 20 anys</b> &mdash; &gt;10% sobre el teu cost</li>
+          </ul>
+        </div>
+        <div class="key-line"><b>Eina pràctica:</b> el DCA (aportacions periòdiques) compra automàticament més accions quan el preu baixa, fent mitjana a la teva favor sense haver d'encertar el moment.</div>
+      </div>
+    </div>
+    <p class="footnote">Preus i rendiments a 1 de juny de 2026, indicatius i variables (no temps real). Exemple il&middot;lustratiu; rendiments passats i projeccions no garanteixen resultats futurs.</p>
+  </section>
+
+  <!-- ===== 11 · FLUXOS RECURRENTS vs PIS ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Comparativa de caixa &middot; 100.000&euro; treballant</div>
+      <h2>Fluxos recurrents: Realty Income vs un pis</h2>
+      <p class="lead">Imaginem el mateix capital invertit de dues maneres. No és el rendiment total — és la <span class="em">caixa neta i la fricció</span> de cada camí. Xifres il&middot;lustratives.</p>
+    </div>
+    <div class="cf-grid grow">
+      <div class="cf-col b">
+        <div class="cf-head"><span class="e">📈</span> Realty Income · 100.000&euro;</div>
+        <div class="cf-line plus"><span>Dividend brut anual (~5,4%)</span><span class="v">+5.400&euro;</span></div>
+        <div class="cf-line minus"><span>Retenció a origen / fiscalitat dividend*</span><span class="v">&minus;1.350&euro;</span></div>
+        <div class="cf-line"><span>Gestió, vacants, reformes</span><span class="v">0&euro;</span></div>
+        <div class="cf-line net"><span>Caixa neta a la butxaca</span><span class="v">~4.050&euro;</span></div>
+        <div class="cf-note">12 ingressos l'any · líquid · zero feina · diversificat en milers d'immobles. *Part de la retenció pot recuperar-se via doble imposició.</div>
+      </div>
+      <div class="cf-col a">
+        <div class="cf-head"><span class="e">🏠</span> Pis llogat · 100.000&euro; d'equity</div>
+        <div class="cf-line plus"><span>Lloguer brut anual (~4%)</span><span class="v">+4.000&euro;</span></div>
+        <div class="cf-line minus"><span>IBI, comunitat, assegurança, manteniment</span><span class="v">&minus;900&euro;</span></div>
+        <div class="cf-line minus"><span>Vacants i morositat (~1 mes/any)</span><span class="v">&minus;330&euro;</span></div>
+        <div class="cf-line minus"><span>IRPF sobre el lloguer net</span><span class="v">&minus;560&euro;</span></div>
+        <div class="cf-line net"><span>Caixa neta a la butxaca</span><span class="v">~2.210&euro;</span></div>
+        <div class="cf-note">Avantatge: pots apalancar-te amb hipoteca i el preu no et balla cada dia. Inconvenient: feina, concentració i molt poca liquiditat.</div>
+      </div>
+    </div>
+    <p class="footnote">Exemple esquemàtic, no advisory: el resultat real depèn de la fiscalitat de cadascú, la ciutat, el palanquejament i la revaloració de l'immoble. El pis amb hipoteca pot rendir més sobre el capital propi, a canvi de més risc i menys liquiditat.</p>
+  </section>
+
+  <!-- ===== 12 · PER QUÈ A LLARG TERMINI ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker green">La tesi &middot; Per què pot ser una bona estratègia a llarg termini</div>
+      <h2>El dividend reinvertit fa la bola de neu</h2>
+      <p class="lead">La màgia no és el dividend d'un any — és el que passa quan el <span class="em">reinverteixes</span> dècada rere dècada mentre el dividend mateix creix.</p>
+    </div>
+    <div class="body-grid cols-2 grow">
+      <div class="stack">
+        <div class="card tint-accent">
+          <div class="card-title">Tres motors que es multipliquen</div>
+          <ul class="clean" style="margin-top:8px">
+            <li><b>Reinversió (DRIP)</b> &mdash; cada dividend compra accions noves que paguen el seu propi dividend.</li>
+            <li><b>Creixement del dividend</b> &mdash; ~3% anual de pujada històrica eleva el teu yield-on-cost any rere any.</li>
+            <li><b>Compres en les baixades</b> &mdash; el DCA i les caigudes baixen el teu cost mitjà i pugen el rendiment.</li>
+          </ul>
+        </div>
+        <div class="key-line green"><b>L'efecte combinat:</b> en horitzons de 15&ndash;20 anys, la part del retorn que ve del dividend reinvertit acostuma a superar de llarg el que ve del moviment del preu. Aquí és on l'avorriment paga.</div>
+      </div>
+      <div class="stack" style="justify-content:center">
+        <div class="quote">No busquis l'emoció a la cartera. L'immobiliari de renda bo és com mirar créixer la gespa &mdash; tediós dia a dia, espectacular al cap d'una dècada.
+          <span class="by">— Filosofia The Boring Investor</span>
+        </div>
+        <div class="stat-big tint-green" style="margin-top:6px">
+          <div class="num">Mensual</div>
+          <div class="lbl">cadència del dividend &mdash; ideal per reinvertir sovint i per a qui viu de la renda</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 13 · RISCOS ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker">Honestedat &middot; El que cal vigilar</div>
+      <h2>Riscos i contrapunts</h2>
+      <p class="lead">Cap tesi és completa sense la cara B. Aquests són els riscos concrets de Realty Income i dels REITs de renda en general.</p>
+    </div>
+    <div class="risk-grid grow">
+      <div class="risk">
+        <div class="ic">📉</div>
+        <div class="nm">Sensibilitat als tipus d'interès</div>
+        <div class="ds">Quan els tipus pugen, els REITs competeixen amb els bons i el preu sol caure. Amb el bo a 10 anys EUA ~4,6%, l'avantatge del dividend (~5,3%) és més estret que històricament.</div>
+      </div>
+      <div class="risk">
+        <div class="ic">✂️</div>
+        <div class="nm">El dividend no és sagrat</div>
+        <div class="ds">La ratxa de 30 anys impressiona, però no garanteix res. Una recessió greu o un endeutament excessiu podrien forçar una retallada futura.</div>
+      </div>
+      <div class="risk">
+        <div class="ic">🐌</div>
+        <div class="nm">Creixement lent</div>
+        <div class="ds">És un vehicle de renda, no de revaloració. L'AFFO creix ~2&ndash;3% anual: no esperis que es dupliqui el preu com una tecnològica.</div>
+      </div>
+      <div class="risk">
+        <div class="ic">🏬</div>
+        <div class="nm">Concentració en llogaters</div>
+        <div class="ds">L'exposició a cadenes en dificultats (p. ex. farmàcies que tanquen botigues) pot pesar, tot i la diversificació en 1.786 clients.</div>
+      </div>
+      <div class="risk">
+        <div class="ic">💱</div>
+        <div class="nm">Divisa i fiscalitat</div>
+        <div class="ds">Cotitza en dòlars: el canvi EUR/USD afegeix soroll. I el dividend estranger tributa cada any, amb retenció a origen.</div>
+      </div>
+      <div class="risk">
+        <div class="ic">🎯</div>
+        <div class="nm">Risc de concentració teva</div>
+        <div class="ds">Per bo que sigui un REIT, és una sola empresa. Hauria de ser una peça d'una cartera diversificada &mdash; una via per esquivar-ho és un ETF de REITs (diapositiva següent).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 14 · ETF VANECK · ALTERNATIVA DIVERSIFICADA ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker green">L'alternativa diversificada &middot; Una cistella, no una aposta</div>
+      <h2>VanEck Global REIT: 100 REITs en una operació</h2>
+      <p class="lead">El darrer risc &mdash; tenir tot l'immobiliari en una sola empresa &mdash; té una solució neta: en lloc d'una acció, comprar un <span class="em">ETF</span> que té dins els REITs líders del món sencer.</p>
+    </div>
+    <div class="body-grid cols-7-5 grow">
+      <div class="stack">
+        <div class="card tint-green">
+          <div class="card-title">Què és el VanEck Global Real Estate UCITS ETF</div>
+          <p class="card-text">Amb una sola compra tens un tros de les 100 immobiliàries cotitzades més grans del planeta &mdash; net-lease, logística, residencial, sanitari, data centers &mdash; repartides per Amèrica, Europa i Àsia. Una cartera immobiliària global &laquo;feta&raquo;.</p>
+          <div class="spec" style="margin-top:14px">
+            <div class="srow"><span class="sk">Ticker · ISIN</span><span class="sv"><b>TRET</b> · NL0009690239</span></div>
+            <div class="srow"><span class="sk">Índex</span><span class="sv">GPR Global 100 (100 REITs mundials)</span></div>
+            <div class="srow"><span class="sk">Repartiment</span><span class="sv">40% Amèrica del Nord · 30% EMEA · 30% Àsia-Pacífic</span></div>
+            <div class="srow"><span class="sk">Cost (TER)</span><span class="sv"><b>0,25%</b> anual</span></div>
+            <div class="srow"><span class="sk">Dividend</span><span class="sv">Distribueix, trimestral (~3,3&ndash;3,7%)</span></div>
+            <div class="srow"><span class="sk">Format</span><span class="sv">UCITS · rèplica física · domiciliat als Països Baixos</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="key-line green"><b>El risc que SÍ redueix &mdash; el específic:</b> si una empresa retalla el dividend o fa fallida, dins l'ETF és menys de l'1% de la cistella. T'allibera del risc d'una sola companyia i d'un sol país.</div>
+        <div class="key-line"><b>El risc que NO elimina &mdash; el sistèmic:</b> segueix sent 100% sector immobiliari. Si tot el sector cau (per una pujada de tipus, p. ex.), l'ETF cau igual. Per cobrir el risc sistèmic de debò cal diversificar <b>entre classes d'actius</b> (RV global, bons&hellip;).</div>
+        <div class="card">
+          <div class="card-title" style="font-size:16px">El terme mitjà</div>
+          <p class="card-text"><b>Realty Income</b> dona més renda (~5,3%) i el romanticisme del dividend mensual, a canvi de risc d'una sola empresa. <b>El VanEck</b> dona menys renda (~3,5%) però molta menys exposició individual. Combinar-ne una mica de cada sol ser el punt dolç.</p>
+        </div>
+      </div>
+    </div>
+    <p class="footnote">Dades del VanEck Global Real Estate UCITS ETF a 2026, indicatives i variables. Ni Realty Income ni cap ETF esmentat constitueixen una recomanació de compra; són exemples educatius. The Boring Investor no cobra comissions per producte.</p>
+  </section>
+
+  <!-- ===== 15 · RECAP + DISCLAIMER ===== -->
+  <section class="slide">
+    <div class="head">
+      <div class="kicker green">Per recordar</div>
+      <h2>Les quatre idees clau</h2>
+    </div>
+    <div class="recap grow">
+      <div class="step">
+        <div class="n">01</div>
+        <div class="t">Immobiliari sense maons</div>
+        <div class="d">Un REIT és borsa amb sabor immobiliari: líquid, diversificat, des de 100&euro;, obligat a repartir ≥90% del benefici.</div>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <div class="t">Fluxos previsibles</div>
+        <div class="d">Contractes de lloguer a anys vista → dividend recurrent. El triple-net de Realty Income blinda el marge i el paga cada mes.</div>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <div class="t">El preu d'entrada mana</div>
+        <div class="d">El dividend és gairebé fix: comprar les baixades bloqueja un yield-on-cost més alt per sempre. El temps i el creixement l'amplifiquen.</div>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <div class="t">Diversifica i sigues pacient</div>
+        <div class="d">Reinverteix i deixa créixer el dividend. Per no dependre d'una sola empresa, un ETF global de REITs (VanEck) reparteix el risc específic.</div>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:18px">El truc dels inversors d'èxit és vendre quan vulguin, no quan ho hagin de fer.
+      <span class="by">— Seth Klarman</span>
+    </div>
+    <p class="footnote">The Boring Investor &middot; Material introductori d'educació financera. No constitueix una recomanació d'inversió personalitzada ni assessorament. Realty Income (NYSE: O) s'utilitza com a cas d'estudi il&middot;lustratiu, no com a recomanació de compra. Dades a 1 de juny de 2026, de fonts oficials de la companyia i mercat; preus i rendiments són variables i no en temps real. Els rendiments passats no garanteixen rendiments futurs. theboringinvestor.github.io/assessoria</p>
+  </section>
+
+</div>
+
+<!-- ===== NAV CHROME ===== -->
+<div class="chrome">
+  <div class="progress" id="progress"></div>
+  <div class="nav-btns">
+    <button class="nav-btn ghost" id="prevBtn">&larr; Anterior</button>
+    <span class="counter" id="counter">1 / 15</span>
+    <button class="nav-btn" id="nextBtn">Següent &rarr;</button>
+    <button class="nav-btn ghost" id="btn-pdf" onclick="exportarPDF()" title="Descarregar PDF (A4 horitzontal, tots els slides, alta resolució)">⬇ PDF</button>
+  </div>
+</div>
+
+<script>
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var idx = 0;
+
+  var progress = document.getElementById('progress');
+  var counter = document.getElementById('counter');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var topfill = document.getElementById('topfill');
+
+  // build dots
+  slides.forEach(function(_, i){
+    var d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    d.setAttribute('aria-label', 'Diapositiva ' + (i + 1));
+    d.addEventListener('click', function(){ go(i); });
+    progress.appendChild(d);
+  });
+  var dots = Array.prototype.slice.call(progress.children);
+
+  function go(n){
+    n = Math.max(0, Math.min(total - 1, n));
+    if (n === idx) return;
+    var dir = n > idx ? 1 : -1;
+    slides[idx].classList.remove('active');
+    slides[idx].classList.toggle('prev', dir === 1);
+    idx = n;
+    slides[idx].classList.remove('prev');
+    slides[idx].classList.add('active');
+    slides[idx].scrollTop = 0;
+    update();
+  }
+
+  function update(){
+    dots.forEach(function(d, i){ d.classList.toggle('on', i === idx); });
+    counter.textContent = (idx + 1) + ' / ' + total;
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === total - 1;
+    topfill.style.width = (idx / (total - 1) * 100) + '%';
+  }
+
+  prevBtn.addEventListener('click', function(){ go(idx - 1); });
+  nextBtn.addEventListener('click', function(){ go(idx + 1); });
+
+  // ─── EXPORT PDF (html2canvas + jsPDF) ────────────────────────────
+  function loadLib(src){
+    return new Promise(function(resolve, reject){
+      if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+      var s = document.createElement('script');
+      s.src = src; s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  function exportarPDF(){
+    var btn = document.getElementById('btn-pdf');
+    var originalText = '⬇ PDF';
+    function setBtn(txt, disabled){ if (btn) { btn.textContent = txt; btn.disabled = !!disabled; } }
+    setBtn('⏳ Carregant...', true);
+
+    loadLib('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
+      .then(function(){ return loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); })
+      .then(function(){ return doExport(setBtn, originalText); })
+      .catch(function(err){
+        console.error('[exportarPDF]', err);
+        setBtn('⚠ Error · reintenta', false);
+        setTimeout(function(){ setBtn(originalText, false); }, 3000);
+      });
+  }
+
+  function doExport(setBtn, originalText){
+    var jsPDF = window.jspdf.jsPDF;
+    var allSlides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var totalS = allSlides.length;
+
+    var pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    var PW = 297, PH = 210, PAD = 9;
+    var FW = PW - PAD * 2, FH = PH - PAD * 2, INNER = 2;
+
+    var deck = document.querySelector('.deck');
+    var dW = deck.offsetWidth, dH = deck.offsetHeight;
+    var slideAspect = dW / dH;
+
+    var imgAreaW = FW - INNER * 2, imgAreaH = FH - INNER * 2;
+    var imgW = imgAreaW, imgH = imgAreaW / slideAspect;
+    if (imgH > imgAreaH) { imgH = imgAreaH; imgW = imgAreaH * slideAspect; }
+    var imgX = PAD + INNER + (imgAreaW - imgW) / 2;
+    var imgY = PAD + INNER + (imgAreaH - imgH) / 2;
+
+    var i = 0;
+    function step(){
+      if (i >= totalS) {
+        pdf.save('TBI-Invertir-en-REITs-Realty-Income.pdf');
+        setBtn('✓ Descarregat!', false);
+        setTimeout(function(){ setBtn(originalText, false); }, 2500);
+        return;
+      }
+      setBtn('⏳ ' + (i + 1) + ' / ' + totalS, true);
+      var slide = allSlides[i];
+      var origInline = slide.getAttribute('style') || '';
+      slide.style.cssText = 'position:absolute;inset:0;display:flex;opacity:1;transform:none;transition:none;z-index:9000;pointer-events:none;background:#F7F6F4;';
+
+      setTimeout(function(){
+        html2canvas(slide, {
+          scale: 2.5, useCORS: true, allowTaint: true, backgroundColor: '#F7F6F4',
+          width: dW, height: dH, scrollX: 0, scrollY: 0,
+          windowWidth: dW, windowHeight: dH, logging: false, imageTimeout: 0
+        }).then(function(canvas){
+          if (origInline) { slide.setAttribute('style', origInline); } else { slide.removeAttribute('style'); }
+          if (i > 0) pdf.addPage([PW, PH], 'landscape');
+          pdf.setFillColor(247, 246, 244); pdf.rect(0, 0, PW, PH, 'F');
+          pdf.setFillColor(255, 255, 255); pdf.roundedRect(PAD, PAD, FW, FH, 3, 3, 'F');
+          pdf.setDrawColor(210, 207, 200); pdf.setLineWidth(0.25); pdf.roundedRect(PAD, PAD, FW, FH, 3, 3, 'S');
+          var imgData = canvas.toDataURL('image/jpeg', 0.93);
+          pdf.addImage(imgData, 'JPEG', imgX, imgY, imgW, imgH, '', 'FAST');
+          pdf.setFontSize(6.5); pdf.setTextColor(180, 176, 168); pdf.setFont('helvetica', 'normal');
+          pdf.text((i + 1) + ' / ' + totalS, PW - PAD - 0.5, PH - 3, { align: 'right' });
+          if (i === totalS - 1) {
+            pdf.setFontSize(6);
+            pdf.text('The Boring Investor \u00b7 Material educatiu \u00b7 No constitueix assessorament personalitzat \u00b7 theboringinvestor.github.io/assessoria', PAD + 0.5, PH - 3);
+          }
+          i++; step();
+        }).catch(function(err){
+          if (origInline) { slide.setAttribute('style', origInline); } else { slide.removeAttribute('style'); }
+          console.error('[doExport]', err);
+          setBtn('⚠ Error · reintenta', false);
+          setTimeout(function(){ setBtn(originalText, false); }, 3000);
+        });
+      }, 60);
+    }
+    step();
+  }
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(idx + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); }
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(total - 1);
+  });
+
+  var tx = 0;
+  document.addEventListener('touchstart', function(e){ tx = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 60) go(idx + (dx < 0 ? 1 : -1));
+  }, {passive:true});
+
+  update();
+</script>
+</body>
+</html>
