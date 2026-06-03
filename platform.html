@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="tbi-perfil.js"></script>
 <style>
 :root{
   --black:#0A0A0A;--white:#FFFFFF;--bg:#F7F6F4;
@@ -1598,157 +1599,18 @@ function getActiuNom(id, lang) {
 // CARTERES MODEL — 10 arquetips amb noms de ciutats
 // Alineades amb la taxonomia ACTIUS_TAXONOMY
 // ══════════════════════════════════════════════════
-var ARQUETIPS_CARTERES = [
-  {
-    id:'estoic', nom:"L'Estoic", ep:'Marc Aureli · 121–180 d.C.',
-    cartNom:'Nova York', cartRoma:'I · Nova York', cartSub:'Màxima RV global, horitzó >15 anys. Tot en creixement.',
-    rationale:"Alta tolerància al risc real, control emocional excel·lent i horitzó +15 anys. No necessita àncores de RF — cada euro en monetari és un cost d'oportunitat. El temps és la millor cobertura.",
-    diff:"Cap component defensiu. Drawdown màxim esperat: -45% en crisi severa. El risc és assumit conscientment.",
-    actius:[
-      {id:'rv_global', nom:'RV Global Indexada', pct:60, color:'#1B3A6B'},
-      {id:'rv_growth', nom:'RV Growth / Tecnològic', pct:25, color:'#4CAF82'},
-      {id:'rv_emergent', nom:'RV Mercats Emergents', pct:15, color:'#FF6F00'},
-    ],
-    ter:'~0,16%', retorn:'8–10%', risc:'Alt', riscClass:'amber', dims:[11,9,11,10,11,10,9]
-  },
-  {
-    id:'explorador', nom:"L'Explorador", ep:'Shackleton · 1874–1922',
-    cartNom:'Singapur', cartRoma:'II · Singapur', cartSub:'Creixement amb alternatius selectius. Dinamisme i diversificació.',
-    rationale:"Adaptabilitat alta, en fase d'acumulació. Necessita diversificació activa que inclogui crypto i metalls com a opcionalitat. L'or i els alternatius canalitzen l'energia sense turisme d'actius.",
-    diff:"Alternatius al 25% (crypto+or+REITs). RF curta al 5% com a coixí emocional, no com a protecció.",
-    actius:[
-      {id:'rv_global', nom:'RV Global Indexada', pct:50, color:'#1B3A6B'},
-      {id:'rv_growth', nom:'RV Growth / Tecnològic', pct:15, color:'#4CAF82'},
-      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:10, color:'#C0392B'},
-      {id:'crypto', nom:'Crypto / Actius Digitals', pct:10, color:'#534AB7'},
-      {id:'rv_reits', nom:'REITs / Immobiliaris', pct:10, color:'#0F6E56'},
-      {id:'rf_gov_curt', nom:'RF Gov. Curt termini', pct:5, color:'#78909C'},
-    ],
-    ter:'~0,26%', retorn:'7–9%', risc:'Mig-Alt', riscClass:'amber', dims:[10,8,10,9,10,8,8]
-  },
-  {
-    id:'navegant', nom:"El Navegant", ep:'Zheng He · 1371–1433',
-    cartNom:'Roma', cartRoma:'III · Roma', cartSub:'Equilibri creixement-estabilitat. Diversificat i robust.',
-    rationale:"Bon coneixement, horitzó mig. El dividend ETF serveix d'ancoratge psicològic: genera flux visible que demostra que el pla funciona. La RF i l'or protegeixen en les caigudes.",
-    diff:"El dividend mensual visible és la clau. Els cupons i dividends fan de brúixola psicològica quan la RV cau.",
-    actius:[
-      {id:'rv_global', nom:'RV Global Indexada', pct:45, color:'#1B3A6B'},
-      {id:'rv_dividend', nom:'RV Dividends / Renda', pct:15, color:'#2E5FA3'},
-      {id:'rf_gov_llarg', nom:'RF Gov. Llarg termini', pct:20, color:'#546E7A'},
-      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:10, color:'#C0392B'},
-      {id:'rv_reits', nom:'REITs / Immobiliaris', pct:10, color:'#0F6E56'},
-    ],
-    ter:'~0,19%', retorn:'5–7%', risc:'Mig', riscClass:'green', dims:[9,7,9,9,9,6,8]
-  },
-  {
-    id:'arquitecte', nom:"L'Arquitecte", ep:'Brunelleschi · 1377–1446',
-    cartNom:'Amsterdam', cartRoma:'IV · Amsterdam', cartSub:'7 blocs estructurats. Alternatius il·líquids selectius.',
-    rationale:"Alt coneixement i meticulositat. Pot gestionar complexitat real amb crowdlending i PE. Cada bloc té funció estructural clara, com la cúpula de Santa Maria del Fiore.",
-    diff:"El PE/Crowd és opcional i mai >15%. Si l'Arquitecte vol afegir un 8è bloc, ha d'eliminar un altre primer.",
-    actius:[
-      {id:'rv_global', nom:'RV Global Indexada', pct:35, color:'#1B3A6B'},
-      {id:'rf_corp', nom:'RF Corporativa IG', pct:15, color:'#8D6E63'},
-      {id:'liquiditat', nom:'Liquiditat / Monetari', pct:15, color:'#90A4AE'},
-      {id:'rv_reits', nom:'REITs / Immobiliaris', pct:10, color:'#0F6E56'},
-      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:10, color:'#C0392B'},
-      {id:'crowdlending', nom:'Crowdlending / P2P', pct:10, color:'#D4943A'},
-      {id:'private_equity', nom:'Private Equity', pct:5, color:'#4A148C'},
-    ],
-    ter:'~0,26%', retorn:'5–7%', risc:'Mig', riscClass:'amber', dims:[8,7,8,8,7,7,8]
-  },
-  {
-    id:'tresorer', nom:"El Tresorer", ep:'Jakob Fugger · 1459–1525',
-    cartNom:'Ginebra', cartRoma:'V · Ginebra', cartSub:'Preservació del capital real. Refugi i estabilitat.',
-    rationale:"Prioritat: no perdre. L'or protegeix el poder adquisitiu real. El dividend defensiu genera renda visible. La RV és mínima però imprescindible contra la inflació silenciosa.",
-    diff:"La RV mínima (via Dividend ETF) no és un risc — és l'antídot contra la inflació silenciosa. Sense ella, el Tresorer perd un 2–3% real cada any.",
-    actius:[
-      {id:'rf_gov_llarg', nom:'RF Gov. Llarg termini', pct:35, color:'#546E7A'},
-      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:25, color:'#C0392B'},
-      {id:'rv_dividend', nom:'RV Dividends (defensiu)', pct:20, color:'#2E5FA3'},
-      {id:'liquiditat', nom:'Liquiditat remunerat', pct:10, color:'#90A4AE'},
-      {id:'rv_reits', nom:'REITs Defensiu', pct:10, color:'#0F6E56'},
-    ],
-    ter:'~0,18%', retorn:'3–5%', risc:'Baix', riscClass:'green', dims:[3,5,4,5,3,7,4]
-  },
-  {
-    id:'cronista', nom:"El Cronista", ep:'Heròdot · 484–425 a.C.',
-    cartNom:'Atenes', cartRoma:'VI · Atenes', cartSub:'Cartera pedagògica clàssica. Aprendre fent.',
-    rationale:"Alt coneixement teòric però baixa execució. La diversificació per tipus d'actiu permet entendre com funciona cada bloc i executar millor en cada revisió.",
-    diff:"Cada revisió trimestral és una 'entrada al diari'. El Cronista no canvia la cartera — documenta per què no la canvia.",
-    actius:[
-      {id:'rv_global', nom:'RV Global Indexada', pct:40, color:'#1B3A6B'},
-      {id:'rf_global', nom:'RF Global Agregat', pct:25, color:'#607D8B'},
-      {id:'or_metalls', nom:'Or i Metalls preciosos', pct:15, color:'#C0392B'},
-      {id:'rv_dividend', nom:'RV Dividends', pct:10, color:'#2E5FA3'},
-      {id:'rv_reits', nom:'REITs', pct:10, color:'#0F6E56'},
-    ],
-    ter:'~0,19%', retorn:'4–6%', risc:'Mig-Baix', riscClass:'green', dims:[5,5,5,8,4,6,5]
-  },
-  {
-    id:'alquimista', nom:"L'Alquimista", ep:'Paracels · 1493–1541',
-    cartNom:'Dubhai', cartRoma:"VII · Dubhai", cartSub:'70% àncora indexada + 30% experimentació. Alt risc controlat.',
-    rationale:"Alta energia sense procés. Crypto i startups protagonistes, base indexada per no descarrilar. Necessita la vàlvula de vapor del 30% experimental — sense ella, vendrà tot en la primera crisi.",
-    diff:"El 30% alternatiu és deliberat. Si l'Alquimista vol més exposició, ha de vendre del satèl·lit per comprar al nucli. Mai a l'inrevés.",
-    actius:[
-      {id:'rv_global', nom:'RV Global Indexada', pct:40, color:'#1B3A6B'},
-      {id:'crypto', nom:'Crypto (BTC+ETH)', pct:20, color:'#534AB7'},
-      {id:'crowdlending', nom:'Crowdlending', pct:15, color:'#D4943A'},
-      {id:'rv_growth', nom:'RV Growth / IA Tech', pct:10, color:'#4CAF82'},
-      {id:'startups', nom:'Start-ups (PE seed)', pct:5, color:'#1B5E20'},
-      {id:'or_metalls', nom:'Or físic', pct:5, color:'#C0392B'},
-      {id:'rf_gov_curt', nom:'RF Curta', pct:5, color:'#78909C'},
-    ],
-    ter:'~0,38%', retorn:'9–13%', risc:'Alt', riscClass:'amber', dims:[8,4,7,6,8,3,4]
-  },
-  {
-    id:'eremita', nom:"L'Ermità", ep:'Diògenes · 412–323 a.C.',
-    cartNom:'Reykjavik', cartRoma:'VIII · Reykjavik', cartSub:'Màxima simplicitat. 2 productes. Funciona i prou.',
-    rationale:"Desconfiança cap a la complexitat. Un sol ETF global + compte remunerat. Sense decisions actives. Quan porti 12 mesos sense tocar-ho, es pot parlar d'afegir un 3r bloc.",
-    diff:"2 productes màxim. La complexitat és l'enemic de l'Ermità. La simplicitat és la seva fortalesa real.",
-    actius:[
-      {id:'rv_global', nom:'ETF Global (VWCE)', pct:60, color:'#1B3A6B'},
-      {id:'liquiditat', nom:'Compte remunerat / Monetari', pct:40, color:'#90A4AE'},
-    ],
-    ter:'~0,22%', retorn:'3–5%', risc:'Baix', riscClass:'green', dims:[3,4,4,5,3,5,4]
-  },
-  {
-    id:'pionier', nom:"El Pionier", ep:'Perfil especial · Edat ≤35',
-    cartNom:'Shanghai', cartRoma:'IX · Shanghai', cartSub:'Màxim creixement i alternatius. FIRE agressiu jove.',
-    rationale:"Per a inversors joves (≤35 anys) amb màxim interès en crypto i alternatius. Alta volatilitat a canvi de potencial de creixement asimètric. FIRE agressiu. Requereix convicció i horitzó >10 anys.",
-    diff:"Alternatius al 45%. La base de RV global (35%) és l'àncora que evita la ruïna total en crisi crypto. Mai eliminar-la.",
-    actius:[
-      {id:'rv_global', nom:'RV Global (àncora)', pct:35, color:'#1B3A6B'},
-      {id:'crypto', nom:'Crypto diversificat', pct:25, color:'#534AB7'},
-      {id:'crowdlending', nom:'Crowdlending P2P', pct:10, color:'#D4943A'},
-      {id:'rv_growth', nom:'RV Growth / IA Tech', pct:10, color:'#4CAF82'},
-      {id:'private_equity', nom:'Private Equity', pct:10, color:'#4A148C'},
-      {id:'or_metalls', nom:'Or físic', pct:5, color:'#C0392B'},
-      {id:'liquiditat', nom:'RF Monetari', pct:5, color:'#90A4AE'},
-    ],
-    ter:'~0,45%', retorn:'12–18%', risc:'Molt Alt', riscClass:'amber', dims:[10,6,10,8,11,4,9]
-  },
-  {
-    id:'renda', nom:"La Renda", ep:'Perfil especial · Pre-retir/Retir',
-    cartNom:'Venècia', cartRoma:'X · Venècia', cartSub:'Renda passiva sostinguda. Dividend >6%. Viure dels rendiments.',
-    rationale:"Per a inversors en pre-retir o retir. Maximitza dividends i cupons per viure dels rendiments sense tocar el capital. L'objectiu no és créixer sinó generar flux.",
-    diff:"No és una cartera de creixement. L'objectiu és dividend yield >6% sostingut. L'or protegeix el capital en crisis.",
-    actius:[
-      {id:'rv_dividend', nom:'Dividend ETF Global', pct:35, color:'#2E5FA3'},
-      {id:'rv_dividend', nom:'Dividend IBEX (>7%)', pct:15, color:'#1B3A6B'},
-      {id:'rf_corp', nom:'RF Corporativa IG', pct:20, color:'#8D6E63'},
-      {id:'or_metalls', nom:'Or físic (ETC)', pct:15, color:'#C0392B'},
-      {id:'rv_reits', nom:'REITs Dividend (>6%)', pct:10, color:'#0F6E56'},
-      {id:'liquiditat', nom:'Liquiditat remunerat', pct:5, color:'#90A4AE'},
-    ],
-    ter:'~0,23%', retorn:'5–7%', risc:'Mig-Baix', riscClass:'green', dims:[5,6,4,6,4,8,5]
-  }
-];
+// Derivat del mòdul compartit TBI_PERFIL (font única) — vegeu tbi-perfil.js
+var ARQUETIPS_CARTERES = TBI_PERFIL.arquetipsPlataforma();
 // Helper: find archetype by id
 function getArquetip(id) {
+  if (id && TBI_PERFIL.ALIES_ANTICS[id]) id = TBI_PERFIL.ALIES_ANTICS[id];
   for (var i = 0; i < ARQUETIPS_CARTERES.length; i++) {
     if (ARQUETIPS_CARTERES[i].id === id) return ARQUETIPS_CARTERES[i];
   }
-  return ARQUETIPS_CARTERES[3]; // default: Arquitecte
+  for (var j = 0; j < ARQUETIPS_CARTERES.length; j++) {
+    if (ARQUETIPS_CARTERES[j].id === 'equilibrat') return ARQUETIPS_CARTERES[j]; // default: Equilibrat
+  }
+  return ARQUETIPS_CARTERES[0];
 }
 
 // ══════════════════════════════════════════════════
@@ -4727,7 +4589,7 @@ function _renderPortalPerfilImpl(el) {
       + (function(){
         if (!emerg) return '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--g400)">—</div><div style="font-size:10px;color:var(--g400);margin-top:2px">Pendent</div>';
         var liq = (emerg.liquiditat||[]).reduce(function(s,l){return s+(l.import||0);}, 0);
-        var lp = LIQUIDITAT_PERFILS[c.arquetipId] || LIQUIDITAT_PERFILS.arquitecte;
+        var lp = LIQUIDITAT_PERFILS[(TBI_PERFIL.ALIES_ANTICS[c.arquetipId]||c.arquetipId)] || LIQUIDITAT_PERFILS.equilibrat;
         var obj = (emerg.despesesMensuals||0) * lp.mesos;
         var pct = obj>0 ? Math.round(liq/obj*100) : 0;
         var col = pct>=100?'#1A5C3A':pct>=60?'#7A4A00':'#8B1A1A';
@@ -5038,7 +4900,7 @@ function renderAccionsPendents(c, kpis, emerg) {
   try {
     if (emerg) {
       var liqE = (emerg.liquiditat||[]).reduce(function(s,l){return s+(l.import||0);}, 0);
-      var lpE = (typeof LIQUIDITAT_PERFILS !== 'undefined' && c) ? (LIQUIDITAT_PERFILS[c.arquetipId] || LIQUIDITAT_PERFILS.arquitecte) : {mesos:3};
+      var lpE = (typeof LIQUIDITAT_PERFILS !== 'undefined' && c) ? (LIQUIDITAT_PERFILS[(TBI_PERFIL.ALIES_ANTICS[c.arquetipId]||c.arquetipId)] || LIQUIDITAT_PERFILS.equilibrat) : {mesos:3};
       var objE = (emerg.despesesMensuals||0) * (lpE.mesos||3);
       if (objE > 0 && liqE < objE * 0.6) {
         accions.push({
@@ -9284,14 +9146,20 @@ async function calcularIGuardarFire(){ return fireGuardar(); }
 
 // Archetype-specific liquidity recommendations
 var LIQUIDITAT_PERFILS = {
-  estoic:     {mesos:3, maxLiqPct:5,  label:'Mínima — Cada euro fora del mercat és cost d\'oportunitat. 3 mesos és suficient amb la teva disciplina.'},
-  explorador: {mesos:4, maxLiqPct:8,  label:'Moderada-baixa — 4 mesos et donen llibertat per explorar sense ansietat. Més és capital dormint.'},
-  navegant:   {mesos:5, maxLiqPct:10, label:'Moderada — 5 mesos és la teva brúixola emocional. Saber que el coixí hi és et permet mantenir el rumb.'},
-  arquitecte: {mesos:6, maxLiqPct:10, label:'Estructural — 6 mesos és el fonament sobre el qual descansa l\'estructura. Cap bloc funciona sense aquest.'},
-  tresorer:   {mesos:9, maxLiqPct:20, label:'Ampli — 9 mesos per tranquil·litat total. El Tresorer necessita saber que el cofre està ple abans de res.'},
-  cronista:   {mesos:6, maxLiqPct:12, label:'Documentada — 6 mesos et donen marge per observar i aprendre sense pressions. Documenta el progrés.'},
-  alquimista: {mesos:5, maxLiqPct:8,  label:'Buffer de disciplina — 5 mesos. Més liquiditat t\'invitaria a experiments fora del pla. El coixí protegeix el nucli.'},
-  eremita:    {mesos:9, maxLiqPct:25, label:'Seguretat primer — 9 mesos per la tranquil·litat absoluta. Sense aquest coixí, no invertiràs mai. És el pas zero.'},
+  // Fons d'emergència PERSONAL (mesos de despeses) — separat del cash de cartera.
+  preservacio:       {mesos:9, maxLiqPct:25, label:'Seguretat primer — 9 mesos. La tranquil·litat absoluta abans que res.'},
+  preservacio_div:   {mesos:9, maxLiqPct:22, label:'Ampli — 9 mesos. Saber que el coixí hi és et permet diversificar amb calma.'},
+  coixi:             {mesos:8, maxLiqPct:20, label:'Sòlid — 8 mesos. La simplicitat de la cartera descansa sobre un coixí ample.'},
+  conservador_div:   {mesos:7, maxLiqPct:15, label:'Confortable — 7 mesos. Marge per mantenir el rumb sense vendre en mal moment.'},
+  conservador_sof:   {mesos:6, maxLiqPct:12, label:'Estructural — 6 mesos. El fonament sobre el qual reposen els il·líquids.'},
+  equilibri_simple:  {mesos:6, maxLiqPct:12, label:'Equilibrat — 6 mesos. El coixí just per a un perfil moderat.'},
+  equilibrat:        {mesos:5, maxLiqPct:10, label:'Moderat — 5 mesos. La teva brúixola emocional quan la RV cau.'},
+  multiactiu:        {mesos:5, maxLiqPct:10, label:'Estructural — 5 mesos. Cada bloc funciona perquè la base hi és.'},
+  creixement_simple: {mesos:4, maxLiqPct:8,  label:'Moderada-baixa — 4 mesos. Llibertat per créixer sense ansietat.'},
+  dinamic_div:       {mesos:4, maxLiqPct:8,  label:'Buffer de disciplina — 4 mesos. El coixí protegeix el nucli de creixement.'},
+  dinamic_alt:       {mesos:4, maxLiqPct:8,  label:'Buffer de disciplina — 4 mesos. Evita liquidar alternatius en pànic.'},
+  totindex:          {mesos:3, maxLiqPct:5,  label:'Mínima — 3 mesos. Amb la teva disciplina, cada euro fora del mercat és cost d\'oportunitat.'},
+  maxim:             {mesos:3, maxLiqPct:5,  label:'Mínima — 3 mesos. La liquiditat de cartera ja fa de munició; el coixí personal pot ser ajustat.'},
 };
 
 function renderPortalEmergencia(el) {
