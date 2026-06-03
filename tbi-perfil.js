@@ -389,7 +389,7 @@ var TBI_PERFIL = (function () {
   /* dn de visualització (radar 7 eixos): 1 Objectius·2 Situació·3 Horitzó·4 Coneixement·5 Risc fin.·6 Risc em.·7 Preferències */
   var DN_MAP = { edat:2, A1:4, A2:4, A3:4, B1:2, B2:2, B3:2, C1:1, C2:3, D1:5, D2:6, D3:6, E1:7, E2:7 };
   function preguntesOnboarding() {
-    return PREGUNTES.map(function (q) {
+    var arr = PREGUNTES.map(function (q) {
       if (q.type === "text") {
         return { type: "text", id: q.id, dim: q.dim, dn: 0, text: q.text,
                  isEmail: (q.id === "email"),
@@ -400,6 +400,8 @@ var TBI_PERFIL = (function () {
       });
       return { type: "choice", id: q.id, dim: q.dim, dn: (DN_MAP[q.id] || 1), text: q.text, opts: opts };
     });
+    arr.push({ type: "result", id: "result", dim: "Resultat", dn: 10 }); // pas final -> pantalla de resultats
+    return arr;
   }
 
   var FACTORS_D9 = ["Sense alternatius complexos · només índexs",
