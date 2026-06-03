@@ -332,6 +332,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="tbi-perfil.js"></script>
 <script>
 
 // ══════════════════════════════════════════════
@@ -527,112 +528,7 @@ function uiT(key) {
 // ════════════════════════════════════════════
 // 8 ARQUETIPS — PERSONATGES HISTÒRICS
 // ════════════════════════════════════════════
-const ARQUETIPS = [
-  {
-    min:90, id:'estoic',
-    nom:"L'Estoic", ep:'Marc Aureli \xb7 121-180 d.C.',
-    lema:'La disciplina \xe9s llibertat. El mercat fluctua; el pla no.',
-    desc:"L'inversor m\xe9s madur del espectre. Alta capacitat d'estalvi, horitz\xf3 llarg, obertura a diversificaci\xf3 real incloent alternatius. No li importa la volatilitat: t\xe9 el pla, el segueix. La seva edat i situaci\xf3 li permeten maximitzar l'exposici\xf3 a RV global i alternatius amb convicci\xf3.",
-    cartera:"I · La Catapulta", perfil:'Creixement M\xe0xim',
-    cartDesc:"M\xe0xima RV + alternatius seleccionats \xb7 horitz\xf3 il\xb7limitat",
-    alloc:[{n:"RV Global (MSCI World)",p:55},{n:"S&P 500 ETF",p:15},{n:"Emergents (EMIM)",p:10},{n:"Crypto BTC/ETH (ETC)",p:10},{n:"Crowdlending P2P",p:5},{n:"Or f\xedsic ETP",p:5}],
-    ter:"~0,16%", retorn:"8–10%",
-    factorsD8:"Edat ideal: 20-40 \xb7 Horitz\xf3: >15 anys \xb7 Retir lluny",
-    factorsD9:"Obert a alternatius \xb7 Crypto + crowdlending a la cartera",
-    criteris:"Puntuaci\xf3 alta en totes 9 dimensions. Inversors joves amb alta tolerancia al risc, coneixement financer, i obertura a actius alternatius. Horitz\xf3 de retir >15 anys."
-  },
-  {
-    min:77, id:'explorador',
-    nom:"L'Explorador", ep:'Shackleton \xb7 1874-1922',
-    lema:'Qualsevol terreny \xe9s navegable amb el pla adequat.',
-    desc:"Combina indexaci\xf3 global amb una capa d'alternatius moderada. En etapa d'acumulaci\xf3 (30-45 anys), busca cr\xe8ixer r\xe0pidament per\xf2 amb diversificaci\xf3 real. \xc9s curi\xf3s sobre crypto i crowdlending per\xf2 no hi posa m\xe9s del 15% de la cartera.",
-    cartera:"II · La Caravella", perfil:'Din\xe0mica',
-    cartDesc:"RV diversificada + alternatius moderats \xb7 capa d'ada\xadptaci\xf3",
-    alloc:[{n:"RV Global (MSCI World)",p:45},{n:"Tem\xe0tica (Tech/Clean)",p:10},{n:"Dividend ETF",p:10},{n:"REITs Global",p:10},{n:"Or f\xedsic ETP",p:10},{n:"Crowdlending",p:8},{n:"Crypto (BTC)",p:7}],
-    ter:"~0,26%", retorn:"7–9%",
-    factorsD8:"Edat ideal: 30-50 \xb7 Horitz\xf3: 10-20 anys \xb7 Acumulaci\xf3",
-    factorsD9:"Obert a alternatius \xb7 10-15% en crypto/crowd",
-    criteris:"Puntuaci\xf3 alta en D1 (objectius), D3 (horitz\xf3), D4 (coneixement) i D9 (alternatius). Inversors en fase d'acumulaci\xf3 que entenen els alternatius i volen diversificaci\xf3 real m\xe9s enll\xe0 dels ETFs."
-  },
-  {
-    min:64, id:'navegant',
-    nom:'El Navegant', ep:'Zheng He \xb7 1371-1433',
-    lema:'Amb bon mapa i paci\xe8ncia, tot port \xe9s assolible.',
-    desc:"Equilibrat i planificador. Est\xe0 pensant en el retir a mig termini (10-15 anys) i construeix amb base s\xf2lida. Inclou una mica d'or i REITs com a protecci\xf3. No li interessen molt els alternatius especulatius, per\xf2 pot tenir un 5% en crowdlending conservador.",
-    cartera:"III · El Galeó", perfil:'Balancejada',
-    cartDesc:"Equilibri creixement-estabilitat \xb7 protecci\xf3 inflaci\xf3",
-    alloc:[{n:"RV Global Indexada",p:40},{n:"Dividend ETF Global",p:20},{n:"RF Diversificada Gov.",p:15},{n:"Or f\xedsic ETP",p:10},{n:"REITs Global",p:10},{n:"Crowdlending conservador",p:5}],
-    ter:"~0,19%", retorn:"5–7%",
-    factorsD8:"Edat ideal: 35-55 \xb7 Horitz\xf3: 8-15 anys \xb7 Pre-retir",
-    factorsD9:"Obert moderadament \xb7 0-5% alternatius baixa volatilitat",
-    criteris:"Puntuaci\xf3 equilibrada en totes les dimensions. Horitz\xf3 mig. Prefereix actius comprensibles, vol retir digne sense especular. Pot tenir un petit toc d'alternatius conservadors (crowdlending, or)."
-  },
-  {
-    min:54, id:'arquitecte',
-    nom:"L'Arquitecte", ep:'Brunelleschi \xb7 1377-1446',
-    lema:'Tota gran obra comen\xe7a amb uns fonaments s\xf2lids.',
-    desc:"Construeix la cartera com un edifici: cada bloc t\xe9 una funci\xf3 clara. A mitjan vida (40-55), combina creixement, estabilitat i alternatius il\xb7l\xedquids com a private equity o crowdlending a llarg termini. M\xe9s complex que el Navegant, per\xf2 cada peça t\xe9 sentit estructural.",
-    cartera:"IV · La Catedral", perfil:'Balancejada Complexa',
-    cartDesc:"Complex per\xf2 coherent \xb7 cada bloc t\xe9 funci\xf3 estructural",
-    alloc:[{n:"RV Global Core",p:35},{n:"RV Factor (Value+Quality)",p:10},{n:"RF Corporativa IG",p:15},{n:"REITs Global",p:10},{n:"Or f\xedsic ETP",p:10},{n:"Crowdlending P2B",p:10},{n:"Private Equity (seed)",p:5},{n:"Liquiditat estrat\xe8gica",p:5}],
-    ter:"~0,26%", retorn:"5–7%",
-    factorsD8:"Edat ideal: 35-55 \xb7 Horitz\xf3: 8-15 anys \xb7 Retir planificat",
-    factorsD9:"Alternatius il\xb7l\xedquids a llarg termini \xb7 10-15%",
-    criteris:"Puntuaci\xf3 alta en D4 (coneixement) i D9 (alternatius). Inversor meticulat que entri alt en D8 (consolidaci\xf3). Vol diversificaci\xf3 real amb actius il\xb7l\xedquids a llarg termini: PE, crowdlending B2B."
-  },
-  {
-    min:44, id:'tresorer',
-    nom:'El Tresorer', ep:'Jakob Fugger \xb7 1459-1525',
-    lema:"La prud\xe8ncia \xe9s l\u2019inici de tota sabiduria financera.",
-    desc:"Proper al retir o en fase de consolidaci\xf3 (50-65 anys). Prioritza la preservaci\xf3 del capital real per sobre del creixement. Pot tenir or com a asset refugi i dividend d'alt rendiment. No li interessen els alternatius especulatius.",
-    cartera:"V · La Muralla", perfil:'Conservadora',
-    cartDesc:"Preservaci\xf3 del capital real contra la inflaci\xf3",
-    alloc:[{n:"RF Curta Gov. AAA",p:35},{n:"Or f\xedsic ETP",p:25},{n:"Dividend ETF (>6%)",p:20},{n:"Liquiditat remunerat",p:10},{n:"REITs defensiu",p:10}],
-    ter:"~0,18%", retorn:"3–5%",
-    factorsD8:"Edat ideal: 45-65 \xb7 Horitz\xf3: <8 anys \xb7 Retir proper o actiu",
-    factorsD9:"No alternatius especulatius \xb7 or com a refugi",
-    criteris:"Puntuaci\xf3 alta en D8 (pre-retir) i baixa en D9 (no alternatius). Inversors madurs amb horitz\xf3 curt que necessiten capital protegit i dividend recurrent. L'or i la renda fixa curta s\xf3n els seus pilars."
-  },
-  {
-    min:33, id:'cronista',
-    nom:'El Cronista', ep:'Her\xf2dot \xb7 484-425 a.C.',
-    lema:'El qui coneix la hist\xf2ria rara vegada la repeteix.',
-    desc:"Inversor en fase inicial o intermitja, amb bon coneixement te\xf2ric per\xf2 menys experi\xe8ncia pr\xe0ctica. Interessat en aprendre sobre alternatius per\xf2 no hi ha invertit encara. Construeix la cartera amb capes simples i documentades.",
-    cartera:"VI · El Scriptorium", perfil:'Conservadora-Moderada',
-    cartDesc:"Cartera pedag\xf2gica que genera aprenentatge i execuci\xf3",
-    alloc:[{n:"RV Global Indexada",p:40},{n:"RF Diversificada",p:25},{n:"Or f\xedsic ETP",p:15},{n:"Dividend ETF",p:10},{n:"REITs",p:10}],
-    ter:"~0,19%", retorn:"4–6%",
-    factorsD8:"Edat: qualsevol \xb7 Horitz\xf3 mig o incert \xb7 Construint bases",
-    factorsD9:"Obert a aprendre alternatius \xb7 comen\xe7a amb 0-5%",
-    criteris:"Puntuaci\xf3 alta en D4 (coneixement te\xf2ric) per\xf2 baixa en experi\xe8ncia. Bona D8 per\xf2 D9 d'obertura moderada. S\xf3n inversors que saben molt de teoria per\xf2 volen comenar pas a pas amb una cartera clara."
-  },
-  {
-    min:23, id:'alquimista',
-    nom:"L'Alquimista", ep:'Paracels \xb7 1493-1541',
-    lema:"L'or no es transforma amb pressa, sin\xf3 amb proc\xe9s.",
-    desc:"Alt entusiasme, alt risc acceptat, per\xf2 amb proc\xe9s desordenat. Molt interessat en alternatius (crypto, startups) per\xf2 li falta disciplina de cartera. Jove o en etapa inicial. Necessita estructura: 70% cartera \xe0ncora, 30% experimentaci\xf3 controlada.",
-    cartera:"VII · L'Alambí", perfil:'Balancejada-Alta',
-    cartDesc:"Energia canalitzada amb proc\xe9s estricte i v\xe0lvula de vapor",
-    alloc:[{n:"RV Global Core",p:45},{n:"RF Curta",p:15},{n:"Or f\xedsic ETP",p:10},{n:"Crypto (BTC+ETH)",p:15},{n:"Crowdlending",p:10},{n:"Start-ups (seed)",p:5}],
-    ter:"~0,38%", retorn:"7–9%",
-    factorsD8:"Edat ideal: 20-40 \xb7 Horitz\xf3: >10 anys \xb7 Fase inici",
-    factorsD9:"Alt inter\xe8s alternatius \xb7 crypto + seed + crowd",
-    criteris:"D9 molt alta (alternatius) i D1 alta (objectius m\xe0xims) per\xf2 D5-D6 baixes (risc emocional alt). S\xf3n inversors joves amb molt inter\xe8s en crypto i startups que necessiten una base indexada s\xf2lida per no descarrilar."
-  },
-  {
-    min:0, id:'eremita',
-    nom:"L'Ermit\xe0", ep:'Di\xf2genes \xb7 412-323 a.C.',
-    lema:'El millor patrimoni \xe9s no necessitar massa.',
-    desc:"Inversor m\xednimista o en etapa molt inicial. Vol quelcom que funcioni sense necessitar pendre decisions. No li interessen els alternatius. Pot estar proper al retir i preferir liquiditat i seguretat absoluta. La cartera m\xe9s simple que funcioni.",
-    cartera:"VIII · El Sarró", perfil:'Conservadora',
-    cartDesc:"La cartera m\xe9s simple possible que realment funcioni",
-    alloc:[{n:"Fons indexat global (1 sol)",p:60},{n:"Compte remunerat/Monetari",p:40}],
-    ter:"~0,22%", retorn:"3–5%",
-    factorsD8:"Edat: qualsevol (esp. +50) \xb7 Horitz\xf3 curt o incert",
-    factorsD9:"No alternatius \xb7 m\xe0xima simplicitat",
-    criteris:"Puntuaci\xf3 baixa en tots els eixos. D8 alta (pre-retir o retir actiu). D9 m\xednima (no vol alternatius). Poden ser inversors molt conservadors, persones grans, o qui vol comenar amb la m\xednima fricci\xf3 possible."
-  },
-]
+const ARQUETIPS = TBI_PERFIL.arquetipsOnboarding(); // mòdul compartit (tbi-perfil.js)
 
 
 const CARTERES_DESC = {
@@ -646,250 +542,7 @@ const CARTERES_DESC = {
 // ════════════════════════════════════════════
 // PREGUNTES (23: 2 personals + 21 perfil)
 // ════════════════════════════════════════════
-const QS = [
-  {type:'text',id:'nom',dim:'Benvingut',dn:0,
-    text:'Comencem. Com et diuen?',ph:'El teu nom',req:true},
-  {type:'text',id:'email',dim:'Contacte',dn:0,
-    text:'I el teu email?',ph:'email@exemple.com',req:true,isEmail:true},
-
-  {type:'choice',id:'D1P1',dim:'D1 · Objectius',dn:1,
-    text:'Quin és el teu objectiu principal en invertir?',
-    opts:[
-      {sym:'🛡',lbl:'Protecció',txt:'No perdre el valor dels meus estalvis.',s:1},
-      {sym:'⚖',lbl:'Estabilitat',txt:'Créixer moderadament i dormir tranquil.',s:2},
-      {sym:'📈',lbl:'Creixement',txt:'Fer créixer el capital a llarg termini.',s:3},
-      {sym:'🚀',lbl:'Màxim',txt:'Maximitzar el retorn, assumeixo la volatilitat.',s:4},
-    ]},
-  {type:'choice',id:'D1P2',dim:'D1 · Objectius',dn:1,
-    text:'Quin resultat concret voldries assolir?',
-    opts:[
-      {sym:'◼',lbl:'Preservació',txt:'Que els estalvis no perdin poder adquisitiu.',s:1},
-      {sym:'◻',lbl:'Coixí',txt:'Acumular 2-3 anys de despeses de reserva.',s:2},
-      {sym:'△',lbl:'Fita concreta',txt:'Una xifra concreta: casa, jubilació, fills.',s:3},
-      {sym:'∞',lbl:'Llibertat',txt:'Independència financera o renda mensual passiva.',s:4},
-    ]},
-  {type:'choice',id:'D1P3',dim:'D1 · Objectius',dn:1,
-    text:'Accés als diners o creixement — quin prioritzes?',
-    opts:[
-      {sym:'⚡',lbl:'Immediatesa',txt:'Necessito poder accedir-hi en qualsevol moment.',s:1},
-      {sym:'〜',lbl:'Flexibilitat',txt:'Preferiria liquiditat però puc esperar setmanes.',s:2},
-      {sym:'◯',lbl:'Paciència',txt:'Puc bloquejar-los uns anys si fa falta.',s:3},
-      {sym:'∞',lbl:'Compromís',txt:'No necessito tocar-los en molt de temps.',s:4},
-    ]},
-
-  {type:'choice',id:'D2P1',dim:'D2 · Situació',dn:2,
-    text:'Tens un fons d\'emergència cobert (3-6 mesos de despeses)?',
-    opts:[
-      {sym:'✗',lbl:'No',txt:'Les meves reserves són molt justes.',s:1},
-      {sym:'½',lbl:'Parcialment',txt:'Tinc 1-2 mesos coberts.',s:2},
-      {sym:'✓',lbl:'Sí',txt:'Tinc 3-4 mesos coberts.',s:3},
-      {sym:'✓+',lbl:'Sòlid',txt:'Tinc 6 mesos o més. Em sento segur.',s:4},
-    ]},
-  {type:'slider',id:'D2P2',dim:'D2 · Situació',dn:2,
-    text:'Quin % dels teus ingressos pots estalviar cada mes de forma consistent?',
-    min:0,max:50,step:5,unit:'%',
-    lbls:['0%','25%','50%+'],
-    toScore:v=>v<=5?1:v<=15?2:v<=30?3:4,
-    describe:v=>v<=5?'Molt ajustat — cada euro compta':v<=15?'Moderat — tens algun marge':v<=30?'Bon marge — pots invertir còmodament':'Excel·lent capacitat d\'estalvi'},
-  {type:'choice',id:'D2P3',dim:'D2 · Situació',dn:2,
-    text:'Tens deutes importants que condicionen la teva liquiditat?',
-    opts:[
-      {sym:'↓↓',lbl:'Alt impacte',txt:'Sí, em deixa poc marge financer.',s:1},
-      {sym:'↓',lbl:'Gestionable',txt:'Sí, però els gestiono bé i no em preocupen.',s:2},
-      {sym:'→',lbl:'Estable',txt:'Pocs deutes, situació estable.',s:3},
-      {sym:'↑',lbl:'Lliure',txt:'Sense deutes significatius.',s:4},
-    ]},
-
-  {type:'choice',id:'D3P1',dim:'D3 · Horitzó',dn:3,
-    text:'Quan necessitaries disposar d\'una part important d\'aquest capital?',
-    opts:[
-      {sym:'1-2',lbl:'Molt aviat',txt:'En menys de 2 anys.',s:1},
-      {sym:'3-5',lbl:'Mig termini',txt:'Entre 2 i 5 anys.',s:2},
-      {sym:'5-10',lbl:'Llarg',txt:'Entre 5 i 10 anys.',s:3},
-      {sym:'+10',lbl:'Molt llarg',txt:'Més de 10 anys, o potser mai del tot.',s:4},
-    ]},
-  {type:'choice',id:'D3P2',dim:'D3 · Horitzó',dn:3,
-    text:'Hi ha algun event vital que pugui requerir liquiditat important?',
-    opts:[
-      {sym:'!',lbl:'Imminent',txt:'Sí, en els propers 1-2 anys.',s:1},
-      {sym:'~',lbl:'Probable',txt:'Probablement sí, en 3-5 anys.',s:2},
-      {sym:'?',lbl:'Possible',txt:'No res concret però potser en 5-10 anys.',s:3},
-      {sym:'—',lbl:'Cap',txt:'No veig cap necessitat important a mig termini.',s:4},
-    ]},
-  {type:'choice',id:'D3P3',dim:'D3 · Horitzó',dn:3,
-    text:'Si la inversió caigués un 20%, podries esperar sense necessitar els diners?',
-    opts:[
-      {sym:'✗',lbl:'No puc',txt:'No, necessitaria els diners igualment.',s:1},
-      {sym:'~',lbl:'Difícil',txt:'Seria molt difícil però ho intentaria.',s:2},
-      {sym:'✓',lbl:'Puc esperar',txt:'Sí, podria esperar 1-2 anys sense problema.',s:3},
-      {sym:'∞',lbl:'Sense límit',txt:'Sí, podria esperar tot el temps que calgués.',s:4},
-    ]},
-
-  {type:'choice',id:'D4P1',dim:'D4 · Coneixement',dn:4,
-    text:'Quin és el teu nivell real de coneixement sobre inversió?',
-    opts:[
-      {sym:'I',lbl:'Inicial',txt:'Sé que existeixen dipòsits i fons, poc més.',s:1},
-      {sym:'II',lbl:'Iniciació',txt:'Entenc RV vs RF i sé el que és un ETF.',s:2},
-      {sym:'III',lbl:'Mig',txt:'Faig servir plataformes i entenc la diversificació.',s:3},
-      {sym:'IV',lbl:'Avançat',txt:'Comprenc fiscalitat, derivats i estratègies complexes.',s:4},
-    ]},
-  {type:'choice',id:'D4P2',dim:'D4 · Coneixement',dn:4,
-    text:'Havies invertit per compte propi abans?',
-    opts:[
-      {sym:'○',lbl:'Mai',txt:'Primera vegada que ho considero seriosament.',s:1},
-      {sym:'◑',lbl:'Poc',txt:'Tinc algun producte però ho va gestionar el banc.',s:2},
-      {sym:'◕',lbl:'Sí',txt:'Sí, he triat i gestionat inversions jo mateix.',s:3},
-      {sym:'●',lbl:'Expert',txt:'Sí, amb experiència en diversos mercats.',s:4},
-    ]},
-  {type:'choice',id:'D4P3',dim:'D4 · Coneixement',dn:4,
-    text:'Quanta complexitat vols a la teva cartera?',
-    opts:[
-      {sym:'1',lbl:'Molt simple',txt:'1-2 productes. Que sigui fàcil d\'entendre.',s:1},
-      {sym:'3',lbl:'Simple',txt:'3-5 productes. Simple però diversificat.',s:2},
-      {sym:'7',lbl:'Moderat',txt:'Fins a 10 productes. Puc gestionar complexitat.',s:3},
-      {sym:'∞',lbl:'Complet',txt:'Sense límit. Com més diversificada millor.',s:4},
-    ]},
-
-  {type:'choice',id:'D5P1',dim:'D5 · Risc financer',dn:5,
-    text:'Quina caiguda màxima podries assumir sense canviar el pla?',
-    opts:[
-      {sym:'-5%',lbl:'Molt baix',txt:'Menys del 5%. Qualsevol caiguda gran em preocupa.',s:1},
-      {sym:'-15%',lbl:'Moderat',txt:'Entre el 5-15%. Un any dolent és assumible.',s:2},
-      {sym:'-30%',lbl:'Alt',txt:'Entre el 15-30%. Entenc que és temporal.',s:3},
-      {sym:'-50%',lbl:'Molt alt',txt:'Més del 30%. Part del procés a llarg termini.',s:4},
-    ]},
-  {type:'choice',id:'D5P2',dim:'D5 · Risc financer',dn:5,
-    text:'La teva cartera cau de 10.000€ a 8.000€ en 3 mesos. Què fas?',
-    opts:[
-      {sym:'EXIT',lbl:'Venc tot',txt:'Venc immediatament. No puc permetre\'m seguir perdent.',s:1},
-      {sym:'↓',lbl:'Redueixo',txt:'Ho pensaria molt. Probablement reduiria la posició.',s:2},
-      {sym:'◼',lbl:'Espero',txt:'Espero. Sé que els mercats es recuperen.',s:3},
-      {sym:'↑+',lbl:'Compro més',txt:'Compro més. Les caigudes són oportunitats.',s:4},
-    ]},
-  {type:'choice',id:'D5P3',dim:'D5 · Risc financer',dn:5,
-    text:'Quant pots perdre sense que afecti el teu nivell de vida?',
-    opts:[
-      {sym:'0%',lbl:'Cap pèrdua',txt:'Cap pèrdua. Necessito tots aquests diners.',s:1},
-      {sym:'-10%',lbl:'Poc',txt:'Fins a un 10% del total invertit.',s:2},
-      {sym:'-30%',lbl:'Moderat',txt:'Fins a un 30%, si és temporal.',s:3},
-      {sym:'tot',lbl:'El que calgui',txt:'Podria perdre-ho tot si fos part del procés.',s:4},
-    ]},
-
-  {type:'choice',id:'D6P1',dim:'D6 · Comportament',dn:6,
-    text:'Amb quina freqüència mires el saldo d\'un producte que fluctua?',
-    opts:[
-      {sym:'∞',lbl:'Contínuament',txt:'Diverses vegades al dia. No puc evitar-ho.',s:1},
-      {sym:'↺',lbl:'Cada dia',txt:'Cada dia o cada dos dies.',s:2},
-      {sym:'◯',lbl:'Setmanal',txt:'Una vegada a la setmana o al mes.',s:3},
-      {sym:'—',lbl:'Gens',txt:'Poc o gens. Confio en el procés.',s:4},
-    ]},
-  {type:'choice',id:'D6P2',dim:'D6 · Comportament',dn:6,
-    text:'Com et sents quan el mercat cau i veus notícies financeres negatives?',
-    opts:[
-      {sym:'!!',lbl:'Molt ansiós',txt:'Penso que hauria d\'haver sortit abans.',s:1},
-      {sym:'!',lbl:'Preocupat',txt:'Reviso la meva cartera repetidament.',s:2},
-      {sym:'~',lbl:'Tranquil',txt:'Una mica incòmode, però ho veig com temporal.',s:3},
-      {sym:'—',lbl:'Indiferent',txt:'Normal. Comportament habitual dels mercats.',s:4},
-    ]},
-  {type:'choice',id:'D6P3',dim:'D6 · Comportament',dn:6,
-    text:'Has pres alguna vegada una decisió financera impulsiva per por o eufòria?',
-    opts:[
-      {sym:'↑↑',lbl:'Sovint',txt:'Sí, més d\'una vegada. Difícil de controlar.',s:1},
-      {sym:'↑',lbl:'Alguna',txt:'Alguna vegada, i em va pesar.',s:2},
-      {sym:'~',lbl:'Rarament',txt:'Gairebé mai. Soc bastant racional.',s:3},
-      {sym:'—',lbl:'Mai',txt:'Mai. Decideixo basat en el pla.',s:4},
-    ]},
-
-  {type:'choice',id:'D7P1',dim:'D7 · Preferències',dn:7,
-    text:'Tens restriccions fortes sobre determinats tipus d\'inversió?',
-    opts:[
-      {sym:'!',lbl:'Moltes',txt:'Vull inversió garantida o dipòsits exclusivament.',s:1},
-      {sym:'~',lbl:'Algunes',txt:'Evitaria crypto, start-ups i productes especulatius.',s:2},
-      {sym:'◯',lbl:'Poques',txt:'Obert a qualsevol cosa racional i justificada.',s:3},
-      {sym:'∅',lbl:'Cap',txt:'Cap restricció. Considero qualsevol opció.',s:4},
-    ]},
-  {type:'choice',id:'D7P2',dim:'D7 · Preferències',dn:7,
-    text:'Quant vols implicar-te en la gestió de la teva cartera?',
-    opts:[
-      {sym:'→',lbl:'Delego',txt:'Vull que algú ho gestioni completament.',s:1},
-      {sym:'◯',lbl:'Poc',txt:'Revisió anual i res més.',s:2},
-      {sym:'◕',lbl:'Moderat',txt:'Vull entendre-ho i participar en decisions.',s:3},
-      {sym:'●',lbl:'Actiu',txt:'M\'agrada gestionar activament les meves finances.',s:4},
-    ]},
-  {type:'choice',id:'D7P3',dim:'D7 · Preferències',dn:7,
-    text:'Com valores la inversió responsable (ESG) a la teva cartera?',
-    info: `<div style="margin-bottom:14px;padding:14px 16px;background:#EEF2FB;border-left:3px solid #1B3A6B;border-radius:8px;font-size:12px;line-height:1.7;color:#2C3E60">
-      <div style="font-weight:600;color:#1B3A6B;margin-bottom:6px">💡 Què és la inversió ESG?</div>
-      ESG significa <strong>Environmental, Social i Governance</strong> (Ambiental, Social i Governança). Els fons ESG exclouen o infraponden sectors i empreses amb impacte negatiu:<br><br>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:8px">
-        <span>🚫 Armes i defensa</span><span>🚫 Tabac</span>
-        <span>🚫 Carbó i petroli</span><span>🚫 Jocs d'atzar</span>
-        <span>🚫 Alcohol</span><span>🚫 Pornografia</span>
-        <span>🚫 Empreses corruptes</span><span>🚫 Treball infantil</span>
-      </div>
-      <div style="padding:7px 10px;background:rgba(27,58,107,.09);border-radius:6px;font-size:11px;color:#1B3A6B">⚠️ <strong>Nota:</strong> els fons ESG solen tenir un TER lleugerament superior (+0,05-0,15%) i poden reduir la diversificació sectorial.</div>
-    </div>`,
-    opts:[
-      {sym:'—',lbl:'No prioritari',txt:'Prefereixo el millor retorn possible.',s:1},
-      {sym:'~',lbl:'Una mica',txt:'Evitaria els sectors més controvertits.',s:2},
-      {sym:'◕',lbl:'Important',txt:'Prefereixo ESG si el retorn és similar.',s:3},
-      {sym:'●',lbl:'Fonamental',txt:'Molt important. Puc sacrificar retorn pels valors.',s:4},
-    ]},
-
-  // ── D8 · EDAT I RETIR ──
-  {type:'choice',id:'D8P1',dim:'D8 · Edat i Retir',dn:8,
-    text:'Quina és la teva etapa vital actual?',
-    opts:[
-      {sym:'🌱',lbl:'Inici (18-30)',txt:'Estic construint les bases financeres. Horitzó molt llarg.',s:4},
-      {sym:'🚀',lbl:'Acumulació (30-45)',txt:'Guanyo bé i vull fer créixer el patrimoni.',s:3},
-      {sym:'⚙',lbl:'Consolidació (45-55)',txt:'Consolido el que he acumulat. Menys riscos.',s:2},
-      {sym:'🏁',lbl:'Pre-retir (55+)',txt:'Penso en viure dels meus estalvis aviat.',s:1},
-    ]},
-  {type:'choice',id:'D8P2',dim:'D8 · Edat i Retir',dn:8,
-    text:'En quant de temps voldries poder viure dels teus inversions?',
-    opts:[
-      {sym:'⚡',lbl:'< 5 anys',txt:'Vull independència financera aviat. Sóc FIRE.',s:1},
-      {sym:'〜',lbl:'5-10 anys',txt:'En una dècada m’agradaria tenir llibertat financera.',s:2},
-      {sym:'◯',lbl:'10-20 anys',txt:'Penso en la jubilació anticipada o tardana.',s:3},
-      {sym:'∞',lbl:'> 20 anys',txt:'Estic construint per al llarg termini. Sense pressa.',s:4},
-    ]},
-  {type:'choice',id:'D8P3',dim:'D8 · Edat i Retir',dn:8,
-    text:'Tens un pla de pensions o previsió per al retir?',
-    opts:[
-      {sym:'✗',lbl:'No',txt:'No tinc res per al retir específicament.',s:1},
-      {sym:'½',lbl:'Poc',txt:'Alguna cosa, però no és suficient.',s:2},
-      {sym:'✓',lbl:'Sí, públic',txt:'Cotitzo a la Seg. Social però no tinc pla privat.',s:3},
-      {sym:'★',lbl:'Complet',txt:'Tinc pla privat, inversions i/o actius per al retir.',s:4},
-    ]},
-
-  // ── D9 · ALTERNATIUS ──
-  {type:'choice',id:'D9P1',dim:'D9 · Alternatius',dn:9,
-    text:'Què penses sobre incloure actius alternatius (crypto, crowdlending, start-ups) a la cartera?',
-    opts:[
-      {sym:'✗',lbl:'No m’interessa',txt:'Prefereixo actius tradicionals regulats i coneguts.',s:1},
-      {sym:'?',lbl:'Obert a aprendre',txt:'No ho descarto si entenc bé els riscos.',s:2},
-      {sym:'◕',lbl:'Sí, parcialment',txt:'M’agrada diversificar amb un petit percentatge.',s:3},
-      {sym:'★',lbl:'Molt interessat',txt:'Els alternatius formen part de la meva estratègia.',s:4},
-    ]},
-  {type:'choice',id:'D9P2',dim:'D9 · Alternatius',dn:9,
-    text:'Tens experiència o coneixes bé alguna d’aquestes categories?',
-    opts:[
-      {sym:'○',lbl:'Cap',txt:'No he invertit mai en alternatius.',s:1},
-      {sym:'₿',lbl:'Crypto',txt:'Conec o he invertit en criptomonedes (BTC, ETH...).',s:2},
-      {sym:'🏦',lbl:'Crowdlending',txt:'Conec el P2P (Mintos, October...) o crowdfunding.',s:3},
-      {sym:'🚀',lbl:'Diverses',txt:'Tinc experiència en diverses categories alternatives.',s:4},
-    ]},
-  {type:'choice',id:'D9P3',dim:'D9 · Alternatius',dn:9,
-    text:'Quin percentatge màxim de la cartera posaries en actius d’alt risc i baixa liquiditat?',
-    opts:[
-      {sym:'0%',lbl:'Cap',txt:'Preferiria que tota la cartera fos líquida i regulada.',s:1},
-      {sym:'5%',lbl:'Fins al 5%',txt:'Una mica, com a experiment. No m’afecta si va malament.',s:2},
-      {sym:'15%',lbl:'5-15%',txt:'Un bloc significatiu si les condicions ho justifiquen.',s:3},
-      {sym:'25%+',lbl:'Més del 15%',txt:'Busco diversificació real, inclosos actius il·líquids.',s:4},
-    ]},
-
-  {type:'result',id:'result',dn:10},
-];
+const QS = TBI_PERFIL.preguntesOnboarding(); // mòdul compartit (tbi-perfil.js)
 
 const TOTAL = QS.length;
 
@@ -938,8 +591,8 @@ let actius = [{cat:'rf_monetari', pct:'100'},{cat:'',pct:''}];
 let going = false;
 let _dadesEnviades = false;
 
-function calcScore(){ return Object.keys(ans).filter(k=>!k.includes('_raw')).reduce((s,k)=>s+ans[k],0); }
-function getArquetip(sc){ return ARQUETIPS.find(a=>sc>=a.min)||ARQUETIPS[ARQUETIPS.length-1]; }
+function calcScore(){ return TBI_PERFIL.calcPerfil(ans).risc; } // 0-100 (risc = min(capacitat, tolerància))
+function getArquetip(sc){ return TBI_PERFIL.calcPerfil(ans).arquetip || ARQUETIPS[ARQUETIPS.length-1]; }
 
 // ════════════════════════════════════════════
 // PROGRÉS
@@ -1221,18 +874,18 @@ function arAlloc(ar) {
 
 // ── BLOC ALTERNATIUS AL RESULTAT ──
 function calcAlternatiusBloc() {
-  var d9scores = ['D9P1','D9P2','D9P3'].map(function(id){ return ans[id]||1; });
-  var d9sum = d9scores.reduce(function(a,b){ return a+b; },0);
-  var d9pct = Math.round(d9sum / 12 * 100);
-  var d8p2 = ans['D8P2'] || 3; // horitzó retir
+  var p = TBI_PERFIL.calcPerfil(ans);
+  var obertura = ans['E1'] || 1;                 // 1-4 (obertura declarada a alternatius)
+  var d9pct = Math.round((obertura - 1) / 3 * 100);
+  var d8p2 = ans['C2'] || 3;                     // horitzó: curt => alerta il·líquids
 
   if (d9pct < 30) return ''; // No interessats: no mostrar bloc
 
   var pctSug = d9pct >= 75 ? '15-25%' : d9pct >= 50 ? '5-15%' : '0-5%';
   var cats = [];
-  if (ans['D9P2'] >= 2) cats.push('Crypto (BTC, ETH via ETC)');
-  if (ans['D9P2'] >= 3) cats.push('Crowdlending (Mintos, October)');
-  if (ans['D9P2'] >= 4) cats.push('Private Equity (Seedrs, Crowdcube)');
+  if (p.soph >= 2 && obertura >= 4) cats.push('Crypto (BTC, ETH via ETC)');
+  if (p.soph >= 2) cats.push('Crowdlending / Private Equity');
+  if (obertura >= 2) cats.push('Or i metalls preciosos · REITs');
   if (cats.length === 0) cats.push('ETCs d\u2019or i metalls preciosos');
 
   var isEs = ONB_LANG === 'es';
@@ -1258,6 +911,7 @@ function calcAlternatiusBloc() {
 
 // ── CARTERA BASADA EN D8 + D9 ──
 function getCarteraByProfile() {
+  return ''; // la cartera ve de l'arquetip nou (ar.cartera); vegeu tbi-perfil.js
   var sc = calcScore();
   var d8p1 = ans['D8P1'] || 2;  // etapa vital (1=pre-retir, 4=inici)
   var d8p2 = ans['D8P2'] || 3;  // horitzó retir
@@ -1343,7 +997,7 @@ function buildResult(){
   const sc    = calcScore();
   const ar    = getArquetip(sc);
   const pSrc  = PORTRAITS[ar.id] || null;
-  const maxSc = 108;
+  const maxSc = 100; // risc 0-100 del mòdul
   const pct   = Math.round(sc/maxSc*100);
 
   // Colors del score
@@ -1779,7 +1433,7 @@ async function guardarASupabase() {
   
   var sc = calcScore();
   var ar = getArquetip(sc);
-  var maxSc = 108;
+  var maxSc = 100; // risc 0-100 del mòdul
   var pct = Math.round(sc / maxSc * 100);
   
   // Build scoring_mods (7 dimensions)
@@ -2260,7 +1914,7 @@ function generarPDF(){
     const sc  = calcScore();
     const ar  = getArquetip(sc);
     const nom = txt.nom || 'Inversor';
-    const maxSc = 84;
+    const maxSc = 100; // risc 0-100 del mòdul
     const pct = Math.round(sc/maxSc*100);
     const dlbls = ONB_LANG==='es'
       ? ['Objetivos','Situación','Horizonte','Conocimiento','Riesgo fin.','Riesgo em.','Preferencias']
