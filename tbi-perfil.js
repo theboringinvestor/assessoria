@@ -407,21 +407,43 @@ var TBI_PERFIL = (function () {
   var FACTORS_D9 = ["Sense alternatius complexos · només índexs",
                     "Alternatius líquids moderats (or, REITs)",
                     "Inclou il·líquids i, si escau, una pinzellada de crypto"];
+  var ACCENT_BANDA = ["#7FA8D4", "#6FB89A", "#D8B24A", "#E0954A", "#D45A4A"];
+  function _inicials(nom) {
+    return nom.split(" ").map(function (w) { return w.charAt(0); }).join("").slice(0, 2).toUpperCase();
+  }
+  /* Emblema il·lustratiu: corba de "mercat" amb volatilitat segons banda de risc + monograma */
+  function emblemaSVG(banda, accent, ini) {
+    var amp = 5 + banda * 6, rise = 26 + banda * 17, y0 = 152, pts = [];
+    for (var i = 0; i <= 6; i++) {
+      var x = 12 + i * 19.3;
+      var trend = y0 - (rise * i / 6);
+      var noise = (i === 0 || i === 6) ? 0 : ((i % 2 === 0 ? -1 : 1) * amp);
+      pts.push(x.toFixed(1) + "," + (trend + noise).toFixed(1));
+    }
+    return '<svg viewBox="0 0 140 190" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">' +
+      '<rect width="140" height="190" fill="#0A0A0A"/>' +
+      '<circle cx="70" cy="58" r="80" fill="' + accent + '" fill-opacity="0.16"/>' +
+      '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + accent + '" stroke-width="2" stroke-opacity="0.85" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<text x="70" y="108" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="48" fill="' + accent + '" fill-opacity="0.18">' + ini + '</text>' +
+      '</svg>';
+  }
   function arquetipsOnboarding() {
     return ARQUETIPS.map(function (a, i) {
-      var soph = a.cell[1];
+      var soph = a.cell[1], banda = a.cell[0];
       var alloc = a.alloc.map(function (p) {
         var x = _actiuPlataforma(p[0], p[1]);
         return { n: x.nom, p: x.pct };
       });
-      var dims = [3 + a.cell[0] * 2, 5 + Math.round(a.cell[0] * 0.8), 3 + a.cell[0] * 2,
-                  3 + soph * 3, 3 + a.cell[0] * 2, 3 + a.cell[0] * 2,
-                  2 + soph * 3 + (a.cell[0] >= 3 ? 1 : 0)]
+      var dims = [3 + banda * 2, 5 + Math.round(banda * 0.8), 3 + banda * 2,
+                  3 + soph * 3, 3 + banda * 2, 3 + banda * 2,
+                  2 + soph * 3 + (banda >= 3 ? 1 : 0)]
         .map(function (x) { return Math.max(1, Math.min(11, x)); });
       return {
         id: a.id, nom: a.nom, ep: a.ep,
         lema: a.diff, desc: a.rationale,
         cartera: ROMAN[i] + " · " + a.ciutat, cartDesc: a.sub, perfil: a.perfil,
+        accent: ACCENT_BANDA[banda],
+        emblema: emblemaSVG(banda, ACCENT_BANDA[banda], _inicials(a.nom)),
         alloc: alloc, ter: a.ter, retorn: a.retorn, risc: a.risc,
         factorsD8: "Perfil " + a.perfil + " · horitzó i situació segons les respostes.",
         factorsD9: FACTORS_D9[soph],
