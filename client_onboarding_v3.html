@@ -592,7 +592,7 @@ let going = false;
 let _dadesEnviades = false;
 
 function calcScore(){ return TBI_PERFIL.calcPerfil(ans).risc; } // 0-100 (risc = min(capacitat, tolerància))
-function getArquetip(sc){ return TBI_PERFIL.calcPerfil(ans).arquetip || ARQUETIPS[ARQUETIPS.length-1]; }
+function getArquetip(sc){ var id=TBI_PERFIL.calcPerfil(ans).arquetipId; return ARQUETIPS.find(function(a){return a.id===id;}) || ARQUETIPS[ARQUETIPS.length-1]; }
 
 // ════════════════════════════════════════════
 // PROGRÉS
@@ -940,6 +940,19 @@ function getCarteraByProfile() {
   if (sc >= 23)                       return "VII \u00b7 L'Alam\u00ed";
   return 'VIII \u00b7 El Sarr\u00f3';
 }
+function properPasBloc(){
+  var isEs = ONB_LANG==='es';
+  if (window._authUserId){ // client validat: sense captació de sessió gratuïta
+    return '<div style="background:#0A0A0A;border-radius:12px;padding:18px 20px;margin-top:2px">'
+      +'<div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;text-align:center;margin-bottom:9px">'+(isEs?'Próximos pasos':'Propers passos')+'</div>'
+      +'<div style="font-size:13px;color:rgba(255,255,255,.82);text-align:center;line-height:1.65">'
+        +(isEs
+          ? 'Tu perfil de riesgo ha quedado registrado. Pulsa <b style="color:#fff">Enviar a tu asesor</b> para que lo revise y ajuste tu plan. Después podrás acceder a tu portal.'
+          : 'El teu perfil de risc ha quedat registrat. Prem <b style="color:#fff">Enviar a l\'assessor</b> perquè el revisi i ajusti el teu pla. Després podràs accedir al teu portal.')
+      +'</div></div>';
+  }
+  return sessioCTA(); // visitant no autenticat
+}
 function sessioCTA() {
   var isEs = ONB_LANG === 'es';
   var waMsg = isEs
@@ -1018,10 +1031,10 @@ function buildResult(){
     return {lbl:dlbls[i], sum:sum, max:max, pct:p, col:col};
   });
 
-  // Imatge de l'arquetip
+  // Imatge de l'arquetip: retrat real si existeix, si no emblema il·lustratiu generat
   var imgHtml = pSrc
     ? '<img src="'+pSrc+'" data-fb="'+ar.nom.split(' ').map(function(w){return w[0];}).join('').slice(0,2)+'" style="width:100%;height:100%;object-fit:cover;filter:grayscale(100%) contrast(1.1)" onerror="imgFallback(this)">'
-    : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:400;color:rgba(255,255,255,.2);font-family:var(--fd)">'+ar.nom.split(' ').map(function(w){return w[0];}).join('').slice(0,2)+'</div>';
+    : (ar.emblema || '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:400;color:rgba(255,255,255,.2);font-family:var(--fd)">'+ar.nom.split(' ').map(function(w){return w[0];}).join('').slice(0,2)+'</div>');
 
   // Alloc items
   var allocHtml = arAlloc(ar).map(function(b){
@@ -1106,16 +1119,18 @@ function buildResult(){
       
       +'<button onclick="generarPDF()" style="width:100%;padding:12px;background:white;color:#0A0A0A;border:1.5px solid #C8C5BE;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('download_btn')+'</button>'
       
-      // ── CTA Sessió gratuïta ──
+      // ── Propers passos (segons si és client validat o visitant) ──
       +calcAlternatiusBloc()
-      +sessioCTA()
+      +properPasBloc()
 
       +'<button onclick="reiniciar()" style="background:none;border:none;font-size:12px;color:#9A9690;cursor:pointer;font-family:var(--fb);text-align:center;padding:6px;text-decoration:underline">'+uiT('restart_btn')+'</button>'
     +'</div>'
 
     // ── DISCLAIMER ──
     +'<div style="font-size:10px;color:#C8C5BE;text-align:center;line-height:1.6;padding:4px 0">'
-      +(ONB_LANG==='es'?'Herramienta de educación financiera. No es asesoramiento regulado MiFID II.':'Eina d\'educació financera. No és assessorament regulat MiFID II.')
+      +(window._authUserId
+        ? (ONB_LANG==='es'?'Test de perfil de riesgo para tu alta como cliente · sujeto a validación de idoneidad por tu asesor.':'Test de perfil de risc per a la teva alta com a client · subjecte a validació d\'idoneïtat pel teu assessor.')
+        : (ONB_LANG==='es'?'Herramienta de educación financiera. No es asesoramiento regulado MiFID II.':'Eina d\'educació financera. No és assessorament regulat MiFID II.'))
     +'</div>'
 
   +'</div>';

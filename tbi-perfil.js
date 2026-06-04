@@ -11,6 +11,8 @@
 var TBI_PERFIL = (function () {
   "use strict";
 
+  var VERSION = "2026-06-04-emblema-fix";
+
   /* ---------- 1) TAXONOMIA D'ACTIUS (defaults del mòdul) ----------
      Els ids/noms coincideixen amb ACTIUS_TAXONOMY de la plataforma. */
   var ACTIUS = {
@@ -454,6 +456,7 @@ var TBI_PERFIL = (function () {
   }
 
   return {
+    VERSION: VERSION,
     ACTIUS: ACTIUS, PREGUNTES: PREGUNTES, ARQUETIPS: ARQUETIPS, GRID: GRID,
     ALIES_ANTICS: ALIES_ANTICS,
     calcPerfil: calcPerfil, allocDetall: allocDetall, totalsPerGrup: totalsPerGrup,
@@ -461,5 +464,7 @@ var TBI_PERFIL = (function () {
     preguntesOnboarding: preguntesOnboarding, arquetipsOnboarding: arquetipsOnboarding
   };
 })();
+
+try { console.log("[TBI_PERFIL] v" + TBI_PERFIL.VERSION + " carregat · " + TBI_PERFIL.ARQUETIPS.length + " arquetips"); } catch (e) {}
 
 if (typeof module !== "undefined" && module.exports) { module.exports = TBI_PERFIL; }
