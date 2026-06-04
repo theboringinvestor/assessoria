@@ -654,6 +654,7 @@ function render(dir){
     const stageEl = document.querySelector('.stage');
     if(QS[cur].type==='result'){
       if(stageEl){ stageEl.classList.remove('is-pregunta'); }
+      if(!window._authUserId && !window._leadSaved){ window._leadSaved = true; try{ guardarASupabase(); }catch(e){} } // captació de lead públic
       setTimeout(function(){ initRadar(); }, 350);
     } else {
       if(stageEl){ stageEl.classList.add('is-pregunta'); }
@@ -1006,7 +1007,96 @@ function buildArqFactors(ar) {
   }
   return html;
 }
+function buildResultPublic(){
+  var isEs = ONB_LANG==='es';
+  var ar = getArquetip(calcScore());
+  var p  = TBI_PERFIL.calcPerfil(ans);
+  var eur = function(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+
+  // Supòsits il·lustratius
+  var base = 10000, anys = 20, terBank = 1.8, behGap = 2.0;
+  var nums = (''+ar.retorn).replace(',','.').match(/[\d.]+/g) || [];
+  var retMid = nums.length>=2 ? (parseFloat(nums[0])+parseFloat(nums[1]))/2 : (nums.length?parseFloat(nums[0]):6);
+  var tm = (''+ar.ter).replace(',','.').match(/[\d.]+/);
+  var terEf = tm ? parseFloat(tm[0]) : 0.25;
+  var fvEf   = base*Math.pow(1+(retMid-terEf)/100, anys);
+  var fvBank = base*Math.pow(1+(retMid-terBank)/100, anys);
+  var fvBeh  = base*Math.pow(1+(retMid-terEf-behGap)/100, anys);
+  var gapFees = fvEf - fvBank;
+  var gapBeh  = fvEf - fvBeh;
+  var bankW = Math.max(8, Math.round(fvBank/fvEf*100));
+
+  var emb = ar.emblema || '';
+  var pilarsTxt = isEs
+    ? [['Comisiones bajas', 'TER ~'+(''+ar.ter)+' frente al ~1,8% de un fondo bancario típico. Sobre 10.000\u20AC, son <b>+'+eur(gapFees)+'\u20AC</b> en 20 a\u00f1os.'],
+       ['Coaching emocional', 'El inversor particular pierde ~2%/a\u00f1o por decisiones en p\u00e1nico. Evitarlo vale hasta <b>+'+eur(gapBeh)+'\u20AC</b>.'],
+       ['Cartera eficiente', 'Diversificada y ajustada a tu perfil <b>'+ar.perfil+'</b>, no concentrada ni con exceso de liquidez parada.']]
+    : [['Comissions baixes', 'TER ~'+(''+ar.ter)+' enfront del ~1,8% d\u2019un fons bancari t\u00edpic. Sobre 10.000\u20AC, s\u00f3n <b>+'+eur(gapFees)+'\u20AC</b> en 20 anys.'],
+       ['Coaching emocional', 'L\u2019inversor particular perd ~2%/any per decisions en p\u00e0nic. Evitar-ho val fins a <b>+'+eur(gapBeh)+'\u20AC</b>.'],
+       ['Cartera eficient', 'Diversificada i ajustada al teu perfil <b>'+ar.perfil+'</b>, no concentrada ni amb excés de liquiditat parada.']];
+
+  return '<div style="width:100%;max-width:600px;display:flex;flex-direction:column;gap:14px;padding-bottom:40px">'
+
+    // HERO
+    +'<div style="background:#0A0A0A;border-radius:14px;overflow:hidden;display:flex;min-height:170px">'
+      +'<div style="width:130px;flex-shrink:0;overflow:hidden">'+emb+'</div>'
+      +'<div style="flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:center">'
+        +'<div style="font-size:9px;font-weight:500;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">'+(isEs?'Tu perfil ser\u00eda':'El teu perfil seria')+'</div>'
+        +'<div style="font-family:var(--fd);font-size:clamp(20px,3.5vw,28px);font-weight:400;color:white;line-height:1.1;margin-bottom:4px">'+ar.nom+'</div>'
+        +'<div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.6;margin-top:6px">'+ar.desc+'</div>'
+      +'</div>'
+    +'</div>'
+
+    // CARD EUROS
+    +'<div style="background:#fff;border:1px solid #E8E6E1;border-radius:14px;padding:22px 24px">'
+      +'<div style="font-size:9px;font-weight:600;color:#9A9690;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">'+(isEs?'Qu\u00e9 te juegas':'Qu\u00e8 t\u2019hi jugues')+'</div>'
+      +'<div style="font-family:var(--fd);font-size:20px;color:#0A0A0A;margin-bottom:18px">'+(isEs?'Sobre 10.000\u20AC, en 20 a\u00f1os':'Sobre 10.000\u20AC, en 20 anys')+'</div>'
+
+      +'<div style="margin-bottom:14px">'
+        +'<div style="display:flex;justify-content:space-between;font-size:12px;color:#4A4845;margin-bottom:5px"><span>'+(isEs?'Cartera eficiente (la tuya)':'Cartera eficient (la teva)')+'</span><span style="font-family:var(--fm);font-weight:600;color:#1A5C3A">'+eur(fvEf)+'\u20AC</span></div>'
+        +'<div style="height:10px;background:#F0EFEC;border-radius:99px;overflow:hidden"><div style="width:100%;height:100%;background:#4CAF82"></div></div>'
+      +'</div>'
+      +'<div style="margin-bottom:16px">'
+        +'<div style="display:flex;justify-content:space-between;font-size:12px;color:#4A4845;margin-bottom:5px"><span>'+(isEs?'Fondo bancario t\u00edpico (TER 1,8%)':'Fons bancari t\u00edpic (TER 1,8%)')+'</span><span style="font-family:var(--fm);font-weight:600;color:#8B1A1A">'+eur(fvBank)+'\u20AC</span></div>'
+        +'<div style="height:10px;background:#F0EFEC;border-radius:99px;overflow:hidden"><div style="width:'+bankW+'%;height:100%;background:#C0392B"></div></div>'
+      +'</div>'
+
+      +'<div style="background:#0A0A0A;border-radius:10px;padding:14px 18px;text-align:center">'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.55);margin-bottom:2px">'+(isEs?'Diferencia solo en comisiones':'Difer\u00e8ncia nom\u00e9s en comissions')+'</div>'
+        +'<div style="font-family:var(--fm);font-size:26px;font-weight:600;color:#4CAF82">+'+eur(gapFees)+'\u20AC</div>'
+      +'</div>'
+      +'<div style="font-size:10px;color:#C8C5BE;line-height:1.6;margin-top:12px">'+(isEs?'Ejemplo ilustrativo. Sup\u00f3sitos: rendimiento bruto '+retMid.toFixed(1)+'%/a\u00f1o, TER eficiente ~'+terEf.toFixed(2)+'% vs 1,8%, 20 a\u00f1os. No es una promesa de rentabilidad.':'Exemple il\u00b7lustratiu. Sup\u00f2sits: rendiment brut '+retMid.toFixed(1)+'%/any, TER eficient ~'+terEf.toFixed(2)+'% vs 1,8%, 20 anys. No \u00e9s una promesa de rendibilitat.')+'</div>'
+    +'</div>'
+
+    // PILARS
+    +'<div style="background:#1B3A6B;border-radius:14px;padding:22px 24px">'
+      +'<div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">'+(isEs?'Lo que aporta un asesor':'Qu\u00e8 aporta un assessor')+'</div>'
+      +pilarsTxt.map(function(pl){
+        return '<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.1)">'
+          +'<div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:3px">'+pl[0]+'</div>'
+          +'<div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.6">'+pl[1]+'</div>'
+        +'</div>';
+      }).join('')
+    +'</div>'
+
+    // RADAR (el teu perfil)
+    +'<div style="background:#fff;border:1px solid #E8E6E1;border-radius:14px;padding:20px 24px">'
+      +'<div style="font-size:9px;font-weight:600;color:#9A9690;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;text-align:center">'+(isEs?'Tu perfil de inversor':'El teu perfil d\u2019inversor')+'</div>'
+      +'<div style="max-width:320px;height:260px;margin:0 auto"><canvas id="radarChart" width="320" height="260"></canvas></div>'
+    +'</div>'
+
+    // CTA + disclaimer
+    +'<div style="display:flex;flex-direction:column;gap:9px">'
+      +sessioCTA()
+      +'<button onclick="generarPDF()" style="width:100%;padding:12px;background:white;color:#0A0A0A;border:1.5px solid #C8C5BE;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">'+uiT('download_btn')+'</button>'
+      +'<button onclick="reiniciar()" style="background:none;border:none;font-size:12px;color:#9A9690;cursor:pointer;font-family:var(--fb);text-align:center;padding:6px;text-decoration:underline">'+uiT('restart_btn')+'</button>'
+    +'</div>'
+    +'<div style="font-size:10px;color:#C8C5BE;text-align:center;line-height:1.6;padding:4px 0">'+(isEs?'Herramienta de educaci\u00f3n financiera. No es asesoramiento regulado MiFID II.':'Eina d\u2019educaci\u00f3 financera. No \u00e9s assessorament regulat MiFID II.')+'</div>'
+
+  +'</div>';
+}
 function buildResult(){
+  if (!window._authUserId) return buildResultPublic(); // visitant sense login -> versió de valor
   const sc    = calcScore();
   const ar    = getArquetip(sc);
   const pSrc  = PORTRAITS[ar.id] || null;
@@ -1204,6 +1294,7 @@ function updateNav(){
 // ════════════════════════════════════════════
 // NAVEGACIÓ
 // ════════════════════════════════════════════
+function _skipDades(i){ return !!window._authUserId && QS[i] && (QS[i].id==='nom'||QS[i].id==='email'); }
 function next(){
   if(going) return;
   const q=QS[cur];
@@ -1223,6 +1314,7 @@ function next(){
   }
   going=true;
   cur++;
+  while(_skipDades(cur)) cur++; // client validat: saltar nom/email
   render('fwd');
   setTimeout(()=>going=false,280);
 }
@@ -1231,6 +1323,7 @@ function prev(){
   if(going||cur===0) return;
   going=true;
   cur--;
+  while(cur>0 && _skipDades(cur)) cur--; // client validat: saltar nom/email
   render('bwd');
   setTimeout(()=>going=false,280);
 }
@@ -1501,7 +1594,7 @@ async function guardarASupabase() {
     cartera_actual_usuari: carteraActualUsuari,
     questionnaire_responses: buildQuestionnaireResponses(),
     questionnaire_date: new Date().toISOString(),
-    status: 'pending',  // ⏳ Espera validació de l'admin
+    status: window._authUserId ? 'pending' : 'lead',  // pending = client a validar · lead = visitant captat
     submitted_at: new Date().toISOString(),
   };
 
@@ -1739,11 +1832,9 @@ async function inicialitzarQüestionari() {
     txt.nom   = authNom || urlNom || '';
     window._authUserId = authId; // per a guardarASupabase
 
-    // Saltar nom/email → posicionar-nos a la primera pregunta real (D1P1)
-    // Les preguntes 0 (nom) i 1 (email) queden implícitament respostes
-    // Trobem l'índex de D1P1
-    var d1p1Idx = QS.findIndex(function(q){ return q.id === 'D1P1'; });
-    cur = d1p1Idx >= 0 ? d1p1Idx : 2; // fallback a índex 2 si no es troba
+    // nom/email ara són al final del qüestionari i es salten durant la navegació (next/prev)
+    // per a clients autenticats. Comencem a la primera pregunta real (edat, índex 0).
+    cur = 0;
 
     render('none');
     // Actualitzar el comptador de progrés (no estem a 0)
