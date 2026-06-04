@@ -1947,7 +1947,7 @@ function initRadar(){
       datasets:[
         {
           label:'El teu perfil',
-          data:dims.map(d=>d.sum),
+          data:dims.map(d=>d.pct),
           borderColor:'rgba(27,58,107,0.9)',
           backgroundColor:'rgba(27,58,107,0.12)',
           borderWidth:2,
@@ -1958,7 +1958,7 @@ function initRadar(){
         },
         {
           label:'Màxim possible',
-          data:dims.map(d=>d.max),
+          data:dims.map(function(){return 100;}),
           borderColor:'rgba(0,0,0,0.08)',
           backgroundColor:'rgba(0,0,0,0.02)',
           borderWidth:1,
@@ -1983,12 +1983,13 @@ function initRadar(){
       },
       scales:{r:{
         min:0,
-        max:Math.max(...dims.map(d=>d.max)),
+        max:100,
         ticks:{
-          stepSize:3,
+          stepSize:20,
           color:'rgba(0,0,0,0.3)',
           backdropColor:'transparent',
-          font:{size:9}
+          font:{size:9},
+          callback:function(v){return v+'%';}
         },
         grid:{color:'rgba(0,0,0,0.07)'},
         pointLabels:{
