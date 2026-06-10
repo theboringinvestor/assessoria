@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test de salut financera · The Boring Investor</title>
+<meta name="description" content="Descobreix el teu estat financer en 2 minuts i quant podries millorar estructurant les teves finances. Sense registre.">
+<meta property="og:title" content="Quina salut financera tens? · The Boring Investor">
+<meta property="og:description" content="7 preguntes, 2 minuts. El teu estat financer i el benefici en euros d'una bona estructuració.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#0D0D0D;--white:#FAFAF8;--cream:#F5F3ED;
+  --gold:#C8A54A;--gold-light:#E8D49A;--gold-dark:#9A7B2F;
+  --green:#1A5C3A;--green-light:#EAF3DE;--red:#8B1A1A;--blue:#1B3A6B;
+  --g50:#F9F8F5;--g100:#E8E6E0;--g200:#D4D1C9;--g300:#B0ADA5;--g400:#8A8780;--g500:#6B685F;--g600:#4A473F;
+  --fd:"Playfair Display",Georgia,serif;--fb:"DM Sans",system-ui,sans-serif;--fm:"DM Mono",monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);color:var(--black);background:var(--cream);-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* paper texture */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background:radial-gradient(circle at 18% 12%,rgba(200,165,74,.05),transparent 38%),radial-gradient(circle at 82% 78%,rgba(27,58,107,.04),transparent 42%)}
+
+.wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:0 18px;min-height:100vh;display:flex;flex-direction:column}
+
+/* top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 2px 6px}
+.brand{display:flex;align-items:center;gap:9px}
+.brand-mark{width:30px;height:30px;border-radius:7px;background:var(--black);display:flex;align-items:center;justify-content:center}
+.brand-mark svg{width:20px;height:20px}
+.brand-name{font-family:var(--fd);font-size:14px;font-weight:600;letter-spacing:-.2px;line-height:1}
+.brand-name small{display:block;font-family:var(--fm);font-size:8.5px;font-weight:400;letter-spacing:.14em;color:var(--g400);text-transform:uppercase;margin-top:2px}
+.topbar-q{font-family:var(--fm);font-size:11px;color:var(--g400);letter-spacing:.04em}
+
+/* progress */
+.progress{height:3px;background:var(--g100);border-radius:99px;margin:8px 2px 0;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));border-radius:99px;width:0;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+
+/* stage */
+.stage{flex:1;display:flex;flex-direction:column;justify-content:center;padding:22px 0 28px}
+.fade{animation:fade .42s cubic-bezier(.2,.8,.2,1)}
+@keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* intro */
+.intro-eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:16px}
+.intro h1{font-family:var(--fd);font-size:clamp(30px,8vw,42px);font-weight:600;line-height:1.12;letter-spacing:-.5px;margin-bottom:18px}
+.intro h1 em{font-style:italic;color:var(--gold-dark)}
+.intro p{font-size:15px;color:var(--g500);line-height:1.7;margin-bottom:28px}
+.intro-meta{display:flex;gap:22px;margin-bottom:34px;flex-wrap:wrap}
+.intro-meta div{font-size:12px;color:var(--g400);display:flex;align-items:center;gap:7px}
+.intro-meta strong{color:var(--g600);font-weight:600}
+
+/* question */
+.q-num{font-family:var(--fm);font-size:11px;color:var(--gold-dark);letter-spacing:.1em;margin-bottom:12px}
+.q-title{font-family:var(--fd);font-size:clamp(23px,6vw,30px);font-weight:600;line-height:1.2;letter-spacing:-.3px;margin-bottom:6px}
+.q-hint{font-size:13px;color:var(--g400);line-height:1.6;margin-bottom:24px}
+.opts{display:flex;flex-direction:column;gap:11px}
+.opt{display:flex;align-items:center;gap:15px;width:100%;text-align:left;padding:17px 18px;background:var(--white);border:1.5px solid var(--g100);border-radius:14px;cursor:pointer;font-family:var(--fb);font-size:15px;color:var(--black);transition:all .16s;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.opt:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 6px 18px rgba(200,165,74,.14)}
+.opt:active{transform:translateY(0)}
+.opt-ico{flex:none;width:42px;height:42px;border-radius:11px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:20px}
+.opt-body{flex:1;line-height:1.3}
+.opt-body b{display:block;font-weight:600;font-size:15px}
+.opt-body span{display:block;font-size:12px;color:var(--g400);margin-top:2px;font-weight:400}
+.opt-arrow{flex:none;color:var(--g200);font-size:17px;transition:color .16s,transform .16s}
+.opt:hover .opt-arrow{color:var(--gold);transform:translateX(3px)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:16px 30px;border:none;border-radius:12px;font-family:var(--fb);font-size:15px;font-weight:600;cursor:pointer;transition:all .18s;width:100%}
+.btn-primary{background:var(--gold);color:var(--black)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(200,165,74,.32)}
+.btn-dark{background:var(--black);color:#fff}
+.btn-dark:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.22)}
+.btn-ghost{background:transparent;border:1.5px solid var(--g200);color:var(--g600)}
+.btn-ghost:hover{border-color:var(--g400)}
+.btn-wa{background:#25D366;color:#0a2e16}
+.btn-wa:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(37,211,102,.32)}
+
+.q-back{margin-top:20px;background:none;border:none;color:var(--g400);font-family:var(--fb);font-size:13px;cursor:pointer;padding:6px 0;display:inline-flex;align-items:center;gap:6px}
+.q-back:hover{color:var(--g600)}
+
+/* calculating */
+.calc-box{text-align:center;padding:40px 0}
+.calc-ring{width:64px;height:64px;margin:0 auto 26px;border:3px solid var(--g100);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.calc-box p{font-family:var(--fm);font-size:13px;color:var(--g500);letter-spacing:.02em;min-height:18px}
+
+/* result */
+.res-eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark);text-align:center;margin-bottom:6px}
+.gauge-wrap{text-align:center;margin:4px 0 6px}
+.gauge{position:relative;width:240px;height:138px;margin:0 auto}
+.gauge svg{width:240px;height:138px;overflow:visible}
+.gauge-track{fill:none;stroke:var(--g100);stroke-width:15;stroke-linecap:round}
+.gauge-val{fill:none;stroke-width:15;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset 1.1s cubic-bezier(.2,.8,.2,1)}
+.gauge-num{position:absolute;left:0;right:0;bottom:6px;text-align:center}
+.gauge-num b{font-family:var(--fd);font-size:46px;font-weight:600;line-height:1}
+.gauge-num span{font-family:var(--fm);font-size:12px;color:var(--g400)}
+.res-state{text-align:center;font-family:var(--fd);font-size:24px;font-weight:600;margin:2px 0 4px}
+.res-tag{text-align:center;font-size:14px;color:var(--g500);line-height:1.6;max-width:420px;margin:0 auto 24px}
+
+.card{background:var(--white);border:1px solid var(--g100);border-radius:16px;padding:20px;margin-bottom:14px}
+.card-h{font-size:11px;font-family:var(--fm);text-transform:uppercase;letter-spacing:.1em;color:var(--g400);margin-bottom:16px}
+
+/* dimension bars */
+.dim{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.dim:last-child{margin-bottom:0}
+.dim-ico{flex:none;width:34px;height:34px;border-radius:9px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:16px}
+.dim-body{flex:1;min-width:0}
+.dim-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.dim-name{font-size:13px;font-weight:600}
+.dim-verdict{font-size:11px;color:var(--g400)}
+.dim-track{height:6px;background:var(--g100);border-radius:99px;overflow:hidden}
+.dim-fill{height:100%;border-radius:99px;width:0;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+
+/* benefit */
+.benefit{background:linear-gradient(135deg,#14233E 0%,#0D0D0D 100%);color:#fff;border-radius:18px;padding:26px 22px;margin-bottom:14px}
+.benefit-h{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);margin-bottom:10px}
+.benefit-big{font-family:var(--fd);font-size:clamp(34px,11vw,46px);font-weight:600;color:var(--gold);line-height:1;letter-spacing:-1px;margin-bottom:6px}
+.benefit-sub{font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:20px}
+.benefit-rows{display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.07);border-radius:12px;overflow:hidden}
+.benefit-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,255,255,.02)}
+.benefit-row .lbl{font-size:12.5px;color:rgba(255,255,255,.75);line-height:1.4}
+.benefit-row .lbl small{display:block;font-size:10.5px;color:rgba(255,255,255,.4);margin-top:2px}
+.benefit-row .v{font-family:var(--fm);font-size:17px;font-weight:500;white-space:nowrap}
+.benefit-row .v.good{color:#5BC98A}
+.benefit-row .v.bad{color:#E57373}
+.benefit-note{font-size:10.5px;color:rgba(255,255,255,.35);line-height:1.55;margin-top:14px}
+
+.cta-stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.cta-lead{text-align:center;font-size:14px;color:var(--g600);line-height:1.6;margin:18px 0 14px}
+.cta-lead b{color:var(--black)}
+
+.res-foot{text-align:center;margin:22px 0 36px}
+.res-foot button{background:none;border:none;color:var(--g400);font-family:var(--fb);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.disc{font-size:10.5px;color:var(--g300);line-height:1.6;text-align:center;margin-top:18px;max-width:460px;margin-left:auto;margin-right:auto}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .gauge-val{stroke-dashoffset:var(--off,100)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
+          <circle cx="8.5" cy="10" r="2" fill="white"/><circle cx="8.5" cy="17" r="2" fill="white"/>
+          <rect x="12" y="12.5" width="6" height="1.5" rx=".75" fill="white"/>
+          <rect x="20.5" y="8" width="1.5" height="12" rx=".75" fill="white"/>
+        </svg>
+      </div>
+      <div class="brand-name">The Boring Investor<small>Salut financera</small></div>
+    </div>
+    <div class="topbar-q" id="topbar-q"></div>
+  </div>
+  <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+
+  <main class="stage" id="stage"></main>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  TEST DE SALUT FINANCERA · captació de leads
+//  Standalone. Resultat: estat financer (0-100) + benefici
+//  en euros (comissions estalviades + pèrdua per inflació).
+//  Números defensables: NO projecta rendiments passats.
+// ════════════════════════════════════════════════════
+
+var WA_PHONE = '34629340892';
+var PLATFORM_URL = 'https://theboringinvestor.github.io/assessoria/platform.html';
+
+// ---- Preguntes (totes d'un sol toc) ----------------------------------
+var QS = [
+  {
+    id:'edat', dim:null,
+    title:'Quants anys tens?',
+    hint:'Ens diu quant de temps poden treballar els teus diners.',
+    opts:[
+      {ico:'🌱', lbl:'18 – 29 anys',  sub:'Tot l\'horitzó per endavant', age:25},
+      {ico:'🚀', lbl:'30 – 39 anys',  sub:'Construint la base',          age:35},
+      {ico:'🏗️', lbl:'40 – 49 anys',  sub:'Acumulació i consolidació',   age:45},
+      {ico:'🎯', lbl:'50 – 59 anys',  sub:'Recta cap als objectius',     age:55},
+      {ico:'🌅', lbl:'60 anys o més', sub:'Preservar i gaudir',          age:63}
+    ]
+  },
+  {
+    id:'estalvis', dim:null,
+    title:'Quant tens estalviat avui?',
+    hint:'Comptes, dipòsits, fons o inversions. Una xifra aproximada n\'hi ha prou.',
+    opts:[
+      {ico:'🪙', lbl:'Menys de 5.000 €',     sub:'Començant',          cap:2500},
+      {ico:'💶', lbl:'5.000 – 25.000 €',     sub:'Un bon coixí',       cap:15000},
+      {ico:'💰', lbl:'25.000 – 75.000 €',    sub:'Capital de treball', cap:50000},
+      {ico:'🏦', lbl:'75.000 – 200.000 €',   sub:'Patrimoni sòlid',    cap:135000},
+      {ico:'💎', lbl:'Més de 200.000 €',     sub:'Gran patrimoni',     cap:300000}
+    ]
+  },
+  {
+    id:'onson', dim:'estructura',
+    title:'On són ara els teus diners?',
+    hint:'Tria el que millor descrigui la major part.',
+    opts:[
+      {ico:'😴', lbl:'Al compte corrent o llibreta', sub:'Aturats, sense treballar', sc:4,  cost:1.80, idle:1.0},
+      {ico:'🏛️', lbl:'En un fons o pla del banc',     sub:'Invertits, amb comissions altes', sc:11, cost:1.80, idle:0},
+      {ico:'📈', lbl:'Invertits pel meu compte',      sub:'ETFs, accions, broker',    sc:20, cost:0.45, idle:0},
+      {ico:'🤷', lbl:'Repartits, no ho tinc clar',    sub:'Una mica de tot',          sc:7,  cost:1.20, idle:0.4}
+    ]
+  },
+  {
+    id:'mensual', dim:'estalvi',
+    title:'Quant pots estalviar cada mes?',
+    hint:'El que et sobra de mitjana després de les despeses.',
+    opts:[
+      {ico:'⛔', lbl:'Ara mateix no m\'arriba', sub:'Mes a mes just', sc:0,  m:0},
+      {ico:'🍃', lbl:'Menys de 100 €',          sub:'A poc a poc',     sc:8,  m:50},
+      {ico:'💪', lbl:'100 – 300 €',             sub:'Ritme constant',  sc:14, m:200},
+      {ico:'🔥', lbl:'300 – 600 €',             sub:'Bon estalviador',  sc:18, m:450},
+      {ico:'🦅', lbl:'Més de 600 €',            sub:'Gran capacitat',   sc:20, m:800}
+    ]
+  },
+  {
+    id:'coixi', dim:'coixi',
+    title:'Tens un fons d\'emergència?',
+    hint:'Diners accessibles per cobrir 3 – 6 mesos de despeses.',
+    opts:[
+      {ico:'🛡️', lbl:'Sí, 3 – 6 mesos coberts', sub:'Dorms tranquil', sc:25},
+      {ico:'🌓', lbl:'Parcialment',              sub:'Una part, no tot', sc:12},
+      {ico:'⚠️', lbl:'No en tinc',               sub:'Exposat a imprevistos', sc:0}
+    ]
+  },
+  {
+    id:'deute', dim:'deute',
+    title:'Tens deutes cars?',
+    hint:'Targetes, préstecs al consum o finançaments per sobre del 6 %.',
+    opts:[
+      {ico:'✅', lbl:'No, cap deute car',  sub:'Lliure de càrregues', sc:20},
+      {ico:'🏠', lbl:'Només la hipoteca',  sub:'Deute bo i controlat', sc:14},
+      {ico:'🔗', lbl:'Sí, en tinc',        sub:'Targetes o préstecs', sc:0}
+    ]
+  },
+  {
+    id:'pla', dim:'pla',
+    title:'Tens un pla financer clar?',
+    hint:'Objectius definits i una estratègia per arribar-hi.',
+    opts:[
+      {ico:'🗺️', lbl:'Sí, el tinc clar',  sub:'Sé on vaig i com', sc:15},
+      {ico:'🧭', lbl:'Més o menys',        sub:'Una idea general', sc:8},
+      {ico:'🎲', lbl:'No, vaig improvisant', sub:'Sense rumb fix', sc:0}
+    ]
+  }
+];
+
+var DIMS = [
+  {id:'coixi',      ico:'🛡️', name:'Fons d\'emergència', max:25},
+  {id:'deute',      ico:'✅', name:'Salut del deute',    max:20},
+  {id:'estalvi',    ico:'🔥', name:'Capacitat d\'estalvi', max:20},
+  {id:'estructura', ico:'📈', name:'Estructura dels diners', max:20},
+  {id:'pla',        ico:'🗺️', name:'Pla i rumb',          max:15}
+];
+
+// ---- Estat -----------------------------------------------------------
+var state = 'intro';   // 'intro' | 'q' | 'calc' | 'result'
+var cur = 0;
+var ans = {};          // id -> opció triada
+var stage = document.getElementById('stage');
+
+// ---- Format ----------------------------------------------------------
+function fmtEur(n){
+  n = Math.round(n);
+  return n.toLocaleString('ca-ES') + ' €';
+}
+
+// ---- Render ----------------------------------------------------------
+function render(){
+  if(state==='intro') return renderIntro();
+  if(state==='q')      return renderQuestion();
+  if(state==='calc')   return renderCalc();
+  if(state==='result') return renderResult();
+}
+
+function setProgress(frac){
+  document.getElementById('progress-bar').style.width = Math.round(frac*100)+'%';
+}
+
+function renderIntro(){
+  document.getElementById('topbar-q').textContent = '2 minuts';
+  setProgress(0);
+  stage.innerHTML =
+    '<div class="intro fade">'
+    + '<div class="intro-eyebrow">Diagnòstic gratuït · sense registre</div>'
+    + '<h1>Quina <em>salut financera</em> tens, de debò?</h1>'
+    + '<p>Set preguntes ràpides i et donem dues coses: el teu estat financer puntuat de 0 a 100, i quant podries millorar en euros amb una bona estructuració. Sense lletra petita.</p>'
+    + '<div class="intro-meta">'
+    +   '<div>⏱️ <strong>2 minuts</strong></div>'
+    +   '<div>🔒 <strong>Sense registre</strong></div>'
+    +   '<div>🎯 <strong>Resultat a l\'instant</strong></div>'
+    + '</div>'
+    + '<button class="btn btn-dark" onclick="start()">Comença el test →</button>'
+    + '</div>';
+}
+
+function renderQuestion(){
+  var q = QS[cur];
+  document.getElementById('topbar-q').textContent = (cur+1)+' / '+QS.length;
+  setProgress(cur/QS.length);
+  var opts = q.opts.map(function(o,i){
+    return '<button class="opt" onclick="choose('+i+')">'
+      + '<span class="opt-ico">'+o.ico+'</span>'
+      + '<span class="opt-body"><b>'+o.lbl+'</b>'+(o.sub?'<span>'+o.sub+'</span>':'')+'</span>'
+      + '<span class="opt-arrow">→</span>'
+      + '</button>';
+  }).join('');
+  stage.innerHTML =
+    '<div class="fade">'
+    + '<div class="q-num">Pregunta '+(cur+1)+' de '+QS.length+'</div>'
+    + '<div class="q-title">'+q.title+'</div>'
+    + (q.hint?'<div class="q-hint">'+q.hint+'</div>':'')
+    + '<div class="opts">'+opts+'</div>'
+    + (cur>0?'<button class="q-back" onclick="back()">← Enrere</button>':'')
+    + '</div>';
+}
+
+function renderCalc(){
+  document.getElementById('topbar-q').textContent = '';
+  setProgress(1);
+  stage.innerHTML =
+    '<div class="calc-box fade">'
+    + '<div class="calc-ring"></div>'
+    + '<p id="calc-msg">Analitzant les teves respostes…</p>'
+    + '</div>';
+  var msgs = ['Analitzant les teves respostes…','Calculant el teu estat financer…','Estimant el benefici d\'estructurar…','Preparant el teu resultat…'];
+  var k=0;
+  var el=document.getElementById('calc-msg');
+  var iv=setInterval(function(){k++;if(el&&msgs[k])el.textContent=msgs[k];},650);
+  setTimeout(function(){clearInterval(iv);state='result';render();},2300);
+}
+
+// ---- Lògica de navegació --------------------------------------------
+function start(){ state='q'; cur=0; render(); }
+function choose(i){ ans[QS[cur].id]=QS[cur].opts[i]; cur++; if(cur>=QS.length){state='calc';render();}else render(); }
+function back(){ if(cur>0){cur--; state='q'; render();} }
+function restart(){ ans={}; cur=0; state='intro'; render(); }
+
+// ---- Scoring i càlcul de benefici -----------------------------------
+function computeResult(){
+  // 1) Puntuació de l'estat financer (0-100)
+  var score = 0;
+  DIMS.forEach(function(d){
+    var a = ans[QS.filter(function(q){return q.dim===d.id;})[0].id];
+    score += a ? (a.sc||0) : 0;
+  });
+  score = Math.max(0, Math.min(100, score));
+
+  // 2) Paràmetres de càlcul
+  var age   = ans.edat.age;
+  var cap   = ans.estalvis.cap;
+  var m     = ans.mensual.m;
+  var cost  = ans.onson.cost;     // cost actual estimat (% anual)
+  var idle  = ans.onson.idle;     // fracció de diners aturats
+  var Y     = Math.max(10, Math.min(30, 67 - age)); // horitzó fins a jubilació, acotat
+
+  // 3) Estalvi en comissions (diferència de cost, mateix creixement brut)
+  //    Comparem dos escenaris amb el MATEIX rendiment brut moderat: la
+  //    diferència ve de les comissions, no d'una previsió de rendiment.
+  var GROSS = 5.0;        // % brut moderat (declarat)
+  var TBI   = 0.25;       // % cost TBI
+  function simula(c, mes, anys, costPct){
+    var net = (GROSS - costPct)/100;
+    var r = Math.pow(1+net, 1/12) - 1;
+    var v = c;
+    var n = anys*12;
+    for(var i=0;i<n;i++){ v = v*(1+r) + mes; }
+    return v;
+  }
+  var vTBI  = simula(cap, m, Y, TBI);
+  var vBanc = simula(cap, m, Y, cost);
+  var estalviComissions = Math.max(0, vTBI - vBanc);
+
+  // 4) Pèrdua de poder adquisitiu per diners aturats (inflació 3%)
+  var INFL = 0.03;
+  var capAturat = cap * idle;
+  var perduaInflacio = capAturat * (1 - Math.pow(1+INFL, -Y));
+
+  return {
+    score:score, age:age, cap:cap, m:m, Y:Y,
+    estalviComissions:estalviComissions,
+    perduaInflacio:perduaInflacio,
+    capAturat:capAturat,
+    cost:cost
+  };
+}
+
+function stateInfo(score){
+  if(score < 40) return {label:'Vulnerable',     color:'#8B1A1A', tag:'Les teves finances estan exposades. Hi ha riscos bàsics per cobrir abans de pensar a fer créixer el capital — i és aquí on una bona estructuració canvia més les coses.'};
+  if(score < 60) return {label:'En construcció', color:'#9A7B2F', tag:'Tens una base, però amb forats. Amb uns quants ajustos d\'estructura i un pla clar, el teu diner pot començar a treballar molt millor.'};
+  if(score < 80) return {label:'Sòlid',          color:'#1A5C3A', tag:'Vas bé. Les bases hi són i ara el marge de millora està en l\'optimització: costos, fiscalitat i mantenir el rumb amb disciplina.'};
+  return                  {label:'Òptim',         color:'#C8A54A', tag:'Excel·lent salut financera. El teu repte ja no és arreglar res, sinó afinar costos i estratègia per exprimir cada euro al màxim.'};
+}
+
+function dimVerdict(id, frac){
+  var bo = frac>=.75, mig = frac>=.4;
+  var t = {
+    coixi:      ['Sense protecció','Coixí parcial','Ben protegit'],
+    deute:      ['Deute a controlar','Deute moderat','Lliure de deute car'],
+    estalvi:    ['Sense marge','Estalvi moderat','Gran capacitat'],
+    estructura: ['Diners parats','Millorable','Ben estructurat'],
+    pla:        ['Sense rumb','Rumb difús','Pla clar']
+  }[id] || ['Baix','Mitjà','Alt'];
+  return bo ? t[2] : (mig ? t[1] : t[0]);
+}
+
+function renderResult(){
+  document.getElementById('topbar-q').textContent = '';
+  setProgress(1);
+  var r = computeResult();
+  var st = stateInfo(r.score);
+
+  // Gauge: semicercle 0-100. pathLength=100 → dashoffset = 100-score.
+  var off = 100 - r.score;
+
+  // Barres per dimensió
+  var dimsHtml = DIMS.map(function(d){
+    var a = ans[QS.filter(function(q){return q.dim===d.id;})[0].id];
+    var sc = a ? (a.sc||0) : 0;
+    var frac = d.max ? sc/d.max : 0;
+    var col = frac>=.75?'#1A5C3A':(frac>=.4?'#9A7B2F':'#8B1A1A');
+    return '<div class="dim">'
+      + '<div class="dim-ico">'+d.ico+'</div>'
+      + '<div class="dim-body">'
+      +   '<div class="dim-top"><span class="dim-name">'+d.name+'</span><span class="dim-verdict">'+dimVerdict(d.id,frac)+'</span></div>'
+      +   '<div class="dim-track"><div class="dim-fill" data-w="'+Math.round(frac*100)+'" style="background:'+col+'"></div></div>'
+      + '</div></div>';
+  }).join('');
+
+  // Files de benefici (només mostrem les rellevants)
+  var rows = '';
+  if(r.estalviComissions > 0){
+    rows += '<div class="benefit-row"><div class="lbl">Estalvi en comissions<small>vs el producte típic de banc, en '+r.Y+' anys</small></div><div class="v good">+'+fmtEur(r.estalviComissions)+'</div></div>';
+  }
+  if(r.perduaInflacio > 0){
+    rows += '<div class="benefit-row"><div class="lbl">Poder adquisitiu en risc<small>els teus '+fmtEur(r.capAturat)+' aturats, en '+r.Y+' anys d\'inflació</small></div><div class="v bad">−'+fmtEur(r.perduaInflacio)+'</div></div>';
+  }
+  var totalMillora = r.estalviComissions + r.perduaInflacio;
+
+  // CTA WhatsApp amb el resultat precarregat
+  var waMsg = encodeURIComponent(
+    'Hola Guillem! He fet el test de salut financera de The Boring Investor. '
+    + 'El meu estat financer és '+r.score+'/100 ('+st.label+') '
+    + 'i m\'agradaria parlar de com millorar-lo. Gràcies!'
+  );
+  var waUrl = 'https://wa.me/'+WA_PHONE+'?text='+waMsg;
+
+  stage.innerHTML =
+    '<div class="fade">'
+    + '<div class="res-eyebrow">El teu estat financer</div>'
+    + '<div class="gauge-wrap"><div class="gauge">'
+    +   '<svg viewBox="0 0 240 138">'
+    +     '<path class="gauge-track" d="M18 130 A102 102 0 0 1 222 130" pathLength="100"/>'
+    +     '<path class="gauge-val" id="gauge-val" d="M18 130 A102 102 0 0 1 222 130" pathLength="100" style="stroke:'+st.color+'"/>'
+    +   '</svg>'
+    +   '<div class="gauge-num"><b style="color:'+st.color+'">'+r.score+'</b><span>/ 100</span></div>'
+    + '</div></div>'
+    + '<div class="res-state" style="color:'+st.color+'">'+st.label+'</div>'
+    + '<div class="res-tag">'+st.tag+'</div>'
+
+    + '<div class="card"><div class="card-h">El teu desglossament</div>'+dimsHtml+'</div>'
+
+    + '<div class="benefit">'
+    +   '<div class="benefit-h">Què hi ha en joc per a tu</div>'
+    +   '<div class="benefit-big">'+fmtEur(totalMillora)+'</div>'
+    +   '<div class="benefit-sub">És el marge de millora estimat en '+r.Y+' anys entre tenir les finances com ara i tenir-les ben estructurades i amb cost baix.</div>'
+    +   '<div class="benefit-rows">'+rows+'</div>'
+    +   '<div class="benefit-note">Estimació orientativa a partir de les teves respostes, assumint un creixement brut moderat del 5 % anual i una inflació del 3 %. La diferència ve sobretot de les comissions i de tenir els diners estructurats — no és una previsió de rendiment ni una recomanació personalitzada.</div>'
+    + '</div>'
+
+    + '<div class="cta-lead"><b>Vols recuperar aquests '+fmtEur(totalMillora)+'?</b><br>Parlem-ne sense compromís i et dic com estructurar-ho pas a pas.</div>'
+    + '<div class="cta-stack">'
+    +   '<a class="btn btn-wa" href="'+waUrl+'" target="_blank" rel="noopener">💬 Parlem pel WhatsApp</a>'
+    +   '<a class="btn btn-primary" href="'+PLATFORM_URL+'">Crea el teu pla complet →</a>'
+    + '</div>'
+
+    + '<div class="res-foot"><button onclick="restart()">↻ Tornar a fer el test</button></div>'
+    + '<div class="disc">The Boring Investor · Anàlisi i educació financera independent. Aquest test és una eina orientativa i no constitueix assessorament d\'inversió personalitzat. Candidat EFA · pre-certificació.</div>'
+    + '</div>';
+
+  // Animacions d'entrada (gauge + barres)
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      var g=document.getElementById('gauge-val');
+      if(g){ g.style.setProperty('--off', off); g.style.strokeDashoffset = off; }
+      document.querySelectorAll('.dim-fill').forEach(function(f){ f.style.width = f.getAttribute('data-w')+'%'; });
+    }, 120);
+  });
+}
+
+// ---- Init ------------------------------------------------------------
+render();
+</script>
+</body>
+</html>

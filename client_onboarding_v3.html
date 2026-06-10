@@ -1824,6 +1824,14 @@ async function inicialitzarQüestionari() {
     }
   }
 
+  // 2b. Aquest qüestionari (idoneïtat + coneixement MIFID) és NOMÉS per a
+  //     clients. Un visitant fred (sense sessió i que no ve de la plataforma)
+  //     s'envia al test de salut financera públic. Bypass manual: ?client=1
+  if (!hasAuth && !fromPlatform && !urlEmail && params.get('client') !== '1') {
+    window.location.replace('test-salut-financera.html');
+    return;
+  }
+
   // 3. Omplir txt amb la millor font disponible
   if (hasAuth) {
     // Opció B: pre-omplir amb les dades de la sessió (nom de user_metadata o URL)
