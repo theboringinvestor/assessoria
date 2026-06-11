@@ -4472,6 +4472,97 @@ function renderCarteraDonut(actius, opts) {
   return '<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">'+svgH+legend+'</div>';
 }
 
+// ══════════════════════════════════════════════════
+// PRIMERS PASSOS · onboarding del client nou al Resum
+// 4 passos amb detecció automàtica; descartable per usuari;
+// s'amaga sol quan tots els passos estan complets.
+// ══════════════════════════════════════════════════
+function _onboardHideKey() {
+  var email = (APP.user && APP.user.email) || 'anon';
+  return 'tbi_onboard_hide_' + email;
+}
+
+function amagarPrimersPassos() {
+  try { localStorage.setItem(_onboardHideKey(), '1'); } catch(e) {}
+  var box = document.getElementById('primers-passos');
+  if (box) box.style.display = 'none';
+}
+
+function _renderPrimersPassos(c) {
+  // Mai a l'admin (ja coneix la casa) ni si l'usuari l'ha amagat
+  if (APP.role === 'admin') return '';
+  try { if (localStorage.getItem(_onboardHideKey()) === '1') return ''; } catch(e) {}
+
+  // Detecció d'estat de cada pas
+  var kpis = (typeof calcKPIsCartera === 'function')
+    ? calcKPIsCartera()
+    : {valor_total:0, cost_total:0};
+  var road = getRoadmap();
+  var pla  = getPlaAportacions();
+
+  var passos = [
+    {
+      fet: !!(c.scoring > 0 || c.arquetipId),
+      ico: '🧭', nom: 'Descobreix el teu perfil inversor',
+      desc: 'El qüestionari calcula el teu arquetip i la cartera que t\u2019encaixa.',
+      cta: 'Fer el qüestionari', accio: "confirmarRetestQuestionnaire()"
+    },
+    {
+      fet: (kpis.valor_total > 0 || kpis.cost_total > 0),
+      ico: '💼', nom: 'Registra la teva cartera',
+      desc: 'Afegeix les teves posicions (o comen\u00e7a de zero amb la proposta).',
+      cta: 'Anar a la cartera', accio: "navigateTo('portal-cartera')"
+    },
+    {
+      fet: !!(pla && ((pla.mensual||0) > 0 || (pla.aportacions && pla.aportacions.length))),
+      ico: '📅', nom: 'Configura el pla d\u2019aportacions',
+      desc: 'Quant aportar\u00e0s cada mes i on. El motor silenci\u00f3s del llarg termini.',
+      cta: 'Configurar el pla', accio: "navigateTo('portal-aportacions')"
+    },
+    {
+      fet: !!(road && ((road.fases && road.fases.length) || (road.objectius && road.objectius.length))),
+      ico: '🗺️', nom: 'Revisa el teu Full de Ruta',
+      desc: 'Objectius, fases i fites. Es construeix amb en Guillem a l\u2019entrevista inicial.',
+      cta: 'Veure el Full de Ruta', accio: "navigateTo('portal-roadmap')"
+    }
+  ];
+
+  var fets = passos.filter(function(p){ return p.fet; }).length;
+  if (fets === passos.length) return ''; // tot complet: fora soroll
+
+  var pct = Math.round(fets / passos.length * 100);
+
+  var html = '<div id="primers-passos" style="background:linear-gradient(135deg,#14233E 0%,#0D0D0D 100%);border-radius:16px;padding:22px 22px 18px;margin-bottom:22px;color:#fff">'
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px">'
+    +   '<div><div style="font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);margin-bottom:5px">Primers passos · ' + fets + ' de ' + passos.length + '</div>'
+    +   '<div style="font-family:var(--fd);font-size:19px;font-weight:500">Posem la teva inversi\u00f3 en marxa</div></div>'
+    +   '<button onclick="amagarPrimersPassos()" title="Amagar aquesta guia" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;font-family:var(--fb);padding:4px 6px;white-space:nowrap">Amagar ✕</button>'
+    + '</div>'
+    + '<div style="height:4px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-bottom:16px"><div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#9A7B2F,#C8A54A);border-radius:99px"></div></div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px">';
+
+  passos.forEach(function(p) {
+    if (p.fet) {
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:rgba(255,255,255,.04);border-radius:11px;opacity:.6">'
+        + '<div style="flex:none;width:26px;height:26px;border-radius:50%;background:rgba(91,201,138,.15);display:flex;align-items:center;justify-content:center;color:#5BC98A;font-size:13px;font-weight:700">✓</div>'
+        + '<div style="font-size:13px;color:rgba(255,255,255,.75);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.3)">' + p.nom + '</div>'
+        + '</div>';
+    } else {
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:11px;flex-wrap:wrap">'
+        + '<div style="flex:none;width:32px;height:32px;border-radius:9px;background:rgba(200,165,74,.14);display:flex;align-items:center;justify-content:center;font-size:15px">' + p.ico + '</div>'
+        + '<div style="flex:1;min-width:170px"><div style="font-size:13.5px;font-weight:600;margin-bottom:1px">' + p.nom + '</div>'
+        + '<div style="font-size:11.5px;color:rgba(255,255,255,.45);line-height:1.5">' + p.desc + '</div></div>'
+        + '<button onclick="' + p.accio + '" style="flex:none;padding:9px 16px;background:#C8A54A;color:#0D0D0D;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb)">' + p.cta + ' →</button>'
+        + '</div>';
+    }
+  });
+
+  html += '</div>'
+    + '<div style="margin-top:14px;font-size:11.5px;color:rgba(255,255,255,.4);line-height:1.5">Tens dubtes amb algun pas? <a href="javascript:navigateTo(\'portal-missatges\')" style="color:#C8A54A;text-decoration:none;font-weight:500">Escriu-me un missatge</a> — t\u2019hi acompanyo.</div>'
+    + '</div>';
+  return html;
+}
+
 function renderPortalPerfil(el) {
   try {
     _renderPortalPerfilImpl(el);
@@ -4512,6 +4603,10 @@ function _renderPortalPerfilImpl(el) {
     + '<div class="portal-hello-name">Hola, ' + nom.split(' ')[0] + ' 👋</div>'
     + '<div class="portal-hello-sub">El teu perfil inversor actualitzat a ' + dataAvui + '</div>'
   + '</div>';
+
+  // ── PRIMERS PASSOS (onboarding del client nou) ──
+  // Detecció automàtica de progrés; descartable; desapareix quan tot és fet.
+  html += _renderPrimersPassos(c);
 
   // Score hero — unified archetype + cartera
   html += '<div class="score-hero">'
@@ -10769,6 +10864,15 @@ function renderPortalRoadmap(el) {
   // MUNTATGE HTML
   // ════════════════════════════════════════════════════════════
   var html = css + '<div class="content-inner fade-in">';
+
+  // ── Avís: client sense perfil fet → el Full de Ruta mostra valors genèrics
+  if (APP.role !== 'admin' && !(c.scoring > 0 || c.arquetipId)) {
+    html += '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#FEF5E7;border:1px solid #F0C674;border-radius:12px;padding:14px 18px;margin-bottom:18px">'
+      + '<div style="font-size:22px;flex:none">🧭</div>'
+      + '<div style="flex:1;min-width:200px;font-size:12.5px;color:#7A4A00;line-height:1.6">Aquest Full de Ruta mostra un <strong>exemple gen\u00e8ric</strong> perqu\u00e8 encara no has fet el q\u00fcestionari de perfil. Quan el completis, tot el document es personalitzar\u00e0 amb el teu arquetip, la teva cartera i els teus objectius.</div>'
+      + '<button onclick="confirmarRetestQuestionnaire()" style="flex:none;padding:9px 16px;background:#0A0A0A;color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb)">Fer el q\u00fcestionari →</button>'
+      + '</div>';
+  }
 
   // ─── 1. HERO ────────────────────────────────────────────────
   var dataAvui = new Date().toLocaleDateString('ca-ES', { day:'numeric', month:'long', year:'numeric' });
