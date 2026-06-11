@@ -131,6 +131,22 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opa
 .benefit-note{font-size:10.5px;color:rgba(255,255,255,.35);line-height:1.55;margin-top:14px}
 
 .cta-stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+
+/* factor humà */
+.huma{background:var(--white);border:1px solid var(--g100);border-radius:16px;padding:22px 20px;margin-bottom:14px}
+.huma-gap{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#2A1212 0%,#0D0D0D 100%);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+.huma-gap b{font-family:var(--fd);font-size:30px;font-weight:600;color:#E57373;line-height:1;white-space:nowrap}
+.huma-gap span{font-size:12px;color:rgba(255,255,255,.65);line-height:1.55}
+.huma-items{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.huma-item{display:flex;gap:12px;align-items:flex-start}
+.huma-item .ic{flex:none;width:34px;height:34px;border-radius:9px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:16px}
+.huma-item b{display:block;font-size:13.5px;font-weight:600;margin-bottom:2px}
+.huma-item span{font-size:12px;color:var(--g500);line-height:1.6}
+.huma-val{background:linear-gradient(135deg,#FFFDF5 0%,#FEF7E8 100%);border:1px solid var(--gold-light);border-radius:12px;padding:16px;text-align:center}
+.huma-val .lbl{font-size:11px;font-family:var(--fm);text-transform:uppercase;letter-spacing:.1em;color:var(--g400);margin-bottom:5px}
+.huma-val .num{font-family:var(--fd);font-size:30px;font-weight:600;color:var(--gold-dark);line-height:1.1}
+.huma-val .sub{font-size:11.5px;color:var(--g500);margin-top:5px;line-height:1.55}
+.huma-note{font-size:10.5px;color:var(--g300);line-height:1.6;margin-top:12px}
 .cta-lead{text-align:center;font-size:14px;color:var(--g600);line-height:1.6;margin:18px 0 14px}
 .cta-lead b{color:var(--black)}
 
@@ -175,6 +191,61 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opa
 
 var WA_PHONE = '34629340892';
 var PLATFORM_URL = 'https://theboringinvestor.github.io/assessoria/platform.html';
+
+// ---- Supabase (captura de leads; només INSERT amb clau anònima) -------
+var SB_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
+
+// UTM de la URL (per saber d'on ve el lead; el kit de captació ja n'emet)
+var UTM = (function(){
+  try{
+    var p = new URLSearchParams(window.location.search);
+    var u = {};
+    ['utm_source','utm_medium','utm_campaign'].forEach(function(k){
+      if(p.get(k)) u[k.replace('utm_','')] = p.get(k);
+    });
+    return Object.keys(u).length ? u : null;
+  }catch(e){ return null; }
+})();
+
+var leadEmail = '';   // email opcional capturat abans del resultat
+var leadSaved = false;
+
+function saveLead(r, st){
+  if(leadSaved) return;
+  leadSaved = true;
+  var payload = {
+    email: leadEmail || null,
+    puntuacio: r.score,
+    estat: st.label,
+    respostes: (function(){
+      var o = {};
+      Object.keys(ans).forEach(function(k){ o[k] = ans[k].lbl; });
+      return o;
+    })(),
+    benefici: {
+      estalvi_comissions: Math.round(r.estalviComissions),
+      perdua_inflacio: Math.round(r.perduaInflacio),
+      valor_assessor_3pct: Math.round(r.valorAssessor),
+      total: Math.round(r.estalviComissions + r.perduaInflacio),
+      anys: r.Y
+    },
+    utm: UTM,
+    user_agent: (navigator.userAgent || '').slice(0, 250)
+  };
+  try{
+    fetch(SB_URL + '/rest/v1/leads_salut_financera', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    }).catch(function(){ /* silenci: el resultat es mostra igualment */ });
+  }catch(e){ /* mai bloquegem el resultat per un error de xarxa */ }
+}
 
 // ---- Preguntes (totes d'un sol toc) ----------------------------------
 var QS = [
@@ -281,6 +352,7 @@ function fmtEur(n){
 function render(){
   if(state==='intro') return renderIntro();
   if(state==='q')      return renderQuestion();
+  if(state==='email')  return renderEmail();
   if(state==='calc')   return renderCalc();
   if(state==='result') return renderResult();
 }
@@ -344,9 +416,42 @@ function renderCalc(){
 
 // ---- Lògica de navegació --------------------------------------------
 function start(){ state='q'; cur=0; render(); }
-function choose(i){ ans[QS[cur].id]=QS[cur].opts[i]; cur++; if(cur>=QS.length){state='calc';render();}else render(); }
+function choose(i){ ans[QS[cur].id]=QS[cur].opts[i]; cur++; if(cur>=QS.length){state='email';render();}else render(); }
 function back(){ if(cur>0){cur--; state='q'; render();} }
-function restart(){ ans={}; cur=0; state='intro'; render(); }
+function restart(){ ans={}; cur=0; leadEmail=''; leadSaved=false; state='intro'; render(); }
+
+function renderEmail(){
+  document.getElementById('topbar-q').textContent = '';
+  setProgress(0.95);
+  stage.innerHTML =
+    '<div class="fade" style="text-align:center">'
+    + '<div style="font-size:38px;margin-bottom:14px">&#9993;&#65039;</div>'
+    + '<div class="q-title" style="margin-bottom:8px">El teu resultat est&agrave; llest</div>'
+    + '<div class="q-hint" style="max-width:400px;margin:0 auto 22px">Vols l\u2019informe complet amb recomanacions concretes? Deixa\u2019m el teu correu i te l\u2019envio personalment. Sense spam, nom\u00e9s l\u2019informe. <b>&Eacute;s opcional.</b></div>'
+    + '<input type="email" id="lead-email" placeholder="elteu@correu.com" autocomplete="email" '
+    +   'style="width:100%;max-width:380px;padding:15px 18px;border:1.5px solid var(--g200);border-radius:12px;font-family:var(--fb);font-size:15px;background:var(--white);margin-bottom:12px;text-align:center" '
+    +   'onkeydown="if(event.key===\'Enter\')confirmEmail()">'
+    + '<div class="cta-stack" style="max-width:380px;margin:0 auto">'
+    +   '<button class="btn btn-dark" onclick="confirmEmail()">Envia\u2019m l\u2019informe i mostra el resultat &rarr;</button>'
+    +   '<button class="btn btn-ghost" onclick="skipEmail()">Veure el resultat sense informe</button>'
+    + '</div>'
+    + '</div>';
+  var inp=document.getElementById('lead-email');
+  if(inp)setTimeout(function(){inp.focus();},250);
+}
+function confirmEmail(){
+  var inp = document.getElementById('lead-email');
+  var v = inp ? (inp.value||'').trim() : '';
+  if(v && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){
+    inp.style.borderColor = '#8B1A1A';
+    inp.placeholder = 'Correu no v\u00e0lid \u2014 revisa\u2019l';
+    if(v.length<4) inp.value='';
+    return;
+  }
+  leadEmail = v;
+  state='calc'; render();
+}
+function skipEmail(){ leadEmail=''; state='calc'; render(); }
 
 // ---- Scoring i càlcul de benefici -----------------------------------
 function computeResult(){
@@ -383,6 +488,19 @@ function computeResult(){
   var vBanc = simula(cap, m, Y, cost);
   var estalviComissions = Math.max(0, vTBI - vBanc);
 
+  // 4b) Valor del factor humà (Vanguard Advisor's Alpha ~3%/any).
+  //     Comparem inversor per lliure (4% net, després de biaixos i errors,
+  //     cf. DALBAR behavior gap −4,5%) vs acompanyat amb mètode (7% net).
+  //     És una estimació d'estudis tercers, NO el nostre track record.
+  function simNet(c2, mes2, anys2, netPct){
+    var r2 = Math.pow(1+netPct/100, 1/12) - 1;
+    var v2 = c2;
+    var n2 = anys2*12;
+    for(var j=0;j<n2;j++){ v2 = v2*(1+r2) + mes2; }
+    return v2;
+  }
+  var valorAssessor = Math.max(0, simNet(cap, m, Y, 7) - simNet(cap, m, Y, 4));
+
   // 4) Pèrdua de poder adquisitiu per diners aturats (inflació 3%)
   var INFL = 0.03;
   var capAturat = cap * idle;
@@ -393,6 +511,7 @@ function computeResult(){
     estalviComissions:estalviComissions,
     perduaInflacio:perduaInflacio,
     capAturat:capAturat,
+    valorAssessor:valorAssessor,
     cost:cost
   };
 }
@@ -421,6 +540,12 @@ function renderResult(){
   setProgress(1);
   var r = computeResult();
   var st = stateInfo(r.score);
+  saveLead(r, st);
+
+  // Confirmació si han deixat correu
+  var emailNote = leadEmail
+    ? '<div style="text-align:center;font-size:12.5px;color:var(--green);background:var(--green-light);border-radius:10px;padding:10px 14px;margin:0 auto 18px;max-width:420px">&#10003; Rebut! T\u2019enviar&eacute; l\u2019informe complet a <b>'+leadEmail+'</b> en les properes 24\u201348h.</div>'
+    : '';
 
   // Gauge: semicercle 0-100. pathLength=100 → dashoffset = 100-score.
   var off = 100 - r.score;
@@ -459,6 +584,7 @@ function renderResult(){
 
   stage.innerHTML =
     '<div class="fade">'
+    + emailNote
     + '<div class="res-eyebrow">El teu estat financer</div>'
     + '<div class="gauge-wrap"><div class="gauge">'
     +   '<svg viewBox="0 0 240 138">'
@@ -478,6 +604,19 @@ function renderResult(){
     +   '<div class="benefit-sub">És el marge de millora estimat en '+r.Y+' anys entre tenir les finances com ara i tenir-les ben estructurades i amb cost baix.</div>'
     +   '<div class="benefit-rows">'+rows+'</div>'
     +   '<div class="benefit-note">Estimació orientativa a partir de les teves respostes, assumint un creixement brut moderat del 5 % anual i una inflació del 3 %. La diferència ve sobretot de les comissions i de tenir els diners estructurats — no és una previsió de rendiment ni una recomanació personalitzada.</div>'
+    + '</div>'
+
+    + '<div class="huma">'
+    +   '<div class="card-h">I el que cap calculadora recull: el factor hum&agrave;</div>'
+    +   '<div class="huma-gap"><b>&minus;4,5%</b><span>anuals perd l\u2019inversor mitj&agrave; respecte al mercat per <b style="color:#fff">decisions emocionals</b> (mercat 10,4% vs inversor 5,9% \u00b7 DALBAR, 20 anys). El problema no sol ser la cartera: som nosaltres.</span></div>'
+    +   '<div class="huma-items">'
+    +     '<div class="huma-item"><div class="ic">&#129504;</div><div><b>Neutralitzar els biaixos</b><span>Aversi&oacute; a la p&egrave;rdua, FOMO, seguir el ramat, excés de confiança\u2026 s&oacute;n humans i universals. Con&egrave;ixer-los no els elimina; tenir un pla escrit i alg&uacute; que t\u2019aturi al moment clau, s&iacute;.</span></div></div>'
+    +     '<div class="huma-item"><div class="ic">&#129529;</div><div><b>Coaching emocional</b><span>La baranda quan vols saltar: no vendre en p&agrave;nic a les caigudes (el 2020 el mercat va caure un 34% i ho va recuperar en 5 mesos) ni comprar l\u2019actiu de moda quan ja surt als diaris.</span></div></div>'
+    +     '<div class="huma-item"><div class="ic">&#128203;</div><div><b>Mètode i disciplina</b><span>Aportacions autom&agrave;tiques, rebalanceig anual i revisi&oacute; trimestral. Avorrit a posta: el temps al mercat guanya sempre a encertar el moment.</span></div></div>'
+    +     '<div class="huma-item"><div class="ic">&#128184;</div><div><b>Evitar els errors cars</b><span>Market timing, concentrar massa en una sola posici&oacute;, ignorar el cost dels productes o mirar la cartera cada dia. Cap &eacute;s d\u2019intel\u00b7lig&egrave;ncia: tots s&oacute;n de comportament.</span></div></div>'
+    +   '</div>'
+    +   '<div class="huma-val"><div class="lbl">Qu&egrave; valdria aix&ograve; per a tu</div><div class="num">+'+fmtEur(r.valorAssessor)+'</div><div class="sub">si l\u2019acompanyament et fa guanyar un <b>+3% anual</b> (estimaci&oacute; Vanguard Advisor\u2019s Alpha: 2,7\u20133,5%) amb els teus n&uacute;meros, en '+r.Y+' anys.</div></div>'
+    +   '<div class="huma-note">Fonts: DALBAR QAIB (behavior gap) i Vanguard Advisor\u2019s Alpha. S&oacute;n estimacions d\u2019estudis independents sobre el valor de l\u2019assessorament met&ograve;dic, no una promesa de rendiment de cap cartera concreta.</div>'
     + '</div>'
 
     + '<div class="cta-lead"><b>Vols recuperar aquests '+fmtEur(totalMillora)+'?</b><br>Parlem-ne sense compromís i et dic com estructurar-ho pas a pas.</div>'

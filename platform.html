@@ -3413,6 +3413,7 @@ var ADMIN_NAV = [
   {id:'admin-parametres',  icon:'&#128202;', label:'Par\u00e0metres d\u2019actius'},
   {id:'admin-radar',       icon:'&#128201;', label:'Radar d\u2019Oportunitats'},
   {section:'Clients'},
+  {id:'admin-leads',       icon:'🧲', label:'Leads \u00b7 Test salut'},
   {id:'admin-pendents',    icon:'⏳', label:'Sol\u00b7licituds pendents'},
   {id:'admin-entrevista',  icon:'📋', label:'Entrevista inicial'},
   {id:'portal-missatges',  icon:'💬', label:'Missatges clients'},
@@ -3679,6 +3680,7 @@ function renderView(viewId) {
     case 'admin-assessoria': renderAdminAssessoria(content); break;
     case 'admin-entrevista': renderAdminEntrevista(content); break;
     case 'admin-pendents': renderAdminPendents(content); break;
+    case 'admin-leads': renderAdminLeads(content); break;
     case 'pending-review': renderPendingReview(content); break;
     case 'admin-informe': renderAdminInforme(content); break;
     case 'admin-calendari': renderAdminCalendari(content); break;
@@ -16871,6 +16873,133 @@ function _oppAvisar(email){
   try { navigator.clipboard.writeText(msg); toast('\u2713 Missatge copiat al porta-retalls'); }
   catch(e){ alert(msg); }
 }
+// ══════════════════════════════════════════════════
+// ADMIN · LEADS DEL TEST DE SALUT FINANCERA
+// Llegeix leads_salut_financera (RLS: només authenticated)
+// ══════════════════════════════════════════════════
+function renderAdminLeads(el){
+  var css='<style>'
+    + '.ld-wrap{max-width:1080px}'
+    + '.ld-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}'
+    + '.ld-kpi{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px}'
+    + '.ld-kpi-n{font-family:var(--fd);font-size:26px;font-weight:600;line-height:1.1}'
+    + '.ld-kpi-l{font-size:11px;color:var(--g400);margin-top:4px}'
+    + '.ld-tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden}'
+    + '.ld-tbl th{font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);text-align:left;padding:10px 12px;border-bottom:1px solid var(--g200);background:var(--g50)}'
+    + '.ld-tbl td{padding:9px 12px;border-bottom:1px solid var(--g100);font-size:12.5px;vertical-align:middle}'
+    + '.ld-tbl th.r,.ld-tbl td.r{text-align:right}'
+    + '.ld-badge{font-family:var(--fm);font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap}'
+    + '.ld-vul{background:#F7D9D9;color:#8B1A1A}.ld-con{background:#FAEEDA;color:#7A4A00}.ld-sol{background:#E3EFD9;color:#1A5C3A}.ld-opt{background:#FBF3D9;color:#9A7B2F}'
+    + '.ld-mini{padding:6px 11px;background:#fff;border:1.5px solid #1B3A6B;color:#1B3A6B;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb);text-decoration:none;display:inline-block}'
+    + '.ld-det{font-size:11px;color:var(--g500);line-height:1.7;background:var(--g50);border-radius:8px;padding:10px 14px}'
+    + '@media(max-width:900px){.ld-kpis{grid-template-columns:repeat(2,1fr)}}'
+    + '</style>';
+  el.innerHTML = css
+    + '<div class="ld-wrap">'
+    + '<div style="margin-bottom:18px"><div style="font-family:var(--fd);font-size:22px;font-weight:500">Leads \u00b7 Test de salut financera</div>'
+    + '<div style="font-size:12.5px;color:var(--g500);line-height:1.6;margin-top:4px">Persones que han completat el test p\u00fablic. Si han deixat correu, esperen el teu <strong>informe personal en 24\u201348h</strong> \u2014 aquest \u00e9s el comprom\u00eds que mostra el test.</div></div>'
+    + '<div class="ld-kpis" id="ld-kpis"></div>'
+    + '<div id="ld-taula" style="overflow-x:auto"><div style="color:var(--g400);font-size:13px;padding:20px">Carregant leads\u2026</div></div>'
+    + '</div>';
+
+  if (!sb) {
+    document.getElementById('ld-taula').innerHTML = '<div class="ld-det">Supabase no disponible en aquest mode.</div>';
+    return;
+  }
+
+  sb.from('leads_salut_financera')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(300)
+    .then(function(res){
+      if (res.error) {
+        document.getElementById('ld-taula').innerHTML = '<div class="ld-det">Error carregant leads: ' + (res.error.message||'desconegut') + '</div>';
+        return;
+      }
+      var rows = res.data || [];
+      _ldRenderKpis(rows);
+      _ldRenderTaula(rows);
+    });
+}
+
+function _ldRenderKpis(rows){
+  var ara = Date.now();
+  var set7 = rows.filter(function(r){ return (ara - new Date(r.created_at).getTime()) < 7*86400000; }).length;
+  var ambEmail = rows.filter(function(r){ return r.email; }).length;
+  var mitjana = rows.length ? Math.round(rows.reduce(function(s,r){ return s + (r.puntuacio||0); }, 0) / rows.length) : 0;
+  var kpis = [
+    [rows.length, 'Leads totals'],
+    [set7, '\u00daltims 7 dies'],
+    [rows.length ? Math.round(ambEmail/rows.length*100) + '%' : '\u2014', 'Amb correu (' + ambEmail + ')'],
+    [rows.length ? mitjana + '/100' : '\u2014', 'Puntuaci\u00f3 mitjana']
+  ];
+  var h = '';
+  kpis.forEach(function(k){ h += '<div class="ld-kpi"><div class="ld-kpi-n">' + k[0] + '</div><div class="ld-kpi-l">' + k[1] + '</div></div>'; });
+  document.getElementById('ld-kpis').innerHTML = h;
+}
+
+function _ldEstatBadge(estat){
+  var cls = 'ld-con';
+  if (estat === 'Vulnerable') cls = 'ld-vul';
+  else if (estat === 'S\u00f2lid') cls = 'ld-sol';
+  else if (estat === '\u00d2ptim') cls = 'ld-opt';
+  return '<span class="ld-badge ' + cls + '">' + (estat||'\u2014') + '</span>';
+}
+
+function _ldRenderTaula(rows){
+  var cont = document.getElementById('ld-taula');
+  if (!rows.length) {
+    cont.innerHTML = '<div class="ld-det">Encara no hi ha cap lead. Quan alg\u00fa completi el test de salut financera, apareixer\u00e0 aqu\u00ed autom\u00e0ticament.</div>';
+    return;
+  }
+  window._ldRows = rows; // per al toggle de detall
+  var h = '<table class="ld-tbl"><thead><tr>'
+    + '<th>Data</th><th>Correu</th><th class="r">Puntuaci\u00f3</th><th>Estat</th><th class="r">En joc (\u20ac)</th><th>Origen</th><th></th>'
+    + '</tr></thead><tbody>';
+  rows.forEach(function(r, i){
+    var d = new Date(r.created_at);
+    var dataStr = d.toLocaleDateString('ca-ES', {day:'2-digit', month:'short'}) + ' ' + d.toLocaleTimeString('ca-ES', {hour:'2-digit', minute:'2-digit'});
+    var total = (r.benefici && r.benefici.total) ? Math.round(r.benefici.total).toLocaleString('ca-ES') + ' \u20ac' : '\u2014';
+    var origen = (r.utm && (r.utm.source || r.utm.campaign)) ? ((r.utm.source||'') + (r.utm.campaign ? ' \u00b7 ' + r.utm.campaign : '')) : 'directe';
+    var mailBtn = r.email
+      ? '<a class="ld-mini" href="mailto:' + r.email + '?subject=' + encodeURIComponent('El teu informe de salut financera \u00b7 The Boring Investor')
+        + '&body=' + encodeURIComponent('Hola!\n\nGr\u00e0cies per fer el test de salut financera. El teu resultat: ' + (r.puntuacio||'') + '/100 (' + (r.estat||'') + ').\n\nAqu\u00ed tens el meu informe personal amb les recomanacions concretes per al teu cas:\n\n[INFORME]\n\nSi vols que ho repassem junts, resp\u00f3n aquest correu o escriu-me al WhatsApp 629 340 892.\n\nGuillem \u00b7 The Boring Investor') + '">\u2709 Informe</a>'
+      : '';
+    h += '<tr>'
+      + '<td style="font-family:var(--fm);font-size:11px;white-space:nowrap">' + dataStr + '</td>'
+      + '<td>' + (r.email ? '<strong>' + r.email + '</strong>' : '<span style="color:var(--g400)">sense correu</span>') + '</td>'
+      + '<td class="r" style="font-family:var(--fm)">' + (r.puntuacio != null ? r.puntuacio : '\u2014') + '</td>'
+      + '<td>' + _ldEstatBadge(r.estat) + '</td>'
+      + '<td class="r" style="font-family:var(--fm)">' + total + '</td>'
+      + '<td style="font-size:11px;color:var(--g500)">' + origen + '</td>'
+      + '<td class="r" style="white-space:nowrap">' + mailBtn + ' <button class="ld-mini" onclick="_ldToggleDetall(' + i + ')">Respostes</button></td>'
+      + '</tr>'
+      + '<tr id="ld-det-' + i + '" style="display:none"><td colspan="7"><div class="ld-det" id="ld-det-body-' + i + '"></div></td></tr>';
+  });
+  h += '</tbody></table>';
+  cont.innerHTML = h;
+}
+
+function _ldToggleDetall(i){
+  var tr = document.getElementById('ld-det-' + i);
+  if (!tr) return;
+  if (tr.style.display === 'none') {
+    var r = (window._ldRows||[])[i] || {};
+    var resp = r.respostes || {};
+    var b = r.benefici || {};
+    var parts = [];
+    Object.keys(resp).forEach(function(k){ parts.push('<strong>' + k + ':</strong> ' + resp[k]); });
+    if (b.estalvi_comissions != null) parts.push('<strong>estalvi comissions:</strong> ' + Math.round(b.estalvi_comissions).toLocaleString('ca-ES') + ' \u20ac');
+    if (b.perdua_inflacio != null) parts.push('<strong>p\u00e8rdua inflaci\u00f3:</strong> ' + Math.round(b.perdua_inflacio).toLocaleString('ca-ES') + ' \u20ac');
+    if (b.valor_assessor_3pct != null) parts.push('<strong>valor assessor (+3%):</strong> ' + Math.round(b.valor_assessor_3pct).toLocaleString('ca-ES') + ' \u20ac');
+    if (b.anys != null) parts.push('<strong>horitz\u00f3:</strong> ' + b.anys + ' anys');
+    document.getElementById('ld-det-body-' + i).innerHTML = parts.length ? parts.join(' \u00b7 ') : 'Sense detall.';
+    tr.style.display = '';
+  } else {
+    tr.style.display = 'none';
+  }
+}
+
 function renderAdminRadar(el){
   function pf(n){ return (Math.round((parseFloat(n)||0)*10)/10).toString().replace('.',','); }
   var man=TBI_OPP_CFG.manual||{};
