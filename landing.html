@@ -176,6 +176,20 @@ section{padding:100px 28px}
 @media(max-width:768px){.proj-grid{grid-template-columns:1fr}}
 
 .proj-chart-box{margin-top:36px;padding:24px;background:var(--g50);border:1px solid var(--g100);border-radius:16px}
+
+/* CALCULADORA UNIFICADA */
+.calc-tabs{display:flex;gap:8px;margin:20px 0 18px;flex-wrap:wrap;justify-content:center}
+.calc-tab{padding:10px 18px;border-radius:99px;border:1.5px solid var(--g200);background:#fff;font-family:var(--fb);font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .16s}
+.calc-tab:hover{border-color:var(--gold)}
+.calc-tab.active{background:var(--black);border-color:var(--black);color:#fff}
+.calc-pane{display:none}
+.calc-pane.active{display:block;animation:fadeUp .35s cubic-bezier(.2,.8,.2,1)}
+.calc-conclusion{margin-top:18px;padding:16px 20px;background:var(--g50);border-left:3px solid var(--gold);border-radius:0 12px 12px 0;font-size:13px;color:var(--g600);line-height:1.7}
+.calc-diff{margin-top:18px;text-align:center;padding:22px;background:linear-gradient(135deg,#FFFDF5 0%,#FEF7E8 100%);border:1px solid var(--gold-light);border-radius:16px}
+.calc-diff-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--g400);font-family:var(--fm);margin-bottom:6px}
+.calc-diff-value{font-family:var(--fd);font-size:38px;font-weight:600;color:var(--gold-dark);line-height:1.1}
+.calc-diff-sub{font-size:12px;color:var(--g500);margin-top:6px;line-height:1.6}
+@media(max-width:768px){.calc-pane .proj-grid{grid-template-columns:1fr!important}}
 .proj-chart-title{font-size:13px;font-weight:600;color:var(--black);margin-bottom:4px}
 .proj-chart-sub{font-size:11px;color:var(--g500);margin-bottom:14px;line-height:1.6}
 
@@ -794,24 +808,9 @@ section{padding:100px 28px}
             </div>
           </div>
 
-          <div class="inflation-box" style="margin-top:8px">
-            <div class="il-title">Simulador: quant perds tenint els estalvis aturats</div>
-            <div class="il-sub">Introdueix l&apos;import que tens al compte i veur&agrave;s qu&egrave; passa amb el seu valor real. Refer&egrave;ncia: inflaci&oacute; 3,4% i remuneraci&oacute; t&iacute;pica 0,2%.</div>
-            <div class="il-grid">
-              <div class="il-inputs">
-                <div class="il-input-row"><label>Estalvis al banc (&euro;)</label><input type="number" id="inf-cap" value="20000" min="0" step="1000" oninput="calcInflation()"></div>
-                <div class="il-input-row"><label>Anys que els deixes aturats</label><input type="number" id="inf-any" value="10" min="1" max="40" step="1" oninput="calcInflation()"></div>
-                <div class="il-input-row"><label>Inflaci&oacute; mitjana anual (%)</label><input type="number" id="inf-inf" value="3.4" min="0" max="15" step="0.1" oninput="calcInflation()"></div>
-                <div class="il-input-row"><label>Remuneraci&oacute; del compte (%)</label><input type="number" id="inf-rem" value="0.2" min="0" max="10" step="0.1" oninput="calcInflation()"></div>
-              </div>
-              <div class="il-results">
-                <div class="il-result-row"><span class="lbl">Saldo nominal al cap del per&iacute;ode</span><span class="val neutral" id="inf-r-nominal">&mdash;</span></div>
-                <div class="il-result-row"><span class="lbl">Poder adquisitiu real (euros d&apos;avui)</span><span class="val bad" id="inf-r-real">&mdash;</span></div>
-                <div class="il-result-row"><span class="lbl">P&egrave;rdua real de poder adquisitiu</span><span class="val bad" id="inf-r-perdua">&mdash;</span></div>
-                <div class="il-result-row"><span class="lbl">El mateix capital amb cartera TBI (13,9%)</span><span class="val good" id="inf-r-tbi">&mdash;</span></div>
-                <div class="il-conclusion" id="inf-conclusion">Calculant&hellip;</div>
-              </div>
-            </div>
+          <div style="margin-top:18px;text-align:center;padding:18px;background:rgba(200,165,74,.06);border:1px solid rgba(200,165,74,.18);border-radius:14px">
+            <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:10px">Vols veure-ho amb els teus n&uacute;meros?</div>
+            <a href="#calculadora" onclick="obrirCalculadora('aturats')" style="font-size:14px;font-weight:600;color:var(--gold)">Prova la calculadora &darr;</a>
           </div>
         </div>
       </details>
@@ -871,21 +870,9 @@ section{padding:100px 28px}
             <div class="kiid-nota">Dades simulades a partir de la metodologia TBI. Els rendiments hist&ograve;rics no garanteixen rendiments futurs. La inversi&oacute; comporta risc de p&egrave;rdua del capital.</div>
           </div>
 
-          <div class="comp-block" id="comp">
-            <div class="section-label" style="color:var(--gold);text-align:center">Compara</div>
-            <div style="font-family:var(--fd);font-size:24px;font-weight:500;color:#fff;text-align:center;margin-bottom:8px;line-height:1.25">Cartera TBI vs fons banc&agrave;ri t&iacute;pic</div>
-            <p style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;text-align:center;max-width:560px;margin:0 auto 24px">Ajusta els par&agrave;metres i mira la difer&egrave;ncia en 10, 20 o 30 anys.</p>
-            <div class="comp-inputs">
-              <div class="comp-input-group"><label>Capital inicial (&euro;)</label><input type="number" id="c-cap" value="20000" min="0" step="1000" oninput="calcComp()"></div>
-              <div class="comp-input-group"><label>Aportaci&oacute; mensual (&euro;)</label><input type="number" id="c-men" value="300" min="0" step="50" oninput="calcComp()"></div>
-              <div class="comp-input-group"><label>Anys d&apos;inversi&oacute;</label><input type="number" id="c-any" value="20" min="5" max="40" step="5" oninput="calcComp()"></div>
-            </div>
-            <div class="comp-wrapper">
-              <div class="comp-card banc"><div class="comp-card-icon">&#127968;</div><div class="comp-card-title">Fons banc&agrave;ri mixt tradicional</div><div class="comp-card-sub">Rendiment net estimat: 3,0% &middot; Comissions 1,5&ndash;2,0%</div><div class="comp-card-result" id="r-banc">&mdash;</div><div class="comp-card-detail" id="d-banc">Valor final estimat</div></div>
-              <div class="comp-card tbi"><div class="comp-card-icon">&#128200;</div><div class="comp-card-title">Cartera TBI (metodologia pr&ograve;pia)</div><div class="comp-card-sub">XIRR 13,9% &middot; TER ~0,25%</div><div class="comp-card-result" id="r-tbi">&mdash;</div><div class="comp-card-detail" id="d-tbi">Valor final estimat</div></div>
-            </div>
-            <div class="comp-diff"><div class="comp-diff-label">Difer&egrave;ncia potencial en el teu patrimoni</div><div class="comp-diff-value" id="r-diff">&mdash;</div><div class="comp-diff-sub" id="r-diff-sub">Difer&egrave;ncia acumulada.</div></div>
-            <p style="text-align:center;font-size:11px;color:rgba(255,255,255,.25);margin-top:18px;line-height:1.6">&#9888; Usa el XIRR de l&apos;&Iacute;ndex TBI (13,9%) com a refer&egrave;ncia il&middot;lustrativa, no com a promesa. El 3,0% net del fons banc&agrave;ri &eacute;s una estimaci&oacute; del sector.</p>
+          <div style="margin-top:18px;text-align:center;padding:18px;background:rgba(200,165,74,.06);border:1px solid rgba(200,165,74,.18);border-radius:14px">
+            <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:10px">Quant et costen les comissions del banc al llarg dels anys?</div>
+            <a href="#calculadora" onclick="obrirCalculadora('cost')" style="font-size:14px;font-weight:600;color:var(--gold)">Compara-ho a la calculadora &darr;</a>
           </div>
         </div>
       </details>
@@ -912,34 +899,66 @@ section{padding:100px 28px}
         </div>
       </details>
 
-      <!-- 4. PROJECCIONS -->
-      <details class="deep-item">
+      <!-- 4. CALCULADORA UNIFICADA -->
+      <details class="deep-item" id="calculadora">
         <summary class="deep-sum">
-          <span class="deep-sum-ico">&#128200;</span>
+          <span class="deep-sum-ico">&#129518;</span>
           <span class="deep-sum-txt">
-            <span class="deep-sum-title">Qu&egrave; pot passar amb els teus diners</span>
-            <span class="deep-sum-desc">Projeccions per tres escenaris &middot; amb gr&agrave;fica interactiva</span>
+            <span class="deep-sum-title">La calculadora: qu&egrave; passa amb els teus diners</span>
+            <span class="deep-sum-desc">Diners aturats, cost de comissions i projeccions &middot; amb els teus n&uacute;meros</span>
           </span>
           <span class="deep-sum-plus">+</span>
         </summary>
         <div class="deep-body">
-          <p class="section-sub" style="margin:18px 0 20px">Cada proposta inclou projeccions per <strong>tres escenaris</strong> (conservador, esperat i optimista) amb par&agrave;metres hist&ograve;rics de mercat, no promeses.</p>
+          <p class="section-sub" style="margin:18px 0 20px">Posa els teus n&uacute;meros un sol cop i mira-ho des de tres angles: qu&egrave; perds si els deixes aturats, quant et costen les comissions i qu&egrave; pot passar si inverteixes b&eacute;.</p>
+
           <div class="proj-inputs">
-            <div class="il-input-row"><label>Capital inicial (&euro;)</label><input type="number" id="proj-cap" value="20000" min="0" step="1000" oninput="calcProj()"></div>
-            <div class="il-input-row"><label>Aportaci&oacute; mensual (&euro;)</label><input type="number" id="proj-men" value="300" min="0" step="50" oninput="calcProj()"></div>
-            <div class="il-input-row"><label>Anys d&apos;inversi&oacute;</label><input type="number" id="proj-any" value="15" min="3" max="40" step="1" oninput="calcProj()"></div>
+            <div class="il-input-row"><label>Capital inicial (&euro;)</label><input type="number" id="calc-cap" value="20000" min="0" step="1000" oninput="calcAll()"></div>
+            <div class="il-input-row"><label>Aportaci&oacute; mensual (&euro;)</label><input type="number" id="calc-men" value="300" min="0" step="50" oninput="calcAll()"></div>
+            <div class="il-input-row"><label>Anys</label><input type="number" id="calc-any" value="15" min="3" max="40" step="1" oninput="calcAll()"></div>
           </div>
-          <div class="proj-grid">
-            <div class="proj-card conservative"><div class="proj-card-label">Conservador</div><div class="proj-card-yield">Rendiment anual: 6%</div><div class="proj-card-value" id="proj-r-cons">&mdash;</div><div class="proj-card-detail" id="proj-d-cons">Si els mercats van pitjor del normal</div></div>
-            <div class="proj-card expected"><div class="proj-card-label">Esperat</div><div class="proj-card-yield">Rendiment anual: 10%</div><div class="proj-card-value" id="proj-r-esp">&mdash;</div><div class="proj-card-detail" id="proj-d-esp">Par&agrave;metres mitjans hist&ograve;rics</div></div>
-            <div class="proj-card optimistic"><div class="proj-card-label">Optimista</div><div class="proj-card-yield">Rendiment anual: 13,9%</div><div class="proj-card-value" id="proj-r-opt">&mdash;</div><div class="proj-card-detail" id="proj-d-opt">Si es replica el XIRR de l&apos;&Iacute;ndex TBI</div></div>
+
+          <div class="calc-tabs">
+            <button class="calc-tab active" id="calctab-aturats" onclick="setCalcTab('aturats',this)">&#128564; Aturats al banc</button>
+            <button class="calc-tab" id="calctab-cost" onclick="setCalcTab('cost',this)">&#9878;&#65039; Cost: banc vs TBI</button>
+            <button class="calc-tab" id="calctab-proj" onclick="setCalcTab('proj',this)">&#128200; Projecci&oacute;</button>
           </div>
-          <div class="proj-chart-box">
-            <div class="proj-chart-title">Projecci&oacute; del patrimoni per escenari</div>
-            <div class="proj-chart-sub">Les tres l&iacute;nies marquen els escenaris al llarg del temps. S&apos;actualitza amb els valors de dalt.</div>
-            <canvas id="projChart" style="width:100%;height:240px;display:block"></canvas>
+
+          <!-- PESTANYA 1: ATURATS -->
+          <div class="calc-pane active" id="calcpane-aturats">
+            <div class="proj-grid">
+              <div class="proj-card conservative"><div class="proj-card-label">Hauràs aportat</div><div class="proj-card-value" id="at-aportat">&mdash;</div><div class="proj-card-detail">Capital + aportacions, sense moure&apos;ls</div></div>
+              <div class="proj-card conservative"><div class="proj-card-label">Saldo nominal</div><div class="proj-card-value" id="at-nominal">&mdash;</div><div class="proj-card-detail">Amb remuneraci&oacute; t&iacute;pica del 0,2%</div></div>
+              <div class="proj-card" style="border-left:4px solid #8B1A1A"><div class="proj-card-label">Poder adquisitiu real</div><div class="proj-card-value" id="at-real" style="color:#8B1A1A">&mdash;</div><div class="proj-card-detail" id="at-perdua">En euros d&apos;avui, amb inflaci&oacute; del 3,4%</div></div>
+            </div>
+            <div class="calc-conclusion" id="at-conclusion"></div>
           </div>
-          <p style="text-align:center;font-size:11px;color:var(--g400);margin-top:18px;line-height:1.6;max-width:680px;margin-left:auto;margin-right:auto">Estimacions matem&agrave;tiques basades en par&agrave;metres hist&ograve;rics. No s&oacute;n garantia de rendiments futurs.</p>
+
+          <!-- PESTANYA 2: COST -->
+          <div class="calc-pane" id="calcpane-cost">
+            <div class="proj-grid" style="grid-template-columns:repeat(2,1fr)">
+              <div class="proj-card" style="border-left:4px solid #8B1A1A"><div class="proj-card-label">Fons banc&agrave;ri t&iacute;pic</div><div class="proj-card-yield">Cost anual ~1,80%</div><div class="proj-card-value" id="co-banc">&mdash;</div><div class="proj-card-detail" id="co-banc-d">Valor final estimat</div></div>
+              <div class="proj-card expected"><div class="proj-card-label">Estructura tipus TBI</div><div class="proj-card-yield">Cost anual ~0,25%</div><div class="proj-card-value" id="co-tbi">&mdash;</div><div class="proj-card-detail" id="co-tbi-d">Valor final estimat</div></div>
+            </div>
+            <div class="calc-diff"><div class="calc-diff-label">El que et quedes tu en lloc del banc</div><div class="calc-diff-value" id="co-diff">&mdash;</div><div class="calc-diff-sub" id="co-diff-sub"></div></div>
+            <div class="calc-conclusion">Tots dos escenaris assumeixen el <strong>mateix creixement brut moderat del 5% anual</strong>: la difer&egrave;ncia ve nom&eacute;s de les comissions. Per aix&ograve; &eacute;s el n&uacute;mero m&eacute;s s&ograve;lid de tota la p&agrave;gina.</div>
+          </div>
+
+          <!-- PESTANYA 3: PROJECCIÓ -->
+          <div class="calc-pane" id="calcpane-proj">
+            <div class="proj-grid">
+              <div class="proj-card conservative"><div class="proj-card-label">Conservador</div><div class="proj-card-yield">Creixement net: 4%</div><div class="proj-card-value" id="proj-r-cons">&mdash;</div><div class="proj-card-detail" id="proj-d-cons"></div></div>
+              <div class="proj-card expected"><div class="proj-card-label">Moderat</div><div class="proj-card-yield">Creixement net: 6%</div><div class="proj-card-value" id="proj-r-esp">&mdash;</div><div class="proj-card-detail" id="proj-d-esp"></div></div>
+              <div class="proj-card optimistic"><div class="proj-card-label">Optimista</div><div class="proj-card-yield">Creixement net: 8%</div><div class="proj-card-value" id="proj-r-opt">&mdash;</div><div class="proj-card-detail" id="proj-d-opt"></div></div>
+            </div>
+            <div class="proj-chart-box">
+              <div class="proj-chart-title">Projecci&oacute; del patrimoni per escenari</div>
+              <div class="proj-chart-sub">Les tres l&iacute;nies marquen els escenaris al llarg del temps. S&apos;actualitza amb els valors de dalt.</div>
+              <canvas id="projChart" style="width:100%;height:240px;display:block"></canvas>
+            </div>
+          </div>
+
+          <p style="text-align:center;font-size:11px;color:var(--g400);margin-top:18px;line-height:1.6;max-width:680px;margin-left:auto;margin-right:auto">Escenaris il&middot;lustratius gen&egrave;rics de mercat (4&ndash;8% net), inflaci&oacute; refer&egrave;ncia 3,4% (ESP 2021&ndash;2025) i comissions t&iacute;piques del sector. No s&oacute;n una previsi&oacute; de rendiment ni garantia de resultats futurs.</p>
         </div>
       </details>
 
@@ -1158,65 +1177,65 @@ function toggleFaq(el){var a=el.nextElementSibling;var w=el.classList.contains("
 function fmt(n){return Math.round(n).toLocaleString("ca-ES")}
 
 // ===== INFLATION SIMULATOR =====
-function calcInflation(){
-  var cap=parseFloat(document.getElementById("inf-cap").value)||0;
-  var anys=parseInt(document.getElementById("inf-any").value)||1;
-  var infl=(parseFloat(document.getElementById("inf-inf").value)||0)/100;
-  var rem=(parseFloat(document.getElementById("inf-rem").value)||0)/100;
-  var nominal=cap*Math.pow(1+rem,anys);
-  var real=nominal/Math.pow(1+infl,anys);
-  var perdua=cap-real;
-  var tbi=cap*Math.pow(1.139,anys);
-  document.getElementById("inf-r-nominal").textContent=fmt(nominal)+" \u20ac";
-  document.getElementById("inf-r-real").textContent=fmt(real)+" \u20ac";
-  document.getElementById("inf-r-perdua").textContent="\u2212"+fmt(perdua>0?perdua:0)+" \u20ac";
-  document.getElementById("inf-r-tbi").textContent=fmt(tbi)+" \u20ac";
-  var diff=tbi-real;
-  document.getElementById("inf-conclusion").innerHTML=
-    "En "+anys+" anys perds <strong>"+fmt(perdua>0?perdua:0)+" \u20ac</strong> de poder adquisitiu real si deixes "+fmt(cap)+" \u20ac aturats al banc. Amb la mateixa quantitat a la cartera TBI (refer\u00e8ncia 13,9% XIRR), tindries <strong>"+fmt(tbi)+" \u20ac</strong>, una difer\u00e8ncia de <strong>+"+fmt(diff)+" \u20ac</strong>. La inflaci\u00f3 no espera.";
+// ===== CALCULADORA UNIFICADA (aturats / cost / projecció) =====
+// Tots els escenaris usen números defensables: inflació 3,4%, remuneració
+// de compte 0,2%, mateix creixement brut 5% amb costos diferents (1,80 vs
+// 0,25), i escenaris genèrics 4/6/8% net. NO es projecta el XIRR històric.
+function simulaMensual(c,m,anys,taxaAnual){
+  var r=Math.pow(1+taxaAnual,1/12)-1;
+  var v=c,serie=[c],ms=anys*12;
+  for(var i=0;i<ms;i++){v=v*(1+r)+m;serie.push(v);}
+  return serie;
 }
-
-// ===== COMPARADOR =====
-function calcComp(){
-  var c=parseFloat(document.getElementById("c-cap").value)||20000;
-  var m=parseFloat(document.getElementById("c-men").value)||0;
-  var a=parseInt(document.getElementById("c-any").value)||20;
-  var ms=a*12;
-  var rB=(Math.pow(1.03,1/12)-1);
-  var rT=(Math.pow(1.1387,1/12)-1);
-  var vB=c,vT=c;
-  for(var i=0;i<ms;i++){vB=vB*(1+rB)+m;vT=vT*(1+rT)+m;}
-  var t=c+m*ms;var d=vT-vB;
-  document.getElementById("r-banc").textContent=fmt(vB)+" \u20ac";
-  document.getElementById("d-banc").textContent="Aportat: "+fmt(t)+" \u20ac \u00b7 Guany net: "+fmt(vB-t)+" \u20ac";
-  document.getElementById("r-tbi").textContent=fmt(vT)+" \u20ac";
-  document.getElementById("d-tbi").textContent="Aportat: "+fmt(t)+" \u20ac \u00b7 Guany net: "+fmt(vT-t)+" \u20ac";
-  document.getElementById("r-diff").textContent="+"+fmt(d)+" \u20ac";
-  document.getElementById("r-diff-sub").textContent="Difer\u00e8ncia estimada en "+a+" anys entre el fons banc\u00e0ri t\u00edpic (3% net) i la metodologia TBI (13,9% XIRR refer\u00e8ncia). No \u00e9s garantia de rendiment futur.";
+function setCalcTab(id,btn){
+  document.querySelectorAll(".calc-pane").forEach(function(p){p.classList.remove("active")});
+  document.querySelectorAll(".calc-tab").forEach(function(t){t.classList.remove("active")});
+  document.getElementById("calcpane-"+id).classList.add("active");
+  btn.classList.add("active");
+  calcAll();
 }
+function obrirCalculadora(tab){
+  var d=document.getElementById("calculadora");
+  if(d&&!d.open)d.open=true;
+  var btn=document.getElementById("calctab-"+tab);
+  if(btn)setCalcTab(tab,btn);
+}
+function calcAll(){
+  var c=parseFloat(document.getElementById("calc-cap").value)||0;
+  var m=parseFloat(document.getElementById("calc-men").value)||0;
+  var a=parseInt(document.getElementById("calc-any").value)||1;
+  var ms=a*12, aportat=c+m*ms;
 
-// ===== PROJECCIONS =====
-function calcProj(){
-  var c=parseFloat(document.getElementById("proj-cap").value)||0;
-  var m=parseFloat(document.getElementById("proj-men").value)||0;
-  var a=parseInt(document.getElementById("proj-any").value)||1;
-  var rates=[0.06,0.10,0.139];
-  var ids=["cons","esp","opt"];
-  var vals=[];
-  var ms=a*12;
+  // 1) ATURATS: remuneració 0,2%, inflació 3,4%
+  var nominal=simulaMensual(c,m,a,0.002)[ms];
+  var real=nominal/Math.pow(1.034,a);
+  var perdua=Math.max(0,aportat-real);
+  document.getElementById("at-aportat").textContent=fmt(aportat)+" \u20ac";
+  document.getElementById("at-nominal").textContent=fmt(nominal)+" \u20ac";
+  document.getElementById("at-real").textContent=fmt(real)+" \u20ac";
+  document.getElementById("at-conclusion").innerHTML=
+    "Deixant-ho tot al compte, en "+a+" anys hi haur\u00e0s posat <strong>"+fmt(aportat)+" \u20ac</strong> per\u00f2 nom\u00e9s compraran l\u2019equivalent a <strong>"+fmt(real)+" \u20ac</strong> d\u2019avui: la inflaci\u00f3 s\u2019haur\u00e0 menjat <strong>"+fmt(perdua)+" \u20ac</strong> de poder adquisitiu en silenci.";
+
+  // 2) COST: mateix brut 5%, costos 1,80% vs 0,25%
+  var vB=simulaMensual(c,m,a,0.05-0.018)[ms];
+  var vT=simulaMensual(c,m,a,0.05-0.0025)[ms];
+  var d=vT-vB;
+  document.getElementById("co-banc").textContent=fmt(vB)+" \u20ac";
+  document.getElementById("co-banc-d").textContent="Aportat: "+fmt(aportat)+" \u20ac \u00b7 Guany net: "+fmt(vB-aportat)+" \u20ac";
+  document.getElementById("co-tbi").textContent=fmt(vT)+" \u20ac";
+  document.getElementById("co-tbi-d").textContent="Aportat: "+fmt(aportat)+" \u20ac \u00b7 Guany net: "+fmt(vT-aportat)+" \u20ac";
+  document.getElementById("co-diff").textContent="+"+fmt(d)+" \u20ac";
+  document.getElementById("co-diff-sub").textContent="Difer\u00e8ncia acumulada en "+a+" anys nom\u00e9s per pagar ~0,25% de cost en lloc de ~1,80%.";
+
+  // 3) PROJECCIÓ: escenaris genèrics 4/6/8% net
+  var rates=[0.04,0.06,0.08], ids=["cons","esp","opt"], dets=["Si els mercats van per sota del normal","Refer\u00e8ncia hist\u00f2rica prudent de mercat","Si els mercats van millor del normal"], vals=[];
   for(var k=0;k<3;k++){
-    var r=Math.pow(1+rates[k],1/12)-1;
-    var v=c;
-    var serie=[c];
-    for(var i=0;i<ms;i++){v=v*(1+r)+m;serie.push(v);}
+    var serie=simulaMensual(c,m,a,rates[k]);
     vals.push(serie);
-    document.getElementById("proj-r-"+ids[k]).textContent=fmt(v)+" \u20ac";
+    document.getElementById("proj-r-"+ids[k]).textContent=fmt(serie[ms])+" \u20ac";
+    document.getElementById("proj-d-"+ids[k]).textContent=dets[k]+" \u00b7 Guany: "+fmt(serie[ms]-aportat)+" \u20ac";
   }
-  var t=c+m*ms;
-  document.getElementById("proj-d-cons").textContent="Aportat: "+fmt(t)+" \u20ac \u00b7 Guany: "+fmt(vals[0][ms]-t)+" \u20ac";
-  document.getElementById("proj-d-esp").textContent="Aportat: "+fmt(t)+" \u20ac \u00b7 Guany: "+fmt(vals[1][ms]-t)+" \u20ac";
-  document.getElementById("proj-d-opt").textContent="Aportat: "+fmt(t)+" \u20ac \u00b7 Guany: "+fmt(vals[2][ms]-t)+" \u20ac";
-  drawProjChart(vals,a);
+  if(document.getElementById("calcpane-proj").classList.contains("active"))drawProjChart(vals,a);
 }
 function drawProjChart(vals,a){
   var canvas=document.getElementById("projChart");
@@ -1269,7 +1288,7 @@ function showScreen(id,btn){document.querySelectorAll(".screen-content").forEach
 // Redraw charts when a desplegable opens (canvas needs visible width)
 document.querySelectorAll("details.deep-item").forEach(function(d){
   d.addEventListener("toggle",function(){
-    if(d.open){ if(document.getElementById("tbiChart")) drawTbiChart(); if(document.getElementById("projChart")) calcProj(); }
+    if(d.open){ if(document.getElementById("tbiChart")) drawTbiChart(); if(document.getElementById("projChart")) calcAll(); }
   });
 });
 
@@ -1278,8 +1297,8 @@ var obs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isInte
 document.querySelectorAll(".fade-up").forEach(function(el){el.style.animationPlayState="paused";obs.observe(el);});
 
 // Init (text values render even if charts are hidden)
-calcInflation();calcComp();calcProj();drawTbiChart();
-window.addEventListener("resize",function(){calcProj();drawTbiChart();});
+calcAll();drawTbiChart();
+window.addEventListener("resize",function(){calcAll();drawTbiChart();});
 </script>
 </body>
 </html>
