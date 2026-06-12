@@ -3414,6 +3414,7 @@ var ADMIN_NAV = [
   {id:'admin-radar',       icon:'&#128201;', label:'Radar d\u2019Oportunitats'},
   {section:'Clients'},
   {id:'admin-leads',       icon:'🧲', label:'Leads \u00b7 Test salut'},
+  {id:'admin-educacio',    icon:'🎓', label:'Educaci\u00f3 \u00b7 progr\u00e9s'},
   {id:'admin-pendents',    icon:'⏳', label:'Sol\u00b7licituds pendents'},
   {id:'admin-entrevista',  icon:'📋', label:'Entrevista inicial'},
   {id:'portal-missatges',  icon:'💬', label:'Missatges clients'},
@@ -3453,11 +3454,9 @@ var CLIENT_NAV = [
   {section:'Contingut', collapsible:true},
   {id:'portal-informes', icon:'📋', label:'Informes'},
   {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
-  {id:'portal-carteres', icon:'🗂', label:'Carteres Model'},
   {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
   {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
   {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
-  {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
   {section:'Eines i calculadores', collapsible:true},
   {id:'portal-simuladors', icon:'🧮', label:'Simulador'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
@@ -3676,6 +3675,7 @@ function renderView(viewId) {
     case 'admin-entrevista': renderAdminEntrevista(content); break;
     case 'admin-pendents': renderAdminPendents(content); break;
     case 'admin-leads': renderAdminLeads(content); break;
+    case 'admin-educacio': renderAdminEducacio(content); break;
     case 'pending-review': renderPendingReview(content); break;
     case 'admin-informe': renderAdminInforme(content); break;
     case 'admin-calendari': renderAdminCalendari(content); break;
@@ -4603,28 +4603,6 @@ function _renderPortalPerfilImpl(el) {
   // Detecció automàtica de progrés; descartable; desapareix quan tot és fet.
   html += _renderPrimersPassos(c);
 
-  // Score hero — unified archetype + cartera
-  html += '<div class="score-hero">'
-    + '<div class="score-left">'
-      + '<div class="score-arquetip-eye">El teu arquetip inversor</div>'
-      + '<div class="score-arquetip">' + arq.nom + '</div>'
-      + '<div style="font-size:11px;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:8px">' + arq.ep + '</div>'
-      + '<div class="score-cartera">Cartera assignada: <strong style="color:rgba(255,255,255,.85)">' + arq.cartNom + '</strong></div>'
-      + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">' + arq.cartSub + '</div>'
-    + '</div>'
-    + '<div class="score-right">'
-      + '<div class="score-num" style="color:' + scoreColor + '">' + sc + '<span class="score-denom">/100</span></div>'
-      + '<div style="padding:6px 12px;background:' + scoreBg + ';border-radius:6px;font-size:11px;font-weight:500;color:' + scoreColor + ';margin-top:6px;display:inline-block">' + scoreLabel + '</div>'
-      + (APP.role !== 'admin'
-          ? '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">'
-              + '<button onclick="confirmarRetestQuestionnaire()" style="padding:7px 13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:8px;font-size:11px;color:rgba(255,255,255,.7);cursor:pointer;font-family:var(--fb)">&#x1F504; Actualitzar perfil</button>'
-              + '<button id="btn-refresh-client" onclick="recarregarDadesClient()" title="Recarrega el scoring i dades des del servidor" style="padding:7px 13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:11px;color:rgba(255,255,255,.45);cursor:pointer;font-family:var(--fb)">&#x1F5D8;&#xFE0F; Sync</button>'
-            + '</div>'
-          : '<div style="margin-top:14px"><button id="btn-refresh-client" onclick="recarregarDadesClient()" title="Recarrega dades del client des de Supabase" style="padding:7px 13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:11px;color:rgba(255,255,255,.55);cursor:pointer;font-family:var(--fb)">&#x1F5D8;&#xFE0F; Sync dades</button></div>'
-        )
-    + '</div>'
-  + '</div>';
-
   // Quick snapshot cards
   // Defensa: si el client encara no té cartera real (acaba de ser validat
   // però l'admin encara no li ha generat la cartera), tot això són zeros
@@ -4651,6 +4629,8 @@ function _renderPortalPerfilImpl(el) {
   var emerg = getEmergencia();
   var fire = getFire();
 
+
+
   // Si el client està actiu però encara no té cartera generada, mostrar
   // un missatge amistós en lloc d'una fila plena de zeros.
   if (!hasPortfolio && !APP.isPreview) {
@@ -4660,12 +4640,20 @@ function _renderPortalPerfilImpl(el) {
       + '<div style="font-size:12px;color:#9A6B1F;line-height:1.6;max-width:480px;margin:0 auto">El teu perfil ha estat validat. El teu assessor està preparant la teva cartera personalitzada i en breu hi tindràs accés. Mentrestant, pots explorar les anàlisis de mercat i les eines disponibles al menú lateral.</div>'
     + '</div>';
   } else {
-    html += '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px" class="mob-grid">'
-    + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-cartera\')">'
-      + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">💼 Cartera</div>'
-      + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:var(--black)">' + totalValor.toLocaleString('ca-ES') + '€</div>'
-      + '<div style="font-size:10px;color:' + (rendEur>=0?'#1A5C3A':'#C0392B') + ';margin-top:2px;font-weight:500">' + (rendEur>=0?'+':'') + rendEur.toLocaleString('ca-ES') + '€ (' + (rendPct>=0?'+':'') + rendPct.toFixed(1) + '%)</div>'
-    + '</div>'
+    // ── HERO PATRIMONI: el moment "quant tinc i com va" ──
+    var dirCol = rendEur >= 0 ? '#5BC98A' : '#E57373';
+    var dirSig = rendEur >= 0 ? '+' : '';
+    html += '<div onclick="navigateTo(\'portal-cartera\')" style="cursor:pointer;background:linear-gradient(135deg,#14233E 0%,#0D0D0D 100%);border-radius:16px;padding:24px 24px 20px;margin-bottom:14px;color:#fff;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px">'
+      + '<div>'
+        + '<div style="font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.4);margin-bottom:8px">💼 El teu patrimoni</div>'
+        + '<div style="font-family:var(--fd);font-size:clamp(30px,6vw,40px);font-weight:600;line-height:1;letter-spacing:-.5px">' + totalValor.toLocaleString('ca-ES') + ' €</div>'
+        + '<div style="font-family:var(--fm);font-size:14px;font-weight:500;color:' + dirCol + ';margin-top:8px">' + dirSig + rendEur.toLocaleString('ca-ES') + ' € · ' + dirSig + rendPct.toFixed(1) + '%</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Has aportat ' + totalAportat.toLocaleString('ca-ES') + ' € · ' + kpis_v2.num_posicions + ' posicions</div>'
+      + '</div>'
+      + '<div style="font-size:12px;font-weight:600;color:#C8A54A;white-space:nowrap;padding:9px 14px;background:rgba(200,165,74,.12);border-radius:9px">Veure la cartera →</div>'
+    + '</div>';
+
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" class="mob-grid">'
     + '<div style="padding:14px;background:var(--white);border:1px solid var(--accent);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-roadmap\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🗺️ Full de Ruta</div>'
       + '<div style="font-family:var(--fm);font-size:14px;font-weight:500;color:var(--accent)">' + (roadFaseActual && roadFaseActual.nom ? roadFaseActual.nom.split('\u00b7')[0].trim() : 'Fase 1') + '</div>'
@@ -4705,6 +4693,30 @@ function _renderPortalPerfilImpl(el) {
   html += '<div id="accions-pendents-placeholder"></div>';
 
   setTimeout(actualitzarBannerMissatges, 100);
+
+  // Score hero — unified archetype + cartera
+  html += '<div class="score-hero">'
+    + '<div class="score-left">'
+      + '<div class="score-arquetip-eye">El teu arquetip inversor</div>'
+      + '<div class="score-arquetip">' + arq.nom + '</div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:8px">' + arq.ep + '</div>'
+      + '<div class="score-cartera">Cartera assignada: <strong style="color:rgba(255,255,255,.85)">' + arq.cartNom + '</strong></div>'
+      + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">' + arq.cartSub + '</div>'
+    + '</div>'
+    + '<div class="score-right">'
+      + '<div class="score-num" style="color:' + scoreColor + '">' + sc + '<span class="score-denom">/100</span></div>'
+      + '<div style="padding:6px 12px;background:' + scoreBg + ';border-radius:6px;font-size:11px;font-weight:500;color:' + scoreColor + ';margin-top:6px;display:inline-block">' + scoreLabel + '</div>'
+      + (APP.role !== 'admin'
+          ? '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">'
+              + '<button onclick="confirmarRetestQuestionnaire()" style="padding:7px 13px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:8px;font-size:11px;color:rgba(255,255,255,.7);cursor:pointer;font-family:var(--fb)">&#x1F504; Actualitzar perfil</button>'
+              + '<button id="btn-refresh-client" onclick="recarregarDadesClient()" title="Recarrega el scoring i dades des del servidor" style="padding:7px 13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:11px;color:rgba(255,255,255,.45);cursor:pointer;font-family:var(--fb)">&#x1F5D8;&#xFE0F; Sync</button>'
+            + '</div>'
+          : '<div style="margin-top:14px"><button id="btn-refresh-client" onclick="recarregarDadesClient()" title="Recarrega dades del client des de Supabase" style="padding:7px 13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:11px;color:rgba(255,255,255,.55);cursor:pointer;font-family:var(--fb)">&#x1F5D8;&#xFE0F; Sync dades</button></div>'
+        )
+    + '</div>'
+  + '</div>';
+
+
 
   // Rationale — WHY this portfolio for this archetype
   html += '<div class="card">'
@@ -17061,6 +17073,76 @@ function _oppAvisar(email){
 // ADMIN · LEADS DEL TEST DE SALUT FINANCERA
 // Llegeix leads_salut_financera (RLS: només authenticated)
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// ADMIN · PROGRÉS EDUCATIU DELS CLIENTS
+// Llegeix edu_progres (RLS: només l'admin veu totes les files)
+// ══════════════════════════════════════════════════
+var EDU_ADMIN_MAX = 528;   // punts màxims del Nivell Bàsic
+var EDU_ADMIN_MODS = 15;   // mòduls del Nivell Bàsic
+
+function renderAdminEducacio(el){
+  el.innerHTML = '<div style="max-width:1080px">'
+    + '<div style="margin-bottom:18px"><div style="font-family:var(--fd);font-size:22px;font-weight:500">Educaci\u00f3 \u00b7 progr\u00e9s dels clients</div>'
+    + '<div style="font-size:12.5px;color:var(--g500);line-height:1.6;margin-top:4px">Nivell B\u00e0sic (15 m\u00f2duls \u00b7 ' + EDU_ADMIN_MAX + ' punts). Es sincronitza autom\u00e0ticament quan el client fa els tests. \u00datil per saber qu\u00e8 pots donar per ent\u00e8s a cada reuni\u00f3.</div></div>'
+    + '<div class="ld-kpis" id="eda-kpis" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px"></div>'
+    + '<div id="eda-taula" style="overflow-x:auto"><div style="color:var(--g400);font-size:13px;padding:20px">Carregant progr\u00e9s\u2026</div></div>'
+    + '</div>';
+
+  if (!sb) {
+    document.getElementById('eda-taula').innerHTML = '<div class="ld-det">Supabase no disponible en aquest mode.</div>';
+    return;
+  }
+
+  sb.from('edu_progres').select('email,score,mods_completats,updated_at').order('score', { ascending: false })
+    .then(function(res){
+      if (res.error) {
+        document.getElementById('eda-taula').innerHTML = '<div style="font-size:12px;color:var(--g500);background:var(--g50);border-radius:8px;padding:12px">Error: ' + (res.error.message||'desconegut') + '</div>';
+        return;
+      }
+      var rows = res.data || [];
+
+      // KPIs
+      var actius = rows.filter(function(r){ return (r.score||0) > 0; }).length;
+      var mitjana = rows.length ? Math.round(rows.reduce(function(s,r){ return s+(r.score||0); },0)/rows.length) : 0;
+      var graduats = rows.filter(function(r){ return (r.score||0) >= EDU_ADMIN_MAX*0.7; }).length;
+      var kEl = document.getElementById('eda-kpis');
+      if (kEl) kEl.innerHTML =
+        '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px"><div style="font-family:var(--fd);font-size:26px;font-weight:600">' + actius + '</div><div style="font-size:11px;color:var(--g400);margin-top:4px">Clients amb activitat</div></div>'
+        + '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px"><div style="font-family:var(--fd);font-size:26px;font-weight:600">' + mitjana + '<span style="font-size:13px;color:var(--g400)"> /' + EDU_ADMIN_MAX + '</span></div><div style="font-size:11px;color:var(--g400);margin-top:4px">Puntuaci\u00f3 mitjana</div></div>'
+        + '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 18px"><div style="font-family:var(--fd);font-size:26px;font-weight:600">' + graduats + '</div><div style="font-size:11px;color:var(--g400);margin-top:4px">Aprovats (\u226570%)</div></div>';
+
+      // Taula
+      var cont = document.getElementById('eda-taula');
+      if (!rows.length) {
+        cont.innerHTML = '<div style="font-size:12px;color:var(--g500);background:var(--g50);border-radius:8px;padding:14px;line-height:1.7">Encara no hi ha progr\u00e9s registrat. Apareixer\u00e0 aqu\u00ed quan els clients comencin a fer els tests del curs (el progr\u00e9s antic guardat al navegador del client es pujar\u00e0 autom\u00e0ticament la propera vegada que obrin Educaci\u00f3).</div>';
+        return;
+      }
+      var h = '<table class="ld-tbl" style="width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden">'
+        + '<thead><tr>'
+        + '<th style="font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);text-align:left;padding:10px 12px;border-bottom:1px solid var(--g200);background:var(--g50)">Client</th>'
+        + '<th style="font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);text-align:left;padding:10px 12px;border-bottom:1px solid var(--g200);background:var(--g50)">Progr\u00e9s</th>'
+        + '<th style="font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);text-align:right;padding:10px 12px;border-bottom:1px solid var(--g200);background:var(--g50)">Punts</th>'
+        + '<th style="font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);text-align:right;padding:10px 12px;border-bottom:1px solid var(--g200);background:var(--g50)">M\u00f2duls</th>'
+        + '<th style="font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);text-align:left;padding:10px 12px;border-bottom:1px solid var(--g200);background:var(--g50)">\u00daltima activitat</th>'
+        + '</tr></thead><tbody>';
+      rows.forEach(function(r){
+        var pct = Math.min(100, Math.round((r.score||0) / EDU_ADMIN_MAX * 100));
+        var col = pct >= 70 ? '#1A5C3A' : pct >= 35 ? '#9A7B2F' : '#8B1A1A';
+        var d = r.updated_at ? new Date(r.updated_at) : null;
+        var dStr = d ? d.toLocaleDateString('ca-ES', {day:'2-digit', month:'short', year:'numeric'}) : '\u2014';
+        h += '<tr>'
+          + '<td style="padding:10px 12px;border-bottom:1px solid var(--g100);font-size:12.5px"><strong>' + r.email + '</strong></td>'
+          + '<td style="padding:10px 12px;border-bottom:1px solid var(--g100);min-width:160px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:7px;background:var(--g100);border-radius:99px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:' + col + ';border-radius:99px"></div></div><span style="font-family:var(--fm);font-size:11px;color:' + col + ';font-weight:600;min-width:34px;text-align:right">' + pct + '%</span></div></td>'
+          + '<td style="padding:10px 12px;border-bottom:1px solid var(--g100);font-family:var(--fm);font-size:12.5px;text-align:right">' + (r.score||0) + '</td>'
+          + '<td style="padding:10px 12px;border-bottom:1px solid var(--g100);font-family:var(--fm);font-size:12.5px;text-align:right">' + (r.mods_completats||0) + '/' + EDU_ADMIN_MODS + '</td>'
+          + '<td style="padding:10px 12px;border-bottom:1px solid var(--g100);font-family:var(--fm);font-size:11px;color:var(--g500)">' + dStr + '</td>'
+          + '</tr>';
+      });
+      h += '</tbody></table>';
+      cont.innerHTML = h;
+    });
+}
+
 function renderAdminLeads(el){
   var css='<style>'
     + '.ld-wrap{max-width:1080px}'
@@ -19863,8 +19945,46 @@ function eduStateKey(){
 function eduLoadState(){
   try{ var r = localStorage.getItem(eduStateKey()); if(r) _eduState = JSON.parse(r); } catch(e){ _eduState = {}; }
 }
+
+// ── Sincronització del progrés amb Supabase (taula edu_progres) ──
+// Només per a clients reals autenticats: l'admin en mode preview no
+// escriu mai a la fila del client (el seu joc de proves és local).
+function _eduCloudActiu(){
+  return !!(APP && APP.role !== 'admin' && !APP.isDemo && APP.user && APP.user.email && typeof sb !== 'undefined' && sb);
+}
+
+function eduCloudPull(){
+  if (!_eduCloudActiu()) return Promise.resolve();
+  return sb.from('edu_progres').select('estat').eq('email', APP.user.email.toLowerCase()).maybeSingle()
+    .then(function(res){
+      if (res && res.data && res.data.estat) {
+        // Fusió: unió de respostes; en conflicte guanya el local (pot ser més nou i pendent de pujar)
+        _eduState = Object.assign({}, res.data.estat, _eduState || {});
+        try{ localStorage.setItem(eduStateKey(), JSON.stringify(_eduState)); } catch(e){}
+      }
+    });
+}
+
+var _eduPushTimer = null;
+function eduCloudPush(){
+  if (!_eduCloudActiu()) return;
+  if (_eduPushTimer) clearTimeout(_eduPushTimer);
+  _eduPushTimer = setTimeout(function(){
+    var payload = {
+      email: APP.user.email.toLowerCase(),
+      estat: _eduState || {},
+      score: (typeof eduTotalScore === 'function') ? eduTotalScore() : 0,
+      mods_completats: (typeof eduModsCompleted === 'function') ? eduModsCompleted() : 0,
+      updated_at: new Date().toISOString()
+    };
+    sb.from('edu_progres').upsert(payload, { onConflict: 'email' })
+      .then(function(res){ if (res && res.error) console.warn('edu cloud push:', res.error.message); });
+  }, 1200);
+}
+
 function eduSaveState(){
   try{ localStorage.setItem(eduStateKey(), JSON.stringify(_eduState)); } catch(e){}
+  try{ eduCloudPush(); } catch(e){}
 }
 function eduModMaxScore(mid){
   return Math.round(EDU_QUIZ[mid].correct.length * EDU_POINTS * EDU_QUIZ[mid].weight);
@@ -20195,12 +20315,14 @@ function renderEduBasic(contentEl){
 
 renderPortalEducacio = async function(el) {
   eduLoadState();
+  try { await eduCloudPull(); } catch(e) { console.warn('edu cloud pull:', e); }
   var nivellActiu = window._eduNivell || 'basic';
   var nivells = [
     {id:'basic',        lbl:'&#127807; B\u00e0sic'},
     {id:'usuari',       lbl:'&#128218; Avan\u00e7at'},
     {id:'expert',       lbl:'&#129504; Expert'},
     {id:'especialista', lbl:'&#127942; Especialista'},
+    {id:'material',     lbl:'&#127916; Material visual'},
   ];
   var tabs = '<div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">';
   nivells.forEach(function(n) {
@@ -20211,6 +20333,20 @@ renderPortalEducacio = async function(el) {
       + 'font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">' + n.lbl + '</button>';
   });
   tabs += '</div>';
+
+  if (nivellActiu === 'material') {
+    // Presentacions integrades com a material educatiu visual
+    el.innerHTML = '<div class="content-inner fade-in"><div style="font-family:var(--fd);font-size:22px;font-weight:400;letter-spacing:-.3px;margin-bottom:16px">Educaci\u00f3 financera</div>' + tabs + '<div id="edu-material-wrap"></div></div>';
+    el.querySelectorAll('[data-edu-nivell]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        window._eduNivell = btn.getAttribute('data-edu-nivell');
+        renderPortalEducacio(document.getElementById('content'));
+      });
+    });
+    var mwrap = document.getElementById('edu-material-wrap');
+    if (mwrap) renderPortalPresentacions(mwrap);
+    return;
+  }
 
   if (nivellActiu === 'basic') {
     // Renderitzem el curs interactiu de Nivell Bàsic
