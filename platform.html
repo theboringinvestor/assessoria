@@ -1254,7 +1254,7 @@ var APP = {
 };
 
 // Admin email list (for role detection)
-var ADMIN_EMAILS = ['guillem@theboringinvestor.com', 'guillem.puig@gmail.com', 'admin@theboringinvestor.com'];
+var ADMIN_EMAILS = ['guillem@theboringinvestor.com', 'guillem.puig@gmail.com', 'admin@theboringinvestor.com', 'guillem.puig@theboringinvestor.es', 'gpuigreig@gmail.com'];
 
 // ══════════════════════════════════════════════════
 // DEMO DATA
@@ -17065,10 +17065,16 @@ function _ldRenderTaula(rows){
     var dataStr = d.toLocaleDateString('ca-ES', {day:'2-digit', month:'short'}) + ' ' + d.toLocaleTimeString('ca-ES', {hour:'2-digit', minute:'2-digit'});
     var total = (r.benefici && r.benefici.total) ? Math.round(r.benefici.total).toLocaleString('ca-ES') + ' \u20ac' : '\u2014';
     var origen = (r.utm && (r.utm.source || r.utm.campaign)) ? ((r.utm.source||'') + (r.utm.campaign ? ' \u00b7 ' + r.utm.campaign : '')) : 'directe';
-    var mailBtn = r.email
-      ? '<a class="ld-mini" href="mailto:' + r.email + '?subject=' + encodeURIComponent('El teu informe de salut financera \u00b7 The Boring Investor')
-        + '&body=' + encodeURIComponent('Hola!\n\nGr\u00e0cies per fer el test de salut financera. El teu resultat: ' + (r.puntuacio||'') + '/100 (' + (r.estat||'') + ').\n\nAqu\u00ed tens el meu informe personal amb les recomanacions concretes per al teu cas:\n\n[INFORME]\n\nSi vols que ho repassem junts, resp\u00f3n aquest correu o escriu-me al WhatsApp 629 340 892.\n\nGuillem \u00b7 The Boring Investor') + '">\u2709 Informe</a>'
-      : '';
+    var mailBtn = '';
+    if (r.email) {
+      if (r.email_enviat) {
+        mailBtn = '<span class="ld-badge ld-sol">\u2713 enviat</span> ';
+      } else {
+        mailBtn = '<button class="ld-mini" id="ld-send-' + i + '" onclick="_ldEnviarInforme(\'' + r.id + '\',' + i + ')" title="Envia l\u2019informe autom\u00e0tic ara (Edge Function + Resend)">\u26a1 Enviar</button> ';
+      }
+      mailBtn += '<a class="ld-mini" href="mailto:' + r.email + '?subject=' + encodeURIComponent('El teu informe de salut financera \u00b7 The Boring Investor')
+        + '&body=' + encodeURIComponent('Hola!\n\nGr\u00e0cies per fer el test de salut financera. El teu resultat: ' + (r.puntuacio||'') + '/100 (' + (r.estat||'') + ').\n\nAqu\u00ed tens el meu informe personal amb les recomanacions concretes per al teu cas:\n\n[INFORME]\n\nSi vols que ho repassem junts, resp\u00f3n aquest correu o escriu-me al WhatsApp 629 340 892.\n\nGuillem \u00b7 The Boring Investor') + '">\u2709 Manual</a>';
+    }
     h += '<tr>'
       + '<td style="font-family:var(--fm);font-size:11px;white-space:nowrap">' + dataStr + '</td>'
       + '<td>' + (r.email ? '<strong>' + r.email + '</strong>' : '<span style="color:var(--g400)">sense correu</span>') + '</td>'
@@ -17082,6 +17088,42 @@ function _ldRenderTaula(rows){
   });
   h += '</tbody></table>';
   cont.innerHTML = h;
+}
+
+// Enviament manual de l'informe automàtic des de l'admin
+function _ldEnviarInforme(leadId, i){
+  var btn = document.getElementById('ld-send-' + i);
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviant\u2026'; }
+  if (!sb || !sb.functions) {
+    if (btn) { btn.disabled = false; btn.textContent = '\u26a1 Enviar'; }
+    toast('Supabase Functions no disponible en aquest mode');
+    return;
+  }
+  sb.functions.invoke('enviar-informe-lead', { body: { lead_id: leadId } })
+    .then(function(res){
+      var d = res && res.data;
+      if (res && res.error) {
+        if (btn) { btn.disabled = false; btn.textContent = '\u26a1 Enviar'; }
+        toast('Error: ' + (res.error.message || 'desconegut'));
+        return;
+      }
+      if (d && d.enviat) {
+        if (btn) {
+          var span = document.createElement('span');
+          span.className = 'ld-badge ld-sol';
+          span.textContent = '\u2713 enviat';
+          btn.replaceWith(span);
+        }
+        toast('Informe enviat \u2713');
+      } else {
+        if (btn) { btn.disabled = false; btn.textContent = '\u26a1 Enviar'; }
+        toast('No enviat: ' + ((d && d.motiu) || 'comprova la configuraci\u00f3 (RESEND_API_KEY)'));
+      }
+    })
+    .catch(function(e){
+      if (btn) { btn.disabled = false; btn.textContent = '\u26a1 Enviar'; }
+      toast('Error de xarxa: ' + (e && e.message ? e.message : e));
+    });
 }
 
 function _ldToggleDetall(i){

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TBI &middot; Kit de captaci&oacute; (QR + WhatsApp + correu)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#0D0D0D;--white:#FAFAF8;--cream:#F5F3ED;
+  --gold:#C8A54A;--gold-light:#E8D49A;--gold-dark:#9A7B2F;
+  --green:#1A5C3A;--g100:#E8E6E0;--g200:#D4D1C9;--g300:#B0ADA5;--g400:#8A8780;--g500:#6B685F;--g600:#4A473F;
+  --fd:"Playfair Display",Georgia,serif;--fb:"DM Sans",system-ui,sans-serif;--fm:"DM Mono",monospace;
+}
+body{font-family:var(--fb);color:var(--black);background:var(--cream);-webkit-font-smoothing:antialiased;line-height:1.6;padding:40px 20px}
+.wrap{max-width:920px;margin:0 auto}
+.app-head{margin-bottom:32px}
+.app-eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:8px}
+.app-title{font-family:var(--fd);font-size:clamp(26px,4vw,38px);font-weight:500;letter-spacing:-.4px;line-height:1.15}
+.app-sub{font-size:14px;color:var(--g500);margin-top:8px;max-width:640px}
+
+.panel{background:#fff;border:1px solid var(--g100);border-radius:18px;padding:26px 28px;margin-bottom:22px}
+.panel-label{font-family:var(--fm);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:6px}
+.panel-h{font-family:var(--fd);font-size:21px;font-weight:500;margin-bottom:16px}
+
+label.fld{display:block;font-size:12px;font-weight:600;color:var(--g600);margin:14px 0 6px}
+label.fld:first-of-type{margin-top:0}
+input[type=text],input[type=url]{width:100%;padding:13px 15px;border:1.5px solid var(--g200);border-radius:10px;font-family:var(--fm);font-size:14px;color:var(--black);background:var(--white);transition:border-color .15s}
+input:focus{outline:none;border-color:var(--gold)}
+.hint{font-size:12px;color:var(--g400);margin-top:10px;line-height:1.6}
+.hint code{font-family:var(--fm);background:var(--cream);padding:1px 6px;border-radius:5px;font-size:11px;color:var(--gold-dark)}
+
+.toggle-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.toggle-row+.toggle-row{margin-bottom:18px}
+.toggle{padding:9px 16px;border:1.5px solid var(--g200);border-radius:99px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--g600);transition:all .15s;user-select:none}
+.toggle.active{background:var(--black);color:#fff;border-color:var(--black)}
+.toggle:hover:not(.active){border-color:var(--gold)}
+.tg-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--g400);margin:4px 0 8px}
+
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb);border:none;transition:all .18s;display:inline-flex;align-items:center;gap:7px}
+.btn-gold{background:var(--gold);color:var(--black)}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(200,165,74,.35)}
+.btn-dark{background:var(--black);color:#fff}
+.btn-dark:hover{transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--g600);border:1.5px solid var(--g200)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold-dark)}
+
+.stage{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;padding:26px;background:repeating-linear-gradient(45deg,#efece4,#efece4 12px,#ece9e0 12px,#ece9e0 24px);border-radius:14px;margin-bottom:6px}
+
+.tbi-card{background:var(--black);color:var(--white);position:relative;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.32);border-radius:10px}
+.tbi-card::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 6%,rgba(200,165,74,.16) 0%,transparent 55%);pointer-events:none}
+.tbi-card .edge{position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--gold-light))}
+
+/* business 85x55 */
+.size-business .tbi-card{width:85mm;height:55mm}
+.size-business .face-front{padding:5.5mm 6mm}
+.size-business .c-wordmark{font-size:10.5pt}
+.size-business .c-logo svg{width:5mm;height:5mm}
+.size-business .c-tagline{font-size:8pt;line-height:1.3}
+.size-business .c-cta{font-size:6.6pt}
+.size-business .c-foot{font-size:6pt}
+.size-business .c-badge{font-size:6.2pt;padding:2pt 6pt}
+.size-business .qr-chip{width:28mm;height:28mm}
+.size-business .qr-chip.dual{width:20mm;height:20mm}
+.size-business .qr-lbl{font-size:5.6pt}
+.size-business .face-back{padding:5.5mm 6.5mm}
+
+/* postcard 105x148 */
+.size-postcard .tbi-card{width:105mm;height:148mm}
+.size-postcard .face-front{padding:12mm 12mm}
+.size-postcard .c-wordmark{font-size:15pt}
+.size-postcard .c-logo svg{width:8mm;height:8mm}
+.size-postcard .c-tagline{font-size:13pt;line-height:1.34}
+.size-postcard .c-cta{font-size:8.6pt}
+.size-postcard .c-foot{font-size:7.4pt}
+.size-postcard .c-badge{font-size:8pt;padding:3pt 9pt}
+.size-postcard .qr-chip{width:44mm;height:44mm}
+.size-postcard .qr-chip.dual{width:38mm;height:38mm}
+.size-postcard .qr-lbl{font-size:8pt}
+.size-postcard .face-back{padding:13mm 13mm}
+
+.face-front,.face-back{position:relative;z-index:2;width:100%;height:100%;display:flex;flex-direction:column}
+.c-brandrow{display:flex;align-items:center;gap:2.4mm}
+.c-logo{display:flex;align-items:center}
+.c-wordmark{font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#fff;line-height:1}
+.c-wordmark span{color:var(--gold)}
+.c-tagline{font-family:var(--fd);font-weight:500;color:#fff;letter-spacing:-.2px}
+.c-tagline em{font-style:normal;color:var(--gold)}
+.c-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(200,165,74,.12);border:1px solid rgba(200,165,74,.3);border-radius:99px;color:var(--gold-light);font-family:var(--fm);letter-spacing:.03em;width:fit-content}
+.qr-chip{background:var(--white);border-radius:6px;padding:2mm;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qr-chip canvas{width:100%;height:100%;display:block}
+.qr-unit{display:flex;flex-direction:column;align-items:center;gap:1.4mm}
+.qr-lbl{font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.6)}
+.qr-lbl b{color:var(--gold)}
+.c-cta{font-family:var(--fm);color:rgba(255,255,255,.62);letter-spacing:.02em;text-transform:uppercase}
+.c-cta b{color:var(--gold)}
+.c-foot{color:rgba(255,255,255,.42);font-family:var(--fm);letter-spacing:.02em}
+.c-foot b{color:rgba(255,255,255,.75)}
+
+/* back */
+.back-h{font-family:var(--fd);color:#fff;font-weight:500}
+.size-business .back-h{font-size:9.5pt;margin-bottom:3mm}
+.size-postcard .back-h{font-size:15pt;margin-bottom:6mm}
+.bk-item{display:flex;gap:2.5mm;align-items:flex-start;color:rgba(255,255,255,.8)}
+.bk-item .tick{color:var(--gold);font-weight:700;flex-shrink:0}
+.size-business .bk-item{font-size:6.8pt;line-height:1.45;margin-bottom:2mm}
+.size-postcard .bk-item{font-size:10pt;line-height:1.5;margin-bottom:3.5mm}
+.bk-item b{color:#fff}
+
+.card-caption{text-align:center;font-size:11px;color:var(--g400);font-family:var(--fm);letter-spacing:.06em;text-transform:uppercase;margin-top:8px}
+
+.snippet{background:var(--cream);border:1px solid var(--g100);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.snippet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
+.snippet-title{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--g600);display:flex;align-items:center;gap:7px}
+.snippet-body{font-size:13.5px;color:var(--black);line-height:1.65;white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid var(--g100);border-radius:8px;padding:12px 14px}
+.snippet-body .subj{display:block;font-weight:700;margin-bottom:6px;color:var(--g600);font-size:12px}
+.mini-btn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--g200);background:#fff;color:var(--g600);transition:all .15s;white-space:nowrap}
+.mini-btn:hover{border-color:var(--gold);color:var(--gold-dark)}
+.mini-btn.copied{background:var(--green);color:#fff;border-color:var(--green)}
+.wa-open{background:#25D366;color:#fff;border-color:#25D366}
+.wa-open:hover{filter:brightness(.95);color:#fff;border-color:#25D366}
+.foot-note{font-size:12px;color:var(--g400);line-height:1.7;margin-top:8px}
+.foot-note b{color:var(--g600)}
+
+@media print{
+  @page{margin:10mm}
+  body{background:#fff;padding:0}
+  .no-print{display:none!important}
+  .stage{background:#fff;padding:0;gap:8mm;justify-content:flex-start}
+  .tbi-card{box-shadow:none;border:0.2mm dashed #bbb}
+  .card-caption{display:none}
+  .wrap{max-width:none}
+}
+@media(max-width:560px){
+  body{padding:24px 12px}
+  .size-postcard .tbi-card{transform:scale(.82);transform-origin:top center}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="app-head no-print">
+    <div class="app-eyebrow">The Boring Investor &middot; Material de captaci&oacute;</div>
+    <h1 class="app-title">Kit de captaci&oacute; de leads</h1>
+    <p class="app-sub">Posa els teus enlla&ccedil;os reals i aqu&iacute; tens la <b>targeta amb QR</b> (amb logo TBI) per imprimir i el <b>missatge per WhatsApp i correu</b> &mdash; tot amb seguiment UTM per saber d&rsquo;on et venen els leads.</p>
+  </div>
+
+  <!-- 1. URLs -->
+  <div class="panel no-print">
+    <div class="panel-label">Pas 1</div>
+    <div class="panel-h">Els teus enlla&ccedil;os</div>
+    <label class="fld" for="urlLanding">URL del landing (la web principal)</label>
+    <input type="url" id="urlLanding" value="https://theboringinvestor.github.io/assessoria/landing.html" spellcheck="false">
+    <label class="fld" for="urlTest">URL del test (q&uuml;estionari de perfil)</label>
+    <input type="url" id="urlTest" value="https://theboringinvestor.github.io/assessoria/test-salut-financera.html" spellcheck="false">
+    <div class="hint">
+      Canvia-ho per les teves URL reals (GitHub&nbsp;Pages o domini propi). El landing ja porta el bot&oacute; del test a dins, aix&iacute; que pots fer servir <b>nom&eacute;s el QR del landing</b>, <b>nom&eacute;s el del test</b>, o <b>els dos</b>.<br>
+      Cada QR porta una etiqueta UTM diferent (<code>utm_medium=qr-web</code> i <code>qr-test</code>) per veure quin escanegen m&eacute;s.
+    </div>
+  </div>
+
+  <!-- 2. CARD -->
+  <div class="panel">
+    <div class="no-print">
+      <div class="panel-label">Pas 2</div>
+      <div class="panel-h">Targeta amb QR</div>
+
+      <div class="tg-label">Mida</div>
+      <div class="toggle-row" id="sizeToggles">
+        <div class="toggle active" data-size="business">Targeta de visita &middot; 85&times;55&nbsp;mm</div>
+        <div class="toggle" data-size="postcard">Targeta gran / flyer &middot; 105&times;148&nbsp;mm</div>
+      </div>
+
+      <div class="tg-label">Quants QR i cap a on</div>
+      <div class="toggle-row" id="modeToggles">
+        <div class="toggle active" data-mode="web">1 QR &middot; Landing</div>
+        <div class="toggle" data-mode="test">1 QR &middot; Test</div>
+        <div class="toggle" data-mode="both">2 QR &middot; Landing + Test</div>
+      </div>
+    </div>
+
+    <div id="sizeWrap" class="size-business">
+      <div class="stage" id="stage">
+        <div class="cardbox">
+          <div class="tbi-card" id="cardFront"></div>
+          <div class="card-caption no-print">Anvers</div>
+        </div>
+        <div class="cardbox">
+          <div class="tbi-card" id="cardBack">
+            <div class="edge"></div>
+            <div class="face-back">
+              <div>
+                <div class="back-h">Qu&egrave; faig per tu</div>
+                <div class="bk-item"><span class="tick">&#10003;</span><span>Cada persona t&eacute; la seva <b>cartera &ograve;ptima</b> &mdash; test i 10 arquetips.</span></div>
+                <div class="bk-item"><span class="tick">&#10003;</span><span><b>Cartera barata</b> i eficient (~0,25% vs ~1,80% del banc).</span></div>
+                <div class="bk-item"><span class="tick">&#10003;</span><span><b>Pla a 1&ndash;30 anys</b>, robust i basat en estad&iacute;stica.</span></div>
+                <div class="bk-item"><span class="tick">&#10003;</span><span><b>Sense decisions emocionals:</b> t&rsquo;acompanyo i et faig de coach.</span></div>
+              </div>
+              <div class="c-foot" style="text-align:center">theboringinvestor.es &middot; Barcelona</div>
+            </div>
+          </div>
+          <div class="card-caption no-print">Revers</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row no-print">
+      <button class="btn btn-gold" id="dlCard">&#11015; Descarregar targeta (PNG)</button>
+      <button class="btn btn-dark" id="dlQrWeb">&#11015; QR landing (PNG)</button>
+      <button class="btn btn-dark" id="dlQrTest">&#11015; QR test (PNG)</button>
+      <button class="btn btn-ghost" id="printBtn">&#128424; Imprimir / PDF</button>
+    </div>
+    <div class="foot-note no-print">
+      <b>Per imprimir de debò:</b> &ldquo;Imprimir &rarr; Desar com PDF&rdquo; mant&eacute; la mida exacta i el QR n&iacute;tid. El PNG de la targeta &eacute;s ideal per <b>enviar per WhatsApp o penjar a xarxes</b>.
+    </div>
+  </div>
+
+  <!-- 3. SHARE -->
+  <div class="panel no-print">
+    <div class="panel-label">Pas 3</div>
+    <div class="panel-h">Enviar per WhatsApp o correu</div>
+
+    <div class="snippet">
+      <div class="snippet-head">
+        <div class="snippet-title">&#128241; WhatsApp &middot; missatge curt</div>
+        <div style="display:flex;gap:8px">
+          <button class="mini-btn" data-copy="waText">Copiar</button>
+          <button class="mini-btn wa-open" id="waOpen">Obrir WhatsApp</button>
+        </div>
+      </div>
+      <div class="snippet-body" id="waText"></div>
+    </div>
+
+    <div class="snippet">
+      <div class="snippet-head">
+        <div class="snippet-title">&#9993; Correu electr&ograve;nic</div>
+        <button class="mini-btn" data-copy="mailText">Copiar tot</button>
+      </div>
+      <div class="snippet-body" id="mailText"></div>
+    </div>
+
+    <div class="snippet">
+      <div class="snippet-head">
+        <div class="snippet-title">&#128279; Nom&eacute;s l&rsquo;enlla&ccedil; (xarxes, bio)</div>
+        <button class="mini-btn" data-copy="linkText">Copiar enlla&ccedil;</button>
+      </div>
+      <div class="snippet-body" id="linkText" style="font-family:var(--fm);font-size:12.5px"></div>
+    </div>
+
+    <div class="foot-note">
+      <b>Truc:</b> com que cada canal porta una etiqueta UTM diferent, podr&agrave;s veure si converteixen m&eacute;s els leads de la targeta&nbsp;QR, del WhatsApp o del correu.
+    </div>
+  </div>
+
+</div>
+
+<script>
+var $ = function(id){ return document.getElementById(id); };
+var curSize = "business", curMode = "web";
+
+var LOGO =
+  '<svg viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">' +
+  '<rect x="1" y="1" width="26" height="26" rx="3" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>' +
+  '<circle cx="8.5" cy="10" r="2" fill="white"/><circle cx="8.5" cy="17" r="2" fill="white"/>' +
+  '<rect x="12" y="12.5" width="6" height="1.5" rx=".75" fill="white"/>' +
+  '<rect x="20.5" y="8" width="1.5" height="12" rx=".75" fill="white"/></svg>';
+
+var BRAND = '<div class="c-brandrow"><span class="c-logo">' + LOGO + '</span>' +
+            '<span class="c-wordmark">The Boring <span>Investor</span></span></div>';
+var BADGE = '<div class="c-badge">&#9733; Des de 8&euro;/mes</div>';
+var TAG   = '<div class="c-tagline">Assessorament com els<br>m&eacute;s rics, al <em>preu m&eacute;s<br>econ&ograve;mic</em> del mercat.</div>';
+var FOOT  = '<div class="c-foot">&#9878; Candidat EFA &middot; sense comissions de producte<br><b>@the_boringinvestor</b> &middot; WhatsApp 629&nbsp;340&nbsp;892</div>';
+
+function qrUnit(target, label, dual){
+  var cls = dual ? "qr-chip dual" : "qr-chip";
+  return '<div class="qr-unit"><div class="' + cls + '"><canvas data-qr="' + target + '"></canvas></div>' +
+         '<div class="qr-lbl">' + label + '</div></div>';
+}
+
+function buildUrl(base, medium){
+  var u = (base || "").trim();
+  if(!u) return "";
+  if(!/^https?:\/\//i.test(u)) u = "https://" + u;
+  var sep = u.indexOf("?") >= 0 ? "&" : "?";
+  return u + sep + "utm_source=tbi&utm_medium=" + medium + "&utm_campaign=captacio";
+}
+function landingUrl(){ return $("urlLanding").value; }
+function testUrl(){ return $("urlTest").value; }
+
+function rebuildFront(){
+  var front = $("cardFront");
+  var html = '<div class="edge"></div><div class="face-front">';
+
+  if(curMode === "both"){
+    // stacked: brand+badge top, tagline, two QRs row, foot
+    html +=
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:3mm">' + BRAND + BADGE + '</div>' +
+      '<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:3mm">' +
+        (curSize === "postcard" ? '<div style="text-align:center">' + TAG + '</div>' : '') +
+        '<div style="display:flex;justify-content:center;gap:6mm;align-items:flex-start">' +
+          qrUnit("web", "La <b>web</b>", true) +
+          qrUnit("test", "Fes el <b>test</b>", true) +
+        '</div>' +
+        '<div class="c-cta" style="text-align:center">Escaneja &middot; <b>2 min</b> &middot; descobreix el teu perfil</div>' +
+      '</div>' + FOOT;
+  } else {
+    var tgt   = (curMode === "test") ? "test" : "web";
+    var ctaTx = (curMode === "test")
+        ? 'Escaneja &middot; <b>test gratu&iuml;t 2 min</b>'
+        : 'Escaneja &middot; <b>la web</b>';
+    if(curSize === "postcard"){
+      html +=
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:3mm">' + BRAND + BADGE + '</div>' +
+        '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6mm">' +
+          '<div style="text-align:center">' + TAG + '</div>' +
+          qrUnit(tgt, ctaTx, false) +
+        '</div>' + FOOT;
+    } else {
+      // business 2-col
+      html +=
+        '<div style="display:flex;gap:5mm;height:100%">' +
+          '<div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;min-width:0">' +
+            '<div>' + BRAND + '<div style="margin-top:2.4mm">' + BADGE + '</div></div>' +
+            TAG + FOOT +
+          '</div>' +
+          '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2mm">' +
+            qrUnit(tgt, "", false) +
+            '<div class="c-cta" style="text-align:center">' + ctaTx + '</div>' +
+          '</div>' +
+        '</div>';
+    }
+  }
+  html += '</div>';
+  front.innerHTML = html;
+  renderCardQRs();
+}
+
+function renderCardQRs(){
+  document.querySelectorAll('#cardFront canvas[data-qr]').forEach(function(cv){
+    var which = cv.getAttribute("data-qr");
+    var url = (which === "test") ? buildUrl(testUrl(), "qr-test") : buildUrl(landingUrl(), "qr-web");
+    try{
+      new QRious({ element: cv, value: url, size: 420, level: "H",
+                   background: "#FAFAF8", foreground: "#0D0D0D", padding: 0 });
+    }catch(e){}
+  });
+}
+
+function renderShare(){
+  var waUrl   = buildUrl(landingUrl(), "whatsapp");
+  var mailUrl = buildUrl(landingUrl(), "email");
+  var linkUrl = buildUrl(landingUrl(), "social");
+
+  var waMsg =
+"Hola! Et passo una cosa que potser et va b\u00E9 \uD83D\uDC47\n\n" +
+"S\u00F3c en Guillem, de The Boring Investor. Faig assessorament financer independent i personalitzat \u2014 com el de la banca privada per\u00F2 sense m\u00EDnims d\u2019entrada i des de 8\u20AC/mes, sense comissions de producte.\n\n" +
+"Si vols, fes el test gratu\u00EFt (2 min) i descobreix el teu perfil inversor i una cartera model a mida:\n" + waUrl;
+
+  var mailSubj = "El teu perfil inversor en 2 minuts \u2014 The Boring Investor";
+  var mailBody =
+"Hola,\n\n" +
+"S\u00F3c en Guillem Puig, fundador de The Boring Investor. Ofereixo assessorament financer independent i personalitzat: cartera a mida, pla financer i acompanyament continu \u2014 com els m\u00E9s rics, per\u00F2 sense m\u00EDnims d\u2019entrada, sense comissions de producte i des de 8\u20AC/mes.\n\n" +
+"El primer pas \u00E9s un test gratu\u00EFt de 2 minuts que defineix el teu perfil inversor i et proposa una cartera model:\n" + mailUrl + "\n\n" +
+"Si tens qualsevol dubte, em pots escriure per WhatsApp al 629 340 892.\n\n" +
+"Una abra\u00E7ada,\nGuillem Puig \u00B7 The Boring Investor\nAssessorament i an\u00E0lisi financera independent \u00B7 Barcelona";
+
+  $("waText").textContent = waMsg;
+  $("mailText").innerHTML = '<span class="subj">Assumpte: ' + mailSubj + '</span>' + mailBody.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  $("linkText").textContent = linkUrl;
+
+  $("waOpen").onclick = function(){ window.open("https://wa.me/?text=" + encodeURIComponent(waMsg), "_blank"); };
+  window.__snip = { waText: waMsg, mailText: "Assumpte: " + mailSubj + "\n\n" + mailBody, linkText: linkUrl };
+}
+
+function refresh(){ rebuildFront(); renderShare(); }
+
+document.querySelectorAll("[data-copy]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var key = btn.getAttribute("data-copy");
+    var txt = (window.__snip && window.__snip[key]) || $(key).textContent;
+    navigator.clipboard.writeText(txt).then(function(){
+      var old = btn.textContent; btn.textContent = "Copiat \u2713"; btn.classList.add("copied");
+      setTimeout(function(){ btn.textContent = old; btn.classList.remove("copied"); }, 1500);
+    });
+  });
+});
+
+document.querySelectorAll("#sizeToggles .toggle").forEach(function(t){
+  t.addEventListener("click", function(){
+    document.querySelectorAll("#sizeToggles .toggle").forEach(function(x){ x.classList.remove("active"); });
+    t.classList.add("active"); curSize = t.getAttribute("data-size");
+    $("sizeWrap").className = "size-" + curSize; refresh();
+  });
+});
+document.querySelectorAll("#modeToggles .toggle").forEach(function(t){
+  t.addEventListener("click", function(){
+    document.querySelectorAll("#modeToggles .toggle").forEach(function(x){ x.classList.remove("active"); });
+    t.classList.add("active"); curMode = t.getAttribute("data-mode"); refresh();
+  });
+});
+
+function downloadQR(url, name){
+  var q = new QRious({ value: url, size: 1000, level: "H", background: "#ffffff", foreground: "#0D0D0D", padding: 16 });
+  var a = document.createElement("a"); a.href = q.toDataURL("image/png"); a.download = name; a.click();
+}
+$("dlQrWeb").addEventListener("click", function(){ downloadQR(buildUrl(landingUrl(), "qr-web"), "tbi-qr-landing.png"); });
+$("dlQrTest").addEventListener("click", function(){ downloadQR(buildUrl(testUrl(), "qr-test"), "tbi-qr-test.png"); });
+
+$("dlCard").addEventListener("click", function(){
+  var btn = this, old = btn.textContent; btn.textContent = "Generant\u2026";
+  html2canvas($("cardFront"), { scale: 4, backgroundColor: null, useCORS: true }).then(function(canvas){
+    var a = document.createElement("a"); a.href = canvas.toDataURL("image/png"); a.download = "tbi-targeta-anvers.png"; a.click();
+    btn.textContent = old;
+  }).catch(function(){ btn.textContent = old; alert("No s\u2019ha pogut generar la imatge. Prova \u2018Imprimir \u2192 PDF\u2019."); });
+});
+$("printBtn").addEventListener("click", function(){ window.print(); });
+
+$("urlLanding").addEventListener("input", refresh);
+$("urlTest").addEventListener("input", refresh);
+window.addEventListener("load", refresh);
+setTimeout(refresh, 400);
+</script>
+</body>
+</html>
