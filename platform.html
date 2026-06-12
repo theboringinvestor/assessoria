@@ -3432,12 +3432,9 @@ var ADMIN_NAV = [
   {id:'portal-informes',   icon:'📋', label:'Informes'},
   {id:'portal-carteres',   icon:'🗂', label:'Carteres Model'},
   {id:'portal-educacio',   icon:'🎓', label:'Educaci\u00f3 financera'},
-  {id:'portal-fire',       icon:'🔥', label:'Calculadora FIRE'},
-  {id:'portal-turbo',      icon:'🚀', label:'Turbo Estalvi'},
+  {id:'portal-simuladors', icon:'🧮', label:'Simulador'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emerg\u00e8ncia"},
   {id:'portal-notificacions', icon:'🔔', label:'Notificacions'},
-  {id:'portal-simulador',  icon:'📊', label:'Simulador d\'actius'},
-  {id:'portal-montecarlo', icon:'🎲', label:'Monte Carlo'},
   {id:'portal-fiscalitat', icon:'🧾', label:'Calculadora fiscal'},
   {section:'Sistema'},
   {id:'settings',          icon:'⚙️', label:'Configuraci\u00f3'},
@@ -3462,12 +3459,9 @@ var CLIENT_NAV = [
   {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
   {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
   {section:'Eines i calculadores', collapsible:true},
-  {id:'portal-fire', icon:'🔥', label:'Calculadora FIRE'},
+  {id:'portal-simuladors', icon:'🧮', label:'Simulador'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
-  {id:'portal-turbo', icon:'🚀', label:'Turbo Estalvi'},
   {id:'portal-oportunitat', icon:'&#128201;', label:'Oportunitat de reforç'},
-  {id:'portal-simulador', icon:'📊', label:'Simulador d\'actius'},
-  {id:'portal-montecarlo', icon:'🎲', label:'Monte Carlo'},
   {id:'portal-fiscalitat', icon:'🧾', label:'Calculadora fiscal'},
   {section:'Compte i suport', collapsible:true},
   {id:'plans', icon:'💎', label:'El meu pla'},
@@ -3592,6 +3586,7 @@ function navigateTo(viewId) {
     'portal-carteres': APP.role === 'admin' ? ['Portal Client · Carteres Model', '👁 Previsualització'] : ['Carteres Model', '10 carteres personalitzades per perfil'],
     'portal-ajuda':    ['Ajuda', 'Com funciona la plataforma'],
     'portal-actius': ['Guia d\'Actius', '25 categories d\'inversió — educació i referència'],
+    'portal-simuladors': APP.role === 'admin' ? ['Portal Client · Simulador', '👁 Previsualització'] : ['Simulador', 'Projecció, FIRE, Monte Carlo i Turbo Estalvi en un sol lloc'],
     'portal-fire': APP.role === 'admin' ? ['Portal Client · FIRE', '👁 Previsualització'] : ['Calculadora FIRE', 'Financial Independence, Retire Early'],
     'portal-simulador': APP.role === 'admin' ? ['Portal Client · Simulador', '👁 Previsualització'] : ['Simulador d\'actius', 'Projecta el rendiment d\'una cartera segons μ i σ'],
     'portal-montecarlo': APP.role === 'admin' ? ['Portal Client · Monte Carlo', '👁 Previsualització'] : ['Monte Carlo', 'Simula milers d\'escenaris per la teva cartera'],
@@ -3694,6 +3689,7 @@ function renderView(viewId) {
     case 'portal-informes': renderPortalInformes(content); break;
     case 'portal-carteres': renderPortalCarteres(content); break;
     case 'portal-actius': renderPortalActius(content); break;
+    case 'portal-simuladors': renderPortalSimuladors(content); break;
     case 'portal-fire': renderPortalFIRE(content); break;
     case 'portal-simulador': renderPortalSimulador(content); break;
     case 'portal-montecarlo': renderPortalMontecarlo(content); break;
@@ -3827,8 +3823,7 @@ function renderHub(el) {
       + hubSmallCard('📋','Informes','portal-informes')
       + hubSmallCard('📈','Anàlisi mercat','portal-assessoria')
       + hubSmallCard('🗂','Carteres Model','portal-carteres')
-      + hubSmallCard('🔥','FIRE','portal-fire')
-      + hubSmallCard('🚀','Turbo Estalvi','portal-turbo')
+      + hubSmallCard('🧮','Simulador','portal-simuladors')
       + hubSmallCard('🛡️',"Fons emergència",'portal-emergencia')
       + hubSmallCard('🎓','Educació','portal-educacio')
         + hubSmallCard('📋','Qüestionari','portal-questionnaire')
@@ -4694,7 +4689,7 @@ function _renderPortalPerfilImpl(el) {
           + '<div style="font-size:10px;color:var(--g400);margin-top:2px">'+liq.toLocaleString('ca-ES')+'€</div>';
       })()
     + '</div>'
-    + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="navigateTo(\'portal-fire\')">'
+    + '<div style="padding:14px;background:var(--white);border:1px solid var(--g200);border-radius:10px;cursor:pointer" onclick="obrirSimulador(\'fire\')">'
       + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🔥 FIRE</div>'
       + '<div style="font-family:var(--fm);font-size:18px;font-weight:500;color:#1A5C3A">' + ((fire && fire.anysEstimats) || '—') + ' anys</div>'
       + '<div style="font-size:10px;color:var(--g400);margin-top:2px">' + ((fire && fire.objectiuFIRE) ? fire.objectiuFIRE.toLocaleString('ca-ES') : '—') + '€</div>'
@@ -8861,6 +8856,91 @@ var _FIRE_STATE = {
   feinaPartial: 12000,
   _init: false
 };
+
+// ══════════════════════════════════════════════════
+// SIMULADOR · hub que unifica les 4 eines de projecció
+// (Projecció d'actius, FIRE, Monte Carlo, Turbo Estalvi)
+// Reutilitza els renderitzadors existents sense tocar-los:
+// cada pestanya renderitza l'eina original dins #sim-hub-cos.
+// ══════════════════════════════════════════════════
+var SIM_HUB_TAB = 'projeccio'; // recorda l'última pestanya dins la sessió
+
+var SIM_HUB_TABS = [
+  {id:'projeccio',  ico:'📊', nom:'Projecció',    desc:'Què pot fer cada actiu amb el teu capital', vista:'portal-simulador',  render:function(el){ renderPortalSimulador(el); }},
+  {id:'fire',       ico:'🔥', nom:'FIRE',          desc:'Quan podries viure de les teves inversions', vista:'portal-fire',       render:function(el){ renderPortalFIRE(el); }},
+  {id:'montecarlo', ico:'🎲', nom:'Monte Carlo',   desc:'Milers d\u2019escenaris de futur simulats',  vista:'portal-montecarlo', render:function(el){ renderPortalMontecarlo(el); }},
+  {id:'turbo',      ico:'🚀', nom:'Turbo Estalvi', desc:'L\u2019impacte d\u2019estalviar una mica m\u00e9s', vista:'portal-turbo',      render:function(el){ renderPortalTurbo(el); }}
+];
+
+function renderPortalSimuladors(el) {
+  var css = '<style>'
+    + '.sim-hub-head{max-width:1080px;margin:0 auto 4px}'
+    + '.sim-hub-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px}'
+    + '.sim-hub-tab{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:99px;border:1.5px solid var(--g200);background:#fff;font-family:var(--fb);font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;transition:all .15s}'
+    + '.sim-hub-tab:hover{border-color:var(--gold)}'
+    + '.sim-hub-tab.active{background:#0D0D0D;border-color:#0D0D0D;color:#fff}'
+    + '.sim-hub-desc{font-size:12px;color:var(--g400);margin:2px 0 0;min-height:16px}'
+    + '</style>';
+
+  el.innerHTML = css
+    + '<div class="sim-hub-head">'
+    +   '<div style="font-family:var(--fd);font-size:22px;font-weight:500">🧮 Simulador</div>'
+    +   '<div style="font-size:12.5px;color:var(--g500);line-height:1.6;margin-top:3px">Totes les eines de projecci\u00f3 en un sol lloc. Tria la pregunta que et vols respondre:</div>'
+    +   '<div class="sim-hub-tabs" id="sim-hub-tabs"></div>'
+    +   '<div class="sim-hub-desc" id="sim-hub-desc"></div>'
+    + '</div>'
+    + '<div id="sim-hub-cos" style="margin-top:10px"></div>';
+
+  _simHubPinta();
+}
+
+function _simHubPinta() {
+  var tabsEl = document.getElementById('sim-hub-tabs');
+  var descEl = document.getElementById('sim-hub-desc');
+  var cosEl  = document.getElementById('sim-hub-cos');
+  if (!tabsEl || !cosEl) return;
+
+  var h = '';
+  SIM_HUB_TABS.forEach(function(t){
+    h += '<button class="sim-hub-tab' + (t.id === SIM_HUB_TAB ? ' active' : '') + '" onclick="simHubTria(\'' + t.id + '\')">'
+      + '<span>' + t.ico + '</span><span>' + t.nom + '</span></button>';
+  });
+  tabsEl.innerHTML = h;
+
+  var actiu = null;
+  for (var i = 0; i < SIM_HUB_TABS.length; i++) {
+    if (SIM_HUB_TABS[i].id === SIM_HUB_TAB) { actiu = SIM_HUB_TABS[i]; break; }
+  }
+  if (!actiu) actiu = SIM_HUB_TABS[0];
+  if (descEl) descEl.textContent = actiu.desc;
+
+  cosEl.innerHTML = '';
+  try {
+    // Respecta les restriccions per pla de l'eina allotjada (p.ex. Turbo al pla Senyal)
+    if (APP.role !== 'admin' && actiu.vista) {
+      var plaActual = (APP.clientData && APP.clientData.pla) || 'essencial';
+      if (!hasAccess(actiu.vista, plaActual)) {
+        cosEl.innerHTML = renderUpgradePrompt(actiu.vista, plaActual);
+        return;
+      }
+    }
+    actiu.render(cosEl);
+  } catch (e) {
+    console.error('Error renderitzant la pestanya del simulador:', e);
+    cosEl.innerHTML = '<div style="padding:20px;color:var(--g500);font-size:13px">No s\u2019ha pogut carregar aquesta eina. Prova de recarregar la p\u00e0gina.</div>';
+  }
+}
+
+function simHubTria(id) {
+  SIM_HUB_TAB = id;
+  _simHubPinta();
+}
+
+// Obre el Simulador directament en una pestanya concreta (per a enllaços creuats)
+function obrirSimulador(tab) {
+  SIM_HUB_TAB = tab || 'projeccio';
+  navigateTo('portal-simuladors');
+}
 
 function renderPortalFIRE(el){
   var c = getClient();
