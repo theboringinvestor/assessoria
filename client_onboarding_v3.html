@@ -768,14 +768,14 @@ function normalitzar(){
 }
 
 const PORTRAITS={
-  estoic:'https://theboringinvestor.github.io/assessoria/portraits/estoic.png',
-  explorador:'https://theboringinvestor.github.io/assessoria/portraits/explorador.png',
-  navegant:'https://theboringinvestor.github.io/assessoria/portraits/navegant.png',
-  arquitecte:'https://theboringinvestor.github.io/assessoria/portraits/arquitecte.png',
-  tresorer:'https://theboringinvestor.github.io/assessoria/portraits/tresorer.png',
-  cronista:'https://theboringinvestor.github.io/assessoria/portraits/cronista.png',
-  alquimista:'https://theboringinvestor.github.io/assessoria/portraits/alquimista.png',
-  eremita:'https://theboringinvestor.github.io/assessoria/portraits/eremita.png'
+  estoic:'portraits/estoic.png',
+  explorador:'portraits/explorador.png',
+  navegant:'portraits/navegant.png',
+  arquitecte:'portraits/arquitecte.png',
+  tresorer:'portraits/tresorer.png',
+  cronista:'portraits/cronista.png',
+  alquimista:'portraits/alquimista.png',
+  eremita:'portraits/eremita.png'
 };
 
 
@@ -1207,7 +1207,7 @@ function buildResult(){
     +'<div style="display:flex;flex-direction:column;gap:9px">'
       +'<button id="btn-enviar" onclick="enviarITancar()" style="width:100%;padding:13px;background:#0A0A0A;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('send_btn')+'</button>'
       
-      +'<a id="btn-portal" href="https://theboringinvestor.github.io/assessoria/platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
+      +'<a id="btn-portal" href="platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
         +(ONB_LANG==='es'?'🔗 Acceder a mi portal →':'🔗 Accedeix al teu portal →')
       +'</a>'
       
@@ -1313,7 +1313,7 @@ function next(){
     var fromPlatform = new URLSearchParams(window.location.search).get('from') === 'platform';
     window.location.href = fromPlatform
       ? 'platform.html?just_completed=true'
-      : 'https://theboringinvestor.github.io/assessoria/platform.html';
+      : 'platform.html';
     return;
   }
   going=true;
