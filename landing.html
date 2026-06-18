@@ -8,9 +8,9 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-<meta name="description" content="Assessorament financer personalitzat com els m&eacute;s rics, al preu m&eacute;s econ&ograve;mic del mercat. Sense comissions de producte. Cartera, pla i acompanyament a mida. Des de 8&euro;/mes.">
-<meta property="og:title" content="The Boring Investor &mdash; Assessorament com els m&eacute;s rics, al preu m&eacute;s econ&ograve;mic">
-<meta property="og:description" content="Cartera personalitzada, pla financer i acompanyament continu. Sense retrocessions ni conflictes d&apos;inter&egrave;s. Des de 8&euro;/mes.">
+<meta name="description" content="Estalvis aturats que perden valor? Productes que no entens? Posa ordre als teus diners amb un assessorament personalitzat, fiscalment &ograve;ptim i sense comissions de producte. Des de 8&euro;/mes.">
+<meta property="og:title" content="The Boring Investor &mdash; Posa ordre als teus diners i dorm tranquil">
+<meta property="og:description" content="Assessorament financer independent, del nivell de la banca privada per&ograve; per a tothom. Sense comissions de producte. Des de 8&euro;/mes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -377,6 +377,49 @@ section{padding:100px 28px}
 .deep-body{padding:4px 26px 30px;border-top:1px solid var(--g100)}
 .deep-body.dark{background:var(--black)}
 @media(max-width:560px){.deep-sum{padding:18px 18px}.deep-body{padding:4px 18px 24px}}
+
+/* ============ NOU: CASOS (t'hi reconeixes) ============ */
+.cases{background:var(--cream)}
+.cases-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px}
+.case-card{background:#fff;border:1px solid var(--g100);border-radius:18px;padding:30px 28px;display:flex;flex-direction:column;gap:12px;transition:all .2s}
+.case-card:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.06);border-color:var(--gold-light)}
+.case-ico{font-size:30px}
+.case-title{font-family:var(--fd);font-size:20px;font-weight:600;line-height:1.25;color:var(--black)}
+.case-text{font-size:14px;color:var(--g500);line-height:1.72}
+.case-text em{font-style:normal;color:var(--gold-dark);font-weight:600}
+.cases-bridge{margin:30px auto 0;text-align:center;max-width:680px;font-size:16px;color:var(--g600);line-height:1.8}
+.cases-bridge strong{color:var(--black)}
+@media(max-width:760px){.cases-grid{grid-template-columns:1fr}}
+
+/* ============ NOU: TRANSFORMACIÓ (d'on véns → on vas) ============ */
+.transform{background:var(--black);color:#fff}
+.transform-wrap{display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:stretch;margin-top:8px}
+.transform-col{border-radius:20px;padding:30px 28px}
+.transform-col.from{background:rgba(139,26,26,.1);border:1px solid rgba(139,26,26,.22)}
+.transform-col.to{background:rgba(26,92,58,.12);border:1px solid rgba(26,92,58,.28)}
+.transform-col-label{font-size:11px;font-family:var(--fm);letter-spacing:.1em;text-transform:uppercase;margin-bottom:18px}
+.transform-col.from .transform-col-label{color:#E57373}
+.transform-col.to .transform-col-label{color:#4CAF82}
+.transform-list{list-style:none;display:flex;flex-direction:column;gap:14px}
+.transform-list li{font-size:14px;line-height:1.55;padding-left:26px;position:relative;color:rgba(255,255,255,.78)}
+.transform-col.from .transform-list li::before{content:"\2715";position:absolute;left:0;color:#E57373;font-weight:700}
+.transform-col.to .transform-list li::before{content:"\2713";position:absolute;left:0;color:#4CAF82;font-weight:700}
+.transform-arrow{display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--gold)}
+.transform-cta{margin-top:34px;text-align:center}
+@media(max-width:760px){.transform-wrap{grid-template-columns:1fr}.transform-arrow{transform:rotate(90deg);padding:6px 0}}
+
+/* ============ NOU: COM HO FAIG + QUI HI HA DARRERE ============ */
+.howi{background:var(--white)}
+.howi-lead{max-width:720px;margin:0 auto 8px;text-align:center}
+.howi-lead .section-sub{margin:0 auto;font-size:16px}
+.whoami-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:56px;align-items:center;margin-top:48px;padding-top:48px;border-top:1px solid var(--g100)}
+.whoami-photo{aspect-ratio:1;border-radius:24px;background:radial-gradient(ellipse at 60% 25%,rgba(200,165,74,.12),transparent 60%),linear-gradient(135deg,#1A1A1A,#0D0D0D);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;border:1px solid var(--g100)}
+.whoami-photo .wp-mono{font-family:var(--fd);font-size:84px;font-weight:600;color:var(--gold);opacity:.92;letter-spacing:.02em}
+.whoami-photo .wp-cap{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:11px;font-family:var(--fm);color:rgba(255,255,255,.4);letter-spacing:.1em}
+.whoami p{font-size:15px;color:var(--g500);line-height:1.8;margin-bottom:16px}
+.whoami p strong{color:var(--black)}
+.whoami-quote{font-family:var(--fd);font-style:italic;font-size:18px;color:var(--gold-dark);line-height:1.5;margin:6px 0 20px;padding-left:18px;border-left:3px solid var(--gold-light)}
+@media(max-width:768px){.whoami-grid{grid-template-columns:1fr;gap:32px}.whoami-photo{max-width:280px;margin:0 auto}}
 </style>
 </head>
 <body>
@@ -391,8 +434,9 @@ section{padding:100px 28px}
     The Boring Investor
   </div>
   <div class="nav-links">
+    <a href="#casos">El problema</a>
+    <a href="#qui-soc">Qui s&oacute;c</a>
     <a href="#offer">Qu&egrave; ofereixo</a>
-    <a href="#valnum">El valor</a>
     <a href="#pricing">Tarifes</a>
     <a href="#deep">M&eacute;s detall</a>
     <div class="nav-efa">&#9878; Candidat EFA &middot; Pre-certificaci&oacute;</div>
@@ -404,9 +448,9 @@ section{padding:100px 28px}
 <section class="hero">
   <div class="hero-inner">
     <div class="fade-up">
-      <div class="hero-badge">&#128202; An&agrave;lisi independent &middot; Sense comissions de producte &middot; Candidat EFA</div>
-      <h1>Inverteix amb assessorament<br>com els m&eacute;s rics,<br>al <em>preu m&eacute;s econ&ograve;mic</em> del mercat.</h1>
-      <p class="hero-sub">La banca privada cobra un m&iacute;nim de 500.000&euro; i comissions opaques. Aqu&iacute; tens el mateix: cartera personalitzada, pla financer a mida i acompanyament continu &mdash; sense m&iacute;nims d&apos;entrada, sense retrocessions, sense lletra petita. <strong>Des de 8&euro;/mes o 120&euro; de pagament &uacute;nic.</strong></p>
+      <div class="hero-badge">&#128202; Assessorament financer independent &middot; Sense comissions de producte</div>
+      <h1>Posa ordre als teus diners<br>i <em>dorm tranquil</em>.</h1>
+      <p class="hero-sub">Si tens estalvis aturats que cada any compren menys, productes del banc que no entens o inverteixes a cegues... no et falta sort: et falta un <strong>pla</strong> i <strong>alg&uacute; de confian&ccedil;a</strong> que el faci amb tu. T&apos;ofereixo l&apos;assessorament que fins ara nom&eacute;s tenien els grans patrimonis &mdash; personalitzat, fiscalment &ograve;ptim i sense comissions de producte &mdash; a un preu que t&apos;ho pots permetre. <strong>Des de 8&euro;/mes.</strong></p>
       <div class="hero-ctas">
         <a href="test-salut-financera.html" class="btn-primary">Fes el test de salut financera <span style="font-size:12px;opacity:.6">2 min &middot; gratu&iuml;t</span></a>
         <a href="platform.html" class="btn-secondary">Registra&apos;m com a client &rarr;</a>
@@ -460,6 +504,111 @@ section{padding:100px 28px}
         </div>
       </div>
       <div style="margin-top:10px;font-size:10px;color:rgba(255,255,255,.2);line-height:1.55">Escenari il&middot;lustratiu amb un creixement net moderat del 6% anual &middot; inflaci&oacute; refer&egrave;ncia 3,4% (ESP 2021&ndash;2025). El valor real de TBI &eacute;s el cost baix (~0,25% vs ~1,80%) i l&apos;estructuraci&oacute; &mdash; no una previsi&oacute; de rendiment. El 13,9% XIRR &eacute;s rendiment <strong style="color:rgba(255,255,255,.35);font-weight:500">hist&ograve;ric</strong> de l&apos;&Iacute;ndex TBI (jun&nbsp;2020&ndash;mai&nbsp;2026) i no garanteix resultats futurs.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ NOU: T'HI RECONEIXES? (casos) ============================ -->
+<section class="cases" id="casos">
+  <div class="section-inner">
+    <div class="section-label" style="text-align:center">Et sona?</div>
+    <div class="section-title" style="text-align:center">Potser t&apos;hi reconeixes en alguna d&apos;aquestes situacions</div>
+    <p class="section-sub" style="margin:0 auto 44px;text-align:center">No ets l&apos;&uacute;nic. S&oacute;n les maneres m&eacute;s habituals de perdre diners sense ni adonar-se&apos;n.</p>
+
+    <div class="cases-grid">
+      <div class="case-card fade-up">
+        <div class="case-ico">&#128184;</div>
+        <div class="case-title">Tens els estalvis aturats al banc</div>
+        <div class="case-text">Cada mes veus el mateix n&uacute;mero al compte... per&ograve; al supermercat hi compres cada cop <em>menys</em>. La inflaci&oacute; et va menjant els diners en silenci, sense que ho notis.</div>
+      </div>
+      <div class="case-card fade-up d1">
+        <div class="case-ico">&#127974;</div>
+        <div class="case-title">Tens productes del banc que no entens</div>
+        <div class="case-text">Fons que rendeixen poc i comissions que no saps ben b&eacute; quines s&oacute;n. I tot i aix&iacute; et truquen per <em>col&middot;locar-te&apos;n un altre</em>. Pagues molt perqu&egrave; algú gestioni els teus diners... i no gaire b&eacute;.</div>
+      </div>
+      <div class="case-card fade-up d2">
+        <div class="case-ico">&#127922;</div>
+        <div class="case-title">Inverteixes &laquo;a cegues&raquo;</div>
+        <div class="case-text">Compres l&apos;acci&oacute; que t&apos;ha dit el cunyat o el que tothom comenta. Ell sempre sembla que hi <em>guanya</em>... i tu no. Sense pla ni criteri, invertir &eacute;s nom&eacute;s apostar.</div>
+      </div>
+      <div class="case-card fade-up d3">
+        <div class="case-ico">&#129517;</div>
+        <div class="case-title">Saps que hauries de fer alguna cosa</div>
+        <div class="case-text">Intueixes que els teus diners podrien estar molt millor, per&ograve; <em>no saps per on comen&ccedil;ar</em>. Tanta informaci&oacute; (i tanta lletra petita) acaba paralitzant. I van passant els anys.</div>
+      </div>
+    </div>
+
+    <p class="cases-bridge">Cap d&apos;aquestes situacions &eacute;s culpa teva: <strong>ning&uacute; ens ha ensenyat mai a gestionar els diners.</strong> Per&ograve; totes tenen soluci&oacute; &mdash; i totes comencen pel mateix lloc: tenir un pla clar i alg&uacute; de confian&ccedil;a que el faci amb tu.</p>
+  </div>
+</section>
+
+<!-- ============================ NOU: D'ON VÉNS → ON POTS ARRIBAR ============================ -->
+<section class="transform">
+  <div class="section-inner">
+    <div class="section-label" style="color:var(--gold);text-align:center">Imagina-t&apos;ho</div>
+    <div class="section-title" style="color:#fff;text-align:center">I si tinguessis alg&uacute; que nom&eacute;s pensa<br>en el teu m&agrave;xim benefici?</div>
+    <p style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.78;max-width:680px;margin:0 auto 48px;text-align:center">Alg&uacute; que posa ordre als teus diners, planifica amb tu per arribar als teus objectius i t&apos;ho explica tot perqu&egrave; ho entenguis a cada pas. Buscant la m&agrave;xima simplicitat, el millor rendiment per al risc que pots assumir &mdash; i sense vendre&apos;t res. Aix&iacute; canvia el panorama:</p>
+
+    <div class="transform-wrap">
+      <div class="transform-col from">
+        <div class="transform-col-label">Avui, sense un pla</div>
+        <ul class="transform-list">
+          <li>Diners aturats que cada any perden valor</li>
+          <li>Productes i comissions que no entens</li>
+          <li>Decisions per impuls o pel consell de torn</li>
+          <li>La sensaci&oacute; constant que t&apos;equivoques</li>
+          <li>Dormir intranquil pensant-hi</li>
+        </ul>
+      </div>
+      <div class="transform-arrow">&rarr;</div>
+      <div class="transform-col to">
+        <div class="transform-col-label">Amb un far al teu costat</div>
+        <ul class="transform-list">
+          <li>Diners ordenats que treballen per tu</li>
+          <li>Costos baixos i sense comissions de producte</li>
+          <li>Un pla clar amb objectius i dates concretes</li>
+          <li>Entens cada decisi&oacute; i per qu&egrave; la prens</li>
+          <li>Dorms tranquil: saps cap a on vas</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="transform-cta">
+      <a href="test-salut-financera.html" class="btn-primary">Descobreix per on comen&ccedil;ar <span style="font-size:12px;opacity:.6">Test 2 min &middot; gratu&iuml;t</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ NOU: COM HO FAIG + QUI HI HA DARRERE ============================ -->
+<section class="howi" id="qui-soc">
+  <div class="section-inner">
+    <div class="howi-lead">
+      <div class="section-label" style="text-align:center">Com ho faig</div>
+      <div class="section-title" style="text-align:center">Un far i una guia en cada decisi&oacute;</div>
+      <p class="section-sub">T&apos;ofereixo un assessorament personalitzat, de confian&ccedil;a i transparent per aconseguir els teus objectius. Faig servir <strong>enginyeria financera</strong> i <strong>eines inform&agrave;tiques</strong> per trobar els productes que millor s&apos;ajusten a la teva situaci&oacute; i als teus coneixements &mdash; ni m&eacute;s complicat ni m&eacute;s car del que necessites. L&apos;objectiu: que mai et sentis perdut i que sempre tinguis un far que t&apos;orienta a cada pas.</p>
+    </div>
+
+    <div class="whoami-grid">
+      <div>
+        <!-- Substitueix aquest bloc per <img src="..."> quan tinguis una foto -->
+        <div class="whoami-photo">
+          <div class="wp-mono">GP</div>
+          <div class="wp-cap">GUILLEM PUIG &middot; BARCELONA</div>
+        </div>
+      </div>
+      <div class="whoami">
+        <p>No s&oacute;c un banquer ni un gestor de fons. S&oacute;c un enginyer i un aut&egrave;ntic <strong>boig de les finances personals</strong> i de l&apos;optimitzaci&oacute;.</p>
+        <p>Fa 6 anys vaig descobrir una cosa que em va indignar: els bancs ens cobraven molt&iacute;ssim per gestionar <strong>malament</strong> els nostres diners. Des d&apos;aleshores he invertit el meu propi capital en gaireb&eacute; tots els instruments del mercat &mdash; ETFs indexats, fons, REITs, or, crowdlending, crypto i alternatius &mdash; i he aplicat l&apos;enginyeria a les meves finances: models, fulls de c&agrave;lcul i automatitzacions per treure&apos;n el m&agrave;xim rendiment amb el m&iacute;nim risc.</p>
+        <p>I no paro de formar-me (<strong>postgrau en Inversi&oacute; i Gesti&oacute; Patrimonial</strong> i candidat a la certificaci&oacute; <strong>EFA</strong> d&apos;EFPA Espanya). Tot amb un sol objectiu: oferir-te un assessorament del <strong>nivell de la banca privada</strong> &mdash; fiscalment &ograve;ptim i fet a la teva mida &mdash; per&ograve; a un preu que tothom es pugui permetre.</p>
+        <div class="whoami-quote">&ldquo;Invertir hauria de ser avorrit. Els diners emocionants acostumen a acabar malament.&rdquo;</div>
+        <div class="about-creds">
+          <span class="about-cred highlight">Candidat EFA (EFPA Espanya)</span>
+          <span class="about-cred highlight">Postgrau Inversi&oacute; i Gesti&oacute; Patrimonial</span>
+          <span class="about-cred">Enginyer de formaci&oacute;</span>
+          <span class="about-cred">Sense comissions de producte</span>
+          <span class="about-cred">6 anys d&apos;experi&egrave;ncia real</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -1165,7 +1314,7 @@ section{padding:100px 28px}
   <div>The Boring Investor &middot; An&agrave;lisi i Educaci&oacute; Financera Independent &middot; Barcelona</div>
   <div style="margin-top:6px">&copy; 2026 Guillem Puig &middot; Sense comissions de producte &middot; Candidat EFA (EFPA Espanya) &middot; Postgrau Inversi&oacute; i Gesti&oacute; Patrimonial</div>
   <div style="margin-top:8px;font-size:11px;opacity:.6;line-height:1.7">&#9878; Av&iacute;s legal: TBI no &eacute;s una empresa d&apos;assessorament financer regulada per la CNMV. Els serveis actuals comprenen educaci&oacute; i an&agrave;lisi financera independent. Els rendiments mostrats corresponen a l&apos;&Iacute;ndex TBI i no constitueixen garantia de resultats futurs.</div>
-  <div style="margin-top:6px;font-family:var(--fm);opacity:.4">landing v2026-08 &middot; pre-EFA</div>
+  <div style="margin-top:6px;font-family:var(--fm);opacity:.4">landing v2026-09 &middot; pre-EFA</div>
 </footer>
 
 <a href="https://wa.me/34629340892?text=Hola%20Guillem" class="wa-fab" title="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
