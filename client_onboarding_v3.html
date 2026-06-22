@@ -4,10 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>The Boring Investor — El teu perfil</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -768,14 +764,14 @@ function normalitzar(){
 }
 
 const PORTRAITS={
-  estoic:'portraits/estoic.png',
-  explorador:'portraits/explorador.png',
-  navegant:'portraits/navegant.png',
-  arquitecte:'portraits/arquitecte.png',
-  tresorer:'portraits/tresorer.png',
-  cronista:'portraits/cronista.png',
-  alquimista:'portraits/alquimista.png',
-  eremita:'portraits/eremita.png'
+  estoic:'https://theboringinvestor.github.io/assessoria/portraits/estoic.png',
+  explorador:'https://theboringinvestor.github.io/assessoria/portraits/explorador.png',
+  navegant:'https://theboringinvestor.github.io/assessoria/portraits/navegant.png',
+  arquitecte:'https://theboringinvestor.github.io/assessoria/portraits/arquitecte.png',
+  tresorer:'https://theboringinvestor.github.io/assessoria/portraits/tresorer.png',
+  cronista:'https://theboringinvestor.github.io/assessoria/portraits/cronista.png',
+  alquimista:'https://theboringinvestor.github.io/assessoria/portraits/alquimista.png',
+  eremita:'https://theboringinvestor.github.io/assessoria/portraits/eremita.png'
 };
 
 
@@ -1207,7 +1203,7 @@ function buildResult(){
     +'<div style="display:flex;flex-direction:column;gap:9px">'
       +'<button id="btn-enviar" onclick="enviarITancar()" style="width:100%;padding:13px;background:#0A0A0A;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);transition:all .15s">'+uiT('send_btn')+'</button>'
       
-      +'<a id="btn-portal" href="platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
+      +'<a id="btn-portal" href="https://theboringinvestor.github.io/assessoria/platform.html" style="display:none;width:100%;padding:13px;background:#1B3A6B;color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb);text-align:center;text-decoration:none;transition:all .15s">'
         +(ONB_LANG==='es'?'🔗 Acceder a mi portal →':'🔗 Accedeix al teu portal →')
       +'</a>'
       
@@ -1313,7 +1309,7 @@ function next(){
     var fromPlatform = new URLSearchParams(window.location.search).get('from') === 'platform';
     window.location.href = fromPlatform
       ? 'platform.html?just_completed=true'
-      : 'platform.html';
+      : 'https://theboringinvestor.github.io/assessoria/platform.html';
     return;
   }
   going=true;
@@ -1398,6 +1394,21 @@ function mostrarErrorGuardat(errMsg) {
   var panel = document.createElement('div');
   panel.id = 'save-error-panel';
   panel.style.cssText = 'margin-top:14px;padding:14px 16px;background:#FCEBEB;border:1px solid #C0392B;border-radius:10px;font-size:12px;color:#7A1A1A;line-height:1.5';
+
+  // Causa coneguda: la sessió no s'ha reconegut en desar (token caducat / origen
+  // diferent). Reintentar amb la mateixa sessió no servirà: cal tornar a entrar.
+  if (errMsg === 'SESSIO_NO_RECONEGUDA') {
+    panel.innerHTML = ''
+      + '<div style="font-weight:500;margin-bottom:6px">' + (isEs ? '⚠ Tu sesión ha caducado' : '⚠ La teva sessió ha caducat') + '</div>'
+      + '<div style="font-size:11px;color:#8B3A2A;margin-bottom:10px">'
+        + (isEs
+          ? 'No hemos podido guardar tus respuestas porque tu sesión no estaba activa. Vuelve a iniciar sesión y repite el cuestionario.'
+          : 'No hem pogut desar les teves respostes perquè la teva sessió no estava activa. Torna a iniciar sessió i repeteix el qüestionari.')
+      + '</div>'
+      + '<button onclick="window.location.href=\'platform.html\'" style="padding:8px 14px;background:#0A0A0A;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">' + (isEs ? 'Volver a iniciar sesión' : 'Tornar a iniciar sessió') + '</button>';
+    btn.parentNode.insertBefore(panel, btn.nextSibling);
+    return;
+  }
   panel.innerHTML = ''
     + '<div style="font-weight:500;margin-bottom:6px">' + (isEs ? '⚠ No se ha podido guardar tu perfil' : '⚠ No s\'ha pogut desar el teu perfil') + '</div>'
     + '<div style="font-size:11px;color:#8B3A2A;margin-bottom:10px">'
@@ -1649,20 +1660,30 @@ async function guardarASupabase() {
         clientData.historial = prevHist;
       }
 
-      // Update existing client (preservant els camps no presents a clientData)
-      var resU = await sbClient.from('clients').update(clientData).eq('email', email);
+      // Update existing client (preservant els camps no presents a clientData).
+      // .select() ens retorna les files REALMENT afectades. Si en surten 0, l'escriptura
+      // ha estat rebutjada en silenci (RLS: sessió no reconeguda + fila no 'pending').
+      var resU = await sbClient.from('clients').update(clientData).eq('email', email).select('id,scoring');
       if (resU.error) {
         console.error('Error update Supabase:', resU.error);
         return { ok: false, error: 'Update: ' + resU.error.message };
+      }
+      if (!resU.data || resU.data.length === 0) {
+        console.warn('UPDATE ha afectat 0 files (sessió no reconeguda o RLS):', email);
+        return { ok: false, error: 'SESSIO_NO_RECONEGUDA' };
       }
       action = 'update';
       console.log('Client actualitzat (qüestionari refet, target preservat):', email);
     } else {
       // Insert new client
-      var resI = await sbClient.from('clients').insert(clientData);
+      var resI = await sbClient.from('clients').insert(clientData).select('id,scoring');
       if (resI.error) {
         console.error('Error insert Supabase:', resI.error);
         return { ok: false, error: 'Insert: ' + resI.error.message };
+      }
+      if (!resI.data || resI.data.length === 0) {
+        console.warn('INSERT no ha retornat fila (RLS o sessió):', email);
+        return { ok: false, error: 'SESSIO_NO_RECONEGUDA' };
       }
       action = 'insert';
       console.log('Client creat a Supabase:', email);
@@ -1676,6 +1697,12 @@ async function guardarASupabase() {
     if (verify.error || !verify.data || verify.data.length === 0) {
       console.warn('Guardat aparentment OK però la fila no és llegible:', verify);
       return { ok: false, error: 'La fila s\'ha guardat però no és accessible (possible problema RLS)' };
+    }
+    // El scoring desat ha de coincidir amb el que acabem d'escriure. Si no coincideix,
+    // l'escriptura no s'ha persistit (rebuig silenciós) tot i no haver donat error abans.
+    if (Number(verify.data[0].scoring) !== Number(pct)) {
+      console.warn('Scoring desat no coincideix (no persistit):', verify.data[0].scoring, 'vs', pct);
+      return { ok: false, error: 'SESSIO_NO_RECONEGUDA' };
     }
     if (verify.data[0].status !== 'pending') {
       console.warn('La fila no té status=pending:', verify.data[0]);

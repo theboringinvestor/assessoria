@@ -20615,6 +20615,8 @@ async function eliminarEdu(id) {
 
 var _ING_CACHE = null;
 var _ING_LSKEY = 'tbi_ingressos_v1';
+// Estat de l'última càrrega: 'ok' | 'auth' (sessió admin no vàlida) | 'error'
+var _ING_LOAD_STATE = 'ok';
 
 // Fallback local: ingressos desats a localStorage (mirall, per si Supabase falla
 // o la taula no existeix encara). Es fusionen amb els del núvol.
@@ -20634,20 +20636,61 @@ function _ingMerge(cloud, local){
   return out;
 }
 
+// Comprova al SERVIDOR que la sessió actual és vàlida i d'un admin.
+// (getUser fa una validació real contra Supabase; getSession només retorna el
+//  token en memòria encara que estigui caducat.)
+async function _ingSessioAdminValida() {
+  if (!sb) return false;
+  try {
+    var u = await sb.auth.getUser();
+    if (!u || u.error) return false;
+    var email = u.data && u.data.user && u.data.user.email;
+    if (!email) return false;
+    return ADMIN_EMAILS.indexOf(email.toLowerCase()) >= 0;
+  } catch(e) { return false; }
+}
+
 async function loadIngressos(forceRefresh) {
   if (_ING_CACHE && !forceRefresh) return _ING_CACHE;
   var local = _ingLoadLocal();
+  _ING_LOAD_STATE = 'ok';
   if (!sb) { _ING_CACHE = local; return _ING_CACHE; }
   try {
     var res = await sb.from('ingressos').select('*').order('data', { ascending: false });
     if (res.error) throw res.error;
+    // Si no surt cap fila pot ser que de veritat no n'hi hagi O que la sessió admin
+    // no es reconegui (token caducat) i RLS ho filtri tot en silenci. Ho distingim.
+    if (!res.data || res.data.length === 0) {
+      var sessOk = await _ingSessioAdminValida();
+      if (!sessOk) _ING_LOAD_STATE = 'auth';
+    }
     _ING_CACHE = _ingMerge(res.data || [], local);
     return _ING_CACHE;
   } catch(e) {
     console.warn('loadIngressos (fallback local):', e && e.message);
+    // Qualsevol error: si la sessió no és d'un admin vàlid, és problema de sessió.
+    var ok2 = await _ingSessioAdminValida();
+    _ING_LOAD_STATE = ok2 ? 'error' : 'auth';
     _ING_CACHE = local;
     return _ING_CACHE;
   }
+}
+
+// Refresca el token i recarrega els ingressos. Si no es pot, recarrega la pàgina
+// (que portarà al login si la sessió ja no és recuperable).
+async function ingReintentarSessio() {
+  try {
+    if (sb && sb.auth && sb.auth.refreshSession) { await sb.auth.refreshSession(); }
+  } catch(e) { console.warn('refreshSession:', e); }
+  _ING_CACHE = null;
+  try {
+    var data = await loadIngressos(true);
+    if (_ING_LOAD_STATE === 'auth') { window.location.reload(); return; }
+    omplirFiltreAnys(data);
+    renderKPIsIngressos(data);
+    filtrarIRenderIngressos();
+    actualitzarHubStats(data);
+  } catch(e) { window.location.reload(); }
 }
 
 async function renderAdminIngressos(el) {
@@ -20713,6 +20756,12 @@ function omplirFiltreAnys(data) {
 }
 
 function renderKPIsIngressos(data) {
+  if (_ING_LOAD_STATE === 'auth') {
+    ['ing-kpi-total','ing-kpi-any','ing-kpi-mes','ing-kpi-n'].forEach(function(id){
+      var e = document.getElementById(id); if (e) e.textContent = '—';
+    });
+    return;
+  }
   var now = new Date();
   var curYear = now.getFullYear();
   var curMonth = now.getMonth();
@@ -20834,6 +20883,16 @@ function renderLlistatIngressos(data) {
   var list = document.getElementById('ing-list');
   if (!list) return;
   if (!data.length) {
+    if (_ING_LOAD_STATE === 'auth') {
+      // No és que no hi hagi ingressos: la sessió admin no es reconeix (token caducat).
+      list.innerHTML = '<div style="text-align:center;padding:48px;background:#FEF5E7;border:1px solid #E8C988;border-radius:14px">'
+        + '<div style="font-size:36px;margin-bottom:12px">&#128274;</div>'
+        + '<div style="font-size:15px;font-weight:500;margin-bottom:6px;color:#7A4A00">Sessió caducada</div>'
+        + '<div style="font-size:12px;color:#7A4A00;line-height:1.6;max-width:430px;margin:0 auto 16px">Les dades d\'ingressos hi són, però la teva sessió ha caducat i ara no es poden llegir. Refresca la sessió per veure-les.</div>'
+        + '<button onclick="ingReintentarSessio()" style="padding:9px 18px;background:#0A0A0A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">&#8635; Refrescar sessió</button>'
+      + '</div>';
+      return;
+    }
     list.innerHTML = '<div style="text-align:center;padding:48px;background:#fff;border:1px solid var(--g200);border-radius:14px">'
       + '<div style="font-size:36px;margin-bottom:12px">&#128182;</div>'
       + '<div style="font-size:15px;font-weight:500;margin-bottom:6px">Cap ingrés registrat</div>'
