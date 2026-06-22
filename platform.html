@@ -3709,6 +3709,11 @@ function renderView(viewId) {
     default: content.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:60px;color:var(--g400)">Vista no disponible</div></div>';
   }
 
+  // Bàner de documents pendents de signar (portal client)
+  if (APP.role !== 'admin' && viewId === 'portal-perfil') {
+    try { injectarBannerSignaturaClient(); } catch(e) { console.warn('banner sig', e); }
+  }
+
   // Botó ? flotant — contextual per a cada vista del portal client
   var oldFab = document.getElementById('help-fab');
   if (oldFab) oldFab.remove();
@@ -3748,6 +3753,566 @@ function toast(msg) {
   setTimeout(function(){ el.style.opacity='0'; el.style.transition='opacity .3s'; }, 2500);
   setTimeout(function(){ el.remove(); }, 2800);
 }
+
+
+// ═══════════════ INICI MÒDUL SIGNATURES ═══════════════
+// ═══════════════════════════════════════════════════════════════
+// MÒDUL DE SIGNATURES — contractes i fulls de ruta
+// Autocontingut: només depèn de sb, APP, toast, escapeHtml.
+// ═══════════════════════════════════════════════════════════════
+
+var _SIG_ASSESSOR = { nom: 'Guillem Puig', empresa: 'The Boring Investor', email: 'guillem.puig@theboringinvestor.es', cert: 'EFA (EFPA España)' };
+
+function _sigEsc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _sigNum(v){ var n = parseFloat(String(v).replace(',','.')); return isNaN(n) ? 0 : n; }
+function _sigEuros(n){ return _sigNum(n).toLocaleString('ca-ES') + ' €'; }
+function _sigData(iso){ if(!iso) return '—'; try{ return new Date(iso).toLocaleString('ca-ES'); }catch(e){ return iso; } }
+
+function _sigPreuMensual(plaId){
+  var nom = ((typeof getPla === 'function' && getPla(plaId) && getPla(plaId).nom) || String(plaId||'')).toLowerCase();
+  if(nom.indexOf('senyal')>=0) return 8;
+  if(nom.indexOf('bru')>=0) return 29;
+  if(nom.indexOf('nord')>=0) return 49;
+  if(nom.indexOf('ncora')>=0) return 99;
+  return 29;
+}
+
+// Injecta una sola vegada els estils del mòdul
+function _sigEnsureStyles(){
+  if(document.getElementById('sig-styles')) return;
+  var css = ''
+    + '.sigmodal-ov{position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:10000;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 16px;backdrop-filter:blur(2px)}'
+    + '.sigmodal{background:#F7F6F4;border-radius:16px;width:100%;max-width:560px;box-shadow:0 24px 70px -20px rgba(20,30,50,.5);overflow:hidden;margin-bottom:40px}'
+    + '.sigmodal.wide{max-width:740px}'
+    + '.sigmodal-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:#1B3A6B;color:#fff}'
+    + '.sigmodal-h .t{font-family:var(--fd),serif;font-size:17px}'
+    + '.sigmodal-h .x{background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;line-height:1}'
+    + '.sigmodal-b{padding:20px}'
+    + '.sigfield{margin-bottom:13px}'
+    + '.sigfield label{display:block;font-size:12px;font-weight:600;color:#1C2433;margin-bottom:5px}'
+    + '.sigfield input,.sigfield select{width:100%;padding:9px 12px;border:1px solid #E0DDD5;border-radius:8px;font-size:13.5px;font-family:var(--fb),sans-serif;background:#fff;outline:none;color:#1C2433}'
+    + '.sigfield input:focus,.sigfield select:focus{border-color:#1B3A6B}'
+    + '.sigrow2{display:grid;grid-template-columns:1fr 1fr;gap:10px}'
+    + '.sigrow3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;align-items:end}'
+    + '.sigbtn{appearance:none;border:none;background:#1B3A6B;color:#fff;font-family:var(--fb),sans-serif;font-weight:600;font-size:14px;padding:11px 22px;border-radius:10px;cursor:pointer}'
+    + '.sigbtn:disabled{background:#C8CDD6;cursor:not-allowed}'
+    + '.sigbtn.ghost{background:transparent;color:#1B3A6B;border:1px solid #C9D2E0}'
+    + '.sigminilab{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:#8A8678;font-weight:600;margin:18px 0 8px}'
+    + '.sigbadge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:20px}'
+    // Document
+    + '.sigdoc{background:#fff;border:1px solid #E6E3DC;border-radius:12px;overflow:hidden}'
+    + '.sigdoc-band{height:5px;background:linear-gradient(90deg,#1B3A6B,#1B3A6B 62%,#B68A3E)}'
+    + '.sigdoc-in{padding:26px 28px}'
+    + '.sigdoc h1{font-family:var(--fd),serif;color:#1B3A6B;font-size:21px;font-weight:700;margin:0 0 4px;line-height:1.2}'
+    + '.sigdoc .sub{font-size:12.5px;color:#6B7280;margin-bottom:18px}'
+    + '.sigparts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}'
+    + '.sigparty{border:1px solid #E6E3DC;border-radius:10px;padding:12px 14px;background:#FCFBF9}'
+    + '.sigparty .lab{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#B68A3E;font-weight:700;margin-bottom:5px}'
+    + '.sigparty .nm{font-weight:600;font-size:13.5px}'
+    + '.sigparty .ln{font-size:12px;color:#6B7280;margin-top:1px}'
+    + '.sigcl{font-size:12.5px;font-weight:700;color:#1B3A6B;text-transform:uppercase;letter-spacing:.04em;margin:18px 0 5px}'
+    + '.sigcl .no{font-family:var(--fm),monospace;color:#B68A3E;font-weight:500;margin-right:7px}'
+    + '.sigp{font-size:13px;color:#2A3240;margin:0 0 9px;line-height:1.6}'
+    + '.sigp b{color:#1B3A6B}'
+    + '.siggrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 8px}'
+    + '.siggoal{border:1px solid #E6E3DC;border-radius:10px;padding:11px 13px;background:#FCFBF9}'
+    + '.siggoal .gk{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#8A8678;font-weight:600;margin-bottom:4px}'
+    + '.siggoal .gv{font-family:var(--fd),serif;font-size:17px;color:#1B3A6B;font-weight:600;line-height:1.15}'
+    + '.sigfites{border:1px solid #E6E3DC;border-radius:10px;overflow:hidden;margin:8px 0}'
+    + '.sigfite{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;border-top:1px solid #E6E3DC;font-size:13px}'
+    + '.sigfite:first-child{border-top:none}'
+    + '.sigfite .r{font-family:var(--fm),monospace;color:#1B3A6B;white-space:nowrap}'
+    + '.sigbar{height:9px;border-radius:5px;overflow:hidden;display:flex;border:1px solid #E6E3DC;margin-top:6px}'
+    + '.sigchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}'
+    + '.sigchip{font-size:11.5px;font-family:var(--fm),monospace;padding:4px 9px;border-radius:20px;background:#EEF1F6;color:#1B3A6B;border:1px solid #DEE4EE}'
+    + '.sigchip b{color:#B68A3E}'
+    // Caselles i signatura
+    + '.sigchecks{display:flex;flex-direction:column;gap:10px;margin:6px 0 16px}'
+    + '.sigchk{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:#2A3240;cursor:pointer}'
+    + '.sigchk input{margin-top:2px;width:16px;height:16px;accent-color:#1B3A6B;flex:none;cursor:pointer}'
+    + '.signame{width:100%;font-family:var(--fd),serif;font-size:19px;color:#1B3A6B;padding:10px 13px;border:1px solid #E0DDD5;border-radius:9px;background:#fff;outline:none}'
+    + '.signame:focus{border-color:#1B3A6B}'
+    + '.sigaudit{font-family:var(--fm),monospace;font-size:11.5px;color:#6B7280;line-height:1.8;background:#fff;border:1px solid #E6E3DC;border-radius:9px;padding:12px 14px}'
+    + '.sigaudit b{color:#1C2433;font-weight:500}'
+    + '.sigrowlist{display:flex;flex-direction:column;gap:8px}'
+    + '.sigitem{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid #E6E3DC;border-radius:10px;background:#fff}'
+    + '.sigitem .ti{font-size:13px;font-weight:600;color:#1C2433}'
+    + '.sigitem .me{font-size:11px;color:#8A8678;margin-top:2px}';
+  var st = document.createElement('style'); st.id = 'sig-styles'; st.textContent = css;
+  document.head.appendChild(st);
+}
+
+function _sigModal(innerHtml, wide){
+  _sigEnsureStyles();
+  _sigTanca();
+  var ov = document.createElement('div');
+  ov.className = 'sigmodal-ov'; ov.id = 'sig-modal-ov';
+  ov.innerHTML = '<div class="sigmodal' + (wide?' wide':'') + '">' + innerHtml + '</div>';
+  ov.addEventListener('click', function(e){ if(e.target === ov) _sigTanca(); });
+  document.body.appendChild(ov);
+}
+function _sigTanca(){ var ov = document.getElementById('sig-modal-ov'); if(ov) ov.remove(); }
+
+function _sigEstatBadge(estat){
+  var m = {
+    esborrany:  {t:'Esborrany', bg:'#EEEDEA', c:'#6B6762'},
+    pendent_client:{t:'Pendent client', bg:'#FBF3E2', c:'#7A5A1E'},
+    signat:     {t:'Signat', bg:'#E6F4EC', c:'#2E7D54'},
+    anullat:    {t:'Anul·lat', bg:'#FDF0F0', c:'#8B1A1A'}
+  };
+  var x = m[estat] || m.esborrany;
+  return '<span class="sigbadge" style="background:' + x.bg + ';color:' + x.c + '">' + x.t + '</span>';
+}
+
+// ───────── Clàusules estàndard del contracte (text que es congela al signar) ─────────
+function _sigClausulesContracte(d){
+  var imp = _sigEuros(d.import);
+  return [
+    ['Objecte','El present contracte regula la prestació, per part de l\'assessor al client, d\'un servei personalitzat d\'assessorament financer: anàlisi de la situació patrimonial, elaboració d\'un full de ruta amb objectius, recomanacions sobre l\'estructura de la cartera i seguiment periòdic.'],
+    ['Abast del servei','El servei inclou l\'anàlisi del perfil del client, l\'elaboració i actualització del full de ruta i de la cartera proposada, recomanacions periòdiques i reunions de seguiment segons el pla. NO inclou la gestió discrecional, la custòdia de fons o l\'execució d\'ordres: el client conserva el control i la titularitat dels seus comptes i decideix i executa per ell mateix qualsevol operació.'],
+    ['Independència i absència de comissions','L\'assessor presta el servei amb caràcter independent i la seva única retribució és la quota del client. No percep comissions, retrocessions ni incentius de cap entitat o gestora. Cap recomanació està condicionada per la venda de cap producte.'],
+    ['Naturalesa de les recomanacions','Les recomanacions tenen caràcter informatiu i personalitzat segons la informació facilitada pel client, i no constitueixen una garantia de resultats. La decisió final correspon exclusivament al client.'],
+    ['Pla, preu i pagament','Pla contractat: ' + (d.pla||'—') + '. Quota: ' + imp + '/' + (d.periodicitat||'mes') + ', mitjançant ' + (d.forma_pagament||'domiciliació') + '. La quota es revisarà, si escau, amb un preavís mínim de 30 dies.'],
+    ['Durada, renovació i cancel·lació','Contracte de durada indefinida. Qualsevol de les parts el pot cancel·lar en qualsevol moment amb un preavís de ' + (d.preavis||15) + ' dies, sense penalització. En cancel·lar, cessa el servei i el pagament de quotes futures.'],
+    ['Obligacions del client','El client es compromet a facilitar informació veraç i actualitzada sobre la seva situació i objectius, i a comunicar qualsevol canvi rellevant. La qualitat de les recomanacions depèn de l\'exactitud d\'aquesta informació.'],
+    ['Protecció de dades','Les dades del client es tracten segons el RGPD i la LOPDGDD, amb la finalitat exclusiva de prestar el servei. El client pot exercir els drets d\'accés, rectificació, supressió i oposició escrivint a ' + _SIG_ASSESSOR.email + '.'],
+    ['Advertències de risc','Tota inversió comporta risc, inclosa la possible pèrdua del capital. Els rendiments passats no garanteixen rendiments futurs. Les projeccions del full de ruta són il·lustratives i no constitueixen cap compromís de rendibilitat.'],
+    ['Limitació de responsabilitat','L\'assessor respon de la diligència en l\'elaboració de les recomanacions, però no dels resultats de mercat ni de les decisions d\'inversió que el client adopti pel seu compte.'],
+    ['Llei aplicable i jurisdicció','Aquest contracte es regeix per la legislació espanyola. Per a qualsevol controvèrsia, les parts se sotmeten als jutjats i tribunals de ' + (d.jurisdiccio||'Barcelona') + '.']
+  ];
+}
+
+// ───────── Render del document (a partir de row.contingut) ─────────
+function _sigRenderDoc(row){
+  var c = row.contingut || {};
+  var h = '<div class="sigdoc"><div class="sigdoc-band"></div><div class="sigdoc-in">';
+  if(row.tipus === 'contracte'){
+    h += '<h1>' + _sigEsc(row.titol) + '</h1>';
+    h += '<div class="sub">Servei d\'assessorament financer independent i sense comissions de producte.</div>';
+    h += '<div class="sigparts">'
+      + '<div class="sigparty"><div class="lab">Assessor</div><div class="nm">' + _sigEsc(_SIG_ASSESSOR.nom) + ' — ' + _sigEsc(_SIG_ASSESSOR.empresa) + '</div><div class="ln">' + _sigEsc(_SIG_ASSESSOR.email) + '</div><div class="ln">' + _sigEsc(_SIG_ASSESSOR.cert) + '</div></div>'
+      + '<div class="sigparty"><div class="lab">Client</div><div class="nm">' + _sigEsc(c.client_nom) + '</div><div class="ln">' + _sigEsc(c.client_email) + '</div><div class="ln">Pla ' + _sigEsc(c.pla) + ' · ' + _sigEsc(_sigEuros(c.import)) + '/' + _sigEsc(c.periodicitat||'mes') + '</div></div>'
+      + '</div>';
+    var cls = _sigClausulesContracte(c);
+    for(var i=0;i<cls.length;i++){
+      h += '<div class="sigcl"><span class="no">' + (i+1) + '</span>' + _sigEsc(cls[i][0]) + '</div><p class="sigp">' + _sigEsc(cls[i][1]) + '</p>';
+    }
+  } else {
+    h += '<h1>' + _sigEsc(row.titol) + '</h1>';
+    h += '<div class="sub">Objectius, situació de partida i estratègia acordats entre el client i l\'assessor.</div>';
+    h += '<div class="sigparts">'
+      + '<div class="sigparty"><div class="lab">Client</div><div class="nm">' + _sigEsc(c.client_nom) + '</div><div class="ln">' + _sigEsc(c.arquetip || 'Perfil financer') + '</div></div>'
+      + '<div class="sigparty"><div class="lab">Assessor</div><div class="nm">' + _sigEsc(_SIG_ASSESSOR.nom) + '</div><div class="ln">Revisió semestral</div></div>'
+      + '</div>';
+    h += '<div class="sigcl"><span class="no">A</span>Objectiu principal</div>'
+      + '<div class="siggrid"><div class="siggoal"><div class="gk">Objectiu</div><div class="gv">' + _sigEsc(c.objectiu||'—') + '</div></div>'
+      + '<div class="siggoal"><div class="gk">Horitzó</div><div class="gv">' + _sigEsc(c.horitzo||'—') + ' anys</div></div></div>';
+    h += '<div class="sigcl"><span class="no">B</span>Situació de partida</div>'
+      + '<div class="siggrid"><div class="siggoal"><div class="gk">Capital inicial</div><div class="gv">' + _sigEsc(_sigEuros(c.capital_inicial)) + '</div></div>'
+      + '<div class="siggoal"><div class="gk">Aportació mensual</div><div class="gv">' + _sigEsc(_sigEuros(c.aportacio_mensual)) + '</div></div></div>';
+    var fites = c.fites || [];
+    if(fites.length){
+      h += '<div class="sigcl"><span class="no">C</span>Fites concretes</div><div class="sigfites">';
+      for(var f=0;f<fites.length;f++){
+        if(!fites[f].nom) continue;
+        h += '<div class="sigfite"><div><b style="color:#1B3A6B">' + _sigEsc(fites[f].nom) + '</b></div><div class="r">' + _sigEsc(_sigEuros(fites[f].valor)) + ' · ' + _sigEsc(fites[f].any||'') + '</div></div>';
+      }
+      h += '</div>';
+    }
+    var al = c.allocacio || [];
+    if(al.length){
+      h += '<div class="sigcl"><span class="no">D</span>Estratègia de cartera</div><div class="sigchips">';
+      var cols = ['#1B3A6B','#4F7AB8','#B68A3E','#D9D4C8','#7FA98C','#9B7BB8'];
+      var bar = '<div class="sigbar">';
+      for(var a=0;a<al.length;a++){
+        h += '<span class="sigchip">' + _sigEsc(al[a].classe) + ' <b>' + _sigNum(al[a].pct) + '%</b></span>';
+        bar += '<span style="width:' + _sigNum(al[a].pct) + '%;background:' + cols[a%cols.length] + '"></span>';
+      }
+      bar += '</div>';
+      h += '</div>' + bar;
+    }
+    h += '<div class="sigcl"><span class="no">E</span>Expectativa i risc</div>'
+      + '<p class="sigp">Rendibilitat esperada a llarg termini: <b>' + _sigEsc(c.rendibilitat||'—') + '</b> (il·lustrativa, no garantida). '
+      + 'Volatilitat esperada: <b>~' + _sigNum(c.volatilitat) + '%</b>. Caiguda màxima assumible segons el teu perfil: <b>~-' + _sigNum(c.caiguda_max) + '%</b>.</p>';
+    h += '<div class="sigcl"><span class="no">F</span>Compromisos</div>'
+      + '<p class="sigp"><b>Assessor:</b> mantenir el full de ruta actualitzat i avisar de desviacions rellevants.<br><b>Client:</b> mantenir les aportacions previstes i no prendre decisions impulsives en moments de mercat advers.</p>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+// ═══════════════ ADMIN ═══════════════
+
+function _sigClientPerEmail(email){
+  var list = (typeof getClientsList === 'function') ? getClientsList() : (APP.clientsList || []);
+  for(var i=0;i<list.length;i++){ if((list[i].email||'').toLowerCase() === (email||'').toLowerCase()) return list[i]; }
+  return null;
+}
+
+async function obrirDocsClient(email){
+  if(!sb){ toast('Supabase no disponible'); return; }
+  var cli = _sigClientPerEmail(email) || { nom: email, email: email };
+  _sigModal(''
+    + '<div class="sigmodal-h"><div class="t">Documents · ' + _sigEsc(cli.nom) + '</div><button class="x" onclick="_sigTanca()">×</button></div>'
+    + '<div class="sigmodal-b">'
+      + '<div style="display:flex;gap:8px;margin-bottom:16px">'
+        + '<button class="sigbtn" style="flex:1;font-size:13px;padding:10px" onclick="obrirCrearDoc(\'' + _sigEsc(email) + '\',\'contracte\')">+ Contracte</button>'
+        + '<button class="sigbtn ghost" style="flex:1;font-size:13px;padding:10px" onclick="obrirCrearDoc(\'' + _sigEsc(email) + '\',\'full_de_ruta\')">+ Full de ruta</button>'
+      + '</div>'
+      + '<div class="sigminilab">Documents d\'aquest client</div>'
+      + '<div id="sig-docs-list" class="sigrowlist"><div style="font-size:12px;color:#8A8678;padding:14px;text-align:center">Carregant…</div></div>'
+    + '</div>', false);
+  await _sigCarregarDocsList(email);
+}
+
+async function _sigCarregarDocsList(email){
+  var cont = document.getElementById('sig-docs-list');
+  try{
+    var res = await sb.from('signatures').select('id,tipus,titol,estat,import,pla,created_at,client_signat_at').eq('client_email', email).order('created_at',{ascending:false});
+    if(res.error) throw res.error;
+    var docs = res.data || [];
+    if(!cont) return;
+    if(!docs.length){ cont.innerHTML = '<div style="font-size:12px;color:#8A8678;padding:18px;text-align:center;border:1px dashed #E0DDD5;border-radius:10px">Encara no hi ha documents. Crea\'n un a dalt.</div>'; return; }
+    var h = '';
+    docs.forEach(function(d){
+      var tip = d.tipus === 'contracte' ? 'Contracte' : 'Full de ruta';
+      var meta = tip + ' · ' + (d.client_signat_at ? 'signat ' + _sigData(d.client_signat_at) : 'creat ' + _sigData(d.created_at));
+      h += '<div class="sigitem"><div style="min-width:0"><div class="ti">' + _sigEsc(d.titol) + '</div><div class="me">' + _sigEsc(meta) + '</div></div>'
+        + '<div style="display:flex;align-items:center;gap:8px;flex:none">' + _sigEstatBadge(d.estat)
+        + '<button class="sigbtn ghost" style="padding:6px 11px;font-size:12px" onclick="_sigVeureDoc(\'' + d.id + '\')">Obrir</button></div></div>';
+    });
+    cont.innerHTML = h;
+  }catch(e){
+    if(cont) cont.innerHTML = '<div style="font-size:12px;color:#8B1A1A;padding:14px;text-align:center">No s\'han pogut carregar (' + _sigEsc(e && e.message) + '). Si la sessió ha caducat, torna a entrar.</div>';
+  }
+}
+
+function obrirCrearDoc(email, tipus){
+  var cli = _sigClientPerEmail(email) || { nom:email, email:email, pla:'bruixola', perfil:{} };
+  var perfil = cli.perfil || {};
+  if(tipus === 'contracte'){
+    var preu = _sigPreuMensual(cli.pla);
+    _sigModal(''
+      + '<div class="sigmodal-h"><div class="t">Nou contracte</div><button class="x" onclick="_sigTanca()">×</button></div>'
+      + '<div class="sigmodal-b">'
+        + '<div class="sigfield"><label>Quota (€)</label><input id="sg-import" type="number" value="' + preu + '"></div>'
+        + '<div class="sigrow2">'
+          + '<div class="sigfield"><label>Periodicitat</label><select id="sg-per"><option value="mes">mensual</option><option value="trimestre">trimestral</option><option value="any">anual</option></select></div>'
+          + '<div class="sigfield"><label>Forma de pagament</label><input id="sg-forma" value="domiciliació"></div>'
+        + '</div>'
+        + '<div class="sigrow2">'
+          + '<div class="sigfield"><label>Preavís cancel·lació (dies)</label><input id="sg-preavis" type="number" value="15"></div>'
+          + '<div class="sigfield"><label>Jurisdicció</label><input id="sg-juris" value="Barcelona"></div>'
+        + '</div>'
+        + '<button class="sigbtn" style="width:100%;margin-top:6px" onclick="_sigPreviewContracte(\'' + _sigEsc(email) + '\')">Previsualitzar →</button>'
+      + '</div>', false);
+  } else {
+    var aport = _sigNum(perfil.aportacioMensual) || 300;
+    _sigModal(''
+      + '<div class="sigmodal-h"><div class="t">Nou full de ruta</div><button class="x" onclick="_sigTanca()">×</button></div>'
+      + '<div class="sigmodal-b">'
+        + '<div class="sigfield"><label>Objectiu principal</label><input id="sg-obj" value="Independència financera"></div>'
+        + '<div class="sigrow2">'
+          + '<div class="sigfield"><label>Horitzó (anys)</label><input id="sg-hor" type="number" value="18"></div>'
+          + '<div class="sigfield"><label>Capital inicial (€)</label><input id="sg-cap" type="number" value="25000"></div>'
+        + '</div>'
+        + '<div class="sigfield"><label>Aportació mensual (€)</label><input id="sg-aport" type="number" value="' + aport + '"></div>'
+        + '<div class="sigminilab">Fites (deixa en blanc les que no calguin)</div>'
+        + _sigFiteRow('Fons d\'emergència','9000','2026')
+        + _sigFiteRow('Patrimoni intermedi','75000','2032')
+        + _sigFiteRow('Objectiu final','240000','2044')
+        + '<div class="sigminilab">Cartera objectiu (%)</div>'
+        + '<div class="sigrow2">'
+          + _sigAllocField('al1','Renda variable','65') + _sigAllocField('al2','Renda fixa','25')
+        + '</div>'
+        + '<div class="sigrow2">'
+          + _sigAllocField('al3','Or / alternatius','5') + _sigAllocField('al4','Liquiditat','5')
+        + '</div>'
+        + '<div class="sigrow3" style="margin-top:6px">'
+          + '<div class="sigfield"><label>Rendibilitat esperada</label><input id="sg-rend" value="5–6% anual"></div>'
+          + '<div class="sigfield"><label>Volatilitat %</label><input id="sg-vol" type="number" value="10"></div>'
+          + '<div class="sigfield"><label>Caiguda màx %</label><input id="sg-cai" type="number" value="20"></div>'
+        + '</div>'
+        + '<button class="sigbtn" style="width:100%;margin-top:8px" onclick="_sigPreviewRuta(\'' + _sigEsc(email) + '\')">Previsualitzar →</button>'
+      + '</div>', false);
+  }
+}
+function _sigFiteRow(n,v,a){
+  return '<div class="sigrow3"><div class="sigfield" style="margin-bottom:8px"><input class="sg-fnom" value="' + _sigEsc(n) + '" placeholder="Fita"></div>'
+    + '<div class="sigfield" style="margin-bottom:8px"><input class="sg-fval" type="number" value="' + v + '" placeholder="€"></div>'
+    + '<div class="sigfield" style="margin-bottom:8px"><input class="sg-fany" value="' + a + '" placeholder="Any"></div></div>';
+}
+function _sigAllocField(id,label,v){
+  return '<div class="sigfield"><label>' + _sigEsc(label) + '</label><input id="sg-' + id + '" type="number" value="' + v + '"></div>';
+}
+
+function _sigLlegirFites(){
+  var noms = document.querySelectorAll('.sg-fnom'), vals = document.querySelectorAll('.sg-fval'), anys = document.querySelectorAll('.sg-fany');
+  var out = [];
+  for(var i=0;i<noms.length;i++){
+    var n = noms[i].value.trim();
+    if(n) out.push({ nom:n, valor:_sigNum(vals[i] && vals[i].value), any:(anys[i] && anys[i].value || '').trim() });
+  }
+  return out;
+}
+
+function _sigPreviewContracte(email){
+  var cli = _sigClientPerEmail(email) || { nom:email, email:email, pla:'bruixola' };
+  var d = {
+    client_nom: cli.nom, client_email: cli.email,
+    pla: (typeof getPla==='function' && getPla(cli.pla) && getPla(cli.pla).nom) || cli.pla,
+    import: _sigNum(document.getElementById('sg-import').value),
+    periodicitat: document.getElementById('sg-per').value,
+    forma_pagament: document.getElementById('sg-forma').value.trim(),
+    preavis: _sigNum(document.getElementById('sg-preavis').value),
+    jurisdiccio: document.getElementById('sg-juris').value.trim()
+  };
+  var row = { tipus:'contracte', titol:'Contracte de servei d\'assessorament financer', contingut:d };
+  _sigMostrarPreview(email, row, { pla:d.pla, import:d.import });
+}
+
+function _sigPreviewRuta(email){
+  var cli = _sigClientPerEmail(email) || { nom:email, email:email };
+  // Llegir allocacions (etiqueta fixa + percentatge editable)
+  var allocacio = [
+    { classe:'Renda variable global', pct:_sigNum(document.getElementById('sg-al1').value) },
+    { classe:'Renda fixa', pct:_sigNum(document.getElementById('sg-al2').value) },
+    { classe:'Or / alternatius', pct:_sigNum(document.getElementById('sg-al3').value) },
+    { classe:'Liquiditat', pct:_sigNum(document.getElementById('sg-al4').value) }
+  ].filter(function(x){ return x.pct > 0; });
+  var d = {
+    client_nom: cli.nom, client_email: cli.email, arquetip: cli.arquetip || '',
+    objectiu: document.getElementById('sg-obj').value.trim(),
+    horitzo: _sigNum(document.getElementById('sg-hor').value),
+    capital_inicial: _sigNum(document.getElementById('sg-cap').value),
+    aportacio_mensual: _sigNum(document.getElementById('sg-aport').value),
+    fites: _sigLlegirFites(),
+    allocacio: allocacio,
+    rendibilitat: document.getElementById('sg-rend').value.trim(),
+    volatilitat: _sigNum(document.getElementById('sg-vol').value),
+    caiguda_max: _sigNum(document.getElementById('sg-cai').value)
+  };
+  var objectius = { objectiu:d.objectiu, horitzo:d.horitzo, capital_inicial:d.capital_inicial, aportacio_mensual:d.aportacio_mensual, fites:d.fites };
+  var row = { tipus:'full_de_ruta', titol:'Full de ruta financer', contingut:d, objectius:objectius };
+  _sigMostrarPreview(email, row, { objectius:objectius });
+}
+
+function _sigMostrarPreview(email, row, extra){
+  window._sigPending = { email:email, row:row, extra:extra||{} };
+  _sigModal(''
+    + '<div class="sigmodal-h"><div class="t">Previsualització</div><button class="x" onclick="_sigTanca()">×</button></div>'
+    + '<div class="sigmodal-b">'
+      + _sigRenderDoc(row)
+      + '<div style="background:#FBF3E2;border:1px solid #E4C77E;color:#7A5A1E;font-size:12px;border-radius:9px;padding:11px 13px;margin-top:14px">En pre-signar, el document quedarà <b>pendent de la signatura del client</b> i li apareixerà al seu portal. Tu hi constes com a signant en nom de l\'assessor.</div>'
+      + '<div style="display:flex;gap:8px;margin-top:14px">'
+        + '<button class="sigbtn ghost" style="flex:1" onclick="obrirCrearDoc(\'' + _sigEsc(email) + '\',\'' + row.tipus + '\')">← Editar</button>'
+        + '<button class="sigbtn" style="flex:2" id="sg-confirm" onclick="_sigDesarDoc()">Pre-signar i enviar al client</button>'
+      + '</div>'
+    + '</div>', true);
+}
+
+async function _sigDesarDoc(){
+  var p = window._sigPending; if(!p){ return; }
+  var btn = document.getElementById('sg-confirm'); if(btn){ btn.disabled = true; btn.textContent = 'Desant…'; }
+  try{
+    var payload = {
+      client_email: p.email,
+      client_nom: p.row.contingut.client_nom || null,
+      tipus: p.row.tipus,
+      titol: p.row.titol,
+      contingut: p.row.contingut,
+      objectius: p.extra.objectius || null,
+      pla: p.extra.pla || null,
+      import: (p.extra.import != null ? p.extra.import : null),
+      estat: 'pendent_client',
+      assessor_nom: (APP.user && APP.user.name) || _SIG_ASSESSOR.nom,
+      assessor_email: _SIG_ASSESSOR.email,
+      assessor_signat_at: new Date().toISOString()
+    };
+    var res = await sb.from('signatures').insert(payload).select('id');
+    if(res.error) throw res.error;
+    if(!res.data || !res.data.length) throw new Error('No s\'ha pogut desar (RLS o sessió)');
+    window._sigPending = null;
+    toast('Document creat i enviat al client');
+    obrirDocsClient(p.email);
+  }catch(e){
+    if(btn){ btn.disabled=false; btn.textContent='Pre-signar i enviar al client'; }
+    toast('Error: ' + (e && e.message || 'no s\'ha pogut desar'));
+  }
+}
+
+// Veure un document (admin): mostra el doc + estat + auditoria
+async function _sigVeureDoc(sigId){
+  try{
+    var res = await sb.from('signatures').select('*').eq('id', sigId).maybeSingle();
+    if(res.error) throw res.error;
+    var row = res.data; if(!row){ toast('Document no trobat'); return; }
+    var audit = '';
+    if(row.estat === 'signat'){
+      audit = '<div class="sigminilab">Registre de signatura</div><div class="sigaudit">'
+        + 'Signat per: <b>' + _sigEsc(row.client_nom_signat) + '</b><br>'
+        + 'Data i hora (servidor): <b>' + _sigData(row.client_signat_at) + '</b><br>'
+        + 'IP: <b>' + _sigEsc(row.client_ip || '—') + '</b><br>'
+        + 'Empremta SHA-256:<br><span style="word-break:break-all">' + _sigEsc(row.contingut_hash || '—') + '</span></div>';
+    }
+    _sigModal(''
+      + '<div class="sigmodal-h"><div class="t">' + (row.tipus==='contracte'?'Contracte':'Full de ruta') + ' ' + _sigEstatBadge(row.estat) + '</div><button class="x" onclick="_sigTanca()">×</button></div>'
+      + '<div class="sigmodal-b">' + _sigRenderDoc(row) + audit
+        + '<div style="display:flex;gap:8px;margin-top:14px">'
+          + '<button class="sigbtn ghost" style="flex:1" onclick="_sigImprimir(\'' + row.id + '\')">Imprimir / PDF</button>'
+          + (row.estat==='pendent_client' ? '<button class="sigbtn ghost" style="flex:1;color:#8B1A1A;border-color:#F0C4C4" onclick="_sigAnullar(\'' + row.id + '\')">Anul·lar</button>' : '')
+        + '</div>'
+      + '</div>', true);
+  }catch(e){ toast('Error: ' + (e && e.message)); }
+}
+
+async function _sigAnullar(sigId){
+  if(!confirm('Anul·lar aquest document pendent?')) return;
+  try{
+    var res = await sb.from('signatures').update({ estat:'anullat' }).eq('id', sigId).eq('estat','pendent_client').select('id');
+    if(res.error) throw res.error;
+    toast('Document anul·lat'); _sigTanca();
+  }catch(e){ toast('Error: ' + (e && e.message)); }
+}
+
+// ═══════════════ CLIENT ═══════════════
+
+async function injectarBannerSignaturaClient(){
+  if(!sb || APP.role === 'admin') return;
+  var email = (APP.user && APP.user.email); if(!email) return;
+  try{
+    var res = await sb.from('signatures').select('id,tipus,titol').eq('client_email', email).eq('estat','pendent_client').order('created_at',{ascending:true});
+    if(res.error || !res.data || !res.data.length) return;
+    if(document.getElementById('sig-banner-client')) return;
+    var content = document.getElementById('content'); if(!content) return;
+    var inner = content.querySelector('.content-inner') || content;
+    _sigEnsureStyles();
+    var items = '';
+    res.data.forEach(function(d){
+      items += '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.18)">'
+        + '<div><div style="font-weight:600;font-size:13.5px">' + _sigEsc(d.titol) + '</div><div style="font-size:11px;color:#BFD0EA">' + (d.tipus==='contracte'?'Contracte de servei':'Full de ruta') + '</div></div>'
+        + '<button onclick="obrirSignatura(\'' + d.id + '\')" style="background:#B68A3E;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb),sans-serif;white-space:nowrap">Signar</button></div>';
+    });
+    var banner = document.createElement('div');
+    banner.id = 'sig-banner-client';
+    banner.style.cssText = 'background:#1B3A6B;color:#fff;border-radius:14px;padding:16px 20px 8px;margin-bottom:18px;box-shadow:0 10px 30px -16px rgba(20,40,75,.5)';
+    banner.innerHTML = '<div style="display:flex;align-items:center;gap:9px;margin-bottom:2px">'
+      + '<span style="font-size:18px">✍️</span>'
+      + '<div style="font-family:var(--fd),serif;font-size:16px">Tens ' + res.data.length + ' document' + (res.data.length>1?'s':'') + ' per signar</div></div>'
+      + '<div style="font-size:11.5px;color:#BFD0EA;margin-bottom:4px">Revisa\'l i signa\'l quan vulguis. La teva identitat ja està verificada per la sessió.</div>'
+      + items;
+    inner.insertBefore(banner, inner.firstChild);
+  }catch(e){ console.warn('banner signatura', e); }
+}
+
+async function obrirSignatura(sigId){
+  try{
+    var res = await sb.from('signatures').select('*').eq('id', sigId).maybeSingle();
+    if(res.error) throw res.error;
+    var row = res.data; if(!row){ toast('Document no trobat'); return; }
+    if(row.estat === 'signat'){ _sigPantallaSignat(row); return; }
+
+    var consents = row.tipus === 'contracte'
+      ? ['He llegit i accepto les condicions del servei descrites en aquest contracte.',
+         'Entenc que les inversions comporten risc i que els rendiments passats no garanteixen rendiments futurs.',
+         'Autoritzo el tractament de les meves dades personals segons la política de privacitat.',
+         'Confirmo que la informació que he facilitat és veraç i completa.']
+      : ['He llegit i entenc els objectius i l\'estratègia d\'aquest full de ruta.',
+         'Entenc que les projeccions són il·lustratives i no garanteixen cap rendibilitat.',
+         'Estic d\'acord amb el pla d\'acció proposat.'];
+    var checksHtml = '';
+    for(var i=0;i<consents.length;i++){
+      checksHtml += '<label class="sigchk"><input type="checkbox" class="sg-rc" data-txt="' + _sigEsc(consents[i]) + '" onchange="_sigAvaluarSign()"> ' + _sigEsc(consents[i]) + '</label>';
+    }
+    _sigModal(''
+      + '<div class="sigmodal-h"><div class="t">Signa el document</div><button class="x" onclick="_sigTanca()">×</button></div>'
+      + '<div class="sigmodal-b">'
+        + _sigRenderDoc(row)
+        + '<div class="sigminilab">Per signar</div>'
+        + '<div class="sigchecks">' + checksHtml + '</div>'
+        + '<label style="display:block;font-size:12px;font-weight:600;margin-bottom:7px">Escriu el teu nom complet per signar</label>'
+        + '<input class="signame" id="sg-signame" placeholder="El teu nom i cognoms" autocomplete="off" oninput="_sigAvaluarSign()">'
+        + '<div style="font-size:11px;color:#8A8678;margin-top:6px">En signar, quedarà registrat amb segell de temps del servidor i verificació d\'integritat.</div>'
+        + '<button class="sigbtn" style="width:100%;margin-top:16px" id="sg-signbtn" disabled onclick="_sigExecutarSignatura(\'' + row.id + '\')">Signar</button>'
+      + '</div>', true);
+    _sigAvaluarSign();
+  }catch(e){ toast('Error: ' + (e && e.message)); }
+}
+
+function _sigAvaluarSign(){
+  var checks = document.querySelectorAll('.sg-rc'); var totes = checks.length > 0;
+  for(var i=0;i<checks.length;i++){ if(!checks[i].checked) totes = false; }
+  var nom = (document.getElementById('sg-signame') || {}).value || '';
+  nom = nom.replace(/\s+/g,' ').trim();
+  var btn = document.getElementById('sg-signbtn'); if(btn) btn.disabled = !(totes && nom.length >= 3);
+}
+
+async function _sigExecutarSignatura(sigId){
+  var btn = document.getElementById('sg-signbtn');
+  var nom = document.getElementById('sg-signame').value.replace(/\s+/g,' ').trim();
+  var checks = document.querySelectorAll('.sg-rc');
+  var consentiments = [];
+  for(var i=0;i<checks.length;i++){ consentiments.push({ text: checks[i].getAttribute('data-txt'), accepted: !!checks[i].checked }); }
+  if(btn){ btn.disabled = true; btn.textContent = 'Signant…'; }
+  try{
+    var r = await sb.functions.invoke('signar-document', { body: { signature_id: sigId, nom_signat: nom, consentiments: consentiments } });
+    if(r.error) throw r.error;
+    var data = r.data || {};
+    if(!data.ok) throw new Error(data.error || 'no s\'ha pogut signar');
+    // Recarregar la fila signada per mostrar la confirmació amb les dades reals
+    var res2 = await sb.from('signatures').select('*').eq('id', sigId).maybeSingle();
+    _sigPantallaSignat(res2.data || { titol:data.titol, tipus:'', client_signat_at:data.signat_at, contingut_hash:data.hash, client_nom_signat:nom });
+    var b = document.getElementById('sig-banner-client'); if(b) b.remove();
+  }catch(e){
+    if(btn){ btn.disabled=false; btn.textContent='Signar'; }
+    var msg = (e && e.message) || '';
+    if(/session|sessi|401|jwt/i.test(msg)) toast('La teva sessió ha caducat. Torna a iniciar sessió i prova de nou.');
+    else toast('No s\'ha pogut signar: ' + msg);
+  }
+}
+
+function _sigPantallaSignat(row){
+  _sigModal(''
+    + '<div class="sigmodal-h"><div class="t">Document signat</div><button class="x" onclick="_sigTanca()">×</button></div>'
+    + '<div class="sigmodal-b" style="text-align:center">'
+      + '<div style="width:54px;height:54px;border-radius:50%;background:#E6F4EC;color:#2E7D54;display:flex;align-items:center;justify-content:center;margin:6px auto 12px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2E7D54" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg></div>'
+      + '<div style="font-family:var(--fd),serif;font-size:20px;color:#1B3A6B;margin-bottom:4px">Signat correctament</div>'
+      + '<div style="font-size:13px;color:#6B7280;margin-bottom:14px">Rebràs una còpia per email amb el justificant.</div>'
+      + '<div class="sigaudit" style="text-align:left;display:inline-block">'
+        + 'Document: <b>' + _sigEsc(row.titol) + '</b><br>'
+        + 'Signat per: <b>' + _sigEsc(row.client_nom_signat) + '</b><br>'
+        + 'Data i hora: <b>' + _sigData(row.client_signat_at) + '</b><br>'
+        + 'Empremta SHA-256:<br><span style="word-break:break-all">' + _sigEsc(row.contingut_hash || '—') + '</span></div>'
+      + '<div style="margin-top:16px"><button class="sigbtn ghost" onclick="_sigImprimir(\'' + (row.id||'') + '\')">Imprimir / desar PDF</button></div>'
+    + '</div>', true);
+}
+
+// ═══════════════ IMPRESSIÓ / PDF (vàlid per a admin i client) ═══════════════
+async function _sigImprimir(sigId){
+  try{
+    var row;
+    if(sigId){ var res = await sb.from('signatures').select('*').eq('id', sigId).maybeSingle(); row = res.data; }
+    if(!row){ toast('Document no disponible'); return; }
+    var firma = '';
+    if(row.estat === 'signat'){
+      firma = '<div style="margin-top:26px;padding-top:16px;border-top:2px solid #1B3A6B;font-size:12px;color:#444">'
+        + '<b>Signat electrònicament</b> per ' + _sigEsc(row.client_nom_signat) + ' (' + _sigEsc(row.client_email) + ')<br>'
+        + 'Data i hora (servidor): ' + _sigData(row.client_signat_at) + ' · IP: ' + _sigEsc(row.client_ip||'—') + '<br>'
+        + 'En nom de l\'assessor: ' + _sigEsc(row.assessor_nom||_SIG_ASSESSOR.nom) + ' · ' + _sigData(row.assessor_signat_at) + '<br>'
+        + 'Empremta d\'integritat (SHA-256): <span style="font-family:monospace;font-size:10px;word-break:break-all">' + _sigEsc(row.contingut_hash||'') + '</span></div>';
+    }
+    var w = window.open('', '_blank');
+    if(!w){ toast('Permet les finestres emergents per imprimir'); return; }
+    var doc = document.getElementById('sig-styles') ? document.getElementById('sig-styles').textContent : '';
+    w.document.write('<!DOCTYPE html><html lang="ca"><head><meta charset="utf-8"><title>' + _sigEsc(row.titol) + '</title>'
+      + '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet">'
+      + '<style>:root{--fd:\'Playfair Display\',serif;--fb:\'DM Sans\',sans-serif;--fm:\'DM Mono\',monospace}body{font-family:var(--fb);margin:0;padding:30px;background:#fff;color:#1C2433}.sigdoc{border:none}@media print{body{padding:0}.sigdoc{border:none}}' + doc + '</style></head><body>'
+      + _sigRenderDoc(row) + firma + '</body></html>');
+    w.document.close();
+    setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} }, 600);
+  }catch(e){ toast('Error: ' + (e && e.message)); }
+}
+// ═══════════════ FI MÒDUL SIGNATURES ═══════════════
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
@@ -3966,6 +4531,7 @@ function renderClientsList(el) {
           + '<button onclick="event.stopPropagation();confirmarEsborrarClientDirect(\'' + c.email + '\')" style="padding:4px 7px;background:transparent;border:1px solid #FCA5A5;border-radius:6px;font-size:11px;cursor:pointer;color:#DC2626" title="Esborrar">&#128465;</button>'
           + '<button onclick="event.stopPropagation();obrirEditarTargetAdmin(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:var(--accent)" title="Editar cartera target">&#127917;</button>'
           + '<button onclick="event.stopPropagation();desbloquarRetest(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:#534AB7" title="Autoritzar re-test">&#128260;</button>'
+          + '<button onclick="event.stopPropagation();obrirDocsClient(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:#1B3A6B" title="Contractes i full de ruta">&#128221;</button>'
           + '<span style="color:var(--g300);font-size:14px">&#8594;</span>'
         + '</div>'
       + '</div>'
