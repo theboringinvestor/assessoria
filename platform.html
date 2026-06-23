@@ -3424,6 +3424,7 @@ var ADMIN_NAV = [
   {id:'portal-missatges',  icon:'💬', label:'Missatges clients'},
   {id:'admin-preguntes',   icon:'❓', label:'Preguntes'},
   {id:'admin-broadcast',   icon:'📣', label:'Comunicat comunitat'},
+  {id:'admin-newsletter',  icon:'📧', label:'Newsletter'},
   {id:'admin-assessoria',  icon:'📰', label:'Gestionar anàlisis'},
   {id:'portal-questionnaire', icon:'📋', label:'Q\u00fcestionari client'},
   {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
@@ -3608,6 +3609,7 @@ function navigateTo(viewId) {
     'admin-calendari':  ['Calendari de reunions', 'Gestiona totes les cites amb clients'],
     'portal-calendari': ['Les meves reunions', 'Properes cites amb el teu assessor'],
     'admin-broadcast': ['Missatge a la comunitat', 'Envia un comunicat a tots els clients actius'],
+    'admin-newsletter': ['Newsletter', 'Redacta i envia la píndola setmanal als clients'],
     'admin-assessoria': ['Gestionar anàlisis', 'Crea, edita i publica les anàlisis de mercat'],
     'pending-review': ['Sol·licitud rebuda', 'Esperant validació de l\'assessor'],
     'admin-pendents': ['Sol·licituds pendents', 'Clients esperant validació'],
@@ -3675,6 +3677,7 @@ function renderView(viewId) {
     case 'admin-plans': renderAdminPlans(content); break;
     case 'admin-preguntes': renderAdminPreguntes(content); break;
     case 'admin-broadcast': renderAdminBroadcast(content); break;
+    case 'admin-newsletter': renderAdminNewsletter(content); break;
     case 'admin-assessoria': renderAdminAssessoria(content); break;
     case 'admin-entrevista': renderAdminEntrevista(content); break;
     case 'admin-pendents': renderAdminPendents(content); break;
@@ -14134,6 +14137,352 @@ async function enviarBroadcast() {
 // ENTREVISTA INICIAL — checklist interactiu per client
 // Guarda a clients.interview_notes (JSONB)
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// NEWSLETTER — La píndola setmanal (admin)
+// Model: taula `newsletters` (global). Enviament via Edge Functions
+// enviar-newsletter (Resend batch) + baixa-newsletter (baixa per token).
+// ══════════════════════════════════════════════════
+
+var NL_FORMATS = ['El biaix de la setmana', 'Anatomia d\'una cartera', 'Coneix l\'actiu', 'Eines i plataformes'];
+
+function _nlStatusBadge(status) {
+  if (status === 'sent') {
+    return '<span style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;background:#EAF3DE;color:#1A5C3A">Enviat</span>';
+  }
+  return '<span style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;background:#FEF5E7;color:#7A4A00">Esborrany</span>';
+}
+
+async function renderAdminNewsletter(el) {
+  if (APP.role !== 'admin') return;
+  el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:40px;color:var(--g500)">Carregant newsletter...</div></div>';
+  if (!sb) { el.innerHTML = '<div class="content-inner"><div class="card">Supabase no disponible</div></div>'; return; }
+
+  var rows = [];
+  var optIn = 0;
+  try {
+    var resN = await sb.from('newsletters').select('*').order('created_at', { ascending: false });
+    if (resN.error) throw resN.error;
+    rows = resN.data || [];
+  } catch(e) { console.warn(e); }
+  try {
+    var resC = await sb.from('clients').select('email').eq('notify_newsletter', true);
+    optIn = (resC.data || []).length;
+  } catch(e) { console.warn(e); }
+
+  window._nlRows = rows;
+
+  var html = '<div class="content-inner fade-in">';
+
+  html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:8px">'
+    + '<div style="font-size:13px;color:var(--g500);line-height:1.65;max-width:560px">'
+      + 'Redacta i envia la píndola setmanal als clients. Ara mateix hi ha <strong style="color:var(--accent)">' + optIn + '</strong> clients subscrits (amb opt-in). Fes sempre una prova al teu correu abans d\'enviar de debò.'
+    + '</div>'
+    + '<button onclick="obrirEditorNewsletter(null)" style="padding:11px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap">＋ Nou número</button>'
+  + '</div>';
+
+  if (rows.length === 0) {
+    html += '<div style="max-width:680px;padding:28px;background:var(--g50);border-radius:12px;text-align:center;font-size:13px;color:var(--g400);margin-top:20px">Encara no has creat cap número. Comença pel botó «Nou número».</div>';
+  } else {
+    html += '<div style="margin-top:22px;display:flex;flex-direction:column;gap:12px;max-width:760px">';
+    rows.forEach(function(nl, i) {
+      var data = nl.created_at ? new Date(nl.created_at).toLocaleDateString('ca-ES', {day:'numeric', month:'short', year:'numeric'}) : '';
+      var sentInfo = '';
+      if (nl.status === 'sent' && nl.sent_at) {
+        var sd = new Date(nl.sent_at).toLocaleDateString('ca-ES', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+        sentInfo = 'Enviat ' + sd + ' a ' + (nl.sent_count || 0) + ' destinataris' + (nl.error_count ? ' (' + nl.error_count + ' errors)' : '');
+      }
+      html += '<div style="border:1px solid var(--g100);border-radius:12px;padding:18px 20px;background:#fff">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">'
+          + '<div>'
+            + '<div style="font-size:10px;color:var(--accent);font-family:var(--fm);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">' + escapeHtml(nl.eyebrow || 'Newsletter') + (nl.numero ? ' &middot; Núm. ' + nl.numero : '') + '</div>'
+            + '<div style="font-family:var(--fd);font-size:18px;color:var(--black)">' + escapeHtml(nl.titol || '(sense títol)') + '</div>'
+            + (nl.assumpte ? '<div style="font-size:12px;color:var(--g500);margin-top:3px">Assumpte: ' + escapeHtml(nl.assumpte) + '</div>' : '')
+          + '</div>'
+          + '<div style="text-align:right;white-space:nowrap">' + _nlStatusBadge(nl.status) + '<div style="font-size:10px;color:var(--g400);font-family:var(--fm);margin-top:5px">' + data + '</div></div>'
+        + '</div>'
+        + (sentInfo ? '<div style="font-size:11px;color:var(--g400);margin-bottom:10px">' + sentInfo + '</div>' : '')
+        + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">'
+          + '<button onclick="obrirEditorNewsletter(window._nlRows[' + i + '])" class="nl-act">Editar</button>'
+          + '<button onclick="previsualitzarNewsletter(\'' + nl.id + '\')" class="nl-act">Previsualitzar</button>'
+          + '<button onclick="provaNewsletter(\'' + nl.id + '\')" class="nl-act">Prova al meu correu</button>'
+          + '<button onclick="enviarNewsletterReal(\'' + nl.id + '\')" class="nl-act nl-act-send">Enviar a tots</button>'
+          + '<button onclick="esborrarNewsletter(\'' + nl.id + '\')" class="nl-act nl-act-del">Esborrar</button>'
+        + '</div>'
+      + '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<style>'
+    + '.nl-act{padding:7px 13px;background:transparent;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)}'
+    + '.nl-act:hover{border-color:var(--g300);background:var(--g50)}'
+    + '.nl-act-send{border-color:#1B3A6B;color:#1B3A6B;font-weight:600}'
+    + '.nl-act-del{color:#B23A3A;border-color:#E8C0C0}'
+    + '</style>';
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function obrirEditorNewsletter(nl) {
+  var old = document.getElementById('modal-editor-newsletter');
+  if (old) old.remove();
+  var isNew = !nl;
+  nl = nl || {};
+
+  var fmtOpts = '';
+  for (var fi = 0; fi < NL_FORMATS.length; fi++) {
+    fmtOpts += '<option value="' + escapeHtml(NL_FORMATS[fi]) + '"></option>';
+  }
+
+  var v = function(x){ return x == null ? '' : String(x); };
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-editor-newsletter';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(20,30,50,.5);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 16px';
+
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:720px;width:100%;margin:auto">'
+    + '<div style="padding:20px 26px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:2;border-radius:16px 16px 0 0">'
+      + '<div style="font-family:var(--fd);font-size:20px;font-weight:400">' + (isNew ? 'Nou número' : 'Editar número') + '</div>'
+      + '<button onclick="_nlTancarEditor()" style="background:none;border:none;font-size:24px;color:var(--g400);cursor:pointer;line-height:1">&times;</button>'
+    + '</div>'
+    + '<div style="padding:22px 26px;display:flex;flex-direction:column;gap:14px">'
+      + '<input type="hidden" id="nl-id" value="' + v(nl.id) + '">'
+      + '<div style="display:grid;grid-template-columns:90px 1fr;gap:14px">'
+        + '<div><label class="nl-lbl">Núm.</label><input type="number" id="nl-numero" value="' + v(nl.numero) + '" class="nl-inp"></div>'
+        + '<div><label class="nl-lbl">Format (eyebrow)</label><input type="text" id="nl-eyebrow" list="nl-fmt-list" value="' + escapeHtml(v(nl.eyebrow)) + '" placeholder="Ex: El biaix de la setmana" class="nl-inp"><datalist id="nl-fmt-list">' + fmtOpts + '</datalist></div>'
+      + '</div>'
+      + '<div><label class="nl-lbl">Títol *</label><input type="text" id="nl-titol" value="' + escapeHtml(v(nl.titol)) + '" placeholder="Ex: Aversió a la pèrdua" class="nl-inp"></div>'
+      + '<div><label class="nl-lbl">Subtítol</label><input type="text" id="nl-subtitol" value="' + escapeHtml(v(nl.subtitol)) + '" class="nl-inp"></div>'
+      + '<div><label class="nl-lbl">Assumpte de l\'email *</label><input type="text" id="nl-assumpte" value="' + escapeHtml(v(nl.assumpte)) + '" placeholder="El que es veu a la safata d\'entrada" class="nl-inp"></div>'
+      + '<div><label class="nl-lbl">Preheader (text de previsualització)</label><input type="text" id="nl-preheader" value="' + escapeHtml(v(nl.preheader)) + '" class="nl-inp"></div>'
+      + '<div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+          + '<label class="nl-lbl" style="margin:0">HTML de l\'email *</label>'
+          + '<button onclick="carregarPlantillaNewsletter()" style="padding:5px 12px;background:#EEF2F8;border:1px solid #D7DEEA;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:#1B3A6B">Carregar plantilla base</button>'
+        + '</div>'
+        + '<textarea id="nl-html" rows="12" class="nl-inp" style="font-family:var(--fm);font-size:12px;line-height:1.5;resize:vertical" placeholder="Enganxa o escriu aquí l\'HTML. Inclou {{unsubscribe_url}} al peu (la plantilla base ja el porta).">' + escapeHtml(v(nl.html)) + '</textarea>'
+        + '<div style="font-size:11px;color:var(--g400);margin-top:5px">Consell: prem «Carregar plantilla base» i edita-hi el contingut entre les marques. El token {{unsubscribe_url}} se substitueix automàticament en enviar.</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">'
+        + '<button onclick="_nlTancarEditor()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:9px;font-size:13px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel&middot;lar</button>'
+        + '<button onclick="desarNewsletter()" id="nl-save-btn" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Desar</button>'
+      + '</div>'
+    + '</div>'
+  + '</div>'
+  + '<style>.nl-lbl{font-size:11px;color:var(--g500);font-weight:500;display:block;margin-bottom:4px}.nl-inp{width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb);box-sizing:border-box}</style>';
+
+  modal.addEventListener('click', function(e){ if (e.target === modal) _nlTancarEditor(); });
+  document.body.appendChild(modal);
+}
+
+function _nlTancarEditor() {
+  var m = document.getElementById('modal-editor-newsletter');
+  if (m) m.remove();
+}
+
+async function desarNewsletter() {
+  var id        = (document.getElementById('nl-id') || {}).value || '';
+  var numeroRaw = (document.getElementById('nl-numero') || {}).value || '';
+  var eyebrow   = (document.getElementById('nl-eyebrow') || {}).value || '';
+  var titol     = (document.getElementById('nl-titol') || {}).value || '';
+  var subtitol  = (document.getElementById('nl-subtitol') || {}).value || '';
+  var assumpte  = (document.getElementById('nl-assumpte') || {}).value || '';
+  var preheader = (document.getElementById('nl-preheader') || {}).value || '';
+  var htmlBody  = (document.getElementById('nl-html') || {}).value || '';
+
+  if (!titol.trim())    { toast('Posa un títol'); return; }
+  if (!assumpte.trim()) { toast('Posa un assumpte'); return; }
+  if (!htmlBody.trim()) { toast('Falta l\'HTML de l\'email'); return; }
+  if (!sb) { toast('Supabase no disponible'); return; }
+
+  var btn = document.getElementById('nl-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Desant...'; }
+
+  var fields = {
+    numero:    numeroRaw ? parseInt(numeroRaw, 10) : null,
+    eyebrow:   eyebrow.trim() || null,
+    titol:     titol.trim(),
+    subtitol:  subtitol.trim() || null,
+    assumpte:  assumpte.trim(),
+    preheader: preheader.trim() || null,
+    html:      htmlBody
+  };
+
+  try {
+    var res;
+    if (id) {
+      res = await sb.from('newsletters').update(fields).eq('id', id).select();
+    } else {
+      fields.created_by = (APP.user && APP.user.email) || 'admin';
+      res = await sb.from('newsletters').insert(fields).select();
+    }
+    if (res.error) throw res.error;
+    if (!res.data || res.data.length === 0) {
+      throw new Error('No s\'ha desat cap fila (revisa permisos RLS / sessió admin).');
+    }
+    toast('✓ Número desat');
+    _nlTancarEditor();
+    navigateTo('admin-newsletter');
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Desar'; }
+    toast('Error desant: ' + (e.message || e));
+  }
+}
+
+function carregarPlantillaNewsletter() {
+  var ta = document.getElementById('nl-html');
+  if (!ta) return;
+  if (ta.value.trim() && !confirm('Això substituirà el contingut actual de l\'HTML. Continuar?')) return;
+  var numero   = (document.getElementById('nl-numero') || {}).value || '01';
+  var eyebrow  = (document.getElementById('nl-eyebrow') || {}).value || '';
+  var titol    = (document.getElementById('nl-titol') || {}).value || '';
+  var subtitol = (document.getElementById('nl-subtitol') || {}).value || '';
+  ta.value = _nlPlantillaBase(numero, eyebrow, titol, subtitol);
+  toast('Plantilla carregada — edita el contingut entre les marques');
+}
+
+function _nlPlantillaBase(numero, eyebrow, titol, subtitol) {
+  var data = new Date().toLocaleDateString('ca-ES', {day:'numeric', month:'long', year:'numeric'});
+  numero   = numero   || '01';
+  eyebrow  = eyebrow  || 'El biaix de la setmana';
+  titol    = titol    || 'Títol del número';
+  subtitol = subtitol || 'Una frase d&rsquo;entrada que resumeix la idea.';
+  var L = [];
+  L.push('<!DOCTYPE html>');
+  L.push('<html lang="ca"><head><meta charset="utf-8">');
+  L.push('<meta name="viewport" content="width=device-width, initial-scale=1">');
+  L.push('<meta name="x-apple-disable-message-reformatting">');
+  L.push('<title>La píndola setmanal</title>');
+  L.push('<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">');
+  L.push('</head><body style="margin:0;padding:0;background-color:#F2F0EC;">');
+  L.push('<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Edita aquí el text de previsualització de la safata d&rsquo;entrada.</div>');
+  L.push('<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F2F0EC"><tr><td align="center" style="padding:24px 12px;">');
+  L.push('<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">');
+  L.push('<tr><td style="padding:8px 8px 0 8px;"><table role="presentation" width="100%"><tr>');
+  L.push('<td style="font-family:\'Playfair Display\',Georgia,serif;font-size:21px;font-weight:600;color:#1B3A6B">The Boring Investor</td>');
+  L.push('<td align="right" style="font-family:\'DM Mono\',monospace;font-size:10px;color:#8A867F;letter-spacing:.12em;text-transform:uppercase">Núm.&nbsp;' + numero + '&nbsp;·&nbsp;' + data + '</td>');
+  L.push('</tr><tr><td colspan="2" style="padding-top:8px"><div style="height:2px;font-size:2px;line-height:2px;background:#C8A44A">&nbsp;</div></td></tr>');
+  L.push('<tr><td colspan="2" style="padding-top:7px;font-family:\'DM Mono\',monospace;font-size:10px;color:#C8A44A;letter-spacing:.18em;text-transform:uppercase">La píndola setmanal</td></tr>');
+  L.push('</table></td></tr>');
+  L.push('<tr><td style="padding:18px 8px 8px 8px;"><table role="presentation" width="100%" bgcolor="#FFFFFF" style="background:#fff;border:1px solid #E6E2DC;border-radius:14px"><tr><td style="padding:40px 44px;">');
+  L.push('<div style="font-family:\'DM Mono\',monospace;font-size:11px;font-weight:500;color:#A8842A;letter-spacing:.16em;text-transform:uppercase">' + eyebrow + '</div>');
+  L.push('<h1 style="margin:10px 0 0 0;font-family:\'Playfair Display\',Georgia,serif;font-size:40px;font-weight:500;line-height:1.1;color:#10264A;letter-spacing:-.4px">' + titol + '</h1>');
+  L.push('<p style="margin:14px 0 0 0;font-family:\'DM Sans\',Arial,sans-serif;font-size:16px;line-height:1.55;color:#5A554E">' + subtitol + '</p>');
+  L.push('<div style="height:1px;font-size:1px;line-height:1px;background:#EDE9E2;margin:24px 0">&nbsp;</div>');
+  L.push('<!-- ===== EDITA EL COS DEL NUMERO AQUI ===== -->');
+  L.push('<p style="margin:0;font-family:\'DM Sans\',Arial,sans-serif;font-size:16px;line-height:1.72;color:#33312D">Primer paràgraf. Explica la idea amb un exemple concret i proper. Una sola idea per número.</p>');
+  L.push('<p style="margin:16px 0 0 0;font-family:\'DM Sans\',Arial,sans-serif;font-size:16px;line-height:1.72;color:#33312D">Segon paràgraf. Aprofundeix o dona context, sempre amb un to calmat i sense soroll.</p>');
+  L.push('<table role="presentation" width="100%" style="margin:24px 0"><tr><td style="background:#EEF2F8;border-radius:8px;padding:18px 20px">');
+  L.push('<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:#1B3A6B;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px">Idea clau</div>');
+  L.push('<p style="margin:0;font-family:\'DM Sans\',Arial,sans-serif;font-size:15px;line-height:1.7;color:#1B3A6B;font-weight:500">La conclusió accionable, en una o dues frases.</p>');
+  L.push('</td></tr></table>');
+  L.push('<!-- ===== FI DEL COS ===== -->');
+  L.push('<div style="height:1px;font-size:1px;line-height:1px;background:#EDE9E2;margin:30px 0 26px 0">&nbsp;</div>');
+  L.push('<div style="font-family:\'DM Mono\',monospace;font-size:11px;color:#A8842A;letter-spacing:.16em;text-transform:uppercase;text-align:center">El número de la setmana</div>');
+  L.push('<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:54px;font-weight:600;color:#1B3A6B;text-align:center;line-height:1.1;margin:10px 0 6px 0">00</div>');
+  L.push('<p style="margin:0 auto;max-width:430px;font-family:\'DM Sans\',Arial,sans-serif;font-size:14px;line-height:1.65;color:#6B6660;text-align:center">Explica què significa aquesta xifra i per què importa.</p>');
+  L.push('<table role="presentation" width="100%" style="margin:32px 0 4px 0"><tr><td align="center"><table role="presentation"><tr><td bgcolor="#1B3A6B" style="border-radius:9px"><a href="https://theboringinvestor.es/platform.html" style="display:inline-block;padding:15px 30px;font-family:\'DM Sans\',Arial,sans-serif;font-size:14px;font-weight:500;color:#fff;text-decoration:none;border-radius:9px">Aprofundeix a la plataforma&nbsp;&rarr;</a></td></tr></table></td></tr></table>');
+  L.push('</td></tr></table></td></tr>');
+  L.push('<tr><td style="padding:14px 32px 4px 32px"><p style="margin:0;font-family:\'DM Sans\',Arial,sans-serif;font-size:14px;line-height:1.7;color:#4A463F">Una idea, cada setmana. Sense soroll.<br><span style="font-family:\'Playfair Display\',Georgia,serif;font-size:17px;color:#1B3A6B">Guillem Puig</span>&nbsp;·&nbsp;<span style="color:#8A867F">The Boring Investor · Candidat EFA</span></p>');
+  L.push('<p style="margin:8px 0 0 0;font-family:\'DM Mono\',monospace;font-size:11px;color:#8A867F">WhatsApp 629&nbsp;340&nbsp;892&nbsp;·&nbsp;guillem.puig@theboringinvestor.es</p></td></tr>');
+  L.push('<tr><td style="padding:18px 32px 30px 32px"><div style="height:1px;font-size:1px;line-height:1px;background:#DEDAD3;margin-bottom:16px">&nbsp;</div>');
+  L.push('<p style="margin:0;font-family:\'DM Sans\',Arial,sans-serif;font-size:11px;line-height:1.65;color:#9A958E">Aquest contingut té finalitat exclusivament educativa i d&rsquo;anàlisi financera. No constitueix assessorament d&rsquo;inversió personalitzat ni una recomanació de compra o venda. Les xifres i exemples són il&middot;lustratius i no representen rendiments garantits ni projectats.</p>');
+  L.push('<p style="margin:12px 0 0 0;font-family:\'DM Sans\',Arial,sans-serif;font-size:11px;line-height:1.65;color:#9A958E">Reps aquest correu perquè ets client o subscriptor de The Boring Investor. <a href="{{unsubscribe_url}}" style="color:#7A766F;text-decoration:underline">Donar-me de baixa</a> · <a href="https://theboringinvestor.es" style="color:#7A766F;text-decoration:underline">theboringinvestor.es</a></p>');
+  L.push('</td></tr>');
+  L.push('</table></td></tr></table></body></html>');
+  return L.join('\n');
+}
+
+function previsualitzarNewsletter(id) {
+  var nl = (window._nlRows || []).find(function(x){ return x.id === id; });
+  if (!nl) { toast('Número no trobat'); return; }
+  var old = document.getElementById('modal-preview-newsletter');
+  if (old) old.remove();
+  var htmlBody = String(nl.html || '').split('{{unsubscribe_url}}').join('#');
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-preview-newsletter';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(20,30,50,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  modal.innerHTML = '<div style="background:#fff;border-radius:14px;width:100%;max-width:660px;height:86vh;display:flex;flex-direction:column;overflow:hidden">'
+    + '<div style="padding:14px 20px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--black)">Previsualització &middot; ' + escapeHtml(nl.assumpte || nl.titol || '') + '</div>'
+      + '<button onclick="document.getElementById(\'modal-preview-newsletter\').remove()" style="background:none;border:none;font-size:22px;color:var(--g400);cursor:pointer">&times;</button>'
+    + '</div>'
+    + '<iframe id="nl-preview-frame" style="flex:1;border:none;width:100%"></iframe>'
+  + '</div>';
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+  var frame = document.getElementById('nl-preview-frame');
+  if (frame) frame.srcdoc = htmlBody;
+}
+
+async function provaNewsletter(id) {
+  var nl = (window._nlRows || []).find(function(x){ return x.id === id; });
+  if (!nl) { toast('Número no trobat'); return; }
+  var def = (APP.user && APP.user.email) || '';
+  var email = prompt('Enviar una PROVA a quin correu?\n(només a tu; no marca el número com a enviat)', def);
+  if (!email) return;
+  email = email.trim();
+  if (email.indexOf('@') === -1) { toast('Correu no vàlid'); return; }
+  if (!sb || !sb.functions) { toast('Functions no disponible'); return; }
+  toast('Enviant prova...');
+  try {
+    var res = await sb.functions.invoke('enviar-newsletter', { body: { newsletter_id: id, test_email: email } });
+    if (res.error) throw res.error;
+    var d = res.data || {};
+    if (d.enviat) toast('✓ Prova enviada a ' + email);
+    else toast('No enviada: ' + ((d.errors && d.errors[0]) || d.error || d.motiu || 'revisa la config'));
+  } catch(e) {
+    toast('Error: ' + (e.message || e));
+  }
+}
+
+async function enviarNewsletterReal(id) {
+  var nl = (window._nlRows || []).find(function(x){ return x.id === id; });
+  if (!nl) { toast('Número no trobat'); return; }
+  var optIn = 0;
+  try {
+    var resC = await sb.from('clients').select('email').eq('notify_newsletter', true);
+    optIn = (resC.data || []).length;
+  } catch(e) {}
+  var ja = nl.status === 'sent';
+  var msg = 'Enviar «' + (nl.assumpte || nl.titol) + '» a TOTS els ' + optIn + ' clients subscrits?';
+  if (ja) msg = 'Aquest número JA s\'ha enviat. Tornar a enviar-lo a ' + optIn + ' clients?';
+  msg += '\n\nHas fet una prova al teu correu primer?';
+  if (!confirm(msg)) return;
+  if (!sb || !sb.functions) { toast('Functions no disponible'); return; }
+  toast('Enviant a tots els subscrits...');
+  try {
+    var body = { newsletter_id: id };
+    if (ja) body.force = true;
+    var res = await sb.functions.invoke('enviar-newsletter', { body: body });
+    if (res.error) throw res.error;
+    var d = res.data || {};
+    if (d.sent_count > 0) {
+      toast('✓ Enviat a ' + d.sent_count + ' destinataris' + (d.error_count ? ' (' + d.error_count + ' errors)' : ''));
+    } else {
+      toast('No s\'ha enviat: ' + ((d.errors && d.errors[0]) || d.error || d.motiu || 'revisa la config'));
+    }
+    setTimeout(function(){ navigateTo('admin-newsletter'); }, 1500);
+  } catch(e) {
+    toast('Error: ' + (e.message || e));
+  }
+}
+
+async function esborrarNewsletter(id) {
+  if (!confirm('Esborrar aquest número? Aquesta acció no es pot desfer.')) return;
+  if (!sb) { toast('Supabase no disponible'); return; }
+  try {
+    var res = await sb.from('newsletters').delete().eq('id', id);
+    if (res.error) throw res.error;
+    toast('✓ Número esborrat');
+    navigateTo('admin-newsletter');
+  } catch(e) {
+    toast('Error: ' + (e.message || e));
+  }
+}
+
 async function renderAdminEntrevista(el) {
   el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:40px;color:var(--g500)">Carregant...</div></div>';
   if (!sb) { el.innerHTML = '<div class="content-inner"><div class="card">Supabase no disponible</div></div>'; return; }
