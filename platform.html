@@ -3453,6 +3453,7 @@ var CLIENT_NAV = [
   {section:'El meu espai'},
   {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
   {id:'portal-perfil', icon:'📊', label:'Resum'},
+  {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
   {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
   {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-missatges', icon:'💬', label:'Missatges'},
@@ -3461,7 +3462,6 @@ var CLIENT_NAV = [
   {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
   {id:'portal-educacio', icon:'🎓', label:'Educació financera'},
   {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
-  {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
   {section:'Eines i calculadores', collapsible:true},
   {id:'portal-simuladors', icon:'🧮', label:'Simulador'},
   {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
@@ -3600,7 +3600,7 @@ function navigateTo(viewId) {
     'portal-notificacions': APP.role === 'admin' ? ['Portal Client · Notificacions', '👁 Previsualització'] : ['Notificacions', 'Gestiona les alertes per correu electrònic'],
     'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', '👁 Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
     'portal-presentacions': APP.role === 'admin' ? ['Portal Client · Presentacions', '👁 Previsualització'] : ['Presentacions', 'Material visual per a explicacions ràpides'],
-    'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', '👁 Previsualització'] : ['El meu qüestionari', 'Les teves respostes del perfil inversor'],
+    'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', '👁 Previsualització'] : ['El meu qüestionari', 'Perfil de conveniència i idoneïtat · MIFID II'],
     'settings': ['Configuració', 'Gestió del sistema'],
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
@@ -10119,6 +10119,36 @@ function renderPortalQuestionnaire(el) {
   }
   html += '</div>';
 
+  // ── Targeta MIFID II: explicació + accés sempre visible per al client ──
+  if (APP.role !== 'admin') {
+    var _hasQr = !!(qr && qr.items && qr.items.length);
+    var _mifidOnclick = _hasQr ? 'confirmarRetestQuestionnaire()' : 'anarAlQuestionariRetest()';
+    var _mifidBtnLbl = _hasQr ? '🔄 Actualitzar el meu perfil' : '📝 Començar el qüestionari';
+    html += '<div style="background:linear-gradient(135deg,#EBF0FA,#F4F3F0);border:1px solid #1B3A6B22;border-radius:14px;padding:22px 24px;margin-bottom:22px">'
+      + '<div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">'
+        + '<div style="width:40px;height:40px;border-radius:10px;background:#1B3A6B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">📋</div>'
+        + '<div style="flex:1;min-width:240px">'
+          + '<div style="font-size:15px;font-weight:600;color:#1B3A6B;margin-bottom:4px">El teu perfil MIFID II</div>'
+          + '<div style="font-size:12.5px;color:var(--g600);line-height:1.65">Aquest qüestionari determina el teu perfil de <strong>conveniència</strong> i <strong>idoneïtat</strong> segons la normativa MIFID II, per assegurar que les recomanacions s\'ajusten a tu.</div>'
+          + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px">'
+            + '<div style="flex:1;min-width:200px;background:rgba(255,255,255,.6);border-radius:9px;padding:11px 13px">'
+              + '<div style="font-size:11px;font-weight:600;color:#1B3A6B;margin-bottom:3px">Conveniència</div>'
+              + '<div style="font-size:11.5px;color:var(--g600);line-height:1.55">Avalua els teus <strong>coneixements i experiència</strong> en productes financers.</div>'
+            + '</div>'
+            + '<div style="flex:1;min-width:200px;background:rgba(255,255,255,.6);border-radius:9px;padding:11px 13px">'
+              + '<div style="font-size:11px;font-weight:600;color:#1B3A6B;margin-bottom:3px">Idoneïtat</div>'
+              + '<div style="font-size:11.5px;color:var(--g600);line-height:1.55">Hi suma la teva <strong>situació financera</strong> i els teus <strong>objectius</strong> d\'inversió.</div>'
+            + '</div>'
+          + '</div>'
+          + (date ? '<div style="font-size:11px;color:var(--g500);margin-top:12px">✅ Completat el ' + date + '. Pots actualitzar-lo quan la teva situació canviï (ingressos, objectius, horitzó...).</div>' : '<div style="font-size:11px;color:var(--g500);margin-top:12px">Encara no l\'has completat · tarda uns 5-8 minuts.</div>')
+          + '<div style="margin-top:14px">'
+            + '<button onclick="' + _mifidOnclick + '" style="padding:11px 20px;background:#1B3A6B;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">' + _mifidBtnLbl + ' →</button>'
+          + '</div>'
+        + '</div>'
+      + '</div>'
+    + '</div>';
+  }
+
   if (!qr || !qr.items || qr.items.length === 0) {
     // Sense respostes
     html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:14px;padding:48px;text-align:center">'
@@ -10126,7 +10156,7 @@ function renderPortalQuestionnaire(el) {
       + '<div style="font-family:var(--fd);font-size:22px;margin-bottom:8px">Qüestionari pendent</div>'
       + '<div style="font-size:13px;color:var(--g500);margin-bottom:20px">Encara no hi ha respostes guardades per a aquest perfil.</div>'
       + (APP.role === 'client'
-        ? '<a href="client_onboarding_v3.html" target="_blank" style="display:inline-block;padding:11px 24px;background:#0A0A0A;color:#fff;border-radius:9px;font-size:13px;font-weight:500;text-decoration:none">Fer el qüestionari →</a>'
+        ? '<div style="font-size:12px;color:var(--g500)">Utilitza el botó <strong>Començar el qüestionari</strong> de la targeta de dalt per iniciar-lo.</div>'
         : '<div style="font-size:12px;color:var(--g400)">El client no ha completat el qüestionari.</div>')
       + '</div>';
     html += '</div>';
