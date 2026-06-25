@@ -2933,6 +2933,8 @@ function normalizeClient(raw) {
     // ── Permet re-fer el qüestionari (activat per admin) ──
     allow_retest: raw.allow_retest || false,
     fullderuta: raw.fullderuta || {},
+    fullderuta_versions: Array.isArray(raw.fullderuta_versions) ? raw.fullderuta_versions : [],
+    perfil_assessor: raw.perfil_assessor || {},
   };
 }
 
@@ -3430,6 +3432,7 @@ var ADMIN_NAV = [
   {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
   {section:'Portal Client \u00b7 Preview'},
   {id:'portal-perfil',     icon:'📊', label:'Resum'},
+  {id:'portal-fitxa',      icon:'🗂️', label:'Fitxa del client'},
   {id:'portal-roadmap',    icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-cartera',    icon:'💼', label:'La meva cartera'},
   {id:'portal-aportacions',icon:'📅', label:"Pla d'aportacions"},
@@ -3454,6 +3457,7 @@ var CLIENT_NAV = [
   {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
   {id:'portal-perfil', icon:'📊', label:'Resum'},
   {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
+  {id:'portal-fitxa', icon:'🗂️', label:'La meva fitxa'},
   {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
   {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-missatges', icon:'💬', label:'Missatges'},
@@ -3601,6 +3605,7 @@ function navigateTo(viewId) {
     'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', '👁 Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
     'portal-presentacions': APP.role === 'admin' ? ['Portal Client · Presentacions', '👁 Previsualització'] : ['Presentacions', 'Material visual per a explicacions ràpides'],
     'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', '👁 Previsualització'] : ['El meu qüestionari', 'Perfil de conveniència i idoneïtat · MIFID II'],
+    'portal-fitxa': APP.role === 'admin' ? ['Fitxa del client', '👁 Previsualització'] : ['La meva fitxa', 'Informació per personalitzar el teu assessorament'],
     'settings': ['Configuració', 'Gestió del sistema'],
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
@@ -3708,6 +3713,7 @@ function renderView(viewId) {
     case 'portal-notificacions': renderPortalNotificacions(content); break;
     case 'portal-ajuda': renderPortalAjuda(content); break;
     case 'portal-questionnaire': renderPortalQuestionnaire(content); break;
+    case 'portal-fitxa': renderPortalFitxa(content); break;
     case 'settings': renderSettings(content); break;
     default: content.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:60px;color:var(--g400)">Vista no disponible</div></div>';
   }
@@ -5172,6 +5178,8 @@ function _renderPortalPerfilImpl(el) {
     + '<div class="portal-hello-sub">El teu perfil inversor actualitzat a ' + dataAvui + '</div>'
   + '</div>';
 
+  html += fitxaAlertBanner();
+
   // ── PRIMERS PASSOS (onboarding del client nou) ──
   // Detecció automàtica de progrés; descartable; desapareix quan tot és fet.
   html += _renderPrimersPassos(c);
@@ -5770,6 +5778,259 @@ function obrirAjudaContextual(viewId) {
 // Pantalla de configuració d'alertes per correu. De moment només
 // captura preferències a la BD (camps notification_email, notify_*).
 // L'enviament real s'activarà més endavant amb Edge Functions + Resend.
+// ════════════════════════════════════════════════════════════════════════
+// FITXA D'ASSESSORAMENT (perfil_assessor) — l'omplen assessor i client
+// ════════════════════════════════════════════════════════════════════════
+var _FX_IST = 'width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb);box-sizing:border-box';
+
+var FITXA_SCHEMA = [
+  { id:'personal', titol:'Dades personals i familiars', icon:'👤', camps:[
+    { k:'data_naixement', label:'Data de naixement', type:'date' },
+    { k:'situacio_familiar', label:'Situació familiar', type:'select', opts:['—','Solter/a','En parella','Casat/da','Separat/da','Vidu/a'] },
+    { k:'dependents', label:'Persones a càrrec', type:'number' },
+    { k:'situacio_laboral', label:'Situació laboral', type:'select', opts:['—','Compte aliè','Autònom','Funcionari','Empresari','Jubilat/da','Aturat/da','Estudiant'] },
+    { k:'estabilitat_laboral', label:'Estabilitat dels ingressos', type:'select', opts:['—','Molt estable','Estable','Variable','Incerta'] },
+    { k:'ccaa', label:'Comunitat autònoma (residència fiscal)', type:'select', opts:['—','Andalusia','Aragó','Astúries','Balears','Canàries','Cantàbria','Castella i Lleó','Castella-la Manxa','Catalunya','Extremadura','Galícia','La Rioja','Madrid','Múrcia','Navarra','País Basc','C. Valenciana','Ceuta','Melilla'] },
+  ]},
+  { id:'capacitat', titol:'Capacitat financera', icon:'💶', camps:[
+    { k:'ingressos_mensuals', label:'Ingressos nets mensuals', type:'money' },
+    { k:'despeses_mensuals', label:'Despeses mensuals', type:'money' },
+    { k:'estalvi_mensual', label:'Estalvi mensual', type:'money' },
+    { k:'patrimoni_liquid', label:'Patrimoni líquid', type:'money' },
+    { k:'patrimoni_illiquid', label:'Patrimoni il·líquid (immobles, negoci...)', type:'money' },
+    { k:'deute_hipoteca', label:'Deute hipotecari pendent', type:'money' },
+    { k:'deute_hipoteca_tipus', label:'Tipus hipoteca', type:'select', opts:['—','Fix','Variable','Mixt'] },
+    { k:'deute_altres', label:'Altres deutes', type:'money' },
+    { k:'mesos_coixi', label:'Mesos de coixí d\'emergència', type:'number' },
+  ]},
+  { id:'fiscalitat', titol:'Fiscalitat', icon:'🧾', camps:[
+    { k:'tram_irpf', label:'Tram marginal d\'IRPF aprox.', type:'select', opts:['—','19%','24%','30%','37%','45%','47%'] },
+    { k:'productes_fiscals', label:'Productes amb avantatge fiscal ja usats', type:'textarea' },
+    { k:'plusvalues_pendents', label:'Plusvàlues/minusvàlues pendents de compensar', type:'textarea' },
+  ]},
+  { id:'assegurances', titol:'Assegurances i previsió', icon:'🛡️', camps:[
+    { k:'vida', label:'Assegurança de vida', type:'select', opts:['—','Sí','No'] },
+    { k:'llar', label:'Assegurança de la llar', type:'select', opts:['—','Sí','No'] },
+    { k:'salut', label:'Assegurança de salut', type:'select', opts:['—','Sí','No'] },
+    { k:'pla_pensions_empresa', label:'Pla de pensions d\'empresa', type:'select', opts:['—','Sí','No'] },
+  ]},
+  { id:'comportament', titol:'Comportament i preferències', icon:'🧠', camps:[
+    { k:'reaccio_caigudes', label:'Com vas reaccionar a caigudes de mercat passades?', type:'textarea' },
+    { k:'esg', label:'Inversió sostenible (ESG)', type:'select', opts:['—','Sí, important','Indiferent','No'] },
+    { k:'sectors_evitar', label:'Sectors o actius a evitar', type:'text' },
+    { k:'restriccions_liquiditat', label:'Necessitats de liquiditat o restriccions', type:'textarea' },
+  ]},
+  { id:'esdeveniments', titol:'Esdeveniments vitals previstos', icon:'📆', camps:[
+    { k:'previstos', label:'Canvis previsibles (feina, herència, fills, jubilació, compra...)', type:'textarea' },
+  ]},
+];
+
+function _fitxaCampHtml(secId, camp, perfil){
+  var v = ((perfil[secId]||{})[camp.k]); v = (v==null)?'':v;
+  var id = 'fx-'+secId+'-'+camp.k;
+  var ctrl;
+  if (camp.type==='select'){
+    var opts = (camp.opts||[]).map(function(o){ return '<option value="'+escapeHtml(o)+'"'+(String(v)===String(o)?' selected':'')+'>'+escapeHtml(o)+'</option>'; }).join('');
+    ctrl = '<select id="'+id+'" style="'+_FX_IST+'">'+opts+'</select>';
+  } else if (camp.type==='textarea'){
+    ctrl = '<textarea id="'+id+'" style="'+_FX_IST+';min-height:58px;resize:vertical;font-size:12px;line-height:1.5">'+escapeHtml(v)+'</textarea>';
+  } else if (camp.type==='money'){
+    ctrl = '<div style="position:relative"><input id="'+id+'" type="number" value="'+escapeHtml(v)+'" style="'+_FX_IST+';padding-right:26px;text-align:right;font-family:var(--fm)"><span style="position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--g400)">€</span></div>';
+  } else {
+    var t = camp.type==='number'?'number':(camp.type==='date'?'date':'text');
+    ctrl = '<input id="'+id+'" type="'+t+'" value="'+escapeHtml(v)+'" style="'+_FX_IST+(camp.type==='number'?';text-align:right;font-family:var(--fm)':'')+'">';
+  }
+  return inputGroup(camp.label, ctrl);
+}
+
+// ── Objectius (llista repetible) ──
+function _fitxaObjRowHtml(o){
+  o=o||{}; var s='padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fb);box-sizing:border-box';
+  return '<div class="fx-obj-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:7px">'
+    + '<input class="fx-obj-nom" value="'+escapeHtml(o.nom||'')+'" placeholder="Objectiu (ex: jubilació)" style="'+s+';flex:2 1 150px">'
+    + '<input class="fx-obj-imp" type="number" value="'+escapeHtml(o.imp||'')+'" placeholder="Import €" style="'+s+';flex:1 1 90px;text-align:right;font-family:var(--fm)">'
+    + '<input class="fx-obj-horitzo" type="number" value="'+escapeHtml(o.horitzo||'')+'" placeholder="Anys" style="'+s+';flex:1 1 60px;text-align:right;font-family:var(--fm)">'
+    + '<select class="fx-obj-prioritat" style="'+s+';flex:1 1 95px">'
+      + ['Alta','Mitjana','Baixa'].map(function(p){ return '<option'+((o.prioritat||'Mitjana')===p?' selected':'')+'>'+p+'</option>'; }).join('')
+    + '</select>'
+    + '<button type="button" onclick="this.closest(\'.fx-obj-row\').remove()" style="padding:7px 9px;background:transparent;border:1px solid var(--g200);border-radius:7px;font-size:12px;cursor:pointer;color:var(--g500)">✕</button>'
+  + '</div>';
+}
+function _fitxaAfegirObj(){ var c=document.getElementById('fx-objectius'); if(!c)return; var w=document.createElement('div'); w.innerHTML=_fitxaObjRowHtml({}); if(w.firstElementChild)c.appendChild(w.firstElementChild); }
+function _fitxaLlegirObjectius(){
+  var rows=document.querySelectorAll('#fx-objectius .fx-obj-row'); var out=[];
+  for(var i=0;i<rows.length;i++){
+    var nom=((rows[i].querySelector('.fx-obj-nom')||{}).value||'').trim(); if(!nom)continue;
+    out.push({ nom:nom, imp:(rows[i].querySelector('.fx-obj-imp')||{}).value||'', horitzo:(rows[i].querySelector('.fx-obj-horitzo')||{}).value||'', prioritat:(rows[i].querySelector('.fx-obj-prioritat')||{}).value||'Mitjana' });
+  }
+  return out;
+}
+
+// ── Productes/comptes actuals (llista repetible) ──
+function _fitxaProdRowHtml(p){
+  p=p||{}; var s='padding:8px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fb);box-sizing:border-box';
+  return '<div class="fx-prod-row" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:7px">'
+    + '<input class="fx-prod-nom" value="'+escapeHtml(p.nom||'')+'" placeholder="Producte/compte" style="'+s+';flex:2 1 140px">'
+    + '<input class="fx-prod-entitat" value="'+escapeHtml(p.entitat||'')+'" placeholder="Entitat" style="'+s+';flex:1 1 110px">'
+    + '<input class="fx-prod-imp" type="number" value="'+escapeHtml(p.imp||'')+'" placeholder="Import €" style="'+s+';flex:1 1 90px;text-align:right;font-family:var(--fm)">'
+    + '<input class="fx-prod-comissio" value="'+escapeHtml(p.comissio||'')+'" placeholder="Comissió %" style="'+s+';flex:1 1 90px">'
+    + '<button type="button" onclick="this.closest(\'.fx-prod-row\').remove()" style="padding:7px 9px;background:transparent;border:1px solid var(--g200);border-radius:7px;font-size:12px;cursor:pointer;color:var(--g500)">✕</button>'
+  + '</div>';
+}
+function _fitxaAfegirProd(){ var c=document.getElementById('fx-productes'); if(!c)return; var w=document.createElement('div'); w.innerHTML=_fitxaProdRowHtml({}); if(w.firstElementChild)c.appendChild(w.firstElementChild); }
+function _fitxaLlegirProductes(){
+  var rows=document.querySelectorAll('#fx-productes .fx-prod-row'); var out=[];
+  for(var i=0;i<rows.length;i++){
+    var nom=((rows[i].querySelector('.fx-prod-nom')||{}).value||'').trim(); if(!nom)continue;
+    out.push({ nom:nom, entitat:(rows[i].querySelector('.fx-prod-entitat')||{}).value||'', imp:(rows[i].querySelector('.fx-prod-imp')||{}).value||'', comissio:(rows[i].querySelector('.fx-prod-comissio')||{}).value||'' });
+  }
+  return out;
+}
+
+function calcFitxaCompleteness(perfil){
+  perfil = perfil || {};
+  var total=0, fet=0;
+  FITXA_SCHEMA.forEach(function(sec){
+    sec.camps.forEach(function(camp){
+      total++;
+      var v=(perfil[sec.id]||{})[camp.k];
+      if (v!=null && String(v).trim()!=='' && String(v).trim()!=='—') fet++;
+    });
+  });
+  total += 2;
+  if (Array.isArray(perfil.objectius) && perfil.objectius.length) fet++;
+  if (Array.isArray(perfil.productes) && perfil.productes.length) fet++;
+  return total ? Math.round(fet/total*100) : 0;
+}
+
+function _fitxaLlegir(){
+  var perfil = {};
+  FITXA_SCHEMA.forEach(function(sec){
+    perfil[sec.id] = {};
+    sec.camps.forEach(function(camp){
+      var elc = document.getElementById('fx-'+sec.id+'-'+camp.k);
+      if (!elc) return;
+      var v = elc.value;
+      perfil[sec.id][camp.k] = (typeof v==='string') ? v.trim() : v;
+    });
+  });
+  perfil.objectius = _fitxaLlegirObjectius();
+  perfil.productes = _fitxaLlegirProductes();
+  var prev = (getClient() && getClient().perfil_assessor) || {};
+  perfil._meta = Object.assign({}, prev._meta||{}, { updated_at:new Date().toISOString(), updated_by: APP.role==='admin'?'assessor':'client' });
+  if (prev.recordatori) perfil.recordatori = prev.recordatori;
+  return perfil;
+}
+
+async function guardarFitxa(){
+  var email = getClientEmail();
+  if (!email){ toast('Cal iniciar sessió'); return; }
+  var perfil = _fitxaLlegir();
+  var comp = calcFitxaCompleteness(perfil);
+  if (perfil.recordatori && APP.role!=='admin' && comp>=70) delete perfil.recordatori;
+  if (APP.clientData && APP.clientData.email && APP.clientData.email.toLowerCase()===email) APP.clientData.perfil_assessor = perfil;
+  var ok = true;
+  if (sb){
+    try { var r = await sb.from('clients').update({ perfil_assessor: perfil }).eq('email', email); if (r.error) throw r.error; }
+    catch(e){ ok=false; console.warn('guardarFitxa (núvol):', e && e.message); }
+  }
+  toast(ok ? '✓ Fitxa desada' : '✓ Desada localment');
+  renderView('portal-fitxa');
+}
+
+async function fitxaDemanarRecordatori(){
+  var email = getClientEmail();
+  if (!email) return;
+  var perfil = (APP.clientData && APP.clientData.perfil_assessor) || {};
+  perfil = Object.assign({}, perfil, { recordatori:{ ts:new Date().toISOString() } });
+  if (APP.clientData) APP.clientData.perfil_assessor = perfil;
+  if (sb){
+    try { var r = await sb.from('clients').update({ perfil_assessor: perfil }).eq('email', email); if (r.error) throw r.error; }
+    catch(e){ console.warn('fitxaDemanarRecordatori:', e && e.message); }
+  }
+  toast('🔔 Recordatori activat: el client veurà l\'avís al seu portal');
+  renderView('portal-fitxa');
+}
+
+// Bàner d'avís al portal del client quan la fitxa està incompleta
+function fitxaAlertBanner(){
+  if (APP.role==='admin') return '';
+  var c = getClient(); if (!c) return '';
+  var perfil = c.perfil_assessor || {};
+  var comp = calcFitxaCompleteness(perfil);
+  var explicit = !!perfil.recordatori;
+  if (comp>=70 && !explicit) return '';
+  var msg = explicit
+    ? 'El teu assessor t\'ha demanat que completis la teva fitxa per personalitzar millor les recomanacions.'
+    : 'Completa la teva fitxa perquè el teu assessor pugui personalitzar millor l\'assessorament ('+comp+'% feta).';
+  return '<div onclick="navigateTo(\'portal-fitxa\')" style="cursor:pointer;background:linear-gradient(135deg,#EBF0FA,#F4F3F0);border:1px solid #1B3A6B33;border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px">'
+    + '<div style="font-size:22px">🗂️</div>'
+    + '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#1B3A6B;margin-bottom:2px">La teva fitxa d\'assessorament</div>'
+      + '<div style="font-size:12px;color:var(--g600);line-height:1.5">'+msg+'</div></div>'
+    + '<div style="font-size:12px;color:#1B3A6B;font-weight:600;white-space:nowrap">Completar &rarr;</div>'
+  + '</div>';
+}
+
+function renderPortalFitxa(el){
+  var c = getClient();
+  if (!c){ el.innerHTML='<div class="content-inner"><div style="padding:60px;text-align:center;color:var(--g400);font-size:13px">Carregant la fitxa...</div></div>'; return; }
+  var perfil = c.perfil_assessor || {};
+  var comp = calcFitxaCompleteness(perfil);
+  var esAdmin = APP.role==='admin';
+  var compColor = comp>=70?'#1A5C3A':comp>=40?'#C8902A':'#C0392B';
+  var meta = perfil._meta || {};
+
+  var html = '<div class="content-inner fade-in" style="max-width:920px;margin:0 auto">';
+  html += '<div style="margin-bottom:18px">'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px">'+(esAdmin?'Fitxa del client':'La meva fitxa d\'assessorament')+'</div>'
+    + '<div style="font-size:13px;color:var(--g500);line-height:1.6">'+(esAdmin
+        ? 'Informació per personalitzar l\'assessorament de '+escapeHtml(c.nom||'')+'. La pots completar tu o el client.'
+        : 'Com més completa, més personalitzat serà l\'assessorament. Pots desar i continuar més tard.')+'</div>'
+  + '</div>';
+
+  html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:16px 20px;margin-bottom:18px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+      + '<div style="font-size:12px;font-weight:600;color:var(--g600)">Completesa de la fitxa</div>'
+      + '<div style="font-family:var(--fm);font-size:14px;font-weight:600;color:'+compColor+'">'+comp+'%</div>'
+    + '</div>'
+    + '<div style="height:8px;background:var(--g100);border-radius:99px;overflow:hidden"><div style="height:100%;width:'+comp+'%;background:'+compColor+';border-radius:99px;transition:width .3s"></div></div>'
+    + (meta.updated_at?'<div style="font-size:10px;color:var(--g400);margin-top:8px">Última actualització: '+new Date(meta.updated_at).toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'})+(meta.updated_by?' · '+(meta.updated_by==='assessor'?'assessor':'client'):'')+'</div>':'')
+    + (esAdmin?'<div style="margin-top:12px"><button onclick="fitxaDemanarRecordatori()" style="padding:8px 14px;background:#FEF5E7;border:1px solid #E8C285;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:#7A4A00">🔔 Demanar al client que la completi</button>'
+        + (perfil.recordatori?'<span style="font-size:11px;color:var(--g500);margin-left:10px">Recordatori actiu</span>':'')+'</div>':'')
+  + '</div>';
+
+  FITXA_SCHEMA.forEach(function(sec){
+    html += '<div class="card" style="margin-bottom:16px">'
+      + '<div class="card-title" style="margin-bottom:14px">'+sec.icon+' '+sec.titol+'</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">';
+    sec.camps.forEach(function(camp){ html += _fitxaCampHtml(sec.id, camp, perfil); });
+    html += '</div></div>';
+  });
+
+  var objs = Array.isArray(perfil.objectius)?perfil.objectius:[];
+  html += '<div class="card" style="margin-bottom:16px">'
+    + '<div class="card-title" style="margin-bottom:6px">🎯 Objectius financers</div>'
+    + '<div style="font-size:11px;color:var(--g500);margin-bottom:12px">Cada objectiu amb import i horitzó (anys).</div>'
+    + '<div id="fx-objectius">'+(objs.length?objs.map(function(o){return _fitxaObjRowHtml(o);}).join(''):_fitxaObjRowHtml({}))+'</div>'
+    + '<button type="button" onclick="_fitxaAfegirObj()" style="margin-top:6px;padding:6px 12px;background:var(--g50);border:1px dashed var(--g300);border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">+ Afegir objectiu</button>'
+  + '</div>';
+
+  var prods = Array.isArray(perfil.productes)?perfil.productes:[];
+  html += '<div class="card" style="margin-bottom:16px">'
+    + '<div class="card-title" style="margin-bottom:6px">🏦 Productes i comptes actuals</div>'
+    + '<div style="font-size:11px;color:var(--g500);margin-bottom:12px">On tens els diners i quines comissions pagues.</div>'
+    + '<div id="fx-productes">'+(prods.length?prods.map(function(p){return _fitxaProdRowHtml(p);}).join(''):_fitxaProdRowHtml({}))+'</div>'
+    + '<button type="button" onclick="_fitxaAfegirProd()" style="margin-top:6px;padding:6px 12px;background:var(--g50);border:1px dashed var(--g300);border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">+ Afegir producte</button>'
+  + '</div>';
+
+  html += '<div style="display:flex;justify-content:flex-end;gap:10px;margin:8px 0 24px">'
+    + '<button onclick="guardarFitxa()" style="padding:12px 26px;background:#1A5C3A;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--fb)">✓ Desar fitxa</button>'
+  + '</div>';
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
 function renderPortalNotificacions(el) {
   var c = APP.clientData || {};
   var loginEmail = (APP.user && APP.user.email) || c.email || '';
@@ -6272,6 +6533,7 @@ function editarReunioAdmin(email, reunioId) {
   var optsTipus = Object.keys(REUNIO_TIPUS).map(function(k){ return '<option value="'+k+'"'+(k===reunio.tipus?' selected':'')+'>'+REUNIO_TIPUS[k].lbl+'</option>'; }).join('');
   var optsEstat = Object.keys(REUNIO_ESTAT).map(function(k){ return '<option value="'+k+'"'+(k===reunio.estat?' selected':'')+'>'+REUNIO_ESTAT[k].lbl+'</option>'; }).join('');
   var optsLloc = Object.keys(REUNIO_LLOC).map(function(k){ return '<option value="'+k+'"'+(k===reunio.lloc?' selected':'')+'>'+REUNIO_LLOC[k]+'</option>'; }).join('');
+  var passosRowsHtml = (Array.isArray(reunio.seguents_passos)?reunio.seguents_passos:[]).map(function(p){ return _reuPasRowHtml(p.text||'', p.qui||'client', !!p.fet); }).join('');
 
   inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:6px">Editar reuni\u00f3</div>'
     + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px">'+clientObj.nom+' · '+email+'</div>'
@@ -6287,6 +6549,12 @@ function editarReunioAdmin(email, reunioId) {
       + '</div>'
       + inputGroup('Lloc', '<select id="er-lloc" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)">'+optsLloc+'</select>')
       + inputGroup('Notes', '<textarea id="er-notes" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb);min-height:72px;resize:vertical;line-height:1.5">'+( reunio.notes||'')+'</textarea>')
+      + inputGroup('Resum de la reunió', '<textarea id="er-resum" placeholder="Què s\'ha parlat i decidit (visible per al client)" style="width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;font-family:var(--fb);min-height:80px;resize:vertical;line-height:1.55">'+(reunio.resum||'')+'</textarea>')
+      + '<div>'
+        + '<div style="font-size:11px;font-weight:600;color:var(--g500);margin-bottom:6px;letter-spacing:.04em">SEGÜENTS PASSOS</div>'
+        + '<div id="er-passos" style="display:flex;flex-direction:column;gap:8px">'+passosRowsHtml+'</div>'
+        + '<button type="button" onclick="_reuAfegirPasRow()" style="margin-top:8px;padding:6px 12px;background:var(--g50);border:1px dashed var(--g300);border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">+ Afegir pas</button>'
+      + '</div>'
     + '</div>'
     + '<div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end">'
       + '<button onclick="document.getElementById(\'modal-editar-reunio\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel\u00b7lar</button>'
@@ -6312,6 +6580,8 @@ async function desarEditorReunio(email, reunioId) {
     estat: document.getElementById('er-estat').value,
     lloc:  document.getElementById('er-lloc').value,
     notes: document.getElementById('er-notes').value.trim(),
+    resum: (document.getElementById('er-resum') && document.getElementById('er-resum').value.trim()) || '',
+    seguents_passos: _reuLlegirPassos(),
   });
   clientObj.reunions = reunions;
   if (APP.clientData && APP.clientData.email===email) APP.clientData.reunions = reunions;
@@ -6343,6 +6613,90 @@ async function esborrarReunioAdmin(email, reunioId) {
   renderView('admin-calendari');
 }
 
+// ── Punt 5: seguiment de reunions (resum + següents passos) ──────────────
+function _reuEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Una fila de l'editor de passos (modal admin)
+function _reuPasRowHtml(text, qui, fet){
+  var v = _reuEsc(text);
+  return '<div class="er-pas-row" style="display:flex;gap:6px;align-items:center">'
+    + '<input type="checkbox" class="er-pas-fet"'+(fet?' checked':'')+' title="Fet" style="width:15px;height:15px;cursor:pointer;flex-shrink:0">'
+    + '<input type="text" class="er-pas-text" value="'+v+'" placeholder="Descripció del pas" style="flex:1;padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fb)">'
+    + '<select class="er-pas-qui" style="padding:7px 8px;border:1.5px solid var(--g200);border-radius:7px;font-size:11px;font-family:var(--fb)">'
+      + '<option value="client"'+(qui==='client'?' selected':'')+'>Client</option>'
+      + '<option value="assessor"'+(qui!=='client'?' selected':'')+'>Assessor</option>'
+    + '</select>'
+    + '<button type="button" onclick="this.closest(\'.er-pas-row\').remove()" title="Treure" style="padding:6px 9px;background:transparent;border:1px solid var(--g200);border-radius:7px;font-size:12px;cursor:pointer;color:var(--g500)">✕</button>'
+  + '</div>';
+}
+
+function _reuAfegirPasRow(){
+  var cont = document.getElementById('er-passos');
+  if (!cont) return;
+  var wrap = document.createElement('div');
+  wrap.innerHTML = _reuPasRowHtml('', 'client', false);
+  if (wrap.firstElementChild) cont.appendChild(wrap.firstElementChild);
+}
+
+function _reuLlegirPassos(){
+  var rows = document.querySelectorAll('#er-passos .er-pas-row');
+  var out = [];
+  for (var i=0;i<rows.length;i++){
+    var ti = rows[i].querySelector('.er-pas-text');
+    var txt = ti && ti.value ? ti.value.trim() : '';
+    if (!txt) continue;
+    var qs = rows[i].querySelector('.er-pas-qui');
+    var fs = rows[i].querySelector('.er-pas-fet');
+    out.push({ text: txt, qui: (qs && qs.value)||'client', fet: !!(fs && fs.checked) });
+  }
+  return out;
+}
+
+// Render dels següents passos a la vista de client
+function _reuPassosClientHtml(r){
+  var passos = Array.isArray(r.seguents_passos) ? r.seguents_passos : [];
+  if (!passos.length) return '';
+  var h = '<div style="margin-top:8px">'
+    + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Següents passos</div>';
+  passos.forEach(function(p, i){
+    var done = !!(p && p.fet);
+    if (p && p.qui==='client'){
+      h += '<label style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;cursor:pointer">'
+        + '<input type="checkbox"'+(done?' checked':'')+' onchange="_reuClientToggle(\''+r.id+'\','+i+',this.checked)" style="margin-top:2px;width:14px;height:14px;cursor:pointer;flex-shrink:0">'
+        + '<span style="font-size:12px;line-height:1.5;color:'+(done?'var(--g400)':'var(--g700)')+';'+(done?'text-decoration:line-through':'')+'">'+_reuEsc(p.text)+' <span style="font-size:9px;color:var(--g400)">· tu</span></span>'
+      + '</label>';
+    } else {
+      h += '<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0">'
+        + '<span style="margin-top:1px;font-size:12px;flex-shrink:0">'+(done?'✓':'○')+'</span>'
+        + '<span style="font-size:12px;line-height:1.5;color:var(--g500)">'+_reuEsc(p.text)+' <span style="font-size:9px;color:var(--g400)">· assessor</span></span>'
+      + '</div>';
+    }
+  });
+  h += '</div>';
+  return h;
+}
+
+// El client marca un pas seu com a fet/pendent (persistit a la seva pròpia fila)
+async function _reuClientToggle(reunioId, idx, checked){
+  var c = getClient();
+  if (!c) return;
+  var reunions = Array.isArray(c.reunions) ? c.reunions.slice() : [];
+  var rIdx = reunions.findIndex(function(r){ return r.id===reunioId; });
+  if (rIdx<0) return;
+  var passos = Array.isArray(reunions[rIdx].seguents_passos) ? reunions[rIdx].seguents_passos.slice() : [];
+  if (!passos[idx]) return;
+  passos[idx] = Object.assign({}, passos[idx], { fet: !!checked });
+  reunions[rIdx] = Object.assign({}, reunions[rIdx], { seguents_passos: passos });
+  c.reunions = reunions;
+  if (APP.clientData && APP.clientData.email===c.email) APP.clientData.reunions = reunions;
+  _reuSetLocal(c.email, reunions);
+  if (sb && c.email){
+    try { var rr = await sb.from('clients').update({ reunions: reunions }).eq('email', c.email.toLowerCase()); if (rr.error) throw rr.error; }
+    catch(e){ console.warn('_reuClientToggle (núvol):', e && e.message); }
+  }
+  renderView('portal-calendari');
+}
+
 // ── VISTA CLIENT: les seves reunions ─────────────────────────────────────
 function renderPortalCalendari(el) {
   var c = getClient();
@@ -6366,6 +6720,26 @@ function renderPortalCalendari(el) {
       + '<a href="https://wa.me/'+WHATSAPP_NUM+'?text=Hola%20Guillem,%20voldria%20programar%20una%20reuni%C3%B3." target="_blank" style="padding:9px 14px;background:#25D366;color:#fff;border-radius:8px;font-size:12px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:6px">💬 WhatsApp</a>'
     + '</div>'
   + '</div>';
+
+  // ── Següents passos pendents del client (agregats de totes les reunions) ──
+  var _passosPend = [];
+  reunions.forEach(function(r){
+    (Array.isArray(r.seguents_passos)?r.seguents_passos:[]).forEach(function(p, i){
+      if (p && p.qui==='client' && !p.fet) _passosPend.push({ rid:r.id, idx:i, text:p.text, data:r.data });
+    });
+  });
+  if (_passosPend.length){
+    html += '<div style="background:linear-gradient(135deg,#FEF5E7,#F4ECE0);border:1px solid #E8C285;border-radius:13px;padding:18px 22px;margin-bottom:20px">'
+      + '<div style="font-size:13px;font-weight:600;color:#7A4A00;margin-bottom:4px">📌 Els teus següents passos pendents ('+_passosPend.length+')</div>'
+      + '<div style="font-size:11px;color:#9A6B1F;margin-bottom:8px">Marca\'ls a mesura que els completis. El teu assessor ho veurà.</div>';
+    _passosPend.forEach(function(p){
+      html += '<label style="display:flex;align-items:flex-start;gap:9px;padding:6px 0;cursor:pointer">'
+        + '<input type="checkbox" onchange="_reuClientToggle(\''+p.rid+'\','+p.idx+',this.checked)" style="margin-top:2px;width:15px;height:15px;cursor:pointer;flex-shrink:0">'
+        + '<span style="font-size:12.5px;color:#5A4A2A;line-height:1.5">'+_reuEsc(p.text)+'</span>'
+      + '</label>';
+    });
+    html += '</div>';
+  }
 
   // Properes reunions
   if (properes.length === 0) {
@@ -6409,13 +6783,15 @@ function renderPortalCalendari(el) {
     passades.slice(0,5).forEach(function(r){
       var t = REUNIO_TIPUS[r.tipus]||REUNIO_TIPUS.consulta;
       var e = REUNIO_ESTAT[r.estat]||REUNIO_ESTAT.completada;
-      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:11px;padding:14px 18px;margin-bottom:8px;opacity:.75">'
+      html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:11px;padding:14px 18px;margin-bottom:8px">'
         + '<div style="display:flex;align-items:center;gap:12px">'
           + '<div style="font-family:var(--fm);font-size:12px;color:var(--g500);min-width:80px">'+r.data+'</div>'
           + '<div style="flex:1"><span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;background:'+t.bg+';color:'+t.color+'">'+t.lbl+'</span></div>'
           + '<span style="font-size:9px;color:var(--g400)">'+r.hora+(r.durada?' · '+r.durada+'min':'')+'</span>'
         + '</div>'
         + (r.notes?'<div style="font-size:11px;color:var(--g500);margin-top:6px;padding-left:92px">'+r.notes+'</div>':'')
+        + (r.resum?'<div style="font-size:12px;color:var(--g600);margin-top:8px;padding:10px 12px;background:var(--g50);border-radius:7px;line-height:1.6"><strong style="color:var(--g700)">Resum:</strong> '+_reuEsc(r.resum)+'</div>':'')
+        + _reuPassosClientHtml(r)
       + '</div>';
     });
   }
@@ -7002,8 +7378,16 @@ async function guardarTargetAdmin(emailParam) {
   var total = actius.reduce(function(s,a){ return s+(parseFloat(a.pct)||0); }, 0);
   if (Math.abs(total-100) > 1) { toast('⚠️ Els pesos han de sumar 100% (ara: '+total.toFixed(0)+'%)'); return; }
   try {
+    var _cliMem = (APP.clientData && APP.clientData.email === email) ? APP.clientData
+                : (APP.clientsList||[]).find(function(x){ return x.email===email; });
+    var _payload = { cartera_target_custom: actius };
+    // Punt 3: desar també el full de ruta en memòria (si en té) per no perdre
+    // notes/objectius no desats en canviar la cartera target.
+    if (_cliMem && _cliMem.fullderuta && typeof _cliMem.fullderuta==='object' && Object.keys(_cliMem.fullderuta).length > 0) {
+      _payload.fullderuta = _cliMem.fullderuta;
+    }
     if (sb) {
-      await sb.from('clients').update({ cartera_target_custom: actius }).eq('email', email.toLowerCase());
+      await sb.from('clients').update(_payload).eq('email', email.toLowerCase());
     }
     var c = (APP.clientsList||[]).find(function(x){ return x.email===email; });
     if (c) c.cartera_target_custom = actius;
@@ -11030,6 +11414,125 @@ function _frRerenderKeepEditors(targetObert) {
 /* ════════════════════════════════════════════════════════════════════════════
    FUNCIÓ PRINCIPAL · renderPortalRoadmap
    ════════════════════════════════════════════════════════════════════════════ */
+// Punt 3: descartar definitivament una nota d'un actiu que ja no és a la cartera
+async function _frDescartarOrfe(id){
+  if (!confirm('Descartar definitivament aquesta nota? No es pot desfer.')) return;
+  var c = getClient();
+  if (!c || !c.fullderuta || !c.fullderuta.notes) return;
+  if (c.fullderuta.notes.actius) delete c.fullderuta.notes.actius[id];
+  if (c.fullderuta.notes.actius_desc) delete c.fullderuta.notes.actius_desc[id];
+  await _frPersist();
+  renderView('portal-roadmap');
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// PUNT 2: VERSIONS DEL FULL DE RUTA (snapshots manuals, límit 20)
+// ════════════════════════════════════════════════════════════════════════
+function _frNovaVersioId(){ return 'v_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+
+async function _frSaveVersions(c, vers){
+  if (typeof sb !== 'undefined' && sb && c.email){
+    try { var r = await sb.from('clients').update({ fullderuta_versions: vers }).eq('email', c.email.toLowerCase()); if (r.error) throw r.error; return true; }
+    catch(e){ console.warn('_frSaveVersions (núvol):', e && e.message); return false; }
+  }
+  return false;
+}
+
+async function _frDesarVersio(){
+  var c = getClient();
+  if (!c) return;
+  var data = c.fullderuta || {};
+  if (!data || Object.keys(data).length === 0){ toast('No hi ha res al full de ruta per desar'); return; }
+  var label = prompt('Nom per a aquesta versió (opcional):', 'Versió ' + new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'short'}));
+  if (label === null) return;
+  var vers = Array.isArray(c.fullderuta_versions) ? c.fullderuta_versions.slice() : [];
+  vers.push({
+    id: _frNovaVersioId(),
+    ts: new Date().toISOString(),
+    label: (label||'').trim() || ('Versió ' + (vers.length+1)),
+    autor: APP.role==='admin' ? 'assessor' : 'client',
+    data: JSON.parse(JSON.stringify(data))
+  });
+  vers.sort(function(a,b){ return (a.ts||'').localeCompare(b.ts||''); });
+  while (vers.length > 20) vers.shift();
+  c.fullderuta_versions = vers;
+  var ok = await _frSaveVersions(c, vers);
+  toast(ok ? '✓ Versió desada' : '✓ Desada localment');
+  renderView('portal-roadmap');
+}
+
+async function _frRestaurarVersio(id){
+  var c = getClient();
+  if (!c) return;
+  var vers = Array.isArray(c.fullderuta_versions) ? c.fullderuta_versions.slice() : [];
+  var v = null;
+  for (var i=0;i<vers.length;i++){ if (vers[i].id===id){ v=vers[i]; break; } }
+  if (!v){ toast('Versió no trobada'); return; }
+  if (!confirm('Restaurar aquesta versió? L\'estat actual es desarà automàticament com a còpia de seguretat.')) return;
+  // 1) còpia de seguretat automàtica de l'estat actual
+  var actual = c.fullderuta || {};
+  if (actual && Object.keys(actual).length){
+    vers.push({ id:_frNovaVersioId(), ts:new Date().toISOString(), label:'Automàtica (abans de restaurar)', autor: APP.role==='admin'?'assessor':'client', data: JSON.parse(JSON.stringify(actual)) });
+    vers.sort(function(a,b){ return (a.ts||'').localeCompare(b.ts||''); });
+    while (vers.length > 20) vers.shift();
+  }
+  // 2) restaurar la versió triada
+  c.fullderuta = JSON.parse(JSON.stringify(v.data || {}));
+  c.fullderuta_versions = vers;
+  // 3) persistir tots dos camps
+  var saved = false;
+  if (typeof sb !== 'undefined' && sb && c.email){
+    try { var r = await sb.from('clients').update({ fullderuta: c.fullderuta, fullderuta_versions: vers }).eq('email', c.email.toLowerCase()); if (r.error) throw r.error; saved = true; }
+    catch(e){ console.warn('_frRestaurarVersio (núvol):', e && e.message); }
+  }
+  if (!saved){ try { localStorage.setItem(_frStorageKey(), JSON.stringify(c.fullderuta)); } catch(_e){} }
+  _FR_DIRTY = false;
+  toast('✓ Versió restaurada');
+  renderView('portal-roadmap');
+}
+
+async function _frEsborrarVersio(id){
+  if (!confirm('Esborrar aquesta versió? No es pot desfer.')) return;
+  var c = getClient();
+  if (!c) return;
+  var vers = (Array.isArray(c.fullderuta_versions)?c.fullderuta_versions:[]).filter(function(x){ return x.id!==id; });
+  c.fullderuta_versions = vers;
+  await _frSaveVersions(c, vers);
+  toast('✓ Versió esborrada');
+  renderView('portal-roadmap');
+}
+
+function _frVersionsPanelHtml(c){
+  var vers = Array.isArray(c.fullderuta_versions) ? c.fullderuta_versions.slice() : [];
+  vers.sort(function(a,b){ return (b.ts||'').localeCompare(a.ts||''); });
+  var h = '<details class="fr-tracker-fold"><summary>Versions del full de ruta (' + vers.length + ')</summary>'
+    + '<div style="padding:14px 4px 4px">'
+    + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">'
+      + '<button onclick="_frDesarVersio()" style="padding:9px 16px;background:#1A5C3A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb)">📌 Desar versió actual</button>'
+      + '<span style="font-size:11px;color:var(--g500);line-height:1.5;flex:1;min-width:200px">Desa una còpia abans de canvis grossos. En restaurar, l\'estat actual es guarda automàticament. Es conserven les últimes 20.</span>'
+    + '</div>';
+  if (!vers.length){
+    h += '<div style="font-size:12px;color:var(--g400);padding:6px 0">Encara no hi ha versions desades.</div>';
+  } else {
+    vers.forEach(function(v){
+      var d = v.ts ? new Date(v.ts) : null;
+      var quan = d ? (d.toLocaleDateString('ca-ES',{day:'numeric',month:'short',year:'numeric'}) + ' · ' + d.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'})) : '';
+      h += '<div style="display:flex;align-items:center;gap:10px;justify-content:space-between;background:#fff;border:1px solid var(--g200);border-radius:8px;padding:10px 12px;margin-bottom:7px">'
+        + '<div style="min-width:0;flex:1">'
+          + '<div style="font-size:12px;font-weight:600;color:var(--g700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + _reuEsc(v.label||'Versió') + '</div>'
+          + '<div style="font-size:10px;color:var(--g400)">' + quan + (v.autor?' · '+(v.autor==='assessor'?'assessor':'client'):'') + '</div>'
+        + '</div>'
+        + '<div style="display:flex;gap:6px;flex-shrink:0">'
+          + '<button onclick="_frRestaurarVersio(\'' + v.id + '\')" style="padding:5px 11px;background:var(--black);color:#fff;border:none;border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb)">Restaurar</button>'
+          + '<button onclick="_frEsborrarVersio(\'' + v.id + '\')" title="Esborrar versió" style="padding:5px 9px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:var(--g500)">✕</button>'
+        + '</div>'
+      + '</div>';
+    });
+  }
+  h += '</div></details>';
+  return h;
+}
+
 function renderPortalRoadmap(el) {
   // Carregar notes desades abans de res
   _frLoadNotes();
@@ -12014,6 +12517,41 @@ function renderPortalRoadmap(el) {
   }
   html += '</div>';
 
+  // ── Punt 3: recuperació de notes d'actius que ja no són a la cartera target ──
+  if (isAdmin) {
+    var _curIds = {};
+    for (var _ci = 0; _ci < cartera.length; _ci++) _curIds[cartera[_ci].id] = true;
+    var _orfes = [];
+    Object.keys(actiusNotes || {}).forEach(function(id){
+      if (!_curIds[id] && actiusNotes[id]) _orfes.push({ id:id, nota:actiusNotes[id], desc:(actiusDesc[id]||'') });
+    });
+    Object.keys(actiusDesc || {}).forEach(function(id){
+      if (!_curIds[id] && actiusDesc[id] && _orfes.findIndex(function(o){ return o.id===id; }) < 0) _orfes.push({ id:id, nota:'', desc:actiusDesc[id] });
+    });
+    if (_orfes.length) {
+      html += '<div class="fr-section" style="background:#FEF7E8;border:1px solid #E8C988;border-radius:12px;padding:18px 22px">'
+        + '<div class="fr-label" style="color:#7A4A00">Recuperació</div>'
+        + '<div class="fr-h2" style="font-size:18px">Notes d\'actius que ja no són a la cartera (' + _orfes.length + ')</div>'
+        + '<div class="fr-lead" style="margin-bottom:14px">Es van escriure per a actius que ja no formen part de la cartera target actual. No s\'han esborrat: pots copiar-ne el contingut a un actiu actual o descartar-les.</div>';
+      _orfes.forEach(function(o){
+        var nom = o.id;
+        if (typeof ACTIUS_TAXONOMY !== 'undefined' && Array.isArray(ACTIUS_TAXONOMY)) {
+          var t = ACTIUS_TAXONOMY.find(function(x){ return x.id===o.id; });
+          if (t) nom = t.ca || t.nom || o.id;
+        }
+        html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:9px;padding:12px 14px;margin-bottom:8px">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">'
+            + '<div style="font-size:12px;font-weight:600;color:var(--g700)">' + _reuEsc(nom) + '</div>'
+            + '<button onclick="_frDescartarOrfe(\'' + o.id + '\')" style="padding:4px 10px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:10px;cursor:pointer;color:var(--g500)">✕ Descartar</button>'
+          + '</div>'
+          + (o.nota ? '<div style="font-size:12px;color:var(--g600);line-height:1.5;margin-bottom:' + (o.desc?'6px':'0') + '"><strong>Nota:</strong> ' + _reuEsc(o.nota) + '</div>' : '')
+          + (o.desc ? '<div style="font-size:11px;color:var(--g500);line-height:1.5"><strong>Descripció:</strong> ' + _reuEsc(o.desc) + '</div>' : '')
+        + '</div>';
+      });
+      html += '</div>';
+    }
+  }
+
   // ─── 7. SIMULACIÓ ──────────────────────────────────────────
   html += '<div class="fr-section">'
     + '<div class="fr-label">06 · Simulaci\u00f3 probabil\u00edstica</div>'
@@ -12336,6 +12874,11 @@ function renderPortalRoadmap(el) {
     + '<summary>Seguiment operatiu del pla</summary>'
     + '<div class="fr-tracker-mount" id="fr-tracker-mount"></div>'
   + '</details>';
+
+  // ─── Punt 2: VERSIONS DEL FULL DE RUTA (admin) ─────────────
+  if (isAdmin) {
+    html += _frVersionsPanelHtml(c);
+  }
 
   // ─── 13. SAVE BAR (només admin) ────────────────────────────
   if (isAdmin) {
