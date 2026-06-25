@@ -2935,6 +2935,7 @@ function normalizeClient(raw) {
     fullderuta: raw.fullderuta || {},
     fullderuta_versions: Array.isArray(raw.fullderuta_versions) ? raw.fullderuta_versions : [],
     perfil_assessor: raw.perfil_assessor || {},
+    assessor_analisi: raw.assessor_analisi || null,
   };
 }
 
@@ -3433,6 +3434,7 @@ var ADMIN_NAV = [
   {section:'Portal Client \u00b7 Preview'},
   {id:'portal-perfil',     icon:'📊', label:'Resum'},
   {id:'portal-fitxa',      icon:'🗂️', label:'Fitxa del client'},
+  {id:'portal-analisi',    icon:'🤖', label:'Anàlisi IA'},
   {id:'portal-roadmap',    icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-cartera',    icon:'💼', label:'La meva cartera'},
   {id:'portal-aportacions',icon:'📅', label:"Pla d'aportacions"},
@@ -3606,6 +3608,7 @@ function navigateTo(viewId) {
     'portal-presentacions': APP.role === 'admin' ? ['Portal Client · Presentacions', '👁 Previsualització'] : ['Presentacions', 'Material visual per a explicacions ràpides'],
     'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', '👁 Previsualització'] : ['El meu qüestionari', 'Perfil de conveniència i idoneïtat · MIFID II'],
     'portal-fitxa': APP.role === 'admin' ? ['Fitxa del client', '👁 Previsualització'] : ['La meva fitxa', 'Informació per personalitzar el teu assessorament'],
+    'portal-analisi': ['Anàlisi IA', '👁 Suport a la decisió'],
     'settings': ['Configuració', 'Gestió del sistema'],
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
@@ -3714,6 +3717,7 @@ function renderView(viewId) {
     case 'portal-ajuda': renderPortalAjuda(content); break;
     case 'portal-questionnaire': renderPortalQuestionnaire(content); break;
     case 'portal-fitxa': renderPortalFitxa(content); break;
+    case 'portal-analisi': renderPortalAnalisi(content); break;
     case 'settings': renderSettings(content); break;
     default: content.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:60px;color:var(--g400)">Vista no disponible</div></div>';
   }
@@ -6028,6 +6032,107 @@ function renderPortalFitxa(el){
   + '</div>';
 
   html += '</div>';
+  el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// ANÀLISI IA (suport a la decisió per a l'assessor) — Edge Function
+// ════════════════════════════════════════════════════════════════════════
+function _iaInline(s){
+  s = _reuEsc(s);
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  s = s.replace(/_([^_]+)_/g, '<em>$1</em>');
+  return s;
+}
+
+function _iaRenderMarkdown(md){
+  if (!md) return '';
+  var lines = String(md).split('\n');
+  var html = '';
+  var inList = false;
+  function closeList(){ if (inList){ html += '</ul>'; inList = false; } }
+  for (var i = 0; i < lines.length; i++){
+    var t = lines[i].trim();
+    if (t === ''){ closeList(); continue; }
+    if (/^###\s+/.test(t)){ closeList(); html += '<div style="font-size:13px;font-weight:700;color:var(--g700);margin:14px 0 6px">' + _iaInline(t.replace(/^###\s+/, '')) + '</div>'; continue; }
+    if (/^##\s+/.test(t)){ closeList(); html += '<div style="font-size:14px;font-weight:700;color:#1B3A6B;margin:18px 0 8px">' + _iaInline(t.replace(/^##\s+/, '')) + '</div>'; continue; }
+    if (/^#\s+/.test(t)){ closeList(); html += '<div style="font-size:16px;font-weight:700;margin:18px 0 8px">' + _iaInline(t.replace(/^#\s+/, '')) + '</div>'; continue; }
+    if (/^[-*]\s+/.test(t)){
+      if (!inList){ html += '<ul style="margin:4px 0;padding-left:20px">'; inList = true; }
+      html += '<li style="font-size:13px;color:var(--g600);line-height:1.6;margin-bottom:5px">' + _iaInline(t.replace(/^[-*]\s+/, '')) + '</li>';
+      continue;
+    }
+    closeList();
+    html += '<div style="font-size:13px;color:var(--g600);line-height:1.7;margin-bottom:9px">' + _iaInline(t) + '</div>';
+  }
+  closeList();
+  return html;
+}
+
+async function _iaGenerarAnalisi(){
+  var email = getClientEmail();
+  if (!email){ toast('Cal seleccionar un client'); return; }
+  if (typeof sb === 'undefined' || !sb){ toast('Sense connexió'); return; }
+  var cont = document.getElementById('ia-resultat');
+  var btn = document.getElementById('ia-btn');
+  if (btn) btn.disabled = true;
+  if (cont) cont.innerHTML = '<div style="padding:36px;text-align:center;color:var(--g500);font-size:13px">🤖 Generant anàlisi amb Claude… (pot trigar uns segons)</div>';
+  try {
+    var res = await sb.functions.invoke('assessor-recomanacions', { body: { email: email } });
+    if (res.error){
+      var msg = res.error.message || 'Error invocant la funció';
+      try { if (res.error.context && res.error.context.json){ var b = await res.error.context.json(); if (b && b.error) msg = b.error; } } catch(_e){}
+      throw new Error(msg);
+    }
+    var data = res.data || {};
+    if (data.error) throw new Error(data.error);
+    var analisi = { text: data.analisi || '', generat: data.generat || new Date().toISOString(), tokens: data.tokens || null };
+    if (APP.clientData && APP.clientData.email && APP.clientData.email.toLowerCase() === email) APP.clientData.assessor_analisi = analisi;
+    try { var u = await sb.from('clients').update({ assessor_analisi: analisi }).eq('email', email); if (u.error) throw u.error; }
+    catch(e){ console.warn('desar anàlisi (núvol):', e && e.message); }
+    renderView('portal-analisi');
+    toast('✓ Anàlisi generada');
+  } catch(e){
+    if (cont) cont.innerHTML = '<div style="padding:18px;background:#FDF0F0;border:1px solid #E8B4B4;border-radius:10px;color:#8B1A1A;font-size:13px;line-height:1.6">⚠️ ' + _reuEsc(e.message || String(e)) + '</div>';
+    if (btn) btn.disabled = false;
+  }
+}
+
+function renderPortalAnalisi(el){
+  if (APP.role !== 'admin'){
+    el.innerHTML = '<div class="content-inner"><div style="padding:50px;text-align:center;color:var(--g400);font-size:13px">Aquesta secció és només per a l\'assessor.</div></div>';
+    return;
+  }
+  var c = getClient();
+  if (!c){ el.innerHTML = '<div class="content-inner"><div style="padding:50px;text-align:center;color:var(--g400);font-size:13px">Selecciona un client (previsualitza\'l) per generar l\'anàlisi.</div></div>'; return; }
+  var an = c.assessor_analisi || null;
+
+  var html = '<div class="content-inner fade-in" style="max-width:860px;margin:0 auto">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">'
+    + '<div><div style="font-family:var(--fd);font-size:24px;font-weight:400;margin-bottom:4px">Anàlisi IA · ' + _reuEsc(c.nom||'') + '</div>'
+      + '<div style="font-size:12px;color:var(--g500)">Suport a la decisió generat amb Claude. Revisa\'l abans d\'usar-lo.</div></div>'
+    + '<button id="ia-btn" onclick="_iaGenerarAnalisi()" style="padding:10px 18px;background:#1B3A6B;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">' + (an && an.text ? '🔄 Regenerar' : '🤖 Generar anàlisi') + '</button>'
+  + '</div>';
+
+  html += '<div style="background:#FEF7E8;border:1px solid #E8C988;border-left:4px solid #C8A44A;border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:#7A4A00;line-height:1.6">'
+    + '⚠️ <strong>Esborrany intern.</strong> Aquest text és suport per a la teva preparació, no assessorament automàtic. Revisa\'l, adapta\'l i decideixes tu. No s\'envia al client.'
+  + '</div>';
+
+  html += '<div id="ia-resultat">';
+  if (an && an.text){
+    html += '<div style="background:#fff;border:1px solid var(--g200);border-radius:12px;padding:22px 26px">'
+      + _iaRenderMarkdown(an.text)
+      + '<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--g100);font-size:10px;color:var(--g400)">Generat el ' + (an.generat ? new Date(an.generat).toLocaleString('ca-ES') : '') + (an.tokens && an.tokens.in ? ' · ~' + (an.tokens.in + (an.tokens.out||0)) + ' tokens' : '') + ' · model Sonnet 4.6</div>'
+    + '</div>';
+  } else {
+    html += '<div style="padding:40px;text-align:center;background:#fff;border:1px dashed var(--g300);border-radius:12px">'
+      + '<div style="font-size:34px;margin-bottom:10px">🤖</div>'
+      + '<div style="font-size:14px;font-weight:500;margin-bottom:6px">Encara no hi ha cap anàlisi</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.6;max-width:470px;margin:0 auto">Munta un dossier amb el perfil MIFID, la fitxa, la cartera real vs target, els objectius i les reunions, i et proposa punts clau per a la propera reunió. Cost aproximat: ~5 cèntims per anàlisi.</div>'
+    + '</div>';
+  }
+  html += '</div></div>';
   el.innerHTML = html;
 }
 
