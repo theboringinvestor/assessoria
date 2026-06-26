@@ -467,6 +467,13 @@ section{padding:100px 28px}
 .inclou-text{font-size:13px;color:var(--g500);line-height:1.65}
 @media(max-width:900px){.inclou-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.inclou-grid{grid-template-columns:1fr}}
+
+/* ===== LANG SWITCHER ===== */
+.i18n{}
+.lang-switch{display:inline-flex;gap:2px;align-items:center;border:1px solid rgba(200,165,74,.4);border-radius:8px;padding:2px}
+.lang-btn{border:none;background:transparent;padding:4px 9px;font-size:11px;font-weight:700;color:var(--gold);cursor:pointer;font-family:var(--fm);border-radius:6px;letter-spacing:.04em;transition:all .15s;line-height:1}
+.lang-btn.active{background:var(--gold);color:var(--black)}
+.lang-btn:hover:not(.active){background:rgba(200,165,74,.15)}
 </style>
 </head>
 <body>
@@ -481,13 +488,13 @@ section{padding:100px 28px}
     The Boring Investor
   </div>
   <div class="nav-links">
-    <a href="#per-que">Per qu&egrave; TBI</a>
-    <a href="#qui-soc">Qui s&oacute;c</a>
-    <a href="#com-funciona">Com funciona</a>
-    <a href="#pricing">Productes</a>
-    <a href="#deep">M&eacute;s detall</a>
-    <div class="nav-efa">&#9878; Candidat EFA &middot; Pre-certificaci&oacute;</div>
-    <a href="test-salut-financera.html" class="nav-cta">Fes el test &rarr;</a>
+    <a href="#per-que">P<span class="i18n" data-i18n="k1">er què</span> TBI</a>
+    <a href="#qui-soc">Qui<span class="i18n" data-i18n="k2"> sóc</span></a>
+    <a href="#com-funciona">C<span class="i18n" data-i18n="k3">om</span> funciona</a>
+    <a href="#pricing">Product<span class="i18n" data-i18n="k4">e</span>s</a>
+    <a href="#deep">M<span class="i18n" data-i18n="k5">és detall</span></a>
+    <div class="nav-efa">⚖ Candidat<span class="i18n" data-i18n="k6"></span> EFA · Pre-certificació<span class="i18n" data-i18n="k7"></span></div>
+    <div class="lang-switch"><button type="button" class="lang-btn active" data-lang="ca" onclick="setLang('ca')">CA</button><button type="button" class="lang-btn" data-lang="es" onclick="setLang('es')">ES</button></div><a href="test-salut-financera.html" class="nav-cta"><span class="i18n" data-i18n="k8">Fes</span> el test →</a>
   </div>
 </nav>
 
@@ -495,17 +502,17 @@ section{padding:100px 28px}
 <section class="hero">
   <div class="hero-inner hero-simple">
     <div class="fade-up">
-      <div class="hero-badge">&#128202; Assessorament financer independent &middot; Sense comissions de producte</div>
-      <h1>Avorreix-te invertint<br>i <em>dorm tranquil</em>.</h1>
-      <p class="hero-sub">L&apos;assessorament independent dels grans patrimonis, ara a l&apos;abast de tothom. Personalitzat, sense comissions de producte i des de <strong>8&euro;/mes</strong>.</p>
+      <div class="hero-badge">📊 As<span class="i18n" data-i18n="k9">sessorament financer independent · Sense comissions de producte</span></div>
+      <h1>A<span class="i18n" data-i18n="k10">vorreix-te invertint</span><br><span class="i18n" data-i18n="k11">i</span> <em>d<span class="i18n" data-i18n="k12">orm tranquil</span></em>.</h1>
+      <p class="hero-sub"><span class="i18n" data-i18n="k13">L'assessorament independent dels grans patrimonis, ara a l'abast de tothom. Personalitzat, sense comissions de producte i des </span>de <strong>8€/mes</strong>.</p>
       <div class="hero-ctas">
-        <a href="test-salut-financera.html" class="btn-primary">Fes el test de salut financera <span style="font-size:12px;opacity:.6">2 min &middot; gratu&iuml;t</span></a>
-        <a href="platform.html" class="btn-secondary">Registra&apos;m com a client &rarr;</a>
+        <a href="test-salut-financera.html" class="btn-primary"><span class="i18n" data-i18n="k14">Fes el test de salut financ</span>era <span style="font-size:12px;opacity:.6">2 min · grat<span class="i18n" data-i18n="k15">uït</span></span></a>
+        <a href="platform.html" class="btn-secondary">Reg<span class="i18n" data-i18n="k16">istra'm com a client</span> →</a>
       </div>
       <div class="hero-proof">
-        <div class="hero-proof-item"><strong>~0,25%</strong> de cost vs ~1,80% del banc</div>
-        <div class="hero-proof-item"><strong>Sense m&iacute;nims</strong> d&apos;entrada</div>
-        <div class="hero-proof-item"><strong>Garantia</strong> 30 dies</div>
+        <div class="hero-proof-item"><strong>~0,25%</strong> de cost<span class="i18n" data-i18n="k17"> vs ~1,80% del banc</span></div>
+        <div class="hero-proof-item"><strong>S<span class="i18n" data-i18n="k18">ense mínim</span>s</strong> d<span class="i18n" data-i18n="k19">'</span>entrada</div>
+        <div class="hero-proof-item"><strong>Garant<span class="i18n" data-i18n="k20">i</span>a</strong> 30 d<span class="i18n" data-i18n="k21">ie</span>s</div>
       </div>
     </div>
   </div>
@@ -514,108 +521,108 @@ section{padding:100px 28px}
 <!-- ============================ NOU: PER QUÈ SOM DIFERENTS + TAULA ============================ -->
 <section class="perque" id="per-que">
   <div class="section-inner">
-    <div class="section-label" style="text-align:center">Per qu&egrave; TBI</div>
-    <div class="section-title" style="text-align:center">La manera com inverteixen els grans patrimonis.<br>Ara, per a tu.</div>
-    <p class="section-sub" style="margin:0 auto 48px;text-align:center">Els grans patrimonis ja inverteixen avorrit: diversificat, barat, a llarg termini i amb alg&uacute; independent que cobra d&apos;ells, no del producte. L&apos;emoci&oacute; &mdash; l&apos;acci&oacute; de moda o el fons &laquo;estrella&raquo; del banc &mdash; ens la venen a la resta. La meva feina &eacute;s donar-te aquesta mateixa manera sensata d&apos;invertir, sense demanar-te un patrimoni per entrar.</p>
+    <div class="section-label" style="text-align:center">P<span class="i18n" data-i18n="k22">er què</span> TBI</div>
+    <div class="section-title" style="text-align:center">La manera <span class="i18n" data-i18n="k23">com inverteixen els grans patrimoni</span>s.<br>A<span class="i18n" data-i18n="k24">ra, per a tu</span>.</div>
+    <p class="section-sub" style="margin:0 auto 48px;text-align:center"><span class="i18n" data-i18n="k25">Els grans patrimonis ja inverteixen avorrit: diversificat, barat, a llarg termini i amb algú independent que cobra d'ells, no del producte. L'emoció — l'acció de moda o el fons «estrella» del banc — ens la venen a la resta. La meva feina és donar-te aquesta mateixa manera sensata d'invertir, sense demanar-te un patrimoni per</span> entrar.</p>
 
     <div class="perque-grid">
       <div class="perque-card fade-up">
-        <div class="perque-ico">&#9878;&#65039;</div>
-        <div class="perque-title">Independent de veritat</div>
-        <div class="perque-text">No cobro comissions de cap producte que et recomano. Em pagues tu i prou, aix&iacute; que no tinc cap motiu per col&middot;locar-te res. El teu banc no t&apos;ho pot dir.</div>
+        <div class="perque-ico">⚖️</div>
+        <div class="perque-title">Independ<span class="i18n" data-i18n="k26">ent de veritat</span></div>
+        <div class="perque-text">No cobro comis<span class="i18n" data-i18n="k27">sions de cap producte que et recomano. Em pagues tu i prou, així que no tinc cap motiu per col·locar-te res. El teu banc no t'ho pot d</span>ir.</div>
       </div>
       <div class="perque-card fade-up d1">
-        <div class="perque-ico">&#127793;</div>
-        <div class="perque-title">A l&apos;abast de tothom</div>
-        <div class="perque-text">La mateixa estrat&egrave;gia que els grans patrimonis, sense els seus m&iacute;nims. Mentre la banca privada demana sis xifres, aqu&iacute; comences des de 8&euro;/mes.</div>
+        <div class="perque-ico">🌱</div>
+        <div class="perque-title">A<span class="i18n" data-i18n="k28"> l'abast de tothom</span></div>
+        <div class="perque-text">La m<span class="i18n" data-i18n="k29">ateixa estratègia que els grans patrimonis, sense els seus mínims. Mentre la banca privada demana sis xifres, aquí comences des </span>de 8€/mes.</div>
       </div>
       <div class="perque-card fade-up d2">
-        <div class="perque-ico">&#128164;</div>
-        <div class="perque-title">Avorrit, i per aix&ograve; funciona</div>
-        <div class="perque-text">Res d&apos;apostes ni de modes: una cartera diversificada, barata i pensada per d&egrave;cades. Avorrida de mirar, tranquil&middot;la de tenir.</div>
+        <div class="perque-ico">💤</div>
+        <div class="perque-title">A<span class="i18n" data-i18n="k30">vorrit, i per això</span> funciona</div>
+        <div class="perque-text"><span class="i18n" data-i18n="k31">Res d'apostes ni de mode</span>s: una cartera diversificada, barata <span class="i18n" data-i18n="k32">i pensada per dècades. Avo</span>rrida de mirar, tranquil<span class="i18n" data-i18n="k33">·la de teni</span>r.</div>
       </div>
     </div>
 
     <!-- TAULA COMPARATIVA -->
     <div class="cmp-wrap">
       <div class="cmp-head-row">
-        <div class="cmp-title">On encaixa un assessor independent</div>
-        <div class="cmp-sub">Cada alternativa falla en alguna cosa. L&apos;assessorament individual &eacute;s l&apos;&uacute;nic que combina cost baix, independ&egrave;ncia real i acompanyament &mdash; sense demanar-te un gran patrimoni.</div>
+        <div class="cmp-title"><span class="i18n" data-i18n="k34">On encaixa un assessor independent</span></div>
+        <div class="cmp-sub">Cada alternativa falla en alg<span class="i18n" data-i18n="k35">una cosa. L'assessorament individual és l'únic que combina cost baix, independència real i acompanyament — sense demanar-te un gran patrimoni</span>.</div>
       </div>
-      <div class="cmp-hint">&larr; Despla&ccedil;a per veure tota la taula &rarr;</div>
+      <div class="cmp-hint">← Despl<span class="i18n" data-i18n="k36">aça per veure tota la tau</span>la →</div>
       <div class="cmp-scroll">
         <table class="cmp-table">
           <thead>
             <tr>
               <th class="cmp-crit"></th>
-              <th>El teu banc</th>
+              <th><span class="i18n" data-i18n="k37">El teu banc</span></th>
               <th>Roboadvisor</th>
-              <th>Fer-ho tu sol</th>
+              <th><span class="i18n" data-i18n="k38">Fer-ho tu sol</span></th>
               <th>Family office</th>
               <th class="cmp-tbi-col">The Boring Investor</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="cmp-crit">Cost anual total</td>
-              <td><span class="cmp-bad">Alt</span><small>~1,5&ndash;2%</small></td>
-              <td><span class="cmp-ok">Baix</span><small>~0,4&ndash;0,7%</small></td>
-              <td><span class="cmp-good">Molt baix</span><small>~0,1&ndash;0,3%</small></td>
-              <td><span class="cmp-bad">Alt</span><small>1&ndash;2% + m&iacute;nims</small></td>
-              <td class="cmp-tbi-col"><span class="cmp-good">Baix</span><small>~0,25% + tarifa fixa</small></td>
+              <td class="cmp-crit">Cost<span class="i18n" data-i18n="k39"></span> anual total</td>
+              <td><span class="cmp-bad">Alt<span class="i18n" data-i18n="k40"></span></span><small>~1,5–2%</small></td>
+              <td><span class="cmp-ok">Ba<span class="i18n" data-i18n="k41">ix</span></span><small>~0,4–0,7%</small></td>
+              <td><span class="cmp-good">M<span class="i18n" data-i18n="k42">olt baix</span></span><small>~0,1–0,3%</small></td>
+              <td><span class="cmp-bad">Alt<span class="i18n" data-i18n="k43"></span></span><small>1–2% + mínim<span class="i18n" data-i18n="k44"></span>s</small></td>
+              <td class="cmp-tbi-col"><span class="cmp-good">Ba<span class="i18n" data-i18n="k45">ix</span></span><small>~0,25% + tarifa fi<span class="i18n" data-i18n="k46">x</span>a</small></td>
             </tr>
             <tr>
-              <td class="cmp-crit">Sense comissions de producte</td>
-              <td><span class="cmp-x">&#10007;</span><small>Cobra del producte</small></td>
-              <td><span class="cmp-tilde">~</span><small>Producte propi</small></td>
-              <td><span class="cmp-check">&#10003;</span><small>Ho fas tu</small></td>
-              <td><span class="cmp-tilde">~</span><small>Sovint producte propi</small></td>
-              <td class="cmp-tbi-col"><span class="cmp-check">&#10003;</span><small>Nom&eacute;s cobro de tu</small></td>
+              <td class="cmp-crit">S<span class="i18n" data-i18n="k47">ense comissions de producte</span></td>
+              <td><span class="cmp-x">✗</span><small>Cobra del product<span class="i18n" data-i18n="k48">e</span></small></td>
+              <td><span class="cmp-tilde">~</span><small>Product<span class="i18n" data-i18n="k49">e propi</span></small></td>
+              <td><span class="cmp-check">✓</span><small><span class="i18n" data-i18n="k50">Ho fas tu</span></small></td>
+              <td><span class="cmp-tilde">~</span><small><span class="i18n" data-i18n="k51">Sovint producte propi</span></small></td>
+              <td class="cmp-tbi-col"><span class="cmp-check">✓</span><small><span class="i18n" data-i18n="k52">Només cobro de tu</span></small></td>
             </tr>
             <tr>
-              <td class="cmp-crit">Personalitzaci&oacute;</td>
-              <td><span class="cmp-bad">Baixa</span><small>Producte est&agrave;ndard</small></td>
-              <td><span class="cmp-bad">Baixa</span><small>4&ndash;5 carteres tipus</small></td>
-              <td><span class="cmp-ok">Total</span><small>Per&ograve; sol</small></td>
+              <td class="cmp-crit">Personali<span class="i18n" data-i18n="k53">tzació</span></td>
+              <td><span class="cmp-bad">Ba<span class="i18n" data-i18n="k54">ix</span>a</span><small>Product<span class="i18n" data-i18n="k55">e estàndard</span></small></td>
+              <td><span class="cmp-bad">Ba<span class="i18n" data-i18n="k56">ix</span>a</span><small>4–5 carter<span class="i18n" data-i18n="k57">es tipus</span></small></td>
+              <td><span class="cmp-ok">Total</span><small>Per<span class="i18n" data-i18n="k58">ò sol</span></small></td>
               <td><span class="cmp-good">Alta</span></td>
-              <td class="cmp-tbi-col"><span class="cmp-good">Alta</span><small>Feta a la teva mida</small></td>
+              <td class="cmp-tbi-col"><span class="cmp-good">Alta</span><small><span class="i18n" data-i18n="k59">Feta a la teva m</span>ida</small></td>
             </tr>
             <tr>
-              <td class="cmp-crit">Acompanyament hum&agrave;</td>
-              <td><span class="cmp-tilde">~</span><small>Comercial rotatori</small></td>
-              <td><span class="cmp-x">&#10007;</span><small>Nom&eacute;s app</small></td>
-              <td><span class="cmp-x">&#10007;</span><small>Cap</small></td>
-              <td><span class="cmp-check">&#10003;</span><small>Dedicat</small></td>
-              <td class="cmp-tbi-col"><span class="cmp-check">&#10003;</span><small>Directe i continu</small></td>
+              <td class="cmp-crit">Acompa<span class="i18n" data-i18n="k60">nyament humà</span></td>
+              <td><span class="cmp-tilde">~</span><small>Comercial rotatori<span class="i18n" data-i18n="k61"></span></small></td>
+              <td><span class="cmp-x">✗</span><small><span class="i18n" data-i18n="k62">Només</span> app</small></td>
+              <td><span class="cmp-x">✗</span><small><span class="i18n" data-i18n="k63">Cap</span></small></td>
+              <td><span class="cmp-check">✓</span><small>Dedica<span class="i18n" data-i18n="k64">t</span></small></td>
+              <td class="cmp-tbi-col"><span class="cmp-check">✓</span><small>Direct<span class="i18n" data-i18n="k65">e i continu</span></small></td>
             </tr>
             <tr>
-              <td class="cmp-crit">M&iacute;nim d&apos;entrada</td>
+              <td class="cmp-crit">Mínim<span class="i18n" data-i18n="k66"> d'</span>entrada</td>
               <td><span class="cmp-tilde">Variable</span></td>
-              <td><span class="cmp-good">Baix</span></td>
-              <td><span class="cmp-good">Cap</span></td>
-              <td><span class="cmp-bad">Molt alt</span><small>100.000&euro;+</small></td>
-              <td class="cmp-tbi-col"><span class="cmp-good">Cap</span><small>Des de 8&euro;/mes</small></td>
+              <td><span class="cmp-good">Ba<span class="i18n" data-i18n="k67">ix</span></span></td>
+              <td><span class="cmp-good"><span class="i18n" data-i18n="k68">Cap</span></span></td>
+              <td><span class="cmp-bad">M<span class="i18n" data-i18n="k69">olt alt</span></span><small>100.000€+</small></td>
+              <td class="cmp-tbi-col"><span class="cmp-good"><span class="i18n" data-i18n="k70">Cap</span></span><small>Des<span class="i18n" data-i18n="k71"> </span>de 8€/mes</small></td>
             </tr>
             <tr>
-              <td class="cmp-crit">Educaci&oacute; i coaching de biaixos</td>
-              <td><span class="cmp-x">&#10007;</span></td>
-              <td><span class="cmp-x">&#10007;</span></td>
-              <td><span class="cmp-tilde">~</span><small>Dep&egrave;n de tu</small></td>
-              <td><span class="cmp-tilde">~</span><small>Limitat</small></td>
-              <td class="cmp-tbi-col"><span class="cmp-check">&#10003;</span><small>Formaci&oacute; inclosa</small></td>
+              <td class="cmp-crit">Educació<span class="i18n" data-i18n="k72"> i coaching de biaix</span>os</td>
+              <td><span class="cmp-x">✗</span></td>
+              <td><span class="cmp-x">✗</span></td>
+              <td><span class="cmp-tilde">~</span><small>Dep<span class="i18n" data-i18n="k73">èn de tu</span></small></td>
+              <td><span class="cmp-tilde">~</span><small>Limita<span class="i18n" data-i18n="k74">t</span></small></td>
+              <td class="cmp-tbi-col"><span class="cmp-check">✓</span><small>Formació<span class="i18n" data-i18n="k75"> inclos</span>a</small></td>
             </tr>
             <tr>
-              <td class="cmp-crit">Conflicte d&apos;inter&egrave;s</td>
-              <td><span class="cmp-bad">Alt</span></td>
-              <td><span class="cmp-ok">Mitj&agrave;</span></td>
-              <td><span class="cmp-good">Cap</span></td>
-              <td><span class="cmp-tilde">Possible</span></td>
-              <td class="cmp-tbi-col"><span class="cmp-good">Cap</span></td>
+              <td class="cmp-crit">Conflict<span class="i18n" data-i18n="k76">e d'interè</span>s</td>
+              <td><span class="cmp-bad">Alt<span class="i18n" data-i18n="k77"></span></span></td>
+              <td><span class="cmp-ok">M<span class="i18n" data-i18n="k78">itjà</span></span></td>
+              <td><span class="cmp-good"><span class="i18n" data-i18n="k79">Cap</span></span></td>
+              <td><span class="cmp-tilde">Po<span class="i18n" data-i18n="k80">s</span>sible</span></td>
+              <td class="cmp-tbi-col"><span class="cmp-good"><span class="i18n" data-i18n="k81">Cap</span></span></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="cmp-foot">&#9888;&#65039; Rangs orientatius de costos t&iacute;pics del sector (TER + gesti&oacute;), no xifres d&apos;entitats concretes. La columna TBI reflecteix instruments barats (~0,25% TER) m&eacute;s la tarifa fixa i transparent del pla que tries.</div>
+      <div class="cmp-foot">⚠️ Rang<span class="i18n" data-i18n="k82">s orientatius de costos típic</span>s del sector (TER + gestió<span class="i18n" data-i18n="k83">), no xifres d'entitats concrete</span>s. La columna TBI refle<span class="i18n" data-i18n="k84">cteix instruments barats (~0,25% TER) més la tarifa fixa i transparent del pla que trie</span>s.</div>
     </div>
   </div>
 </section>
@@ -624,9 +631,9 @@ section{padding:100px 28px}
 <section class="howi" id="qui-soc">
   <div class="section-inner">
     <div class="howi-lead">
-      <div class="section-label" style="text-align:center">Com ho faig</div>
-      <div class="section-title" style="text-align:center">Un far i una guia en cada decisi&oacute;</div>
-      <p class="section-sub">T&apos;ofereixo un assessorament personalitzat, de confian&ccedil;a i transparent per aconseguir els teus objectius. Faig servir <strong>enginyeria financera</strong> i <strong>eines inform&agrave;tiques</strong> per trobar els productes que millor s&apos;ajusten a la teva situaci&oacute; i als teus coneixements &mdash; ni m&eacute;s complicat ni m&eacute;s car del que necessites. L&apos;objectiu: que mai et sentis perdut i que sempre tinguis un far que t&apos;orienta a cada pas.</p>
+      <div class="section-label" style="text-align:center">C<span class="i18n" data-i18n="k85">om ho faig</span></div>
+      <div class="section-title" style="text-align:center">Un far<span class="i18n" data-i18n="k86"> i una guia en cada decisió</span></div>
+      <p class="section-sub">T<span class="i18n" data-i18n="k87">'ofereixo un assessorament personalitzat, de confiança i transparent per aconseguir els teus objectius. Faig servir</span> <strong><span class="i18n" data-i18n="k88">enginyeria financ</span>era</strong> <span class="i18n" data-i18n="k89">i</span> <strong><span class="i18n" data-i18n="k90">eines informàtique</span>s</strong> p<span class="i18n" data-i18n="k91">er trobar els productes que millor s'ajusten a la teva situació i als teus coneixements — ni més complicat ni més car del que necessites. L'objectiu: que mai et sentis perdut i que sempre tinguis un far que t'orienta a cada pas</span>.</p>
     </div>
 
     <div class="founder">
@@ -634,16 +641,16 @@ section{padding:100px 28px}
         <img src="data:image/jpeg;base64,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" alt="Guillem Puig, fundador de The Boring Investor" class="founder-photo" loading="lazy">
         <div>
           <div class="founder-id-name">Guillem Puig</div>
-          <div class="founder-id-role">Fundador de The Boring Investor &middot; Barcelona</div>
-          <div class="founder-id-cert">Candidat EFA (EFPA Espanya) &middot; Postgrau en Inversi&oacute; i Gesti&oacute; Patrimonial</div>
+          <div class="founder-id-role">Fundador de The Boring Investor · Barcelona</div>
+          <div class="founder-id-cert">Candidat<span class="i18n" data-i18n="k92"> EFA (EFPA Espanya) · Postgrau en Inversió i Gestió</span> Patrimonial</div>
         </div>
       </div>
       <div class="founder-bio">
-        <p>No s&oacute;c un banquer ni un gestor de fons. S&oacute;c un enginyer i un aut&egrave;ntic <strong>boig de les finances personals</strong> i de l&apos;optimitzaci&oacute;.</p>
-        <p>Fa 6 anys vaig descobrir una cosa que em va indignar: els bancs ens cobraven molt&iacute;ssim per gestionar <strong>malament</strong> els nostres diners. Des d&apos;aleshores he invertit el meu propi capital en gaireb&eacute; tots els instruments del mercat i he aplicat l&apos;enginyeria a les meves finances &mdash; models, automatitzacions i an&agrave;lisi &mdash; per treure&apos;n el m&agrave;xim rendiment amb el m&iacute;nim risc.</p>
-        <p>I no paro de formar-me, perqu&egrave; vull oferir-te un assessorament del <strong>nivell de la banca privada</strong> &mdash; fiscalment &ograve;ptim i fet a la teva mida &mdash; per&ograve; a un preu que tothom es pugui permetre.</p>
+        <p>No s<span class="i18n" data-i18n="k93">óc un banquer ni un gestor de fons. Sóc un enginyer i un autèntic</span> <strong><span class="i18n" data-i18n="k94">boig de les finances personal</span>s</strong> <span class="i18n" data-i18n="k95">i de l'optimització</span>.</p>
+        <p><span class="i18n" data-i18n="k96">Fa 6 anys vaig descobrir una cosa que em va indignar: els bancs ens cobraven moltíssim pe</span>r gestionar <strong>mal<span class="i18n" data-i18n="k97">ament</span></strong> <span class="i18n" data-i18n="k98">els nostres diners. Des d'aleshores he invertit el meu propi capital en gairebé tots els instruments del mercat i he aplicat l'enginyeria a les meves finances — models, automatitzacions i anàlisi — per treure'n el màxim rendiment amb el mínim risc</span>.</p>
+        <p><span class="i18n" data-i18n="k99">I no paro de formar-me, perquè vull oferir-te un assessorament</span> del <strong>nive<span class="i18n" data-i18n="k100">l</span>l de la banca privada</strong> — fiscalment<span class="i18n" data-i18n="k101"> òptim i fet a la teva mida — però a un preu que tothom es pugui permetr</span>e.</p>
       </div>
-      <div class="founder-quote">&ldquo;Invertir hauria de ser avorrit. Els diners emocionants acostumen a acabar malament.&rdquo;</div>
+      <div class="founder-quote">“Invertir <span class="i18n" data-i18n="k102">hauria de ser avorrit. Els diners emocionants acostumen a acabar malament</span>.”</div>
     </div>
   </div>
 </section>
@@ -651,30 +658,30 @@ section{padding:100px 28px}
 <!-- ============================ COM FUNCIONA EN 3 PASSOS ============================ -->
 <section id="com-funciona" style="background:var(--cream);padding:90px 28px">
   <div class="section-inner">
-    <div class="section-label" style="text-align:center">Com funciona</div>
-    <div class="section-title" style="text-align:center">De zero a cartera, en tres passos</div>
-    <p class="section-sub" style="margin:0 auto 48px;text-align:center">Sense comprom&iacute;s per comen&ccedil;ar. Fas el test, reps el teu pla i t&apos;acompanyo a posar-lo en marxa.</p>
+    <div class="section-label" style="text-align:center">C<span class="i18n" data-i18n="k103">om</span> funciona</div>
+    <div class="section-title" style="text-align:center">De <span class="i18n" data-i18n="k104">z</span>ero a cartera, en tres pa<span class="i18n" data-i18n="k105">s</span>sos</div>
+    <p class="section-sub" style="margin:0 auto 48px;text-align:center">S<span class="i18n" data-i18n="k106">ense compromís per començar. Fas el test, reps el teu pla i t'acompanyo a posar-lo en marx</span>a.</p>
     <div class="prob-grid">
       <div class="prob-card fade-up" style="position:relative">
-        <div style="font-family:var(--fm);font-size:12px;letter-spacing:.08em;color:var(--gold-dark);margin-bottom:14px">PAS 1</div>
-        <div style="font-size:30px;margin-bottom:12px">&#129658;</div>
-        <div style="font-family:var(--fd);font-size:20px;font-weight:500;margin-bottom:9px">Fes el test de salut financera</div>
-        <div style="font-size:13px;color:var(--g500);line-height:1.72;margin-bottom:16px">2 minuts, sense registre. Saps el teu estat financer (0&ndash;100) i quant pots millorar en euros amb una bona estructuraci&oacute;.</div>
-        <a href="test-salut-financera.html" style="font-size:13px;font-weight:600;color:var(--gold-dark)">Comen&ccedil;a el test &rarr;</a>
+        <div style="font-family:var(--fm);font-size:12px;letter-spacing:.08em;color:var(--gold-dark);margin-bottom:14px">PAS<span class="i18n" data-i18n="k107"></span> 1</div>
+        <div style="font-size:30px;margin-bottom:12px">🩺</div>
+        <div style="font-family:var(--fd);font-size:20px;font-weight:500;margin-bottom:9px"><span class="i18n" data-i18n="k108">Fes el test de salut financ</span>era</div>
+        <div style="font-size:13px;color:var(--g500);line-height:1.72;margin-bottom:16px">2 minut<span class="i18n" data-i18n="k109">s, sense registre. Saps el teu estat financer (0–100) i quant pots millorar en euros amb una bona estructuració</span>.</div>
+        <a href="test-salut-financera.html" style="font-size:13px;font-weight:600;color:var(--gold-dark)"><span class="i18n" data-i18n="k110">Començ</span>a el test →</a>
       </div>
       <div class="prob-card fade-up d1" style="position:relative">
-        <div style="font-family:var(--fm);font-size:12px;letter-spacing:.08em;color:var(--gold-dark);margin-bottom:14px">PAS 2</div>
-        <div style="font-size:30px;margin-bottom:12px">&#128202;</div>
-        <div style="font-family:var(--fd);font-size:20px;font-weight:500;margin-bottom:9px">Rep el teu pla i cartera a mida</div>
-        <div style="font-size:13px;color:var(--g500);line-height:1.72;margin-bottom:16px">Et registres, fem el test d&apos;idone&iuml;tat (MIFID) i et munto l&apos;arquetip, la cartera diversificada i el full de ruta personalitzat.</div>
-        <a href="platform.html" style="font-size:13px;font-weight:600;color:var(--gold-dark)">Registra&apos;t com a client &rarr;</a>
+        <div style="font-family:var(--fm);font-size:12px;letter-spacing:.08em;color:var(--gold-dark);margin-bottom:14px">PAS<span class="i18n" data-i18n="k111"></span> 2</div>
+        <div style="font-size:30px;margin-bottom:12px">📊</div>
+        <div style="font-family:var(--fd);font-size:20px;font-weight:500;margin-bottom:9px">Re<span class="i18n" data-i18n="k112">p el teu pla i cartera a m</span>ida</div>
+        <div style="font-size:13px;color:var(--g500);line-height:1.72;margin-bottom:16px"><span class="i18n" data-i18n="k113">Et registres, fem el test d'idoneïtat (MIFID) i et munto l'arquetip</span>, la cartera diversificada <span class="i18n" data-i18n="k114">i el full de ruta personalitzat</span>.</div>
+        <a href="platform.html" style="font-size:13px;font-weight:600;color:var(--gold-dark)">Reg<span class="i18n" data-i18n="k115">istra't com a client</span> →</a>
       </div>
       <div class="prob-card fade-up d2" style="position:relative">
-        <div style="font-family:var(--fm);font-size:12px;letter-spacing:.08em;color:var(--gold-dark);margin-bottom:14px">PAS 3</div>
-        <div style="font-size:30px;margin-bottom:12px">&#129309;</div>
-        <div style="font-family:var(--fd);font-size:20px;font-weight:500;margin-bottom:9px">T&apos;acompanyo cada mes</div>
-        <div style="font-size:13px;color:var(--g500);line-height:1.72;margin-bottom:16px">Seguiment de la cartera, missatgeria directa, rebalanceig i avisos d&apos;oportunitat. Mantens sempre el control i la propietat dels teus diners.</div>
-        <a href="#pricing" style="font-size:13px;font-weight:600;color:var(--gold-dark)">Veure els plans &rarr;</a>
+        <div style="font-family:var(--fm);font-size:12px;letter-spacing:.08em;color:var(--gold-dark);margin-bottom:14px">PAS<span class="i18n" data-i18n="k116"></span> 3</div>
+        <div style="font-size:30px;margin-bottom:12px">🤝</div>
+        <div style="font-family:var(--fd);font-size:20px;font-weight:500;margin-bottom:9px">T<span class="i18n" data-i18n="k117">'acompany</span>o cada mes</div>
+        <div style="font-size:13px;color:var(--g500);line-height:1.72;margin-bottom:16px">Seguim<span class="i18n" data-i18n="k118">ent de la cartera, missatgeria directa, rebalanceig i avisos d'oportunitat. Mantens sempre el control i la propietat dels teus diners</span>.</div>
+        <a href="#pricing" style="font-size:13px;font-weight:600;color:var(--gold-dark)">Ve<span class="i18n" data-i18n="k119">ure els plan</span>s →</a>
       </div>
     </div>
   </div>
@@ -683,35 +690,35 @@ section{padding:100px 28px}
 <!-- ============================ NOU: QUÈ INCLOU ============================ -->
 <section class="inclou" id="que-inclou">
   <div class="section-inner">
-    <div class="section-label" style="text-align:center">Qu&egrave; inclou</div>
-    <div class="section-title" style="text-align:center">Tot el que necessites, en un sol lloc</div>
-    <p class="section-sub" style="margin:0 auto 48px;text-align:center">Des del primer test fins a l&apos;acompanyament mes a mes. Ni m&eacute;s complicat ni m&eacute;s car del que necessites.</p>
+    <div class="section-label" style="text-align:center">Qu<span class="i18n" data-i18n="k120">è inclou</span></div>
+    <div class="section-title" style="text-align:center">To<span class="i18n" data-i18n="k121">t el que necessites, en un sol lloc</span></div>
+    <p class="section-sub" style="margin:0 auto 48px;text-align:center">Des<span class="i18n" data-i18n="k122"> del primer test fins a l'acompanyament mes a mes. Ni més complicat ni més car del que necessite</span>s.</p>
 
     <div class="inclou-grid">
       <div class="inclou-card fade-up">
-        <div class="inclou-ico">&#129517;</div>
-        <div class="inclou-title">Perfil, arquetip i cartera model</div>
-        <div class="inclou-text">Un test breu defineix el teu arquetip inversor i una cartera diversificada i barata (~0,25% TER) feta per al teu perfil i objectius.</div>
+        <div class="inclou-ico">🧭</div>
+        <div class="inclou-title">Perfil, arquetip<span class="i18n" data-i18n="k123"> i cartera model</span></div>
+        <div class="inclou-text">Un test bre<span class="i18n" data-i18n="k124">u defineix el teu arquetip inversor i</span> una cartera diversificada <span class="i18n" data-i18n="k125">i barata (~0,25% TER) feta per al teu perfil i objectiu</span>s.</div>
       </div>
       <div class="inclou-card fade-up d1">
-        <div class="inclou-ico">&#128506;&#65039;</div>
-        <div class="inclou-title">Pla financer i Full de Ruta</div>
-        <div class="inclou-text">Objectius concrets amb imports i dates, projeccions a 5&ndash;20 anys i fites clares. Saps sempre cap a on vas i qu&egrave; toca a cada pas.</div>
+        <div class="inclou-ico">🗺️</div>
+        <div class="inclou-title">Pla<span class="i18n" data-i18n="k126"> financer i Full</span> de Ruta</div>
+        <div class="inclou-text">Obje<span class="i18n" data-i18n="k127">ctius concrets amb imports i dates, projeccions a 5–20 anys i fites clares. Saps sempre cap a on vas i què toca a cada pas</span>.</div>
       </div>
       <div class="inclou-card fade-up d2">
-        <div class="inclou-ico">&#128202;</div>
-        <div class="inclou-title">Plataforma amb totes les eines</div>
-        <div class="inclou-text">Seguiment de cartera, calculadora FIRE, an&agrave;lisi setmanal, glossari, alertes d&apos;oportunitat i informes. Tot des del navegador.</div>
+        <div class="inclou-ico">📊</div>
+        <div class="inclou-title">Plataforma <span class="i18n" data-i18n="k128">amb totes les eine</span>s</div>
+        <div class="inclou-text">Seguim<span class="i18n" data-i18n="k129">ent</span> de cartera, calculadora FIRE, an<span class="i18n" data-i18n="k130">àlisi setmanal, glossari, alertes d'oportunitat i informes. Tot des d</span>el navegador.</div>
       </div>
       <div class="inclou-card fade-up d3">
-        <div class="inclou-ico">&#129309;</div>
-        <div class="inclou-title">Acompanyament i coaching</div>
-        <div class="inclou-text">Missatgeria directa, sessions per v&iacute;deo, formaci&oacute; a demanda i coaching de biaixos perqu&egrave; no et deixis dur per l&apos;emoci&oacute; del moment.</div>
+        <div class="inclou-ico">🤝</div>
+        <div class="inclou-title">Acompa<span class="i18n" data-i18n="k131">nyament i</span> coaching</div>
+        <div class="inclou-text">M<span class="i18n" data-i18n="k132">issatgeria directa, sessions per vídeo, formació a demanda i coaching de biaixos perquè no et deixis dur per l'emoció del moment</span>.</div>
       </div>
     </div>
 
     <div style="text-align:center;margin-top:40px">
-      <a href="test-salut-financera.html" class="btn-primary">Comen&ccedil;a pel test gratu&iuml;t <span style="font-size:12px;opacity:.6">2 min</span></a>
+      <a href="test-salut-financera.html" class="btn-primary"><span class="i18n" data-i18n="k133">Comença pel test gratuït</span> <span style="font-size:12px;opacity:.6">2 min</span></a>
     </div>
   </div>
 </section>
@@ -719,163 +726,163 @@ section{padding:100px 28px}
 <!-- ============================ PRICING ============================ -->
 <section class="pricing" id="pricing">
   <div class="section-inner">
-    <div class="section-label" style="color:var(--gold);text-align:center">Productes i tarifes</div>
-    <div class="section-title" style="color:#fff;text-align:center">Tries com vols comen&ccedil;ar</div>
-    <p style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.78;max-width:640px;margin:0 auto 24px;text-align:center">Pots fer una <strong>consulta puntual</strong>, contractar el <strong>Pack Inici</strong> (un sol pagament) o anar a una <strong>subscripci&oacute; mensual</strong>. Sense retrocessions, sense comissions de producte, sense lletra petita.</p>
+    <div class="section-label" style="color:var(--gold);text-align:center">Product<span class="i18n" data-i18n="k134">es i tarife</span>s</div>
+    <div class="section-title" style="color:#fff;text-align:center"><span class="i18n" data-i18n="k135">Tries com vols començ</span>ar</div>
+    <p style="font-size:15px;color:rgba(255,255,255,.55);line-height:1.78;max-width:640px;margin:0 auto 24px;text-align:center">P<span class="i18n" data-i18n="k136">ots f</span>er una <strong>consulta puntual</strong>, contra<span class="i18n" data-i18n="k137">c</span>tar el <strong>Pack Inici<span class="i18n" data-i18n="k138"></span></strong> (un sol<span class="i18n" data-i18n="k139"> pagament) o ana</span>r a una <strong>su<span class="i18n" data-i18n="k140">bscripció</span> mensual</strong>. S<span class="i18n" data-i18n="k141">ense retrocessions, sense comissions de producte, sense lletra petit</span>a.</p>
 
     <!-- PRODUCTES PUNTUALS -->
     <div style="text-align:center;margin-bottom:18px">
-      <div style="font-family:var(--fd);font-size:24px;font-weight:500;color:#fff">Un sol pagament</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px">Sense subscripci&oacute; ni renovacions autom&agrave;tiques.</div>
+      <div style="font-family:var(--fd);font-size:24px;font-weight:500;color:#fff">Un sol<span class="i18n" data-i18n="k142"> pagament</span></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px">S<span class="i18n" data-i18n="k143">ense subscripció ni renovacions automàtique</span>s.</div>
     </div>
 
     <div class="oneoff-grid">
       <!-- PACK INICI -->
       <div class="oneoff-card feat fade-up">
-        <div class="oneoff-tag gold">&#11088; La porta d&apos;entrada</div>
-        <div class="oneoff-title">Pack Inici</div>
-        <div class="oneoff-sub">Entrevista inicial + pla financer + 3 mesos de seguiment. Surts amb la cartera muntada i un full de ruta per escrit.</div>
+        <div class="oneoff-tag gold">⭐ La p<span class="i18n" data-i18n="k144">orta d'</span>entrada</div>
+        <div class="oneoff-title">Pack Inici<span class="i18n" data-i18n="k145"></span></div>
+        <div class="oneoff-sub">Entrevista inicial + pla<span class="i18n" data-i18n="k146"> financer + 3 mesos de seguiment. Surts amb la cartera muntada i un full de ruta per escrit</span>.</div>
         <div class="oneoff-price-row">
-          <div class="oneoff-price">120&euro;</div>
-          <div class="oneoff-price-old">180&euro;</div>
+          <div class="oneoff-price">120€</div>
+          <div class="oneoff-price-old">180€</div>
         </div>
-        <div class="oneoff-price-alt">= 40&euro;/mes durant 3 mesos &middot; sense renovaci&oacute;</div>
+        <div class="oneoff-price-alt">= 40€/mes durant<span class="i18n" data-i18n="k147"> 3 mesos · sense renovació</span></div>
         <ul class="oneoff-features">
-          <li>Entrevista inicial 1h per v&iacute;deo</li>
-          <li>Pla financer personalitzat (PDF + portal)</li>
-          <li>Creaci&oacute; de cartera + primeres operacions guiades</li>
-          <li>Seguiment continu durant 3 mesos</li>
-          <li>Acc&eacute;s complet a la plataforma TBI</li>
+          <li>Entrevista inicial 1h p<span class="i18n" data-i18n="k148">e</span>r vídeo</li>
+          <li>Pla<span class="i18n" data-i18n="k149"> financer personalitzat</span> (PDF + portal)</li>
+          <li>Creació<span class="i18n" data-i18n="k150"> de cartera + primeres operacions guiade</span>s</li>
+          <li>Seguim<span class="i18n" data-i18n="k151">ent continu durant 3 meso</span>s</li>
+          <li>Acc<span class="i18n" data-i18n="k152">és complet</span> a la plataforma TBI</li>
         </ul>
-        <a href="https://wa.me/34629340892?text=M%27interessa%20el%20Pack%20Inici%20%28entrevista%20%2B%20pla%20%2B%203%20mesos%29" target="_blank"><button class="btn-primary" style="width:100%;justify-content:center;font-size:14px">Comen&ccedil;ar amb el Pack Inici &rarr;</button></a>
-        <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6">Comences en 48h laborables &middot; Garantia de satisfacci&oacute; 30 dies</div>
+        <a href="https://wa.me/34629340892?text=M%27interessa%20el%20Pack%20Inici%20%28entrevista%20%2B%20pla%20%2B%203%20mesos%29" target="_blank"><button class="btn-primary" style="width:100%;justify-content:center;font-size:14px"><span class="i18n" data-i18n="k153">Començar amb el Pack Inici</span> →</button></a>
+        <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6"><span class="i18n" data-i18n="k154">Comence</span>s en 48h laborables · Garant<span class="i18n" data-i18n="k155">ia de satisfacció 30 die</span>s</div>
       </div>
 
       <!-- ESTUDIS / CONSULTA -->
       <div class="oneoff-card fade-up d1">
-        <div class="oneoff-tag ghost">&#128269; Sense comprom&iacute;s</div>
-        <div class="oneoff-title">Estudis i Consultes</div>
-        <div class="oneoff-sub">Un dubte concret o una segona opini&oacute;? Et faig un estudi del teu fons o cartera, o resolc una consulta puntual. Sense entrar a cap pla.</div>
+        <div class="oneoff-tag ghost">🔍 Sense compromís</div>
+        <div class="oneoff-title">Estudi<span class="i18n" data-i18n="k156">s i Consulte</span>s</div>
+        <div class="oneoff-sub"><span class="i18n" data-i18n="k157">Un dubte concret o una segona opinió? Et faig un estudi del teu fons o cartera, o resolc</span> una consulta puntual. S<span class="i18n" data-i18n="k158">ense entrar a cap pla</span>.</div>
         <div class="oneoff-price-row">
-          <div class="oneoff-price">59&euro;</div>
-          <div style="font-size:13px;color:rgba(255,255,255,.5);font-family:var(--fm)">/ estudi o consulta</div>
+          <div class="oneoff-price">59€</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.5);font-family:var(--fm)">/ estudi<span class="i18n" data-i18n="k159"></span> o consulta</div>
         </div>
-        <div class="oneoff-price-alt">Pack de 3 estudis: <strong style="color:var(--gold)">149&euro;</strong> (estalvies 28&euro;)</div>
+        <div class="oneoff-price-alt">Pack de 3 estudi<span class="i18n" data-i18n="k160"></span>s: <strong style="color:var(--gold)">149€</strong> (<span class="i18n" data-i18n="k161">estalvie</span>s 28€)</div>
         <ul class="oneoff-features">
-          <li>An&agrave;lisi d&apos;un fons o cartera existent (costos, riscos, alternatives)</li>
-          <li>Consulta esporàdica sobre un dubte concret</li>
-          <li>Informe escrit amb conclusions clares</li>
-          <li>Pack x3 ideal per revisar diverses posicions</li>
-          <li>Descomptable del Pack Inici si despr&eacute;s hi entres</li>
+          <li>An<span class="i18n" data-i18n="k162">àlisi d'un fons o cartera existent (costos, riscos, alternative</span>s)</li>
+          <li>Consulta espor<span class="i18n" data-i18n="k163">àdica sobre un dubte concret</span></li>
+          <li>Informe escrit<span class="i18n" data-i18n="k164"> amb conclusions clare</span>s</li>
+          <li>Pack x3 ideal p<span class="i18n" data-i18n="k165">er revisar diverses posicion</span>s</li>
+          <li>Desco<span class="i18n" data-i18n="k166">mptable del Pack Inici si després hi entre</span>s</li>
         </ul>
-        <a href="https://wa.me/34629340892?text=M%27interessa%20un%20estudi%2Fconsulta%20puntual%20%2859%E2%82%AC%20o%20x3%20149%E2%82%AC%29" target="_blank"><button class="btn-secondary" style="width:100%;justify-content:center;font-size:14px;border-color:rgba(200,165,74,.4);color:var(--gold)">Demanar un estudi &rarr;</button></a>
-        <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6">Lliurament t&iacute;pic en 3&ndash;5 dies laborables</div>
+        <a href="https://wa.me/34629340892?text=M%27interessa%20un%20estudi%2Fconsulta%20puntual%20%2859%E2%82%AC%20o%20x3%20149%E2%82%AC%29" target="_blank"><button class="btn-secondary" style="width:100%;justify-content:center;font-size:14px;border-color:rgba(200,165,74,.4);color:var(--gold)"><span class="i18n" data-i18n="k167">Demanar un estudi</span> →</button></a>
+        <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6"><span class="i18n" data-i18n="k168">Lliurament típic en 3–5 die</span>s laborables</div>
       </div>
     </div>
 
     <!-- 4 PLANS DE SUBSCRIPCIO -->
     <div style="text-align:center;margin-bottom:14px">
-      <div style="font-family:var(--fd);font-size:24px;font-weight:500;color:#fff">O subscripci&oacute; mensual</div>
-      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px">Quatre nivells. Tries el que encaixi.</div>
+      <div style="font-family:var(--fd);font-size:24px;font-weight:500;color:#fff">O su<span class="i18n" data-i18n="k169">bscripció</span> mensual</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px"><span class="i18n" data-i18n="k170">Quatre nivells. Tries el que encaixi</span>.</div>
     </div>
     <div class="plans-grid">
       <!-- SENYAL -->
       <div class="plan">
-        <div class="plan-icon">&#128225;</div>
-        <div class="plan-name">Senyal</div>
-        <div class="plan-tagline">Plataforma + eines d&apos;autogesti&oacute;</div>
-        <div class="plan-price">8<span> &euro;/mes</span></div>
+        <div class="plan-icon">📡</div>
+        <div class="plan-name">Se<span class="i18n" data-i18n="k171">ny</span>al</div>
+        <div class="plan-tagline">Plataforma + <span class="i18n" data-i18n="k172">eines d'autogestió</span></div>
+        <div class="plan-price">8<span> €/mes</span></div>
         <ul class="plan-features">
-          <li>Arquetip inversor + cartera recomanada</li>
-          <li>An&agrave;lisi setmanal de mercat TBI</li>
-          <li>Calculadora FIRE (5 modalitats)</li>
-          <li>Fons d&apos;emerg&egrave;ncia + Turbo Estalvi</li>
-          <li>Glossari financer (28+ termes)</li>
-          <li>Consultes r&agrave;pides per missatgeria (1/setmana)</li>
-          <li class="no">Cartera target personalitzada</li>
-          <li class="no">Missatgeria directa il&middot;limitada</li>
-          <li class="no">Sessions per v&iacute;deo</li>
+          <li>Arquetip<span class="i18n" data-i18n="k173"></span> inversor + cartera recom<span class="i18n" data-i18n="k174">an</span>ada</li>
+          <li>An<span class="i18n" data-i18n="k175">àlisi setmanal de mercat</span> TBI</li>
+          <li>Calculadora FIRE (5 modali<span class="i18n" data-i18n="k176">tat</span>s)</li>
+          <li>Fon<span class="i18n" data-i18n="k177">s d'emergència + Turbo Estalvi</span></li>
+          <li>Glos<span class="i18n" data-i18n="k178">sari financer (28+ terme</span>s)</li>
+          <li>Consult<span class="i18n" data-i18n="k179">es ràpides per missatgeria (1/set</span>mana)</li>
+          <li class="no">Cartera target personali<span class="i18n" data-i18n="k180">t</span>zada</li>
+          <li class="no">M<span class="i18n" data-i18n="k181">issatgeria directa il·</span>limitada</li>
+          <li class="no">Ses<span class="i18n" data-i18n="k182">sions pe</span>r vídeo</li>
         </ul>
-        <a href="platform.html"><button class="plan-btn plan-btn-outline">Comen&ccedil;ar &rarr;</button></a>
-        <div class="plan-note">Per a autogestors informats</div>
+        <a href="platform.html"><button class="plan-btn plan-btn-outline"><span class="i18n" data-i18n="k183">Començ</span>ar →</button></a>
+        <div class="plan-note">P<span class="i18n" data-i18n="k184">er a autogestors informat</span>s</div>
       </div>
 
       <!-- BRUIXOLA -->
       <div class="plan">
-        <div class="plan-icon">&#129517;</div>
-        <div class="plan-name">Br&uacute;ixola</div>
-        <div class="plan-tagline">An&agrave;lisi i acompanyament actiu</div>
-        <div class="plan-price">29<span> &euro;/mes</span></div>
+        <div class="plan-icon">🧭</div>
+        <div class="plan-name">Brú<span class="i18n" data-i18n="k185">ixo</span>la</div>
+        <div class="plan-tagline">An<span class="i18n" data-i18n="k186">àlisi i acompanyament actiu</span></div>
+        <div class="plan-price">29<span> €/mes</span></div>
         <ul class="plan-features">
-          <li>Tot el pla Senyal</li>
-          <li>Entrevista inicial 1h per v&iacute;deo</li>
-          <li>Cartera target personalitzada</li>
-          <li>Full de Ruta financer personalitzat</li>
-          <li>An&agrave;lisi mensual aprofundida</li>
-          <li>Missatgeria directa (fins a 8 msg/mes)</li>
-          <li>Informes PDF trimestrals</li>
-          <li class="no">Sessions per v&iacute;deo</li>
-          <li class="no">Seguiment posicions reals</li>
+          <li>To<span class="i18n" data-i18n="k187">t el pla Seny</span>al</li>
+          <li>Entrevista inicial 1h p<span class="i18n" data-i18n="k188">e</span>r vídeo</li>
+          <li>Cartera target personali<span class="i18n" data-i18n="k189">t</span>zada</li>
+          <li><span class="i18n" data-i18n="k190">Full de Ruta financer personalitzat</span></li>
+          <li>An<span class="i18n" data-i18n="k191">àlisi mensual aprofundida</span></li>
+          <li>M<span class="i18n" data-i18n="k192">issatgeria directa (fins </span>a 8 msg/mes)</li>
+          <li>Informes PDF trimestral<span class="i18n" data-i18n="k193"></span>s</li>
+          <li class="no">Ses<span class="i18n" data-i18n="k194">sions pe</span>r vídeo</li>
+          <li class="no">Seguim<span class="i18n" data-i18n="k195">ent posicions real</span>s</li>
         </ul>
-        <a href="platform.html"><button class="plan-btn plan-btn-primary">Triar Br&uacute;ixola</button></a>
-        <div class="plan-note">Per a inversors que volen orientaci&oacute; activa</div>
+        <a href="platform.html"><button class="plan-btn plan-btn-primary"><span class="i18n" data-i18n="k196">Triar Brúixo</span>la</button></a>
+        <div class="plan-note">P<span class="i18n" data-i18n="k197">er a inversors que volen orientació</span> activa</div>
       </div>
 
       <!-- NORD (featured) -->
       <div class="plan featured">
-        <div class="plan-badge">RECOMANAT</div>
-        <div class="plan-icon">&#11088;</div>
-        <div class="plan-name">Nord</div>
-        <div class="plan-tagline">Seguiment complet + sessions</div>
-        <div class="plan-price">49<span> &euro;/mes</span></div>
+        <div class="plan-badge">RECOM<span class="i18n" data-i18n="k198">ANAT</span></div>
+        <div class="plan-icon">⭐</div>
+        <div class="plan-name">Nor<span class="i18n" data-i18n="k199">d</span></div>
+        <div class="plan-tagline">Seguim<span class="i18n" data-i18n="k200">ent complet + session</span>s</div>
+        <div class="plan-price">49<span> €/mes</span></div>
         <ul class="plan-features">
-          <li>Tot el pla Br&uacute;ixola (missatgeria il&middot;limitada)</li>
-          <li>Sessi&oacute; trimestral 1h per v&iacute;deo</li>
-          <li>Seguiment posicions reals</li>
-          <li>Rebalanceig semestral assistit</li>
-          <li>Planificaci&oacute; fiscal b&agrave;sica</li>
-          <li>Informes mensuals complets</li>
-          <li>Suport prioritari (resposta en 24h)</li>
-          <li>Webinars de formaci&oacute; <strong>inclosos</strong></li>
+          <li>To<span class="i18n" data-i18n="k201">t el pla Brúixola (missatgeria il·</span>limitada)</li>
+          <li>Ses<span class="i18n" data-i18n="k202">sió trimestral 1h pe</span>r vídeo</li>
+          <li>Seguim<span class="i18n" data-i18n="k203">ent posicions real</span>s</li>
+          <li>Rebalance<span class="i18n" data-i18n="k204">ig semestral assistit</span></li>
+          <li>Planificació<span class="i18n" data-i18n="k205"> fiscal bà</span>sica</li>
+          <li>Informes mensual<span class="i18n" data-i18n="k206">s complet</span>s</li>
+          <li>S<span class="i18n" data-i18n="k207">uport prioritari (respo</span>sta en 24h)</li>
+          <li>Webinars de formació<span class="i18n" data-i18n="k208"></span> <strong>incl<span class="i18n" data-i18n="k209">os</span>os</strong></li>
         </ul>
-        <a href="platform.html"><button class="plan-btn plan-btn-gold">Triar Nord</button></a>
-        <div class="plan-note">Per a inversors seriosos amb &gt;10.000&euro;</div>
+        <a href="platform.html"><button class="plan-btn plan-btn-gold"><span class="i18n" data-i18n="k210">Triar Nord</span></button></a>
+        <div class="plan-note">P<span class="i18n" data-i18n="k211">er a inversors seriosos amb</span> >10.000€</div>
       </div>
 
       <!-- ANCORA -->
       <div class="plan anchor">
-        <div class="plan-badge">PATRIMONI FAMILIAR</div>
-        <div class="plan-icon">&#9875;</div>
-        <div class="plan-name">&Agrave;ncora</div>
-        <div class="plan-tagline">Gesti&oacute; integral patrimoni &middot; &gt;100.000&euro;</div>
-        <div class="plan-price">99<span> &euro;/mes</span></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);margin:-2px 0 12px;font-family:var(--fm)">O b&eacute;: 5% dels guanys nets anuals</div>
+        <div class="plan-badge">PATRIMONI<span class="i18n" data-i18n="k212"></span> FAMILIAR</div>
+        <div class="plan-icon">⚓</div>
+        <div class="plan-name"><span class="i18n" data-i18n="k213">Àncor</span>a</div>
+        <div class="plan-tagline">Gestió<span class="i18n" data-i18n="k214"> integral patrimoni</span> · >100.000€</div>
+        <div class="plan-price">99<span> €/mes</span></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin:-2px 0 12px;font-family:var(--fm)">O b<span class="i18n" data-i18n="k215">é: 5% dels guanys nets anual</span>s</div>
         <ul class="plan-features">
-          <li>Tot el pla Nord (sessions mensuals)</li>
-          <li>Dedicaci&oacute; preferent &middot; resposta en el dia</li>
-          <li>Seguiment diari de posicions</li>
-          <li>Rebalanceig sota demanda</li>
-          <li>Planificaci&oacute; fiscal completa</li>
-          <li>Assessoria success&ograve;ria b&agrave;sica</li>
-          <li>Informe mensual patrimonial complet</li>
-          <li>Webinars il&middot;limitats <strong>inclosos</strong></li>
+          <li>To<span class="i18n" data-i18n="k216">t el pla Nord (sessions mensual</span>s)</li>
+          <li>Dedicació<span class="i18n" data-i18n="k217"> preferent · resposta en el di</span>a</li>
+          <li>Seguim<span class="i18n" data-i18n="k218">ent diari de posicion</span>s</li>
+          <li>Rebalance<span class="i18n" data-i18n="k219">ig sota</span> demanda</li>
+          <li>Planificació<span class="i18n" data-i18n="k220"></span> fiscal completa</li>
+          <li>As<span class="i18n" data-i18n="k221">sessoria successòria bà</span>sica</li>
+          <li>Informe mensual patrimonial complet<span class="i18n" data-i18n="k222"></span></li>
+          <li>Webinars il<span class="i18n" data-i18n="k223">·limitat</span>s <strong>incl<span class="i18n" data-i18n="k224">os</span>os</strong></li>
         </ul>
-        <a href="https://wa.me/34629340892?text=M%27interessa%20el%20pla%20%C3%80ncora" target="_blank"><button class="plan-btn plan-btn-anchor">Parlar amb Guillem &rarr;</button></a>
-        <div class="plan-note">M&iacute;n. 100.000&euro; &middot; M&agrave;x. 5 clients sim.</div>
+        <a href="https://wa.me/34629340892?text=M%27interessa%20el%20pla%20%C3%80ncora" target="_blank"><button class="plan-btn plan-btn-anchor"><span class="i18n" data-i18n="k225">Parlar amb</span> Guillem →</button></a>
+        <div class="plan-note">Mín. 100.000€ · M<span class="i18n" data-i18n="k226">àx. 5 client</span>s sim.</div>
       </div>
     </div>
 
     <!-- WEBINARS NOTE -->
     <div class="webinars-note">
-      <div class="wn-icon">&#127908;</div>
+      <div class="wn-icon">🎤</div>
       <div>
-        <div class="wn-title">Webinars de formaci&oacute; a demanda</div>
-        <div class="wn-text">Per resoldre temes concrets (FIRE, ETFs des de zero, fiscalitat d&apos;inversions, planificaci&oacute; success&ograve;ria&hellip;) organitzo webinars puntuals quan els clients ho demanen. Inclosos gratu&iuml;tament als plans <strong>Nord</strong> i <strong>&Agrave;ncora</strong>; descomptes per a Senyal i Br&uacute;ixola. Demana&apos;m el tema que t&apos;interessi.</div>
+        <div class="wn-title">Webinars de formació<span class="i18n" data-i18n="k227"></span> a demanda</div>
+        <div class="wn-text">P<span class="i18n" data-i18n="k228">er resoldre temes concrets (FIRE, ETFs des de zero, fiscalitat d'inversions, planificació successòria…) organitzo webinars puntuals quan els clients ho deman</span>en. Inclosos gratuïtament als plans <strong>Nor<span class="i18n" data-i18n="k229">d</span></strong> i <strong><span class="i18n" data-i18n="k230">Àncor</span>a</strong>; descomptes per a Senyal i Brúixola. Demana'm el tema que t'interessi.</div>
       </div>
     </div>
 
     <div style="margin-top:28px;text-align:center;max-width:640px;margin-left:auto;margin-right:auto">
-      <p style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.7">Comprom&iacute;s m&iacute;nim de subscripci&oacute;: 3 mesos. Garantia de satisfacci&oacute; els primers 30 dies (devoluci&oacute; &iacute;ntegra). Cancel&middot;la quan vulguis a partir del 4t mes. El Pack Inici (120&euro;) i els estudis puntuals s&oacute;n descomptables de la primera mensualitat de qualsevol pla.</p>
+      <p style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.7">Comprom<span class="i18n" data-i18n="k231">ís mínim de subscripció: 3 mesos. Garantia de satisfacció els primers 30 dies (devolució íntegra). Cancel·la quan vulguis a partir del 4t mes. El Pack Inici (120€) i els estudis puntuals són descomp</span>tables de la primera mensuali<span class="i18n" data-i18n="k232">tat de qualsevol pla</span>.</p>
     </div>
   </div>
 </section>
@@ -883,49 +890,49 @@ section{padding:100px 28px}
 <!-- ============================ FAQ OBJECCIONS ============================ -->
 <section style="background:var(--white);padding:100px 28px">
   <div class="section-inner" style="max-width:780px">
-    <div class="section-label" style="text-align:center">Les preguntes que importen</div>
-    <div class="section-title" style="text-align:center">Abans de confiar-me els teus diners</div>
-    <p class="section-sub" style="margin:0 auto 40px;text-align:center">Les respostes que tothom hauria de demanar a qualsevol que parli de les seves finances.</p>
+    <div class="section-label" style="text-align:center">L<span class="i18n" data-i18n="k233">es preguntes que importe</span>n</div>
+    <div class="section-title" style="text-align:center">A<span class="i18n" data-i18n="k234">bans de confiar-me els teus diners</span></div>
+    <p class="section-sub" style="margin:0 auto 40px;text-align:center">L<span class="i18n" data-i18n="k235">es respostes que tothom hauria de demanar a qualsevol que parli de les seves finance</span>s.</p>
 
     <div style="display:flex;flex-direction:column;gap:12px">
       <details style="background:var(--cream);border:1px solid var(--g100);border-radius:14px;padding:4px 20px" open>
-        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">&#128176; Qui custodia els meus diners?</summary>
-        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">Mai els toco. Els teus diners es queden al teu propi banc o br&oacute;ker, <strong>al teu nom i sota el teu control</strong>. Jo t&apos;assessoro, et munto la cartera i t&apos;acompanyo; tu executes les operacions i mantens la propietat en tot moment. No hi ha cap compte intermediari ni cap dip&ograve;sit a TBI.</div>
+        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">💰 <span class="i18n" data-i18n="k236">Qui custodia els meus diners</span>?</summary>
+        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px"><span class="i18n" data-i18n="k237">Mai els toco. Els teus diners es queden al teu propi banc</span> o bróker, <strong>a<span class="i18n" data-i18n="k238">l teu nom i sota el te</span>u control</strong>. <span class="i18n" data-i18n="k239">Jo t'assessoro, et munto la cartera i t'acompanyo; tu executes les operacions i mantens la propietat en tot moment. No hi ha cap compte intermediari ni cap dipòsit a</span> TBI.</div>
       </details>
 
       <details style="background:var(--cream);border:1px solid var(--g100);border-radius:14px;padding:4px 20px">
-        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">&#9878;&#65039; Est&agrave;s regulat?</summary>
-        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">Amb total transpar&egrave;ncia: tinc un postgrau en Inversi&oacute; i Gesti&oacute; de Patrimonis i s&oacute;c <strong>candidat a la certificaci&oacute; EFA</strong> (European Financial Advisor), amb examen previst el juny&nbsp;de&nbsp;2026. Ara mateix opero com a <strong>educaci&oacute; i an&agrave;lisi financera independent</strong>, i un cop certificat ampliar&eacute; el marc d&apos;assessorament. T&apos;ho dic clar perqu&egrave; sàpigues exactament qu&egrave; reps.</div>
+        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">⚖️ <span class="i18n" data-i18n="k240">Estàs regulat</span>?</summary>
+        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px"><span class="i18n" data-i18n="k241">Amb total transparència: tinc un postgrau en Inversió i Gestió de Patrimonis i sóc</span> <strong>candidat<span class="i18n" data-i18n="k242"> a la certificació</span> EFA</strong> (European Financial Advisor), <span class="i18n" data-i18n="k243">amb examen previst el juny de 2026. Ara mateix opero com a</span> <strong>educació<span class="i18n" data-i18n="k244"> i anàlisi financera independent</span></strong>, <span class="i18n" data-i18n="k245">i un cop certificat ampliaré el marc d'assessorament. T'ho dic clar perquè sàpigues exactament què rep</span>s.</div>
       </details>
 
       <details style="background:var(--cream);border:1px solid var(--g100);border-radius:14px;padding:4px 20px">
-        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">&#128274; On s&oacute;n les comissions amagades?</summary>
-        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">No n&apos;hi ha. <strong>No cobro retrocessions ni comissions de producte</strong> &mdash; ning&uacute; em paga per col&middot;locar-te res. L&apos;&uacute;nic que pagues &eacute;s la tarifa transparent que tries (des de 8&euro;/mes). Aix&ograve; vol dir que els meus interessos i els teus apunten al mateix lloc.</div>
+        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">🔒 <span class="i18n" data-i18n="k246">On són les comissions amagade</span>s?</summary>
+        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">No <span class="i18n" data-i18n="k247">n'hi ha</span>. <strong>No cobro retrocessions ni comissions de producte</strong> — ningú em paga per col·locar-te res. L<span class="i18n" data-i18n="k248">'únic que pagues é</span>s la tarifa transparent<span class="i18n" data-i18n="k249"> que tries (des de 8€/mes). Això vol dir que els meus interessos i els teus apunten al mateix lloc</span>.</div>
       </details>
 
       <details style="background:var(--cream);border:1px solid var(--g100);border-radius:14px;padding:4px 20px">
-        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">&#128682; I si vull deixar-ho?</summary>
-        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">Tens <strong>30 dies de garantia</strong> (devoluci&oacute; &iacute;ntegra) i pots cancel&middot;lar quan vulguis a partir del 4t mes. Com que els teus comptes i diners s&oacute;n sempre teus, no hi ha cap producte que et lligui: si marxes, t&apos;emportes la cartera tal com est&agrave;.</div>
+        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">🚪 <span class="i18n" data-i18n="k250">I si vull deixar-h</span>o?</summary>
+        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">Tens <strong>30 dies de garantia</strong> (devolució íntegra) i pots cancel·lar quan vulguis a partir del 4t mes. Com<span class="i18n" data-i18n="k251"> que els teus comptes i diners són sempre teus, no hi ha cap producte que et lligui: si marxes, t'emportes la cartera tal com està</span>.</div>
       </details>
 
       <details style="background:var(--cream);border:1px solid var(--g100);border-radius:14px;padding:4px 20px">
-        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">&#127793; Necessito molt de capital per comen&ccedil;ar?</summary>
-        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">No. <strong>Sense m&iacute;nims d&apos;entrada.</strong> Mentre la banca privada demana 500.000&euro;, aqu&iacute; pots comen&ccedil;ar des de 8&euro;/mes amb la mateixa l&ograve;gica d&apos;una cartera personalitzada i barata. El millor moment per estructurar &eacute;s sempre com m&eacute;s aviat millor.</div>
+        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">🌱 <span class="i18n" data-i18n="k252">Necessito molt de capital per començ</span>ar?</summary>
+        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">No. <strong>S<span class="i18n" data-i18n="k253">ense mínims d'</span>entrada.</strong> M<span class="i18n" data-i18n="k254">entre la banca privada demana 500.000€, aquí pots començar des de 8€/mes amb la mateixa lògica d'una cartera personalitzada i barata. El millor moment per estructurar és sempre com més aviat mill</span>or.</div>
       </details>
 
       <details style="background:var(--cream);border:1px solid var(--g100);border-radius:14px;padding:4px 20px">
-        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">&#128257; Si ja tinc fons o cartera, els puc traspassar?</summary>
-        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">S&iacute;. Analitzo la teva cartera actual i, si conv&eacute;, et guio en el trasp&agrave;s <strong>fiscalment eficient</strong> cap a una cartera m&eacute;s alineada amb el teu perfil. Tu sempre mantens la propietat i el control dels diners.</div>
+        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">🔁 Si <span class="i18n" data-i18n="k255">ja tinc fons o cartera, els puc traspas</span>sar?</summary>
+        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">Sí. Anali<span class="i18n" data-i18n="k256">tzo la teva cartera actual i, si convé, et guio en el traspàs</span> <strong>fiscalment<span class="i18n" data-i18n="k257"> eficient</span></strong> <span class="i18n" data-i18n="k258">cap a una cartera més alineada amb el teu perfil. Tu sempre mantens la propietat i el control dels diners</span>.</div>
       </details>
 
       <details style="background:var(--cream);border:1px solid var(--g100);border-radius:14px;padding:4px 20px">
-        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">&#128200; El rendiment que mostres &eacute;s garantit?</summary>
-        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">No. Les xifres de l&apos;&Iacute;ndex TBI s&oacute;n <strong>hist&ograve;riques i il&middot;lustratives</strong>, mai una promesa. Cap rendiment futur est&agrave; garantit: dep&egrave;n del mercat, del teu perfil i de la disciplina. El que s&iacute; controlem &eacute;s mantenir els costos baixos i les decisions ordenades.</div>
+        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">📈 <span class="i18n" data-i18n="k259">El rendiment que mostres és garantit</span>?</summary>
+        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">No. L<span class="i18n" data-i18n="k260">es xifres de l'Índex TBI só</span>n <strong>hist<span class="i18n" data-i18n="k261">òriques i il·lustrative</span>s</strong>, <span class="i18n" data-i18n="k262">mai una promesa. Cap rendiment futur està garantit: depèn del mercat, del teu perfil i de la disciplina. El que sí controlem és mantenir els costos baixos i les decisions ordenade</span>s.</div>
       </details>
 
       <details style="background:var(--cream);border:1px solid var(--g100);border-radius:14px;padding:4px 20px">
-        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">&#127891; Necessito coneixements previs?</summary>
-        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px">Gens. T&apos;ho explico tot perqu&egrave; ho entenguis a cada pas, i tens un glossari (28+ termes) i una guia d&apos;actius a la plataforma. La majoria de clients comencen sense cap experi&egrave;ncia pr&egrave;via.</div>
+        <summary style="cursor:pointer;list-style:none;padding:16px 0;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px">🎓 <span class="i18n" data-i18n="k263">Necessito coneixements previ</span>s?</summary>
+        <div style="font-size:14px;color:var(--g500);line-height:1.78;padding:0 0 18px"><span class="i18n" data-i18n="k264">Gens. T'ho explico tot perquè ho entenguis a cada pas, i tens un glossari (28+ termes) i una guia d'actius a la plataforma. La majoria de clients comencen sense cap experiència prè</span>via.</div>
       </details>
     </div>
   </div>
@@ -934,44 +941,44 @@ section{padding:100px 28px}
 <!-- ============================ DESPLEGABLES ============================ -->
 <section class="deep" id="deep">
   <div class="section-inner">
-    <div class="section-label" style="text-align:center">Vols aprofundir?</div>
-    <div class="section-title" style="text-align:center">Tota la lletra, quan tu vulguis</div>
-    <p class="section-sub" style="text-align:center;margin:0 auto 16px">He plegat aqu&iacute; tot el detall: metodologia, dades de la cartera, com funciona l&apos;assessoria pas a pas i el marc legal. Obre nom&eacute;s el que t&apos;interessi.</p>
+    <div class="section-label" style="text-align:center"><span class="i18n" data-i18n="k265">Vols aprofundi</span>r?</div>
+    <div class="section-title" style="text-align:center">To<span class="i18n" data-i18n="k266">ta la lletra, quan tu vulgui</span>s</div>
+    <p class="section-sub" style="text-align:center;margin:0 auto 16px">He plega<span class="i18n" data-i18n="k267">t aquí tot el detall: metodologia, dades de la cartera, com funciona l'assessoria pas a pas i el marc legal. Obre només el que t'interessi</span>.</p>
 
     <div class="deep-acc">
 
       <!-- 1. PER QUÈ -->
       <details class="deep-item">
         <summary class="deep-sum">
-          <span class="deep-sum-ico">&#128201;</span>
+          <span class="deep-sum-ico">📉</span>
           <span class="deep-sum-txt">
-            <span class="deep-sum-title">Per qu&egrave; els teus diners perden valor ara</span>
-            <span class="deep-sum-desc">Inflaci&oacute;, comissions i conflicte d&apos;inter&egrave;s &middot; amb simulador</span>
+            <span class="deep-sum-title">P<span class="i18n" data-i18n="k268">er què els teus diners perden valor a</span>ra</span>
+            <span class="deep-sum-desc">Inflació<span class="i18n" data-i18n="k269">, comissions i conflicte d'interès · amb</span> simulador</span>
           </span>
           <span class="deep-sum-plus">+</span>
         </summary>
         <div class="deep-body dark">
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:22px 0">
             <div class="prob-card" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08)">
-              <div class="prob-card-num">&minus;3,4%</div>
-              <div class="prob-card-title" style="color:#fff">Inflaci&oacute; mitjana a Espanya (2021&ndash;2025)</div>
-              <div class="prob-card-text" style="color:rgba(255,255,255,.5)">10.000&euro; aturats des de 2021 compren avui l&apos;equivalent a uns 8.450&euro; de 2020.</div>
+              <div class="prob-card-num">−3,4%</div>
+              <div class="prob-card-title" style="color:#fff">Inflació<span class="i18n" data-i18n="k270"> mitjana a Espany</span>a (2021–2025)</div>
+              <div class="prob-card-text" style="color:rgba(255,255,255,.5)">10.000€ <span class="i18n" data-i18n="k271">aturats des de 2021 compren avui l'equivalent a un</span>s 8.450€ de 2020.</div>
             </div>
             <div class="prob-card" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08)">
-              <div class="prob-card-num">1,5&ndash;2%</div>
-              <div class="prob-card-title" style="color:#fff">Comissions en fons bancaris t&iacute;pics</div>
-              <div class="prob-card-text" style="color:rgba(255,255,255,.5)">Sobre 30.000&euro;, s&oacute;n entre 450&euro; i 600&euro; cada any, hi hagi rendiment o no.</div>
+              <div class="prob-card-num">1,5–2%</div>
+              <div class="prob-card-title" style="color:#fff">Comis<span class="i18n" data-i18n="k272">sions en fons bancaris típic</span>s</div>
+              <div class="prob-card-text" style="color:rgba(255,255,255,.5)">Sobre 30.000€, s<span class="i18n" data-i18n="k273">ón entre 450€ i 600€ cada any, hi hagi rendiment</span> o no.</div>
             </div>
             <div class="prob-card" style="background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08)">
               <div class="prob-card-num" style="color:var(--gold)">92%</div>
-              <div class="prob-card-title" style="color:#fff">Fons actius que rendeixen sota el seu &iacute;ndex</div>
-              <div class="prob-card-text" style="color:rgba(255,255,255,.5)">A 10 anys, segons SPIVA. El &laquo;consultor&raquo; del banc cobra retrocessions per cada producte que col&middot;loca.</div>
+              <div class="prob-card-title" style="color:#fff">Fon<span class="i18n" data-i18n="k274">s actius que rendeixen sota el seu índex</span></div>
+              <div class="prob-card-text" style="color:rgba(255,255,255,.5)">A 10 a<span class="i18n" data-i18n="k275">nys, segons</span> SPIVA. El «consultor» del banc<span class="i18n" data-i18n="k276"> cobra retrocessions per cada producte que col·</span>loca.</div>
             </div>
           </div>
 
           <div style="margin-top:18px;text-align:center;padding:18px;background:rgba(200,165,74,.06);border:1px solid rgba(200,165,74,.18);border-radius:14px">
-            <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:10px">Vols veure-ho amb els teus n&uacute;meros?</div>
-            <a href="#calculadora" onclick="obrirCalculadora('aturats')" style="font-size:14px;font-weight:600;color:var(--gold)">Prova la calculadora &darr;</a>
+            <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:10px"><span class="i18n" data-i18n="k277">Vols veure-ho amb els te</span>us números?</div>
+            <a href="#calculadora" onclick="obrirCalculadora('aturats')" style="font-size:14px;font-weight:600;color:var(--gold)">Pr<span class="i18n" data-i18n="k278">ov</span>a la calculadora ↓</a>
           </div>
         </div>
       </details>
@@ -979,61 +986,61 @@ section{padding:100px 28px}
       <!-- 2. METODOLOGIA + CARTERA + ÍNDEX + COMPARADOR -->
       <details class="deep-item">
         <summary class="deep-sum">
-          <span class="deep-sum-ico">&#129518;</span>
+          <span class="deep-sum-ico">🧮</span>
           <span class="deep-sum-txt">
-            <span class="deep-sum-title">Metodologia, cartera i &Iacute;ndex TBI</span>
-            <span class="deep-sum-desc">Com construeixo les carteres, dades reals i comparador banc vs TBI</span>
+            <span class="deep-sum-title">Metodolog<span class="i18n" data-i18n="k279">ia, cartera i Índex</span> TBI</span>
+            <span class="deep-sum-desc">C<span class="i18n" data-i18n="k280">om construeixo les carteres, dades reals i comparador banc</span> vs TBI</span>
           </span>
           <span class="deep-sum-plus">+</span>
         </summary>
         <div class="deep-body dark">
-          <p style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.78;margin:20px 0 22px">La metodologia TBI combina actius per <strong>maximitzar rendiment a un risc assumible</strong>, amb models matem&agrave;tics (volatilitat, correlacions, Sharpe, drawdowns). Diversificaci&oacute; intel&middot;ligent, rebalancejos disciplinats i costos baixos.</p>
+          <p style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.78;margin:20px 0 22px">La metodolog<span class="i18n" data-i18n="k281">ia TBI combina actius per</span> <strong>maximi<span class="i18n" data-i18n="k282">tzar rendiment a un risc as</span>sumible</strong>, <span class="i18n" data-i18n="k283">amb models matemàtics (volatilitat, correlacion</span>s, Sharpe, drawdowns). Diversificació<span class="i18n" data-i18n="k284"> intel·ligent, rebalancejos disciplinats i costos baix</span>os.</p>
 
           <div class="meto-pillars">
-            <div class="meto-pillar"><div class="meto-pillar-icon">&#129518;</div><div class="meto-pillar-title">Indexaci&oacute; nucli</div><div class="meto-pillar-text">ETFs globals diversificats, baix TER.</div><div class="meto-pillar-pct">~55%</div></div>
-            <div class="meto-pillar"><div class="meto-pillar-icon">&#127919;</div><div class="meto-pillar-title">Sat&egrave;l&middot;lits selectius</div><div class="meto-pillar-text">Posicions actives amb tesi clara i revisi&oacute; trimestral.</div><div class="meto-pillar-pct">~20%</div></div>
-            <div class="meto-pillar"><div class="meto-pillar-icon">&#127963;</div><div class="meto-pillar-title">Alternatius &amp; cobertures</div><div class="meto-pillar-text">Or, REITs, RF de qualitat. Redueixen drawdowns.</div><div class="meto-pillar-pct">~20%</div></div>
-            <div class="meto-pillar"><div class="meto-pillar-icon">&#9889;</div><div class="meto-pillar-title">Liquiditat t&agrave;ctica</div><div class="meto-pillar-text">Per aprofitar oportunitats sense vendre en mal moment.</div><div class="meto-pillar-pct">~5%</div></div>
+            <div class="meto-pillar"><div class="meto-pillar-icon">🧮</div><div class="meto-pillar-title">Indexació<span class="i18n" data-i18n="k285"> nucli</span></div><div class="meto-pillar-text">ETFs global<span class="i18n" data-i18n="k286">s diversificats, baix</span> TER.</div><div class="meto-pillar-pct">~55%</div></div>
+            <div class="meto-pillar"><div class="meto-pillar-icon">🎯</div><div class="meto-pillar-title">Sat<span class="i18n" data-i18n="k287">èl·lits selectiu</span>s</div><div class="meto-pillar-text">Posicion<span class="i18n" data-i18n="k288">s actives amb tesi clara i revisió</span> trimestral.</div><div class="meto-pillar-pct">~20%</div></div>
+            <div class="meto-pillar"><div class="meto-pillar-icon">🏛</div><div class="meto-pillar-title">Alternati<span class="i18n" data-i18n="k289">us &amp; coberture</span>s</div><div class="meto-pillar-text">Or<span class="i18n" data-i18n="k290">, REITs, RF de qualitat. Redueix</span>en drawdowns.</div><div class="meto-pillar-pct">~20%</div></div>
+            <div class="meto-pillar"><div class="meto-pillar-icon">⚡</div><div class="meto-pillar-title">Liquid<span class="i18n" data-i18n="k291">itat tà</span>ctica</div><div class="meto-pillar-text">P<span class="i18n" data-i18n="k292">er aprofitar oportunitats sense vendre en mal moment</span>.</div><div class="meto-pillar-pct">~5%</div></div>
           </div>
 
           <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px 24px;margin-top:20px">
-            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:4px">&Iacute;ndex TBI &middot; Base 100 &middot; Juny 2020 &ndash; Maig 2026</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:14px">Retorn ponderat en el temps (TWR) &middot; 72 mesos &middot; dades simulades</div>
+            <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:4px">Índ<span class="i18n" data-i18n="k293">ex TBI · Base 100 · Juny 2020 – Maig</span> 2026</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:14px">Retorn<span class="i18n" data-i18n="k294"> ponderat en el temps (TWR) · 72 mesos · dades simulade</span>s</div>
             <canvas id="tbiChart" style="width:100%;height:200px;display:block"></canvas>
           </div>
 
           <div class="kiid-doc">
             <div class="kiid-header">
               <div>
-                <div style="font-size:12px;font-family:var(--fm);color:rgba(255,255,255,.3);margin-bottom:4px">DOCUMENT DE RENDIMENT &middot; ESTIL KIID</div>
-                <div style="font-size:18px;font-weight:600;color:#fff">&Iacute;ndex TBI &mdash; Cartera Model</div>
+                <div style="font-size:12px;font-family:var(--fm);color:rgba(255,255,255,.3);margin-bottom:4px">DOCUMENT<span class="i18n" data-i18n="k295"> DE RENDIMENT · ESTIL</span> KIID</div>
+                <div style="font-size:18px;font-weight:600;color:#fff">Índ<span class="i18n" data-i18n="k296">ex TBI — Cartera Model</span></div>
               </div>
-              <div style="text-align:right"><div style="font-family:var(--fm);font-size:28px;font-weight:500;color:var(--gold)">13,87%</div><div style="font-size:11px;color:rgba(255,255,255,.35)">XIRR anualitzat</div></div>
+              <div style="text-align:right"><div style="font-family:var(--fm);font-size:28px;font-weight:500;color:var(--gold)">13,87%</div><div style="font-size:11px;color:rgba(255,255,255,.35)">XIRR anuali<span class="i18n" data-i18n="k297">tzat</span></div></div>
             </div>
             <div class="kiid-kpi-grid">
-              <div class="kiid-kpi"><div class="kiid-kpi-num">+117,0%</div><div class="kiid-kpi-label">Retorn total (base 100)</div></div>
-              <div class="kiid-kpi"><div class="kiid-kpi-num">2,17x</div><div class="kiid-kpi-label">M&uacute;ltiple sobre capital inicial</div></div>
-              <div class="kiid-kpi"><div class="kiid-kpi-num">11,7%</div><div class="kiid-kpi-label">Volatilitat anual (TWR)</div></div>
-              <div class="kiid-kpi"><div class="kiid-kpi-num">0,97</div><div class="kiid-kpi-label">R&agrave;tio de Sharpe</div></div>
+              <div class="kiid-kpi"><div class="kiid-kpi-num">+117,0%</div><div class="kiid-kpi-label">Retorn<span class="i18n" data-i18n="k298"></span> total (base 100)</div></div>
+              <div class="kiid-kpi"><div class="kiid-kpi-num">2,17x</div><div class="kiid-kpi-label">Múltipl<span class="i18n" data-i18n="k299">e</span> sobre capital inicial</div></div>
+              <div class="kiid-kpi"><div class="kiid-kpi-num">11,7%</div><div class="kiid-kpi-label">Volatili<span class="i18n" data-i18n="k300">tat</span> anual (TWR)</div></div>
+              <div class="kiid-kpi"><div class="kiid-kpi-num">0,97</div><div class="kiid-kpi-label">R<span class="i18n" data-i18n="k301">à</span>tio de Sharpe</div></div>
             </div>
             <div class="kiid-anual">
-              <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Rendiments anuals &mdash; TWR</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Rendim<span class="i18n" data-i18n="k302">ents anual</span>s — TWR</div>
               <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
                 <div class="anual-item"><div class="any">2020</div><div class="ret pos">+8,4%</div></div>
                 <div class="anual-item"><div class="any">2021</div><div class="ret pos">+42,4%</div></div>
-                <div class="anual-item"><div class="any">2022</div><div class="ret neg">&minus;16,8%</div></div>
+                <div class="anual-item"><div class="any">2022</div><div class="ret neg">−16,8%</div></div>
                 <div class="anual-item"><div class="any">2023</div><div class="ret pos">+17,6%</div></div>
                 <div class="anual-item"><div class="any">2024</div><div class="ret pos">+14,9%</div></div>
                 <div class="anual-item"><div class="any">2025</div><div class="ret pos">+11,2%</div></div>
                 <div class="anual-item"><div class="any">2026</div><div class="ret pos">+8,6%</div></div>
               </div>
             </div>
-            <div class="kiid-nota">Dades simulades a partir de la metodologia TBI. Els rendiments hist&ograve;rics no garanteixen rendiments futurs. La inversi&oacute; comporta risc de p&egrave;rdua del capital.</div>
+            <div class="kiid-nota">Da<span class="i18n" data-i18n="k303">des simulade</span>s a partir de la metodolog<span class="i18n" data-i18n="k304">ia TBI. Els rendiments històrics no garanteixen rendiments futurs. La inversió comporta risc de pèrdu</span>a del capital.</div>
           </div>
 
           <div style="margin-top:18px;text-align:center;padding:18px;background:rgba(200,165,74,.06);border:1px solid rgba(200,165,74,.18);border-radius:14px">
-            <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:10px">Quant et costen les comissions del banc al llarg dels anys?</div>
-            <a href="#calculadora" onclick="obrirCalculadora('cost')" style="font-size:14px;font-weight:600;color:var(--gold)">Compara-ho a la calculadora &darr;</a>
+            <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:10px"><span class="i18n" data-i18n="k305">Quant et costen les comissions del banc al llarg dels any</span>s?</div>
+            <a href="#calculadora" onclick="obrirCalculadora('cost')" style="font-size:14px;font-weight:600;color:var(--gold)">Comp<span class="i18n" data-i18n="k306">ara-ho a</span> la calculadora ↓</a>
           </div>
         </div>
       </details>
@@ -1041,21 +1048,21 @@ section{padding:100px 28px}
       <!-- 3. COM FUNCIONA -->
       <details class="deep-item">
         <summary class="deep-sum">
-          <span class="deep-sum-ico">&#129517;</span>
+          <span class="deep-sum-ico">🧭</span>
           <span class="deep-sum-txt">
-            <span class="deep-sum-title">Com funciona l&apos;assessoria, pas a pas</span>
-            <span class="deep-sum-desc">Del test fins a l&apos;acompanyament continu &middot; 6 passos</span>
+            <span class="deep-sum-title">C<span class="i18n" data-i18n="k307">om funciona l'assessoria, pas a pas</span></span>
+            <span class="deep-sum-desc">Del test <span class="i18n" data-i18n="k308">fins a l'acompanyament continu · 6 pas</span>sos</span>
           </span>
           <span class="deep-sum-plus">+</span>
         </summary>
         <div class="deep-body">
           <div class="assess-steps" style="margin-top:18px">
-            <div class="assess-step"><div class="assess-step-num">1</div><div><div class="assess-step-title">Perfil &middot; descobrim qui ets com a inversor</div><div class="assess-step-desc">27 preguntes sobre situaci&oacute;, objectius, horitz&oacute; i la teva <strong>toler&agrave;ncia al risc real</strong>. L&apos;algorisme calcula el teu arquetip dins els 10 perfils TBI.</div><div class="assess-step-tags"><span class="assess-step-tag">Test 2 min</span><span class="assess-step-tag">9 dimensions</span><span class="assess-step-tag">Arquetip</span></div></div></div>
-            <div class="assess-step"><div class="assess-step-num">2</div><div><div class="assess-step-title">Situaci&oacute; &middot; an&agrave;lisi financera 360&deg;</div><div class="assess-step-desc">Entrevista d&apos;1h. Posem sobre la taula ingressos, despeses, deutes i cartera actual. Detectem fugues i el teu <strong>excedent disponible</strong> per invertir.</div><div class="assess-step-tags"><span class="assess-step-tag">Fons d&apos;emerg&egrave;ncia</span><span class="assess-step-tag">Optimitzaci&oacute;</span></div></div></div>
-            <div class="assess-step"><div class="assess-step-num">3</div><div><div class="assess-step-title">Proposta &middot; cartera amb opcions de risc</div><div class="assess-step-desc">Una <strong>proposta de cartera</strong> i tres variants (conservadora, base, agressiva): composici&oacute;, rendiment esperat, volatilitat, drawdown i exemple en euros a 5, 10 i 20 anys.</div><div class="assess-step-tags"><span class="assess-step-tag">3 nivells</span><span class="assess-step-tag">Projeccions</span></div></div></div>
-            <div class="assess-step"><div class="assess-step-num">4</div><div><div class="assess-step-title">Pla &middot; objectius SMART i full de ruta</div><div class="assess-step-desc">Objectius concrets amb dates i imports (emerg&egrave;ncia, pis, FIRE, jubilaci&oacute;). Un <strong>full de ruta</strong> amb fases i milestones trimestrals.</div><div class="assess-step-tags"><span class="assess-step-tag">SMART</span><span class="assess-step-tag">FIRE</span></div></div></div>
-            <div class="assess-step"><div class="assess-step-num">5</div><div><div class="assess-step-title">Execuci&oacute; &middot; primeres operacions guiades</div><div class="assess-step-desc">T&apos;ajudo a triar br&oacute;ker, fer les primeres compres i configurar aportacions autom&agrave;tiques (DCA). Simple, repetible i avorrit &mdash; el millor per al llarg termini.</div><div class="assess-step-tags"><span class="assess-step-tag">Br&oacute;ker</span><span class="assess-step-tag">DCA</span></div></div></div>
-            <div class="assess-step"><div class="assess-step-num">6</div><div><div class="assess-step-title">Acompanyament continu</div><div class="assess-step-desc">A llarg termini: <strong>estalvi</strong>, <strong>seguiment de la inversi&oacute;</strong>, <strong>planificaci&oacute;</strong>, <strong>fiscalitat</strong> i <strong>her&egrave;ncies</strong> (planificaci&oacute; success&ograve;ria b&agrave;sica i derivaci&oacute; a notari/advocat quan cal).</div><div class="assess-step-tags"><span class="assess-step-tag">Estalvi</span><span class="assess-step-tag">Inversi&oacute;</span><span class="assess-step-tag">Fiscal</span><span class="assess-step-tag">Her&egrave;ncies</span></div></div></div>
+            <div class="assess-step"><div class="assess-step-num">1</div><div><div class="assess-step-title">Perfil · desc<span class="i18n" data-i18n="k309">obrim qui ets com a</span> inversor</div><div class="assess-step-desc">27 pregunt<span class="i18n" data-i18n="k310">es sobre situació, objectius, horitzó i la teva</span> <strong>toler<span class="i18n" data-i18n="k311">ància al risc</span> real</strong>. <span class="i18n" data-i18n="k312">L'algorisme calcula el teu arquetip dins els 10 perfil</span>s TBI.</div><div class="assess-step-tags"><span class="assess-step-tag">Test 2 min</span><span class="assess-step-tag">9 dimension<span class="i18n" data-i18n="k313"></span>s</span><span class="assess-step-tag">Arquetip</span></div></div></div>
+            <div class="assess-step"><div class="assess-step-num">2</div><div><div class="assess-step-title">Situació<span class="i18n" data-i18n="k314"> · anàlisi financera</span> 360°</div><div class="assess-step-desc">Entrevista d<span class="i18n" data-i18n="k315">'1h. Posem sobre la taula ingressos, despeses, deutes i</span> cartera actual. Detect<span class="i18n" data-i18n="k316">em fugues i el te</span>u <strong>excedent<span class="i18n" data-i18n="k317"></span> disponible</strong> p<span class="i18n" data-i18n="k318">er</span> invertir.</div><div class="assess-step-tags"><span class="assess-step-tag">Fon<span class="i18n" data-i18n="k319">s d'emergè</span>ncia</span><span class="assess-step-tag">Optimi<span class="i18n" data-i18n="k320">tzació</span></span></div></div></div>
+            <div class="assess-step"><div class="assess-step-num">3</div><div><div class="assess-step-title">Prop<span class="i18n" data-i18n="k321">osta · cartera amb opcions de risc</span></div><div class="assess-step-desc">Una <strong>prop<span class="i18n" data-i18n="k322">o</span>sta de cartera</strong> <span class="i18n" data-i18n="k323">i tres variant</span>s (conservadora, base, agres<span class="i18n" data-i18n="k324">siva): composició, rendiment esperat, volatilitat, drawdown i exemple en euros a 5, 10 i 20 any</span>s.</div><div class="assess-step-tags"><span class="assess-step-tag">3 nivel<span class="i18n" data-i18n="k325">l</span>s</span><span class="assess-step-tag">Pro<span class="i18n" data-i18n="k326">jeccion</span>s</span></div></div></div>
+            <div class="assess-step"><div class="assess-step-num">4</div><div><div class="assess-step-title">Pla<span class="i18n" data-i18n="k327"> · objectius SMART i full</span> de ruta</div><div class="assess-step-desc">Obje<span class="i18n" data-i18n="k328">ctius concrets amb dates i imports (emergència, pis, FIRE, jubilació). Un</span> <strong><span class="i18n" data-i18n="k329">full</span> de ruta</strong> <span class="i18n" data-i18n="k330">amb fases i</span> milestones trimestral<span class="i18n" data-i18n="k331"></span>s.</div><div class="assess-step-tags"><span class="assess-step-tag">SMART</span><span class="assess-step-tag">FIRE</span></div></div></div>
+            <div class="assess-step"><div class="assess-step-num">5</div><div><div class="assess-step-title">E<span class="i18n" data-i18n="k332">xecució · primeres operacions guiade</span>s</div><div class="assess-step-desc">T<span class="i18n" data-i18n="k333">'ajudo a triar bróker, fer les primeres compres i</span> configurar aportacion<span class="i18n" data-i18n="k334">s automàtique</span>s (DCA). Simple, repetible <span class="i18n" data-i18n="k335">i avorrit — el millor per al llarg termini</span>.</div><div class="assess-step-tags"><span class="assess-step-tag">Bróker</span><span class="assess-step-tag">DCA</span></div></div></div>
+            <div class="assess-step"><div class="assess-step-num">6</div><div><div class="assess-step-title">Acompa<span class="i18n" data-i18n="k336">nyament continu</span></div><div class="assess-step-desc">A llarg termini: <strong>estalvi</strong>, <strong>seguiment de la inversió</strong>, <strong>planificació</strong>, <strong>fiscalitat</strong> i <strong>herències</strong> (planificació successòria bàsica i derivació a notari/advocat quan cal).</div><div class="assess-step-tags"><span class="assess-step-tag"><span class="i18n" data-i18n="k337">Estalvi</span></span><span class="assess-step-tag">Inversió<span class="i18n" data-i18n="k338"></span></span><span class="assess-step-tag">Fiscal</span><span class="assess-step-tag">Her<span class="i18n" data-i18n="k339">èncie</span>s</span></div></div></div>
           </div>
         </div>
       </details>
@@ -1063,34 +1070,34 @@ section{padding:100px 28px}
       <!-- 4. CALCULADORA UNIFICADA -->
       <details class="deep-item" id="calculadora">
         <summary class="deep-sum">
-          <span class="deep-sum-ico">&#129518;</span>
+          <span class="deep-sum-ico">🧮</span>
           <span class="deep-sum-txt">
-            <span class="deep-sum-title">La calculadora: qu&egrave; passa amb els teus diners</span>
-            <span class="deep-sum-desc">Diners aturats, cost de comissions i projeccions &middot; amb els teus n&uacute;meros</span>
+            <span class="deep-sum-title">La calculadora: qu<span class="i18n" data-i18n="k340">è passa amb els teus diners</span></span>
+            <span class="deep-sum-desc">Diner<span class="i18n" data-i18n="k341">s aturats, cost de comissions i projeccions · amb els te</span>us números</span>
           </span>
           <span class="deep-sum-plus">+</span>
         </summary>
         <div class="deep-body">
-          <p class="section-sub" style="margin:18px 0 20px">Posa els teus n&uacute;meros un sol cop i mira-ho des de tres angles: qu&egrave; perds si els deixes aturats, quant et costen les comissions i qu&egrave; pot passar si inverteixes b&eacute;.</p>
+          <p class="section-sub" style="margin:18px 0 20px">Po<span class="i18n" data-i18n="k342">sa els teus números un sol cop i mira-ho des de tres angles: què perds si els deixes aturats, quant et costen les comissions i què pot passar si inverteixes bé</span>.</p>
 
           <div class="proj-inputs">
-            <div class="il-input-row"><label>Capital inicial (&euro;)</label><input type="number" id="calc-cap" value="20000" min="0" step="1000" oninput="calcAll()"></div>
-            <div class="il-input-row"><label>Aportaci&oacute; mensual (&euro;)</label><input type="number" id="calc-men" value="300" min="0" step="50" oninput="calcAll()"></div>
-            <div class="il-input-row"><label>Anys</label><input type="number" id="calc-any" value="15" min="3" max="40" step="1" oninput="calcAll()"></div>
+            <div class="il-input-row"><label>Capital inicial (€)</label><input type="number" id="calc-cap" value="20000" min="0" step="1000" oninput="calcAll()"></div>
+            <div class="il-input-row"><label>Aportació<span class="i18n" data-i18n="k343"></span> mensual (€)</label><input type="number" id="calc-men" value="300" min="0" step="50" oninput="calcAll()"></div>
+            <div class="il-input-row"><label>A<span class="i18n" data-i18n="k344">ny</span>s</label><input type="number" id="calc-any" value="15" min="3" max="40" step="1" oninput="calcAll()"></div>
           </div>
 
           <div class="calc-tabs">
-            <button class="calc-tab active" id="calctab-aturats" onclick="setCalcTab('aturats',this)">&#128564; Aturats al banc</button>
-            <button class="calc-tab" id="calctab-cost" onclick="setCalcTab('cost',this)">&#9878;&#65039; Cost: banc vs TBI</button>
-            <button class="calc-tab" id="calctab-proj" onclick="setCalcTab('proj',this)">&#128200; Projecci&oacute;</button>
+            <button class="calc-tab active" id="calctab-aturats" onclick="setCalcTab('aturats',this)">😴 <span class="i18n" data-i18n="k345">Aturats al banc</span></button>
+            <button class="calc-tab" id="calctab-cost" onclick="setCalcTab('cost',this)">⚖️ Cost<span class="i18n" data-i18n="k346">: banc</span> vs TBI</button>
+            <button class="calc-tab" id="calctab-proj" onclick="setCalcTab('proj',this)">📈 Projecció</button>
           </div>
 
           <!-- PESTANYA 1: ATURATS -->
           <div class="calc-pane active" id="calcpane-aturats">
             <div class="proj-grid">
-              <div class="proj-card conservative"><div class="proj-card-label">Hauràs aportat</div><div class="proj-card-value" id="at-aportat">&mdash;</div><div class="proj-card-detail">Capital + aportacions, sense moure&apos;ls</div></div>
-              <div class="proj-card conservative"><div class="proj-card-label">Saldo nominal</div><div class="proj-card-value" id="at-nominal">&mdash;</div><div class="proj-card-detail">Amb remuneraci&oacute; t&iacute;pica del 0,2%</div></div>
-              <div class="proj-card" style="border-left:4px solid #8B1A1A"><div class="proj-card-label">Poder adquisitiu real</div><div class="proj-card-value" id="at-real" style="color:#8B1A1A">&mdash;</div><div class="proj-card-detail" id="at-perdua">En euros d&apos;avui, amb inflaci&oacute; del 3,4%</div></div>
+              <div class="proj-card conservative"><div class="proj-card-label">Ha<span class="i18n" data-i18n="k347">uràs aportat</span></div><div class="proj-card-value" id="at-aportat">—</div><div class="proj-card-detail">Capital + aportacion<span class="i18n" data-i18n="k348">s, sense moure'ls</span></div></div>
+              <div class="proj-card conservative"><div class="proj-card-label">Saldo nominal</div><div class="proj-card-value" id="at-nominal">—</div><div class="proj-card-detail"><span class="i18n" data-i18n="k349">Amb remuneració</span> típica del 0,2%</div></div>
+              <div class="proj-card" style="border-left:4px solid #8B1A1A"><div class="proj-card-label">Poder adquisiti<span class="i18n" data-i18n="k350">u</span> real</div><div class="proj-card-value" id="at-real" style="color:#8B1A1A">—</div><div class="proj-card-detail" id="at-perdua">En euros d<span class="i18n" data-i18n="k351">'avui, amb inflació</span> del 3,4%</div></div>
             </div>
             <div class="calc-conclusion" id="at-conclusion"></div>
           </div>
@@ -1098,86 +1105,86 @@ section{padding:100px 28px}
           <!-- PESTANYA 2: COST -->
           <div class="calc-pane" id="calcpane-cost">
             <div class="proj-grid" style="grid-template-columns:repeat(2,1fr)">
-              <div class="proj-card" style="border-left:4px solid #8B1A1A"><div class="proj-card-label">Fons bancari t&iacute;pic</div><div class="proj-card-yield">Cost anual ~1,80%</div><div class="proj-card-value" id="co-banc">&mdash;</div><div class="proj-card-detail" id="co-banc-d">Valor final estimat</div></div>
-              <div class="proj-card expected"><div class="proj-card-label">Estructura tipus TBI</div><div class="proj-card-yield">Cost anual ~0,25%</div><div class="proj-card-value" id="co-tbi">&mdash;</div><div class="proj-card-detail" id="co-tbi-d">Valor final estimat</div></div>
+              <div class="proj-card" style="border-left:4px solid #8B1A1A"><div class="proj-card-label">Fon<span class="i18n" data-i18n="k352">s bancari típic</span></div><div class="proj-card-yield">Cost<span class="i18n" data-i18n="k353"></span> anual ~1,80%</div><div class="proj-card-value" id="co-banc">—</div><div class="proj-card-detail" id="co-banc-d">Valor final estima<span class="i18n" data-i18n="k354">t</span></div></div>
+              <div class="proj-card expected"><div class="proj-card-label">Estructura tip<span class="i18n" data-i18n="k355">us</span> TBI</div><div class="proj-card-yield">Cost<span class="i18n" data-i18n="k356"></span> anual ~0,25%</div><div class="proj-card-value" id="co-tbi">—</div><div class="proj-card-detail" id="co-tbi-d">Valor final estima<span class="i18n" data-i18n="k357">t</span></div></div>
             </div>
-            <div class="calc-diff"><div class="calc-diff-label">El que et quedes tu en lloc del banc</div><div class="calc-diff-value" id="co-diff">&mdash;</div><div class="calc-diff-sub" id="co-diff-sub"></div></div>
-            <div class="calc-conclusion">Tots dos escenaris assumeixen el <strong>mateix creixement brut moderat del 5% anual</strong>: la difer&egrave;ncia ve nom&eacute;s de les comissions. Per aix&ograve; &eacute;s el n&uacute;mero m&eacute;s s&ograve;lid de tota la p&agrave;gina.</div>
+            <div class="calc-diff"><div class="calc-diff-label"><span class="i18n" data-i18n="k358">El que et quedes tu en lloc del banc</span></div><div class="calc-diff-value" id="co-diff">—</div><div class="calc-diff-sub" id="co-diff-sub"></div></div>
+            <div class="calc-conclusion"><span class="i18n" data-i18n="k359">Tots dos escenaris assumeix</span>en el <strong>m<span class="i18n" data-i18n="k360">ateix creixement brut moderat</span> del 5% anual</strong>: la difer<span class="i18n" data-i18n="k361">ència ve només de les comissions. Per això és el número més sòlid de tota la pà</span>gina.</div>
           </div>
 
           <!-- PESTANYA 3: PROJECCIÓ -->
           <div class="calc-pane" id="calcpane-proj">
             <div class="proj-grid">
-              <div class="proj-card conservative"><div class="proj-card-label">Conservador</div><div class="proj-card-yield">Creixement net: 4%</div><div class="proj-card-value" id="proj-r-cons">&mdash;</div><div class="proj-card-detail" id="proj-d-cons"></div></div>
-              <div class="proj-card expected"><div class="proj-card-label">Moderat</div><div class="proj-card-yield">Creixement net: 6%</div><div class="proj-card-value" id="proj-r-esp">&mdash;</div><div class="proj-card-detail" id="proj-d-esp"></div></div>
-              <div class="proj-card optimistic"><div class="proj-card-label">Optimista</div><div class="proj-card-yield">Creixement net: 8%</div><div class="proj-card-value" id="proj-r-opt">&mdash;</div><div class="proj-card-detail" id="proj-d-opt"></div></div>
+              <div class="proj-card conservative"><div class="proj-card-label">Conservador</div><div class="proj-card-yield">Cre<span class="i18n" data-i18n="k362">ixement net</span>: 4%</div><div class="proj-card-value" id="proj-r-cons">—</div><div class="proj-card-detail" id="proj-d-cons"></div></div>
+              <div class="proj-card expected"><div class="proj-card-label">Modera<span class="i18n" data-i18n="k363">t</span></div><div class="proj-card-yield">Cre<span class="i18n" data-i18n="k364">ixement net</span>: 6%</div><div class="proj-card-value" id="proj-r-esp">—</div><div class="proj-card-detail" id="proj-d-esp"></div></div>
+              <div class="proj-card optimistic"><div class="proj-card-label">Optimista</div><div class="proj-card-yield">Cre<span class="i18n" data-i18n="k365">ixement net</span>: 8%</div><div class="proj-card-value" id="proj-r-opt">—</div><div class="proj-card-detail" id="proj-d-opt"></div></div>
             </div>
             <div class="proj-chart-box">
-              <div class="proj-chart-title">Projecci&oacute; del patrimoni per escenari</div>
-              <div class="proj-chart-sub">Les tres l&iacute;nies marquen els escenaris al llarg del temps. S&apos;actualitza amb els valors de dalt.</div>
+              <div class="proj-chart-title">Pro<span class="i18n" data-i18n="k366">jecció del patrimoni per escenari</span></div>
+              <div class="proj-chart-sub">L<span class="i18n" data-i18n="k367">es tres línies marquen els escenaris al llarg del temps. S'actualitza amb els valors de dalt</span>.</div>
               <canvas id="projChart" style="width:100%;height:240px;display:block"></canvas>
             </div>
           </div>
 
-          <p style="text-align:center;font-size:11px;color:var(--g400);margin-top:18px;line-height:1.6;max-width:680px;margin-left:auto;margin-right:auto">Escenaris il&middot;lustratius gen&egrave;rics de mercat (4&ndash;8% net), inflaci&oacute; refer&egrave;ncia 3,4% (ESP 2021&ndash;2025) i comissions t&iacute;piques del sector. No s&oacute;n una previsi&oacute; de rendiment ni garantia de resultats futurs.</p>
+          <p style="text-align:center;font-size:11px;color:var(--g400);margin-top:18px;line-height:1.6;max-width:680px;margin-left:auto;margin-right:auto">Escenari<span class="i18n" data-i18n="k368">s il·lustratius genèrics de mercat (4–8% net), inflació referè</span>ncia 3,4% (ESP 2021–2025) <span class="i18n" data-i18n="k369">i comissions típiques del sector. No són una previsió de rendiment ni garantia de resultats futur</span>s.</p>
         </div>
       </details>
 
       <!-- 5. PLATAFORMA -->
       <details class="deep-item">
         <summary class="deep-sum">
-          <span class="deep-sum-ico">&#128202;</span>
+          <span class="deep-sum-ico">📊</span>
           <span class="deep-sum-txt">
-            <span class="deep-sum-title">La plataforma en detall</span>
-            <span class="deep-sum-desc">Cartera, seguiment, FIRE i 10 carteres model &middot; tot en un lloc</span>
+            <span class="deep-sum-title">La plataforma en detall<span class="i18n" data-i18n="k370"></span></span>
+            <span class="deep-sum-desc">Cartera, seguim<span class="i18n" data-i18n="k371">ent, FIRE i 10 carteres model · tot en un lloc</span></span>
           </span>
           <span class="deep-sum-plus">+</span>
         </summary>
         <div class="deep-body">
-          <p class="section-sub" style="margin:18px 0 20px">Cartera, seguiment, eines financeres i comunicaci&oacute; directa. Tot integrat i personalitzat al teu perfil, des del navegador.</p>
+          <p class="section-sub" style="margin:18px 0 20px">Cartera, seguim<span class="i18n" data-i18n="k372">ent, eines financeres i comunicació directa. Tot integrat i personalitzat al teu perfil, des d</span>el navegador.</p>
           <div class="screen-tabs">
-            <button class="screen-tab active" onclick="showScreen('resum',this)">&#128202; Resum</button>
-            <button class="screen-tab" onclick="showScreen('cartera',this)">&#128188; Cartera</button>
-            <button class="screen-tab" onclick="showScreen('fire',this)">&#128293; FIRE</button>
-            <button class="screen-tab" onclick="showScreen('arquetips',this)">&#128193; Arquetips</button>
+            <button class="screen-tab active" onclick="showScreen('resum',this)">📊 Resum<span class="i18n" data-i18n="k373"></span></button>
+            <button class="screen-tab" onclick="showScreen('cartera',this)">💼 Cartera</button>
+            <button class="screen-tab" onclick="showScreen('fire',this)">🔥 FIRE</button>
+            <button class="screen-tab" onclick="showScreen('arquetips',this)">📁 Arquetip<span class="i18n" data-i18n="k374"></span>s</button>
           </div>
           <div class="screen-window">
             <div class="screen-bar"><div class="screen-dots"><div class="screen-dot" style="background:#FF5F57"></div><div class="screen-dot" style="background:#FEBC2E"></div><div class="screen-dot" style="background:#28C840"></div></div><div class="screen-url"><span>theboringinvestor.es/platform.html</span></div></div>
             <div class="screen-content active" id="screen-resum">
-              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">Tauler de resum &middot; L&apos;Arquitecte (Cartera IV)</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em"><span class="i18n" data-i18n="k375">Tauler de resum · L'Arquitecte</span> (Cartera IV)</div>
               <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:var(--gold)">47.280&euro;</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Valor cartera</div></div>
-                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:#4CAF82">+18,2%</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Rendiment YTD</div></div>
-                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:#fff">500&euro;</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Aportaci&oacute;/mes</div></div>
-                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:var(--gold-light)">12 anys</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">A la llibertat FIRE</div></div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:var(--gold)">47.280€</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Valor cartera</div></div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:#4CAF82">+18,2%</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Rendim<span class="i18n" data-i18n="k376">ent</span> YTD</div></div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:#fff">500€</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Aportació<span class="i18n" data-i18n="k377"></span>/mes</div></div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;text-align:center"><div style="font-family:var(--fm);font-size:20px;color:var(--gold-light)">12 a<span class="i18n" data-i18n="k378">ny</span>s</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">A la l<span class="i18n" data-i18n="k379">libertat</span> FIRE</div></div>
               </div>
-              <div style="font-size:12px;color:rgba(255,255,255,.3);text-align:center">Full de Ruta &middot; Carteres Model &middot; Calculadora FIRE &middot; Turbo Estalvi &middot; Fons d&apos;Emerg&egrave;ncia &middot; Educaci&oacute; financera</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.3);text-align:center"><span class="i18n" data-i18n="k380">Full de Ruta · Carteres Model</span> · Calculadora FIRE · Turbo <span class="i18n" data-i18n="k381">Estalvi · Fons d'Emergència · Educació financ</span>era</div>
             </div>
             <div class="screen-content" id="screen-cartera">
-              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">La meva cartera &middot; Posicions actuals</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em"><span class="i18n" data-i18n="k382">La meva cartera · Posicions actual</span>s</div>
               <div style="display:flex;flex-direction:column;gap:8px">
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">&#127758; ETF RV Global (MSCI World)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+14,3%</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">&#128176; ETF Dividend (SCHD/VIG)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+8,7%</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">&#127963; RF Gov. Eurozona</span><span style="font-family:var(--fm);color:#E57373;font-size:13px">&minus;2,1%</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">&#129351; Or f&iacute;sic (IAU/ZGLD)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+22,4%</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">🌎 ETF RV Global (MSCI World)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+14,3%</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">💰 ETF Dividend (SCHD/VIG)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+8,7%</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">🏛 RF Go<span class="i18n" data-i18n="k383">v</span>. Eurozona</span><span style="font-family:var(--fm);color:#E57373;font-size:13px">−2,1%</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.04);border-radius:8px"><span style="font-size:13px">🥇 Or<span class="i18n" data-i18n="k384"> físic</span> (IAU/ZGLD)</span><span style="font-family:var(--fm);color:#4CAF82;font-size:13px">+22,4%</span></div>
               </div>
             </div>
             <div class="screen-content" id="screen-fire">
-              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">Calculadora FIRE &middot; 5 modalitats</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">Calculadora FIRE · 5 modali<span class="i18n" data-i18n="k385">tat</span>s</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div style="background:rgba(200,165,74,.08);border:1px solid rgba(200,165,74,.2);border-radius:10px;padding:14px"><div style="font-size:12px;color:var(--gold);margin-bottom:4px">&#128293; Regular FIRE</div><div style="font-family:var(--fm);font-size:20px;color:#fff">875.000&euro;</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Objectiu amb regla del 4%</div></div>
-                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px"><div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">&#127958; Fat FIRE</div><div style="font-family:var(--fm);font-size:20px;color:#fff">1.500.000&euro;</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Estil de vida premium</div></div>
-                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;grid-column:1/-1"><div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">&#128200; Progr&eacute;s actual</div><div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden"><div style="height:100%;width:54%;background:var(--gold);border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:6px">54% del cam&iacute; cap a Regular FIRE</div></div>
+                <div style="background:rgba(200,165,74,.08);border:1px solid rgba(200,165,74,.2);border-radius:10px;padding:14px"><div style="font-size:12px;color:var(--gold);margin-bottom:4px">🔥 Regular FIRE</div><div style="font-family:var(--fm);font-size:20px;color:#fff">875.000€</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Obje<span class="i18n" data-i18n="k386">ctiu amb</span> regla del 4%</div></div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px"><div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">🏖 Fat FIRE</div><div style="font-family:var(--fm);font-size:20px;color:#fff">1.500.000€</div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px">Estil<span class="i18n" data-i18n="k387"></span> de vida premium</div></div>
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px;grid-column:1/-1"><div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">📈 Progr<span class="i18n" data-i18n="k388">és</span> actual</div><div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden"><div style="height:100%;width:54%;background:var(--gold);border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:6px">54% del cam<span class="i18n" data-i18n="k389">í cap </span>a Regular FIRE</div></div>
               </div>
             </div>
             <div class="screen-content" id="screen-arquetips">
-              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">10 Carteres model &middot; Un arquetip per a cada perfil</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em">10 Carter<span class="i18n" data-i18n="k390">es model · Un arquetip per </span>a cada perfil</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">I.</span> La Catapulta &middot; L&apos;Estoic</div>
-                <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">II.</span> La Caravella &middot; L&apos;Explorador</div>
-                <div style="padding:10px 12px;background:rgba(200,165,74,.1);border:1px solid rgba(200,165,74,.2);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">IV.</span> La Catedral &middot; L&apos;Arquitecte &#9733;</div>
-                <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">V.</span> La Muralla &middot; El Tresorer</div>
-                <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px;grid-column:1/-1;color:rgba(255,255,255,.4)">+ 6 carteres m&eacute;s: El Gale&oacute;, El Scriptorium, L&apos;Alamb&iacute;, El Sarr&oacute;, El Pioner, La Renda</div>
+                <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">I.</span> La Catapulta · <span class="i18n" data-i18n="k391">L'Estoic</span></div>
+                <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">II.</span> La Cara<span class="i18n" data-i18n="k392">vella · L'</span>Explorador</div>
+                <div style="padding:10px 12px;background:rgba(200,165,74,.1);border:1px solid rgba(200,165,74,.2);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">IV.</span> La Catedral · <span class="i18n" data-i18n="k393">L'Arquitecte</span> ★</div>
+                <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px"><span style="color:var(--gold);font-family:var(--fm)">V.</span> La Muralla · El T<span class="i18n" data-i18n="k394">resorer</span></div>
+                <div style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;font-size:12px;grid-column:1/-1;color:rgba(255,255,255,.4)">+ 6 carter<span class="i18n" data-i18n="k395">es més: El Galeó, El Scriptorium, L'Alambí, El Sarró, El Pioner, La Rend</span>a</div>
               </div>
             </div>
           </div>
@@ -1187,24 +1194,24 @@ section{padding:100px 28px}
       <!-- 7. MARC LEGAL -->
       <details class="deep-item" id="legal">
         <summary class="deep-sum">
-          <span class="deep-sum-ico">&#9878;</span>
+          <span class="deep-sum-ico">⚖</span>
           <span class="deep-sum-txt">
-            <span class="deep-sum-title">Marc legal i disclaimers</span>
-            <span class="deep-sum-desc">Estatus regulatori, abast dels serveis i protecci&oacute; de dades</span>
+            <span class="deep-sum-title">Marc<span class="i18n" data-i18n="k396"> legal i</span> disclaimers</span>
+            <span class="deep-sum-desc">Estatus regulatori<span class="i18n" data-i18n="k397">, abast dels serveis i protecció de dade</span>s</span>
           </span>
           <span class="deep-sum-plus">+</span>
         </summary>
         <div class="deep-body dark">
-          <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.78;max-width:620px;margin:20px 0 8px">La transpar&egrave;ncia &eacute;s un valor fonamental de TBI. Aqu&iacute; tens la meva situaci&oacute; regulat&ograve;ria i qu&egrave; significa per a tu.</p>
+          <p style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.78;max-width:620px;margin:20px 0 8px">La transpar<span class="i18n" data-i18n="k398">ència és un valor fon</span>amental de TBI. Aquí t<span class="i18n" data-i18n="k399">ens la meva situació regulatòria i què significa per a tu</span>.</p>
           <div class="legal-grid">
-            <div class="legal-card"><div class="legal-card-icon">&#128220;</div><div class="legal-card-title">Estatus regulatori actual (Pre-EFA)</div><div class="legal-card-text">Guillem Puig &eacute;s candidat a la certificaci&oacute; EFA (EFPA Espanya), examen al juny de 2026, i compta amb postgrau en Inversi&oacute; i Gesti&oacute; Patrimonial. En la fase actual, TBI opera com a plataforma d&apos;educaci&oacute; i an&agrave;lisi financera independent, no com a empresa d&apos;assessorament regulada per la CNMV (Ley 6/2023, art. 140.1.g).</div></div>
-            <div class="legal-card"><div class="legal-card-icon">&#9878;</div><div class="legal-card-title">Abast dels serveis actuals</div><div class="legal-card-text">Inclouen educaci&oacute; financera, an&agrave;lisi de mercats i metodologia, recomanacions generals de carteres model (informaci&oacute;, no gesti&oacute; regulada) i eines de planificaci&oacute;. Cada inversor &eacute;s responsable de les seves decisions.</div></div>
-            <div class="legal-card"><div class="legal-card-icon">&#128274;</div><div class="legal-card-title">Protecci&oacute; de dades (RGPD)</div><div class="legal-card-text">Dades tractades segons el RGPD (2016/679) i la LOPDGDD (LO 3/2018). Responsable: Guillem Puig. Drets ARSULIPO via contacte. Dades a Supabase (UE).</div></div>
-            <div class="legal-card"><div class="legal-card-icon">&#128197;</div><div class="legal-card-title">Evoluci&oacute; prevista (Post-EFA)</div><div class="legal-card-text">Un cop obtinguda la certificaci&oacute; EFA i el registre com a agent vinculat d&apos;una EAFI autoritzada per la CNMV, TBI podr&agrave; oferir assessorament regulat. Els clients actuals seran informats sense cost addicional.</div></div>
+            <div class="legal-card"><div class="legal-card-icon">📜</div><div class="legal-card-title">Estatus regulatori<span class="i18n" data-i18n="k400"></span> actual (Pre-EFA)</div><div class="legal-card-text">Guillem Puig <span class="i18n" data-i18n="k401">és candidat a la certificació EFA (EFPA Espanya), examen al juny de 2026, i compta amb postgrau en Inversió i Gestió</span> Patrimonial. En la fase actual, TBI opera com<span class="i18n" data-i18n="k402"> a plataforma d'educació i anàlisi financera independent, no com a empresa d'assessorament regulada pe</span>r la CNMV (Ley 6/2023, art. 140.1.g).</div></div>
+            <div class="legal-card"><div class="legal-card-icon">⚖</div><div class="legal-card-title">A<span class="i18n" data-i18n="k403">bast dels serveis actual</span>s</div><div class="legal-card-text">Incl<span class="i18n" data-i18n="k404">ouen educació financera, anàlisi de mercats i metodologia, recomanacions generals de carteres model (informació, no gestió regulada) i eines de planificació. Cada inversor és responsable de les seves decision</span>s.</div></div>
+            <div class="legal-card"><div class="legal-card-icon">🔒</div><div class="legal-card-title">Protecció<span class="i18n" data-i18n="k405"> de dade</span>s (RGPD)</div><div class="legal-card-text">Da<span class="i18n" data-i18n="k406">des tractades segons el RGPD (2016/679) i</span> la LOPDGDD (LO 3/2018). Responsable: Guillem Puig. D<span class="i18n" data-i18n="k407">rets ARSULIPO via contacte. Dades a</span> Supabase (UE).</div></div>
+            <div class="legal-card"><div class="legal-card-icon">📅</div><div class="legal-card-title">Evolució<span class="i18n" data-i18n="k408"></span> prevista (Post-EFA)</div><div class="legal-card-text">Un<span class="i18n" data-i18n="k409"> cop obtinguda la certificació EFA i el registre com a agent vinculat d'una EAFI autoritzada per la CNMV, TBI podrà oferir assessorament regulat. Els clients actuals seran informats sense cost ad</span>dicional.</div></div>
           </div>
           <div class="legal-highlight">
-            <div class="legal-highlight-title">&#128204; Av&iacute;s sobre els resultats presentats</div>
-            <div class="legal-highlight-text">El XIRR del 13,87% i tots els rendiments corresponen a l&apos;&Iacute;ndex TBI (retorns mensuals ponderats en el temps de la cartera de refer&egrave;ncia des de juny 2020). Les dades en euros s&apos;obtenen aplicant els retorns a un capital hipot&egrave;tic; no representen la cartera real d&apos;un inversor ni garantia de rendiments futurs. La inversi&oacute; comporta risc de p&egrave;rdua parcial o total del capital.</div>
+            <div class="legal-highlight-title">📌 Av<span class="i18n" data-i18n="k410">ís sobre els resultats presentat</span>s</div>
+            <div class="legal-highlight-text">El XIRR del 13,87% <span class="i18n" data-i18n="k411">i tots els rendiments corresponen a l'Índex TBI (retorns mensuals ponderats en el temps</span> de la cartera de refer<span class="i18n" data-i18n="k412">ència des de juny 2020). Les dades en euros s'obtenen aplicant els retorns a un capital hipotètic; no representen la cartera real d'un inversor ni garantia de rendiments futurs. La inversió comporta risc de pèrdu</span>a parcial o total del capital.</div>
           </div>
         </div>
       </details>
@@ -1216,26 +1223,42 @@ section{padding:100px 28px}
 <!-- ============================ CTA FINAL ============================ -->
 <section class="cta-final">
   <div class="section-inner">
-    <div style="font-size:48px;margin-bottom:20px">&#128164;</div>
-    <div class="section-title">Comen&ccedil;a a invertir avorrit<br>i <span style="color:var(--gold)">dorm tranquil</span></div>
-    <p class="section-sub">Fes el test de salut financera o registra&apos;t directament com a client. Tu tries per on comen&ccedil;ar &mdash; sense comprom&iacute;s i amb 30 dies de garantia.</p>
+    <div style="font-size:48px;margin-bottom:20px">💤</div>
+    <div class="section-title"><span class="i18n" data-i18n="k413">Comença a invertir avorrit</span><br><span class="i18n" data-i18n="k414">i</span> <span style="color:var(--gold)">d<span class="i18n" data-i18n="k415">orm tranquil</span></span></div>
+    <p class="section-sub"><span class="i18n" data-i18n="k416">Fes el test de salut financera o registra't directament com a client. Tu tries per on començar — sense compromís i amb 30 dies de garanti</span>a.</p>
     <div class="cta-final-buttons">
-      <a href="test-salut-financera.html" class="btn-primary" style="font-size:17px;padding:16px 40px">Fes el test de salut financera &rarr;</a>
-      <a href="platform.html" class="btn-secondary" style="font-size:17px;padding:16px 40px;color:rgba(255,255,255,.7)">Registra&apos;m com a client &rarr;</a>
+      <a href="test-salut-financera.html" class="btn-primary" style="font-size:17px;padding:16px 40px"><span class="i18n" data-i18n="k417">Fes el test de salut financ</span>era →</a>
+      <a href="platform.html" class="btn-secondary" style="font-size:17px;padding:16px 40px;color:rgba(255,255,255,.7)">Reg<span class="i18n" data-i18n="k418">istra'm com a client</span> →</a>
     </div>
   </div>
 </section>
 
 <footer class="footer">
-  <div>The Boring Investor &middot; An&agrave;lisi i Educaci&oacute; Financera Independent &middot; Barcelona</div>
-  <div style="margin-top:6px">&copy; 2026 Guillem Puig &middot; Sense comissions de producte &middot; Candidat EFA (EFPA Espanya) &middot; Postgrau Inversi&oacute; i Gesti&oacute; Patrimonial</div>
-  <div style="margin-top:8px;font-size:11px;opacity:.6;line-height:1.7">&#9878; Av&iacute;s legal: TBI no &eacute;s una empresa d&apos;assessorament financer regulada per la CNMV. Els serveis actuals comprenen educaci&oacute; i an&agrave;lisi financera independent. Els rendiments mostrats corresponen a l&apos;&Iacute;ndex TBI i no constitueixen garantia de resultats futurs.</div>
-  <div style="margin-top:6px;font-family:var(--fm);opacity:.4">landing v2026-10 &middot; pre-EFA</div>
+  <div>The Boring Investor · An<span class="i18n" data-i18n="k419">àlisi i Educació Financera Independent</span> · Barcelona</div>
+  <div style="margin-top:6px">© 2026 Guillem Puig · S<span class="i18n" data-i18n="k420">ense comissions de producte · Candidat EFA (EFPA Espanya) · Postgrau Inversió i Gestió</span> Patrimonial</div>
+  <div style="margin-top:8px;font-size:11px;opacity:.6;line-height:1.7">⚖ Av<span class="i18n" data-i18n="k421">ís legal: TBI no és una empresa d'assessorament financer regulada per la CNMV. Els serveis actuals comprenen educació i anàlisi financera independent. Els rendiments mostrats corresponen a l'Índex TBI i no constitueixen garantia de resultats futur</span>s.</div>
+  <div style="margin-top:6px;font-family:var(--fm);opacity:.4">landing<span class="i18n" data-i18n="k422"></span> v2026-10 · pre-EFA</div>
 </footer>
 
 <a href="https://wa.me/34629340892?text=Hola%20Guillem" class="wa-fab" title="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>
 
 <script>
+
+var LANG="ca";
+var I18N={"k1": {"ca": "er què", "es": "or qué"}, "k2": {"ca": " sóc", "es": "én soy"}, "k3": {"ca": "om", "es": "ómo"}, "k4": {"ca": "e", "es": "o"}, "k5": {"ca": "és detall", "es": "ás detalle"}, "k6": {"ca": "", "es": "o"}, "k7": {"ca": "", "es": "n"}, "k8": {"ca": "Fes", "es": "Haz"}, "k9": {"ca": "sessorament financer independent · Sense comissions de producte", "es": "esoramiento financiero independiente · Sin comisiones de producto"}, "k10": {"ca": "vorreix-te invertint", "es": "búrrete invirtiendo"}, "k11": {"ca": "i", "es": "y"}, "k12": {"ca": "orm tranquil", "es": "uerme tranquilo"}, "k13": {"ca": "L'assessorament independent dels grans patrimonis, ara a l'abast de tothom. Personalitzat, sense comissions de producte i des ", "es": "El asesoramiento independiente de los grandes patrimonios, ahora al alcance de todos. Personalizado, sin comisiones de producto y des"}, "k14": {"ca": "Fes el test de salut financ", "es": "Haz el test de salud financi"}, "k15": {"ca": "uït", "es": "is"}, "k16": {"ca": "istra'm com a client", "es": "ístrate como cliente"}, "k17": {"ca": " vs ~1,80% del banc", "es": "e vs ~1,80% del banco"}, "k18": {"ca": "ense mínim", "es": "in mínimo"}, "k19": {"ca": "'", "es": "e "}, "k20": {"ca": "i", "es": "í"}, "k21": {"ca": "ie", "es": "ía"}, "k22": {"ca": "er què", "es": "or qué"}, "k23": {"ca": "com inverteixen els grans patrimoni", "es": "en que invierten los grandes patrimonio"}, "k24": {"ca": "ra, per a tu", "es": "hora, para ti"}, "k25": {"ca": "Els grans patrimonis ja inverteixen avorrit: diversificat, barat, a llarg termini i amb algú independent que cobra d'ells, no del producte. L'emoció — l'acció de moda o el fons «estrella» del banc — ens la venen a la resta. La meva feina és donar-te aquesta mateixa manera sensata d'invertir, sense demanar-te un patrimoni per", "es": "Los grandes patrimonios ya invierten aburrido: diversificado, barato, a largo plazo y con alguien independiente que cobra de ellos, no del producto. La emoción —la acción de moda o el fondo «estrella» del banco— nos la venden al resto. Mi trabajo es darte esa misma manera sensata de invertir, sin pedirte un patrimonio para"}, "k26": {"ca": "ent de veritat", "es": "iente de verdad"}, "k27": {"ca": "sions de cap producte que et recomano. Em pagues tu i prou, així que no tinc cap motiu per col·locar-te res. El teu banc no t'ho pot d", "es": "iones de ningún producto que te recomiendo. Me pagas tú y punto, así que no tengo ningún motivo para colocarte nada. Tu banco no te lo puede dec"}, "k28": {"ca": " l'abast de tothom", "es": "l alcance de todos"}, "k29": {"ca": "ateixa estratègia que els grans patrimonis, sense els seus mínims. Mentre la banca privada demana sis xifres, aquí comences des ", "es": "isma estrategia que los grandes patrimonios, sin sus mínimos. Mientras la banca privada pide seis cifras, aquí empiezas des"}, "k30": {"ca": "vorrit, i per això", "es": "burrido, y por eso"}, "k31": {"ca": "Res d'apostes ni de mode", "es": "Nada de apuestas ni de moda"}, "k32": {"ca": "i pensada per dècades. Avo", "es": "y pensada para décadas. Abu"}, "k33": {"ca": "·la de teni", "es": "a de tene"}, "k34": {"ca": "On encaixa un assessor independent", "es": "Dónde encaja un asesor independiente"}, "k35": {"ca": "una cosa. L'assessorament individual és l'únic que combina cost baix, independència real i acompanyament — sense demanar-te un gran patrimoni", "es": "o. El asesoramiento individual es el único que combina coste bajo, independencia real y acompañamiento — sin pedirte un gran patrimonio"}, "k36": {"ca": "aça per veure tota la tau", "es": "ázate para ver toda la tab"}, "k37": {"ca": "El teu banc", "es": "Tu banco"}, "k38": {"ca": "Fer-ho tu sol", "es": "Hacerlo tú solo"}, "k39": {"ca": "", "es": "e"}, "k40": {"ca": "", "es": "o"}, "k41": {"ca": "ix", "es": "jo"}, "k42": {"ca": "olt baix", "es": "uy bajo"}, "k43": {"ca": "", "es": "o"}, "k44": {"ca": "", "es": "o"}, "k45": {"ca": "ix", "es": "jo"}, "k46": {"ca": "x", "es": "j"}, "k47": {"ca": "ense comissions de producte", "es": "in comisiones de producto"}, "k48": {"ca": "e", "es": "o"}, "k49": {"ca": "e propi", "es": "o propio"}, "k50": {"ca": "Ho fas tu", "es": "Lo haces tú"}, "k51": {"ca": "Sovint producte propi", "es": "A menudo producto propio"}, "k52": {"ca": "Només cobro de tu", "es": "Solo cobro de ti"}, "k53": {"ca": "tzació", "es": "zación"}, "k54": {"ca": "ix", "es": "j"}, "k55": {"ca": "e estàndard", "es": "o estándar"}, "k56": {"ca": "ix", "es": "j"}, "k57": {"ca": "es tipus", "es": "as tipo"}, "k58": {"ca": "ò sol", "es": "o solo"}, "k59": {"ca": "Feta a la teva m", "es": "Hecha a tu med"}, "k60": {"ca": "nyament humà", "es": "ñamiento humano"}, "k61": {"ca": "", "es": "o"}, "k62": {"ca": "Només", "es": "Solo"}, "k63": {"ca": "Cap", "es": "Ninguno"}, "k64": {"ca": "t", "es": "do"}, "k65": {"ca": "e i continu", "es": "o y continuo"}, "k66": {"ca": " d'", "es": "o de "}, "k67": {"ca": "ix", "es": "jo"}, "k68": {"ca": "Cap", "es": "Ninguno"}, "k69": {"ca": "olt alt", "es": "uy alto"}, "k70": {"ca": "Cap", "es": "Ninguno"}, "k71": {"ca": " ", "es": ""}, "k72": {"ca": " i coaching de biaix", "es": "n y coaching de sesg"}, "k73": {"ca": "èn de tu", "es": "ende de ti"}, "k74": {"ca": "t", "es": "do"}, "k75": {"ca": " inclos", "es": "n incluid"}, "k76": {"ca": "e d'interè", "es": "o de interé"}, "k77": {"ca": "", "es": "o"}, "k78": {"ca": "itjà", "es": "edio"}, "k79": {"ca": "Cap", "es": "Ninguno"}, "k80": {"ca": "s", "es": ""}, "k81": {"ca": "Cap", "es": "Ninguno"}, "k82": {"ca": "s orientatius de costos típic", "es": "os orientativos de costes típico"}, "k83": {"ca": "), no xifres d'entitats concrete", "es": "n), no cifras de entidades concreta"}, "k84": {"ca": "cteix instruments barats (~0,25% TER) més la tarifa fixa i transparent del pla que trie", "es": "ja instrumentos baratos (~0,25% TER) más la tarifa fija y transparente del plan que elija"}, "k85": {"ca": "om ho faig", "es": "ómo lo hago"}, "k86": {"ca": " i una guia en cada decisió", "es": "o y una guía en cada decisión"}, "k87": {"ca": "'ofereixo un assessorament personalitzat, de confiança i transparent per aconseguir els teus objectius. Faig servir", "es": "e ofrezco un asesoramiento personalizado, de confianza y transparente para conseguir tus objetivos. Uso"}, "k88": {"ca": "enginyeria financ", "es": "ingeniería financi"}, "k89": {"ca": "i", "es": "y"}, "k90": {"ca": "eines informàtique", "es": "herramientas informática"}, "k91": {"ca": "er trobar els productes que millor s'ajusten a la teva situació i als teus coneixements — ni més complicat ni més car del que necessites. L'objectiu: que mai et sentis perdut i que sempre tinguis un far que t'orienta a cada pas", "es": "ara encontrar los productos que mejor se ajustan a tu situación y a tus conocimientos — ni más complicado ni más caro de lo que necesitas. El objetivo: que nunca te sientas perdido y que siempre tengas un faro que te orienta en cada paso"}, "k92": {"ca": " EFA (EFPA Espanya) · Postgrau en Inversió i Gestió", "es": "o EFA (EFPA España) · Posgrado en Inversión y Gestión"}, "k93": {"ca": "óc un banquer ni un gestor de fons. Sóc un enginyer i un autèntic", "es": "oy un banquero ni un gestor de fondos. Soy un ingeniero y un auténtico"}, "k94": {"ca": "boig de les finances personal", "es": "loco de las finanzas personale"}, "k95": {"ca": "i de l'optimització", "es": "y de la optimización"}, "k96": {"ca": "Fa 6 anys vaig descobrir una cosa que em va indignar: els bancs ens cobraven moltíssim pe", "es": "Hace 6 años descubrí algo que me indignó: los bancos nos cobraban muchísimo po"}, "k97": {"ca": "ament", "es": ""}, "k98": {"ca": "els nostres diners. Des d'aleshores he invertit el meu propi capital en gairebé tots els instruments del mercat i he aplicat l'enginyeria a les meves finances — models, automatitzacions i anàlisi — per treure'n el màxim rendiment amb el mínim risc", "es": "nuestro dinero. Desde entonces he invertido mi propio capital en casi todos los instrumentos del mercado y he aplicado la ingeniería a mis finanzas — modelos, automatizaciones y análisis — para sacarle el máximo rendimiento con el mínimo riesgo"}, "k99": {"ca": "I no paro de formar-me, perquè vull oferir-te un assessorament", "es": "Y no paro de formarme, porque quiero ofrecerte un asesoramiento"}, "k100": {"ca": "l", "es": ""}, "k101": {"ca": " òptim i fet a la teva mida — però a un preu que tothom es pugui permetr", "es": "e óptimo y hecho a tu medida — pero a un precio que todos puedan permitirs"}, "k102": {"ca": "hauria de ser avorrit. Els diners emocionants acostumen a acabar malament", "es": "debería ser aburrido. El dinero emocionante suele acabar mal"}, "k103": {"ca": "om", "es": "ómo"}, "k104": {"ca": "z", "es": "c"}, "k105": {"ca": "s", "es": ""}, "k106": {"ca": "ense compromís per començar. Fas el test, reps el teu pla i t'acompanyo a posar-lo en marx", "es": "in compromiso para empezar. Haces el test, recibes tu plan y te acompaño a ponerlo en march"}, "k107": {"ca": "", "es": "O"}, "k108": {"ca": "Fes el test de salut financ", "es": "Haz el test de salud financi"}, "k109": {"ca": "s, sense registre. Saps el teu estat financer (0–100) i quant pots millorar en euros amb una bona estructuració", "es": "os, sin registro. Conoces tu estado financiero (0–100) y cuánto puedes mejorar en euros con una buena estructuración"}, "k110": {"ca": "Començ", "es": "Empiez"}, "k111": {"ca": "", "es": "O"}, "k112": {"ca": "p el teu pla i cartera a m", "es": "cibe tu plan y cartera a med"}, "k113": {"ca": "Et registres, fem el test d'idoneïtat (MIFID) i et munto l'arquetip", "es": "Te registras, hacemos el test de idoneidad (MIFID) y te monto el arquetipo"}, "k114": {"ca": "i el full de ruta personalitzat", "es": "y la hoja de ruta personalizada"}, "k115": {"ca": "istra't com a client", "es": "ístrate como cliente"}, "k116": {"ca": "", "es": "O"}, "k117": {"ca": "'acompany", "es": "e acompañ"}, "k118": {"ca": "ent de la cartera, missatgeria directa, rebalanceig i avisos d'oportunitat. Mantens sempre el control i la propietat dels teus diners", "es": "iento de la cartera, mensajería directa, rebalanceo y avisos de oportunidad. Mantienes siempre el control y la propiedad de tu dinero"}, "k119": {"ca": "ure els plan", "es": "r los plane"}, "k120": {"ca": "è inclou", "es": "é incluye"}, "k121": {"ca": "t el que necessites, en un sol lloc", "es": "do lo que necesitas, en un solo lugar"}, "k122": {"ca": " del primer test fins a l'acompanyament mes a mes. Ni més complicat ni més car del que necessite", "es": "de el primer test hasta el acompañamiento mes a mes. Ni más complicado ni más caro de lo que necesita"}, "k123": {"ca": " i cartera model", "es": "o y cartera modelo"}, "k124": {"ca": "u defineix el teu arquetip inversor i", "es": "ve define tu arquetipo inversor y"}, "k125": {"ca": "i barata (~0,25% TER) feta per al teu perfil i objectiu", "es": "y barata (~0,25% TER) hecha para tu perfil y objetivo"}, "k126": {"ca": " financer i Full", "es": "n financiero y Hoja"}, "k127": {"ca": "ctius concrets amb imports i dates, projeccions a 5–20 anys i fites clares. Saps sempre cap a on vas i què toca a cada pas", "es": "tivos concretos con importes y fechas, proyecciones a 5–20 años y metas claras. Sabes siempre hacia dónde vas y qué toca en cada paso"}, "k128": {"ca": "amb totes les eine", "es": "con todas las herramienta"}, "k129": {"ca": "ent", "es": "iento"}, "k130": {"ca": "àlisi setmanal, glossari, alertes d'oportunitat i informes. Tot des d", "es": "álisis semanal, glosario, alertas de oportunidad e informes. Todo desde "}, "k131": {"ca": "nyament i", "es": "ñamiento y"}, "k132": {"ca": "issatgeria directa, sessions per vídeo, formació a demanda i coaching de biaixos perquè no et deixis dur per l'emoció del moment", "es": "ensajería directa, sesiones por vídeo, formación a demanda y coaching de sesgos para que no te dejes llevar por la emoción del momento"}, "k133": {"ca": "Comença pel test gratuït", "es": "Empieza por el test gratis"}, "k134": {"ca": "es i tarife", "es": "os y tarifa"}, "k135": {"ca": "Tries com vols començ", "es": "Eliges cómo quieres empez"}, "k136": {"ca": "ots f", "es": "uedes hac"}, "k137": {"ca": "c", "es": ""}, "k138": {"ca": "", "es": "o"}, "k139": {"ca": " pagament) o ana", "es": "o pago) o i"}, "k140": {"ca": "bscripció", "es": "scripción"}, "k141": {"ca": "ense retrocessions, sense comissions de producte, sense lletra petit", "es": "in retrocesiones, sin comisiones de producto, sin letra pequeñ"}, "k142": {"ca": " pagament", "es": "o pago"}, "k143": {"ca": "ense subscripció ni renovacions automàtique", "es": "in suscripción ni renovaciones automática"}, "k144": {"ca": "orta d'", "es": "uerta de "}, "k145": {"ca": "", "es": "o"}, "k146": {"ca": " financer + 3 mesos de seguiment. Surts amb la cartera muntada i un full de ruta per escrit", "es": "n financiero + 3 meses de seguimiento. Sales con la cartera montada y una hoja de ruta por escrito"}, "k147": {"ca": " 3 mesos · sense renovació", "es": "e 3 meses · sin renovación"}, "k148": {"ca": "e", "es": "o"}, "k149": {"ca": " financer personalitzat", "es": "n financiero personalizado"}, "k150": {"ca": " de cartera + primeres operacions guiade", "es": "n de cartera + primeras operaciones guiada"}, "k151": {"ca": "ent continu durant 3 meso", "es": "iento continuo durante 3 mese"}, "k152": {"ca": "és complet", "es": "eso completo"}, "k153": {"ca": "Començar amb el Pack Inici", "es": "Empezar con el Pack Inicio"}, "k154": {"ca": "Comence", "es": "Empieza"}, "k155": {"ca": "ia de satisfacció 30 die", "es": "ía de satisfacción 30 día"}, "k156": {"ca": "s i Consulte", "es": "os y Consulta"}, "k157": {"ca": "Un dubte concret o una segona opinió? Et faig un estudi del teu fons o cartera, o resolc", "es": "¿Una duda concreta o una segunda opinión? Te hago un estudio de tu fondo o cartera, o resuelvo"}, "k158": {"ca": "ense entrar a cap pla", "es": "in entrar en ningún plan"}, "k159": {"ca": "", "es": "o"}, "k160": {"ca": "", "es": "o"}, "k161": {"ca": "estalvie", "es": "ahorra"}, "k162": {"ca": "àlisi d'un fons o cartera existent (costos, riscos, alternative", "es": "álisis de un fondo o cartera existente (costes, riesgos, alternativa"}, "k163": {"ca": "àdica sobre un dubte concret", "es": "ádica sobre una duda concreta"}, "k164": {"ca": " amb conclusions clare", "es": "o con conclusiones clara"}, "k165": {"ca": "er revisar diverses posicion", "es": "ara revisar varias posicione"}, "k166": {"ca": "mptable del Pack Inici si després hi entre", "es": "ntable del Pack Inicio si después entra"}, "k167": {"ca": "Demanar un estudi", "es": "Pedir un estudio"}, "k168": {"ca": "Lliurament típic en 3–5 die", "es": "Entrega típica en 3–5 día"}, "k169": {"ca": "bscripció", "es": "scripción"}, "k170": {"ca": "Quatre nivells. Tries el que encaixi", "es": "Cuatro niveles. Eliges el que encaje"}, "k171": {"ca": "ny", "es": "ñ"}, "k172": {"ca": "eines d'autogestió", "es": "herramientas de autogestión"}, "k173": {"ca": "", "es": "o"}, "k174": {"ca": "an", "es": "end"}, "k175": {"ca": "àlisi setmanal de mercat", "es": "álisis semanal de mercado"}, "k176": {"ca": "tat", "es": "dade"}, "k177": {"ca": "s d'emergència + Turbo Estalvi", "es": "do de emergencia + Turbo Ahorro"}, "k178": {"ca": "sari financer (28+ terme", "es": "ario financiero (28+ término"}, "k179": {"ca": "es ràpides per missatgeria (1/set", "es": "as rápidas por mensajería (1/se"}, "k180": {"ca": "t", "es": ""}, "k181": {"ca": "issatgeria directa il·", "es": "ensajería directa i"}, "k182": {"ca": "sions pe", "es": "iones po"}, "k183": {"ca": "Començ", "es": "Empez"}, "k184": {"ca": "er a autogestors informat", "es": "ara autogestores informado"}, "k185": {"ca": "ixo", "es": "ju"}, "k186": {"ca": "àlisi i acompanyament actiu", "es": "álisis y acompañamiento activo"}, "k187": {"ca": "t el pla Seny", "es": "do el plan Señ"}, "k188": {"ca": "e", "es": "o"}, "k189": {"ca": "t", "es": ""}, "k190": {"ca": "Full de Ruta financer personalitzat", "es": "Hoja de Ruta financiera personalizada"}, "k191": {"ca": "àlisi mensual aprofundida", "es": "álisis mensual en profundidad"}, "k192": {"ca": "issatgeria directa (fins ", "es": "ensajería directa (hast"}, "k193": {"ca": "", "es": "e"}, "k194": {"ca": "sions pe", "es": "iones po"}, "k195": {"ca": "ent posicions real", "es": "iento posiciones reale"}, "k196": {"ca": "Triar Brúixo", "es": "Elegir Brúju"}, "k197": {"ca": "er a inversors que volen orientació", "es": "ara inversores que quieren orientación"}, "k198": {"ca": "ANAT", "es": "ENDADO"}, "k199": {"ca": "d", "es": "te"}, "k200": {"ca": "ent complet + session", "es": "iento completo + sesione"}, "k201": {"ca": "t el pla Brúixola (missatgeria il·", "es": "do el plan Brújula (mensajería i"}, "k202": {"ca": "sió trimestral 1h pe", "es": "ión trimestral 1h po"}, "k203": {"ca": "ent posicions real", "es": "iento posiciones reale"}, "k204": {"ca": "ig semestral assistit", "es": "o semestral asistido"}, "k205": {"ca": " fiscal bà", "es": "n fiscal bá"}, "k206": {"ca": "s complet", "es": "es completo"}, "k207": {"ca": "uport prioritari (respo", "es": "oporte prioritario (respue"}, "k208": {"ca": "", "es": "n"}, "k209": {"ca": "os", "es": "uid"}, "k210": {"ca": "Triar Nord", "es": "Elegir Norte"}, "k211": {"ca": "er a inversors seriosos amb", "es": "ara inversores serios con"}, "k212": {"ca": "", "es": "O"}, "k213": {"ca": "Àncor", "es": "Ancl"}, "k214": {"ca": " integral patrimoni", "es": "n integral patrimonio"}, "k215": {"ca": "é: 5% dels guanys nets anual", "es": "ien: 5% de las ganancias netas anuale"}, "k216": {"ca": "t el pla Nord (sessions mensual", "es": "do el plan Norte (sesiones mensuale"}, "k217": {"ca": " preferent · resposta en el di", "es": "n preferente · respuesta en el dí"}, "k218": {"ca": "ent diari de posicion", "es": "iento diario de posicione"}, "k219": {"ca": "ig sota", "es": "o bajo"}, "k220": {"ca": "", "es": "n"}, "k221": {"ca": "sessoria successòria bà", "es": "esoría sucesoria bá"}, "k222": {"ca": "", "es": "o"}, "k223": {"ca": "·limitat", "es": "imitado"}, "k224": {"ca": "os", "es": "uid"}, "k225": {"ca": "Parlar amb", "es": "Hablar con"}, "k226": {"ca": "àx. 5 client", "es": "áx. 5 cliente"}, "k227": {"ca": "", "es": "n"}, "k228": {"ca": "er resoldre temes concrets (FIRE, ETFs des de zero, fiscalitat d'inversions, planificació successòria…) organitzo webinars puntuals quan els clients ho deman", "es": "ara resolver temas concretos (FIRE, ETFs desde cero, fiscalidad de inversiones, planificación sucesoria…) organizo webinars puntuales cuando los clientes lo pid"}, "k229": {"ca": "d", "es": "te"}, "k230": {"ca": "Àncor", "es": "Ancl"}, "k231": {"ca": "ís mínim de subscripció: 3 mesos. Garantia de satisfacció els primers 30 dies (devolució íntegra). Cancel·la quan vulguis a partir del 4t mes. El Pack Inici (120€) i els estudis puntuals són descomp", "es": "iso mínimo de suscripción: 3 meses. Garantía de satisfacción los primeros 30 días (devolución íntegra). Cancela cuando quieras a partir del 4º mes. El Pack Inicio (120€) y los estudios puntuales son descon"}, "k232": {"ca": "tat de qualsevol pla", "es": "dad de cualquier plan"}, "k233": {"ca": "es preguntes que importe", "es": "as preguntas que importa"}, "k234": {"ca": "bans de confiar-me els teus diners", "es": "ntes de confiarme tu dinero"}, "k235": {"ca": "es respostes que tothom hauria de demanar a qualsevol que parli de les seves finance", "es": "as respuestas que todos deberían pedir a cualquiera que hable de sus finanza"}, "k236": {"ca": "Qui custodia els meus diners", "es": "¿Quién custodia mi dinero"}, "k237": {"ca": "Mai els toco. Els teus diners es queden al teu propi banc", "es": "Nunca lo toco. Tu dinero se queda en tu propio banco"}, "k238": {"ca": "l teu nom i sota el te", "es": " tu nombre y bajo t"}, "k239": {"ca": "Jo t'assessoro, et munto la cartera i t'acompanyo; tu executes les operacions i mantens la propietat en tot moment. No hi ha cap compte intermediari ni cap dipòsit a", "es": "Yo te asesoro, te monto la cartera y te acompaño; tú ejecutas las operaciones y mantienes la propiedad en todo momento. No hay ninguna cuenta intermediaria ni ningún depósito en"}, "k240": {"ca": "Estàs regulat", "es": "¿Estás regulado"}, "k241": {"ca": "Amb total transparència: tinc un postgrau en Inversió i Gestió de Patrimonis i sóc", "es": "Con total transparencia: tengo un posgrado en Inversión y Gestión de Patrimonios y soy"}, "k242": {"ca": " a la certificació", "es": "o a la certificación"}, "k243": {"ca": "amb examen previst el juny de 2026. Ara mateix opero com a", "es": "con examen previsto en junio de 2026. Ahora mismo opero como"}, "k244": {"ca": " i anàlisi financera independent", "es": "n y análisis financiero independiente"}, "k245": {"ca": "i un cop certificat ampliaré el marc d'assessorament. T'ho dic clar perquè sàpigues exactament què rep", "es": "y una vez certificado ampliaré el marco de asesoramiento. Te lo digo claro para que sepas exactamente qué recibe"}, "k246": {"ca": "On són les comissions amagade", "es": "¿Dónde están las comisiones oculta"}, "k247": {"ca": "n'hi ha", "es": "las hay"}, "k248": {"ca": "'únic que pagues é", "es": "o único que pagas e"}, "k249": {"ca": " que tries (des de 8€/mes). Això vol dir que els meus interessos i els teus apunten al mateix lloc", "es": "e que eliges (desde 8€/mes). Esto significa que mis intereses y los tuyos apuntan al mismo sitio"}, "k250": {"ca": "I si vull deixar-h", "es": "¿Y si quiero dejarl"}, "k251": {"ca": " que els teus comptes i diners són sempre teus, no hi ha cap producte que et lligui: si marxes, t'emportes la cartera tal com està", "es": "o tus cuentas y tu dinero son siempre tuyos, no hay ningún producto que te ate: si te vas, te llevas la cartera tal como está"}, "k252": {"ca": "Necessito molt de capital per començ", "es": "¿Necesito mucho capital para empez"}, "k253": {"ca": "ense mínims d'", "es": "in mínimos de "}, "k254": {"ca": "entre la banca privada demana 500.000€, aquí pots començar des de 8€/mes amb la mateixa lògica d'una cartera personalitzada i barata. El millor moment per estructurar és sempre com més aviat mill", "es": "ientras la banca privada pide 500.000€, aquí puedes empezar desde 8€/mes con la misma lógica de una cartera personalizada y barata. El mejor momento para estructurar es siempre cuanto antes mej"}, "k255": {"ca": "ja tinc fons o cartera, els puc traspas", "es": "ya tengo fondos o cartera, ¿los puedo traspa"}, "k256": {"ca": "tzo la teva cartera actual i, si convé, et guio en el traspàs", "es": "zo tu cartera actual y, si conviene, te guío en el traspaso"}, "k257": {"ca": " eficient", "es": "e eficiente"}, "k258": {"ca": "cap a una cartera més alineada amb el teu perfil. Tu sempre mantens la propietat i el control dels diners", "es": "hacia una cartera más alineada con tu perfil. Tú siempre mantienes la propiedad y el control del dinero"}, "k259": {"ca": "El rendiment que mostres és garantit", "es": "¿El rendimiento que muestras está garantizado"}, "k260": {"ca": "es xifres de l'Índex TBI só", "es": "as cifras del Índice TBI so"}, "k261": {"ca": "òriques i il·lustrative", "es": "óricas e ilustrativa"}, "k262": {"ca": "mai una promesa. Cap rendiment futur està garantit: depèn del mercat, del teu perfil i de la disciplina. El que sí controlem és mantenir els costos baixos i les decisions ordenade", "es": "nunca una promesa. Ningún rendimiento futuro está garantizado: depende del mercado, de tu perfil y de la disciplina. Lo que sí controlamos es mantener los costes bajos y las decisiones ordenada"}, "k263": {"ca": "Necessito coneixements previ", "es": "¿Necesito conocimientos previo"}, "k264": {"ca": "Gens. T'ho explico tot perquè ho entenguis a cada pas, i tens un glossari (28+ termes) i una guia d'actius a la plataforma. La majoria de clients comencen sense cap experiència prè", "es": "Para nada. Te lo explico todo para que lo entiendas en cada paso, y tienes un glosario (28+ términos) y una guía de activos en la plataforma. La mayoría de clientes empiezan sin ninguna experiencia pre"}, "k265": {"ca": "Vols aprofundi", "es": "¿Quieres profundiza"}, "k266": {"ca": "ta la lletra, quan tu vulgui", "es": "da la letra, cuando quiera"}, "k267": {"ca": "t aquí tot el detall: metodologia, dades de la cartera, com funciona l'assessoria pas a pas i el marc legal. Obre només el que t'interessi", "es": "do aquí todo el detalle: metodología, datos de la cartera, cómo funciona la asesoría paso a paso y el marco legal. Abre solo lo que te interese"}, "k268": {"ca": "er què els teus diners perden valor a", "es": "or qué tu dinero pierde valor aho"}, "k269": {"ca": ", comissions i conflicte d'interès · amb", "es": "n, comisiones y conflicto de interés · con"}, "k270": {"ca": " mitjana a Espany", "es": "n media en Españ"}, "k271": {"ca": "aturats des de 2021 compren avui l'equivalent a un", "es": "parados desde 2021 compran hoy el equivalente a uno"}, "k272": {"ca": "sions en fons bancaris típic", "es": "iones en fondos bancarios típico"}, "k273": {"ca": "ón entre 450€ i 600€ cada any, hi hagi rendiment", "es": "on entre 450€ y 600€ cada año, haya rendimiento"}, "k274": {"ca": "s actius que rendeixen sota el seu índex", "es": "dos activos que rinden por debajo de su índice"}, "k275": {"ca": "nys, segons", "es": "ños, según"}, "k276": {"ca": " cobra retrocessions per cada producte que col·", "es": "o cobra retrocesiones por cada producto que co"}, "k277": {"ca": "Vols veure-ho amb els te", "es": "¿Quieres verlo con t"}, "k278": {"ca": "ov", "es": "ueb"}, "k279": {"ca": "ia, cartera i Índex", "es": "ía, cartera e Índice"}, "k280": {"ca": "om construeixo les carteres, dades reals i comparador banc", "es": "ómo construyo las carteras, datos reales y comparador banco"}, "k281": {"ca": "ia TBI combina actius per", "es": "ía TBI combina activos para"}, "k282": {"ca": "tzar rendiment a un risc as", "es": "zar rendimiento a un riesgo a"}, "k283": {"ca": "amb models matemàtics (volatilitat, correlacion", "es": "con modelos matemáticos (volatilidad, correlacione"}, "k284": {"ca": " intel·ligent, rebalancejos disciplinats i costos baix", "es": "n inteligente, rebalanceos disciplinados y costes baj"}, "k285": {"ca": " nucli", "es": "n núcleo"}, "k286": {"ca": "s diversificats, baix", "es": "es diversificados, bajo"}, "k287": {"ca": "èl·lits selectiu", "es": "élites selectivo"}, "k288": {"ca": "s actives amb tesi clara i revisió", "es": "es activas con tesis clara y revisión"}, "k289": {"ca": "us &amp; coberture", "es": "vos y cobertura"}, "k290": {"ca": ", REITs, RF de qualitat. Redueix", "es": "o, REITs, RF de calidad. Reduc"}, "k291": {"ca": "itat tà", "es": "ez tá"}, "k292": {"ca": "er aprofitar oportunitats sense vendre en mal moment", "es": "ara aprovechar oportunidades sin vender en mal momento"}, "k293": {"ca": "ex TBI · Base 100 · Juny 2020 – Maig", "es": "ice TBI · Base 100 · Jun 2020 – May"}, "k294": {"ca": " ponderat en el temps (TWR) · 72 mesos · dades simulade", "es": "o ponderado en el tiempo (TWR) · 72 meses · datos simulado"}, "k295": {"ca": " DE RENDIMENT · ESTIL", "es": "O DE RENDIMIENTO · ESTILO"}, "k296": {"ca": "ex TBI — Cartera Model", "es": "ice TBI — Cartera Modelo"}, "k297": {"ca": "tzat", "es": "zado"}, "k298": {"ca": "", "es": "o"}, "k299": {"ca": "e", "es": "o"}, "k300": {"ca": "tat", "es": "dad"}, "k301": {"ca": "à", "es": "a"}, "k302": {"ca": "ents anual", "es": "ientos anuale"}, "k303": {"ca": "des simulade", "es": "tos simulado"}, "k304": {"ca": "ia TBI. Els rendiments històrics no garanteixen rendiments futurs. La inversió comporta risc de pèrdu", "es": "ía TBI. Los rendimientos históricos no garantizan rendimientos futuros. La inversión conlleva riesgo de pérdid"}, "k305": {"ca": "Quant et costen les comissions del banc al llarg dels any", "es": "¿Cuánto te cuestan las comisiones del banco a lo largo de los año"}, "k306": {"ca": "ara-ho a", "es": "áralo en"}, "k307": {"ca": "om funciona l'assessoria, pas a pas", "es": "ómo funciona la asesoría, paso a paso"}, "k308": {"ca": "fins a l'acompanyament continu · 6 pas", "es": "hasta el acompañamiento continuo · 6 pa"}, "k309": {"ca": "obrim qui ets com a", "es": "ubrimos quién eres como"}, "k310": {"ca": "es sobre situació, objectius, horitzó i la teva", "es": "as sobre situación, objetivos, horizonte y tu"}, "k311": {"ca": "ància al risc", "es": "ancia al riesgo"}, "k312": {"ca": "L'algorisme calcula el teu arquetip dins els 10 perfil", "es": "El algoritmo calcula tu arquetipo dentro de los 10 perfile"}, "k313": {"ca": "", "es": "e"}, "k314": {"ca": " · anàlisi financera", "es": "n · análisis financiero"}, "k315": {"ca": "'1h. Posem sobre la taula ingressos, despeses, deutes i", "es": "e 1h. Ponemos sobre la mesa ingresos, gastos, deudas y"}, "k316": {"ca": "em fugues i el te", "es": "amos fugas y t"}, "k317": {"ca": "", "es": "e"}, "k318": {"ca": "er", "es": "ara"}, "k319": {"ca": "s d'emergè", "es": "do de emerge"}, "k320": {"ca": "tzació", "es": "zación"}, "k321": {"ca": "osta · cartera amb opcions de risc", "es": "uesta · cartera con opciones de riesgo"}, "k322": {"ca": "o", "es": "ue"}, "k323": {"ca": "i tres variant", "es": "y tres variante"}, "k324": {"ca": "siva): composició, rendiment esperat, volatilitat, drawdown i exemple en euros a 5, 10 i 20 any", "es": "iva): composición, rendimiento esperado, volatilidad, drawdown y ejemplo en euros a 5, 10 y 20 año"}, "k325": {"ca": "l", "es": "e"}, "k326": {"ca": "jeccion", "es": "yeccione"}, "k327": {"ca": " · objectius SMART i full", "es": "n · objetivos SMART y hoja"}, "k328": {"ca": "ctius concrets amb dates i imports (emergència, pis, FIRE, jubilació). Un", "es": "tivos concretos con fechas e importes (emergencia, piso, FIRE, jubilación). Una"}, "k329": {"ca": "full", "es": "hoja"}, "k330": {"ca": "amb fases i", "es": "con fases y"}, "k331": {"ca": "", "es": "e"}, "k332": {"ca": "xecució · primeres operacions guiade", "es": "jecución · primeras operaciones guiada"}, "k333": {"ca": "'ajudo a triar bróker, fer les primeres compres i", "es": "e ayudo a elegir bróker, hacer las primeras compras y"}, "k334": {"ca": "s automàtique", "es": "es automática"}, "k335": {"ca": "i avorrit — el millor per al llarg termini", "es": "y aburrido — lo mejor para el largo plazo"}, "k336": {"ca": "nyament continu", "es": "ñamiento continuo"}, "k337": {"ca": "Estalvi", "es": "Ahorro"}, "k338": {"ca": "", "es": "n"}, "k339": {"ca": "èncie", "es": "encia"}, "k340": {"ca": "è passa amb els teus diners", "es": "é pasa con tu dinero"}, "k341": {"ca": "s aturats, cost de comissions i projeccions · amb els te", "es": "o parado, coste de comisiones y proyecciones · con t"}, "k342": {"ca": "sa els teus números un sol cop i mira-ho des de tres angles: què perds si els deixes aturats, quant et costen les comissions i què pot passar si inverteixes bé", "es": "n tus números una sola vez y míralo desde tres ángulos: qué pierdes si lo dejas parado, cuánto te cuestan las comisiones y qué puede pasar si inviertes bien"}, "k343": {"ca": "", "es": "n"}, "k344": {"ca": "ny", "es": "ño"}, "k345": {"ca": "Aturats al banc", "es": "Parados en el banco"}, "k346": {"ca": ": banc", "es": "e: banco"}, "k347": {"ca": "uràs aportat", "es": "brás aportado"}, "k348": {"ca": "s, sense moure'ls", "es": "es, sin moverlo"}, "k349": {"ca": "Amb remuneració", "es": "Con remuneración"}, "k350": {"ca": "u", "es": "vo"}, "k351": {"ca": "'avui, amb inflació", "es": "e hoy, con inflación"}, "k352": {"ca": "s bancari típic", "es": "do bancario típico"}, "k353": {"ca": "", "es": "e"}, "k354": {"ca": "t", "es": "do"}, "k355": {"ca": "us", "es": "o"}, "k356": {"ca": "", "es": "e"}, "k357": {"ca": "t", "es": "do"}, "k358": {"ca": "El que et quedes tu en lloc del banc", "es": "Lo que te quedas tú en lugar del banco"}, "k359": {"ca": "Tots dos escenaris assumeix", "es": "Ambos escenarios asum"}, "k360": {"ca": "ateix creixement brut moderat", "es": "ismo crecimiento bruto moderado"}, "k361": {"ca": "ència ve només de les comissions. Per això és el número més sòlid de tota la pà", "es": "encia viene solo de las comisiones. Por eso es el número más sólido de toda la pá"}, "k362": {"ca": "ixement net", "es": "cimiento neto"}, "k363": {"ca": "t", "es": "do"}, "k364": {"ca": "ixement net", "es": "cimiento neto"}, "k365": {"ca": "ixement net", "es": "cimiento neto"}, "k366": {"ca": "jecció del patrimoni per escenari", "es": "yección del patrimonio por escenario"}, "k367": {"ca": "es tres línies marquen els escenaris al llarg del temps. S'actualitza amb els valors de dalt", "es": "as tres líneas marcan los escenarios a lo largo del tiempo. Se actualiza con los valores de arriba"}, "k368": {"ca": "s il·lustratius genèrics de mercat (4–8% net), inflació referè", "es": "os ilustrativos genéricos de mercado (4–8% neto), inflación refere"}, "k369": {"ca": "i comissions típiques del sector. No són una previsió de rendiment ni garantia de resultats futur", "es": "y comisiones típicas del sector. No son una previsión de rendimiento ni garantía de resultados futuro"}, "k370": {"ca": "", "es": "e"}, "k371": {"ca": "ent, FIRE i 10 carteres model · tot en un lloc", "es": "iento, FIRE y 10 carteras modelo · todo en un lugar"}, "k372": {"ca": "ent, eines financeres i comunicació directa. Tot integrat i personalitzat al teu perfil, des d", "es": "iento, herramientas financieras y comunicación directa. Todo integrado y personalizado a tu perfil, desde "}, "k373": {"ca": "", "es": "en"}, "k374": {"ca": "", "es": "o"}, "k375": {"ca": "Tauler de resum · L'Arquitecte", "es": "Panel de resumen · El Arquitecto"}, "k376": {"ca": "ent", "es": "iento"}, "k377": {"ca": "", "es": "n"}, "k378": {"ca": "ny", "es": "ño"}, "k379": {"ca": "libertat", "es": "ibertad"}, "k380": {"ca": "Full de Ruta · Carteres Model", "es": "Hoja de Ruta · Carteras Modelo"}, "k381": {"ca": "Estalvi · Fons d'Emergència · Educació financ", "es": "Ahorro · Fondo de Emergencia · Educación financi"}, "k382": {"ca": "La meva cartera · Posicions actual", "es": "Mi cartera · Posiciones actuale"}, "k383": {"ca": "v", "es": "b"}, "k384": {"ca": " físic", "es": "o físico"}, "k385": {"ca": "tat", "es": "dade"}, "k386": {"ca": "ctiu amb", "es": "tivo con"}, "k387": {"ca": "", "es": "o"}, "k388": {"ca": "és", "es": "eso"}, "k389": {"ca": "í cap ", "es": "ino haci"}, "k390": {"ca": "es model · Un arquetip per ", "es": "as modelo · Un arquetipo par"}, "k391": {"ca": "L'Estoic", "es": "El Estoico"}, "k392": {"ca": "vella · L'", "es": "bela · El "}, "k393": {"ca": "L'Arquitecte", "es": "El Arquitecto"}, "k394": {"ca": "resorer", "es": "esorero"}, "k395": {"ca": "es més: El Galeó, El Scriptorium, L'Alambí, El Sarró, El Pioner, La Rend", "es": "as más: El Galeón, El Scriptorium, El Alambique, El Zurrón, El Pionero, La Rent"}, "k396": {"ca": " legal i", "es": "o legal y"}, "k397": {"ca": ", abast dels serveis i protecció de dade", "es": "o, alcance de los servicios y protección de dato"}, "k398": {"ca": "ència és un valor fon", "es": "encia es un valor fund"}, "k399": {"ca": "ens la meva situació regulatòria i què significa per a tu", "es": "ienes mi situación regulatoria y qué significa para ti"}, "k400": {"ca": "", "es": "o"}, "k401": {"ca": "és candidat a la certificació EFA (EFPA Espanya), examen al juny de 2026, i compta amb postgrau en Inversió i Gestió", "es": "es candidato a la certificación EFA (EFPA España), examen en junio de 2026, y cuenta con posgrado en Inversión y Gestión"}, "k402": {"ca": " a plataforma d'educació i anàlisi financera independent, no com a empresa d'assessorament regulada pe", "es": "o plataforma de educación y análisis financiero independiente, no como empresa de asesoramiento regulada po"}, "k403": {"ca": "bast dels serveis actual", "es": "lcance de los servicios actuale"}, "k404": {"ca": "ouen educació financera, anàlisi de mercats i metodologia, recomanacions generals de carteres model (informació, no gestió regulada) i eines de planificació. Cada inversor és responsable de les seves decision", "es": "uyen educación financiera, análisis de mercados y metodología, recomendaciones generales de carteras modelo (información, no gestión regulada) y herramientas de planificación. Cada inversor es responsable de sus decisione"}, "k405": {"ca": " de dade", "es": "n de dato"}, "k406": {"ca": "des tractades segons el RGPD (2016/679) i", "es": "tos tratados según el RGPD (2016/679) y"}, "k407": {"ca": "rets ARSULIPO via contacte. Dades a", "es": "erechos ARSULIPO vía contacto. Datos en"}, "k408": {"ca": "", "es": "n"}, "k409": {"ca": " cop obtinguda la certificació EFA i el registre com a agent vinculat d'una EAFI autoritzada per la CNMV, TBI podrà oferir assessorament regulat. Els clients actuals seran informats sense cost ad", "es": "a vez obtenida la certificación EFA y el registro como agente vinculado de una EAFI autorizada por la CNMV, TBI podrá ofrecer asesoramiento regulado. Los clientes actuales serán informados sin coste a"}, "k410": {"ca": "ís sobre els resultats presentat", "es": "iso sobre los resultados presentado"}, "k411": {"ca": "i tots els rendiments corresponen a l'Índex TBI (retorns mensuals ponderats en el temps", "es": "y todos los rendimientos corresponden al Índice TBI (retornos mensuales ponderados en el tiempo"}, "k412": {"ca": "ència des de juny 2020). Les dades en euros s'obtenen aplicant els retorns a un capital hipotètic; no representen la cartera real d'un inversor ni garantia de rendiments futurs. La inversió comporta risc de pèrdu", "es": "encia desde junio de 2020). Los datos en euros se obtienen aplicando los retornos a un capital hipotético; no representan la cartera real de un inversor ni garantía de rendimientos futuros. La inversión conlleva riesgo de pérdid"}, "k413": {"ca": "Comença a invertir avorrit", "es": "Empieza a invertir aburrido"}, "k414": {"ca": "i", "es": "y"}, "k415": {"ca": "orm tranquil", "es": "uerme tranquilo"}, "k416": {"ca": "Fes el test de salut financera o registra't directament com a client. Tu tries per on començar — sense compromís i amb 30 dies de garanti", "es": "Haz el test de salud financiera o regístrate directamente como cliente. Tú eliges por dónde empezar — sin compromiso y con 30 días de garantí"}, "k417": {"ca": "Fes el test de salut financ", "es": "Haz el test de salud financi"}, "k418": {"ca": "istra'm com a client", "es": "ístrate como cliente"}, "k419": {"ca": "àlisi i Educació Financera Independent", "es": "álisis y Educación Financiera Independiente"}, "k420": {"ca": "ense comissions de producte · Candidat EFA (EFPA Espanya) · Postgrau Inversió i Gestió", "es": "in comisiones de producto · Candidato EFA (EFPA España) · Posgrado Inversión y Gestión"}, "k421": {"ca": "ís legal: TBI no és una empresa d'assessorament financer regulada per la CNMV. Els serveis actuals comprenen educació i anàlisi financera independent. Els rendiments mostrats corresponen a l'Índex TBI i no constitueixen garantia de resultats futur", "es": "iso legal: TBI no es una empresa de asesoramiento financiero regulada por la CNMV. Los servicios actuales comprenden educación y análisis financiero independiente. Los rendimientos mostrados corresponden al Índice TBI y no constituyen garantía de resultados futuro"}, "k422": {"ca": "", "es": "-es"}};
+var META={"ca": {"title": "The Boring Investor — Assessorament financer independent des de 8€/mes", "desc": "Estalvis aturats que perden valor? Productes que no entens? Posa ordre als teus diners amb un assessorament personalitzat, fiscalment òptim i sense comissions de producte. Des de 8€/mes."}, "es": {"title": "The Boring Investor — Asesoramiento financiero independiente desde 8€/mes", "desc": "¿Ahorros parados que pierden valor? ¿Productos que no entiendes? Pon orden en tu dinero con un asesoramiento personalizado, fiscalmente óptimo y sin comisiones de producto. Desde 8€/mes."}};
+var DYN={"ca": {"atA": "Deixant-ho tot al compte, en ", "atB": " anys hi hauràs posat <strong>", "atC": " €</strong> però només compraran l’equivalent a <strong>", "atD": " €</strong> d’avui: la inflació s’haurà menjat <strong>", "atE": " €</strong> de poder adquisitiu en silenci.", "aportat": "Aportat: ", "guanyNet": "Guany net: ", "difA": "Diferència acumulada en ", "difB": " anys només per pagar ~0,25% de cost en lloc de ~1,80%.", "dets": ["Si els mercats van per sota del normal", "Referència històrica prudent de mercat", "Si els mercats van millor del normal"], "guany": "Guany: ", "any": "Any", "months": ["Jun 20", "Des 20", "Des 21", "Des 22", "Des 23", "Des 24", "Des 25", "Maig 26"]}, "es": {"atA": "Dejándolo todo en la cuenta, en ", "atB": " años habrás puesto <strong>", "atC": " €</strong> pero solo comprarán el equivalente a <strong>", "atD": " €</strong> de hoy: la inflación se habrá comido <strong>", "atE": " €</strong> de poder adquisitivo en silencio.", "aportat": "Aportado: ", "guanyNet": "Ganancia neta: ", "difA": "Diferencia acumulada en ", "difB": " años solo por pagar ~0,25% de coste en lugar de ~1,80%.", "dets": ["Si los mercados van por debajo de lo normal", "Referencia histórica prudente de mercado", "Si los mercados van mejor de lo normal"], "guany": "Ganancia: ", "any": "Año", "months": ["Jun 20", "Dic 20", "Dic 21", "Dic 22", "Dic 23", "Dic 24", "Dic 25", "May 26"]}};
+function setLang(L){
+  if(L!=="ca"&&L!=="es")L="ca";
+  LANG=L;
+  try{document.documentElement.lang=L;}catch(e){}
+  try{document.title=META[L].title;var md=document.querySelector('meta[name="description"]');if(md)md.setAttribute("content",META[L].desc);}catch(e){}
+  var ns=document.querySelectorAll(".i18n");for(var i=0;i<ns.length;i++){var k=ns[i].getAttribute("data-i18n");if(I18N[k])ns[i].innerHTML=I18N[k][L];}
+  var bs=document.querySelectorAll(".lang-btn");for(var b=0;b<bs.length;b++){bs[b].classList.toggle("active",bs[b].getAttribute("data-lang")===L);}
+  try{localStorage.setItem("tbi_lang",L);}catch(e){}
+  if(typeof calcAll==="function")calcAll();
+  if(typeof drawTbiChart==="function")drawTbiChart();
+}
 // NAV scroll
 window.addEventListener("scroll",function(){document.getElementById("main-nav").classList.toggle("scrolled",window.scrollY>60)});
 
@@ -1243,7 +1266,7 @@ window.addEventListener("scroll",function(){document.getElementById("main-nav").
 function toggleFaq(el){var a=el.nextElementSibling;var w=el.classList.contains("open");document.querySelectorAll(".faq-q").forEach(function(q){q.classList.remove("open")});document.querySelectorAll(".faq-a").forEach(function(aa){aa.classList.remove("open")});if(!w){el.classList.add("open");a.classList.add("open")}}
 
 // Number format
-function fmt(n){return Math.round(n).toLocaleString("ca-ES")}
+function fmt(n){return Math.round(n).toLocaleString(LANG==="es"?"es-ES":"ca-ES")}
 
 // ===== INFLATION SIMULATOR =====
 // ===== CALCULADORA UNIFICADA (aturats / cost / projecció) =====
@@ -1283,26 +1306,26 @@ function calcAll(){
   document.getElementById("at-nominal").textContent=fmt(nominal)+" \u20ac";
   document.getElementById("at-real").textContent=fmt(real)+" \u20ac";
   document.getElementById("at-conclusion").innerHTML=
-    "Deixant-ho tot al compte, en "+a+" anys hi haur\u00e0s posat <strong>"+fmt(aportat)+" \u20ac</strong> per\u00f2 nom\u00e9s compraran l\u2019equivalent a <strong>"+fmt(real)+" \u20ac</strong> d\u2019avui: la inflaci\u00f3 s\u2019haur\u00e0 menjat <strong>"+fmt(perdua)+" \u20ac</strong> de poder adquisitiu en silenci.";
+    DYN[LANG].atA+a+DYN[LANG].atB+fmt(aportat)+DYN[LANG].atC+fmt(real)+DYN[LANG].atD+fmt(perdua)+DYN[LANG].atE;
 
   // 2) COST: mateix brut 5%, costos 1,80% vs 0,25%
   var vB=simulaMensual(c,m,a,0.05-0.018)[ms];
   var vT=simulaMensual(c,m,a,0.05-0.0025)[ms];
   var d=vT-vB;
   document.getElementById("co-banc").textContent=fmt(vB)+" \u20ac";
-  document.getElementById("co-banc-d").textContent="Aportat: "+fmt(aportat)+" \u20ac \u00b7 Guany net: "+fmt(vB-aportat)+" \u20ac";
+  document.getElementById("co-banc-d").textContent=DYN[LANG].aportat+fmt(aportat)+" \u20ac \u00b7 "+DYN[LANG].guanyNet+fmt(vB-aportat)+" \u20ac";
   document.getElementById("co-tbi").textContent=fmt(vT)+" \u20ac";
-  document.getElementById("co-tbi-d").textContent="Aportat: "+fmt(aportat)+" \u20ac \u00b7 Guany net: "+fmt(vT-aportat)+" \u20ac";
+  document.getElementById("co-tbi-d").textContent=DYN[LANG].aportat+fmt(aportat)+" \u20ac \u00b7 "+DYN[LANG].guanyNet+fmt(vT-aportat)+" \u20ac";
   document.getElementById("co-diff").textContent="+"+fmt(d)+" \u20ac";
-  document.getElementById("co-diff-sub").textContent="Difer\u00e8ncia acumulada en "+a+" anys nom\u00e9s per pagar ~0,25% de cost en lloc de ~1,80%.";
+  document.getElementById("co-diff-sub").textContent=DYN[LANG].difA+a+DYN[LANG].difB;
 
   // 3) PROJECCIÓ: escenaris genèrics 4/6/8% net
-  var rates=[0.04,0.06,0.08], ids=["cons","esp","opt"], dets=["Si els mercats van per sota del normal","Refer\u00e8ncia hist\u00f2rica prudent de mercat","Si els mercats van millor del normal"], vals=[];
+  var rates=[0.04,0.06,0.08], ids=["cons","esp","opt"], dets=DYN[LANG].dets, vals=[];
   for(var k=0;k<3;k++){
     var serie=simulaMensual(c,m,a,rates[k]);
     vals.push(serie);
     document.getElementById("proj-r-"+ids[k]).textContent=fmt(serie[ms])+" \u20ac";
-    document.getElementById("proj-d-"+ids[k]).textContent=dets[k]+" \u00b7 Guany: "+fmt(serie[ms]-aportat)+" \u20ac";
+    document.getElementById("proj-d-"+ids[k]).textContent=dets[k]+" \u00b7 "+DYN[LANG].guany+fmt(serie[ms]-aportat)+" \u20ac";
   }
   if(document.getElementById("calcpane-proj").classList.contains("active"))drawProjChart(vals,a);
 }
@@ -1319,7 +1342,7 @@ function drawProjChart(vals,a){
   var toX=function(i){return pL+i/(n-1)*W2;};
   var toY=function(v){return pT+H2-(v-mn)/(mx-mn||1)*H2;};
   for(var g=0;g<5;g++){var y=pT+H2*g/4;var val=mx-(mx-mn)*g/4;ctx.strokeStyle="rgba(0,0,0,.05)";ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+W2,y);ctx.stroke();ctx.fillStyle="rgba(0,0,0,.4)";ctx.font="9px monospace";var lbl=val>=1000?(Math.round(val/1000)+"k"):Math.round(val);ctx.fillText(lbl,4,y+3);}
-  for(var yy=0;yy<=a;yy+=Math.max(1,Math.round(a/6))){var xx=toX(yy*12);ctx.fillStyle="rgba(0,0,0,.4)";ctx.font="9px monospace";ctx.fillText("Any "+yy,xx-12,pT+H2+18);}
+  for(var yy=0;yy<=a;yy+=Math.max(1,Math.round(a/6))){var xx=toX(yy*12);ctx.fillStyle="rgba(0,0,0,.4)";ctx.font="9px monospace";ctx.fillText(DYN[LANG].any+" "+yy,xx-12,pT+H2+18);}
   var colors=["#6B685F","#C8A54A","#1A5C3A"];var widths=[1.5,2.5,1.5];
   for(var k=0;k<3;k++){ctx.beginPath();ctx.strokeStyle=colors[k];ctx.lineWidth=widths[k];for(var i=0;i<n;i++){if(i===0)ctx.moveTo(toX(i),toY(vals[k][i]));else ctx.lineTo(toX(i),toY(vals[k][i]));}ctx.stroke();}
   for(var k2=0;k2<3;k2++){var fx=toX(n-1),fy=toY(vals[k2][n-1]);ctx.beginPath();ctx.arc(fx,fy,3,0,Math.PI*2);ctx.fillStyle=colors[k2];ctx.fill();}
@@ -1342,7 +1365,7 @@ function drawTbiChart(){
   var toY=function(v){return pT+H2-(v-mn)/(mx-mn)*H2;};
   [100,120,140,160,180,200].forEach(function(v){if(v<mn||v>mx)return;var y=toY(v);ctx.strokeStyle="rgba(255,255,255,.05)";ctx.lineWidth=1;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+W2,y);ctx.stroke();ctx.fillStyle="rgba(255,255,255,.2)";ctx.font="8px monospace";ctx.fillText(v,2,y+3);});
   var y100=toY(100);ctx.setLineDash([3,3]);ctx.strokeStyle="rgba(255,255,255,.2)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pL,y100);ctx.lineTo(pL+W2,y100);ctx.stroke();ctx.setLineDash([]);
-  var yIdx=[0,6,18,30,42,54,66,71];var yLbl=["Jun 20","Des 20","Des 21","Des 22","Des 23","Des 24","Des 25","Maig 26"];
+  var yIdx=[0,6,18,30,42,54,66,71];var yLbl=DYN[LANG].months;
   yIdx.forEach(function(i,k){var x=toX(i);ctx.strokeStyle="rgba(255,255,255,.06)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,pT);ctx.lineTo(x,pT+H2);ctx.stroke();ctx.fillStyle="rgba(255,255,255,.2)";ctx.font="8px monospace";var lbl=yLbl[k];ctx.fillText(lbl,x-(lbl.length*2.5),pT+H2+13);});
   ctx.beginPath();ctx.moveTo(toX(0),toY(vals[0]));for(var i=1;i<n;i++)ctx.lineTo(toX(i),toY(vals[i]));ctx.lineTo(toX(n-1),pT+H2);ctx.lineTo(toX(0),pT+H2);ctx.closePath();
   var g=ctx.createLinearGradient(0,pT,0,pT+H2);g.addColorStop(0,"rgba(200,165,74,.22)");g.addColorStop(1,"rgba(200,165,74,0)");ctx.fillStyle=g;ctx.fill();
@@ -1368,6 +1391,11 @@ document.querySelectorAll(".fade-up").forEach(function(el){el.style.animationPla
 // Init (text values render even if charts are hidden)
 calcAll();drawTbiChart();
 window.addEventListener("resize",function(){calcAll();drawTbiChart();});
+
+// apply saved language preference
+(function(){var L="ca";try{var s=localStorage.getItem("tbi_lang");if(s==="es"||s==="ca")L=s;}catch(e){}
+ var bs=document.querySelectorAll(".lang-btn");for(var b=0;b<bs.length;b++){bs[b].classList.toggle("active",bs[b].getAttribute("data-lang")===L);}
+ if(L!=="ca")setLang(L);})();
 </script>
 </body>
 </html>
