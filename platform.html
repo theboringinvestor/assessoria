@@ -11047,6 +11047,8 @@ function _frDrawDonut(svgEl, actius, opts) {
 var _FR_DIRTY = false;
 var _FR_AUTO_VALUES = {}; // valors calculats per defecte (per a poder restaurar)
 var _FR_SAVING = false;   // estat "desant en curs" per evitar dobles clics
+var _FR_SESSION_BASE = null;    // snapshot del FR en obrir l'editor (xarxa de seguretat)
+var _FR_BASE_VERSIONED = false; // si ja s'ha desat la versió automàtica d'aquesta sessió
 
 function _frStorageKey() {
   var c = getClient();
@@ -11098,8 +11100,47 @@ async function _frPersist() {
   var savedToCloud = false;
   if (typeof sb !== 'undefined' && sb && c.email) {
     try {
+      // ── Xarxa de seguretat: versió automàtica de l'estat previ ──────────
+      // Abans de sobreescriure, desem com estava el FR en obrir l'editor,
+      // perquè sempre hi hagi un punt de restauració d'aquesta sessió.
+      // Només una vegada per sessió d'edició, amb dedupe i throttle (2 min).
+      var _versPayload = null;
+      if (_FR_SESSION_BASE && !_FR_BASE_VERSIONED) {
+        _FR_BASE_VERSIONED = true;
+        try {
+          var _baseObj = JSON.parse(_FR_SESSION_BASE);
+          if (_baseObj && Object.keys(_baseObj).length > 0 && _FR_SESSION_BASE !== JSON.stringify(data)) {
+            var _vers = Array.isArray(c.fullderuta_versions) ? c.fullderuta_versions.slice() : [];
+            var _last = _vers.length ? _vers[_vers.length - 1] : null;
+            var _dup = _last && JSON.stringify(_last.data) === _FR_SESSION_BASE;
+            var _recent = _last && _last.ts && (Date.now() - new Date(_last.ts).getTime() < 120000);
+            if (!_dup && !_recent) {
+              var _ara = new Date();
+              _vers.push({
+                id: _frNovaVersioId(),
+                ts: _ara.toISOString(),
+                label: 'Auto · abans d\'editar (' + _ara.toLocaleDateString('ca-ES', { day: 'numeric', month: 'short' }) + ' ' + _ara.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' }) + ')',
+                autor: APP.role === 'admin' ? 'assessor' : 'client',
+                auto: true,
+                data: _baseObj
+              });
+              _vers.sort(function(a, b) { return (a.ts || '').localeCompare(b.ts || ''); });
+              // Cap a 20: descartar primer les versions automàtiques més antigues
+              while (_vers.length > 20) {
+                var _idx = -1;
+                for (var _k = 0; _k < _vers.length; _k++) { if (_vers[_k].auto) { _idx = _k; break; } }
+                _vers.splice(_idx >= 0 ? _idx : 0, 1);
+              }
+              c.fullderuta_versions = _vers;
+              _versPayload = _vers;
+            }
+          }
+        } catch (_e) { /* la versió automàtica mai ha de bloquejar el desat */ }
+      }
+      var _upd = { fullderuta: data };
+      if (_versPayload) _upd.fullderuta_versions = _versPayload;
       var res = await sb.from('clients')
-        .update({ fullderuta: data })
+        .update(_upd)
         .eq('email', c.email.toLowerCase());
       if (res && res.error) throw res.error;
       savedToCloud = true;
@@ -11645,6 +11686,12 @@ function renderPortalRoadmap(el) {
 
   var c = getClient() || (typeof DEMO_CLIENT !== 'undefined' ? DEMO_CLIENT : {});
   var isAdmin = APP.role === 'admin';
+  // Xarxa de seguretat: desem com estava el FR en obrir l'editor per poder
+  // versionar-lo automàticament abans del primer desat de la sessió.
+  if (isAdmin) {
+    try { _FR_SESSION_BASE = JSON.stringify(c.fullderuta || {}); } catch (_e) { _FR_SESSION_BASE = null; }
+    _FR_BASE_VERSIONED = false;
+  }
   var perfil = c.perfil || {};
   var fr = c.fullderuta || {};
   var notes = fr.notes || {};
@@ -12942,10 +12989,20 @@ function renderPortalRoadmap(el) {
   if (isAdmin) passosHtml += '<button class="fr-tl-add-pas" onclick="_frAddPas()">\uFF0B Afegir pas</button>';
 
   var nPassos = passos.length;
+  var _plantillaPicker = '';
+  if (isAdmin) {
+    _plantillaPicker = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 20px;padding:12px 14px;background:#F4F7FB;border:1px solid #D7DEEA;border-radius:10px">'
+      + '<span style="font-size:11px;font-weight:600;color:#1B3A6B;font-family:var(--fb);white-space:nowrap">Carregar plantilla d\u2019execuci\u00f3:</span>'
+      + '<button onclick="_frAplicarPlantilla(\'basica\')" style="padding:6px 13px;background:#fff;border:1px solid #1B3A6B;color:#1B3A6B;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)">B\u00e0sica \u00b7 client nou</button>'
+      + '<button onclick="_frAplicarPlantilla(\'avancada\')" style="padding:6px 13px;background:#fff;border:1px solid #1B3A6B;color:#1B3A6B;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fb)">Avan\u00e7ada \u00b7 amb experi\u00e8ncia</button>'
+      + '<span style="font-size:10.5px;color:var(--g500);line-height:1.5;flex:1;min-width:170px">Substitueix nom\u00e9s els passos. L\u2019estat actual es desa com a versi\u00f3 abans de carregar.</span>'
+      + '</div>';
+  }
   html += '<div class="fr-section">'
     + '<div class="fr-label">08 · Posada en marxa</div>'
     + '<div class="fr-h2">Pla d\u2019execuci\u00f3 en ' + nPassos + ' pas' + (nPassos !== 1 ? 'sos' : '') + '</div>'
     + '<div class="fr-lead">Cada pas t\u00e9 data prevista, descripci\u00f3 i eines recomanades.' + (isAdmin ? ' Clica qualsevol camp per editar-lo.' : '') + '</div>'
+    + _plantillaPicker
     + '<div class="fr-tl">' + passosHtml + '</div>'
   + '</div>';
 
@@ -13180,6 +13237,147 @@ var _FR_PASSOS_DEFAULT = [
     tools: ['Q\u00fcestionari curt', 'An\u00e0lisi fiscal', '~1,5h']
   },
 ];
+
+// ════════════════════════════════════════════════════════════════════════
+// PLANTILLES D'EXECUCIÓ segons el nivell del client (bàsica / avançada)
+// _frAplicarPlantilla() substitueix NOMÉS els passos d'execució i desa una
+// versió de seguretat de l'estat actual abans de sobreescriure.
+// ════════════════════════════════════════════════════════════════════════
+var _FR_PLANTILLA_BASICA = [
+  {
+    titol: 'Repassem el pla junts',
+    data: 'Abans de començar',
+    text: 'Una sessió tranquil·la per repassar tot el full de ruta sense presses. L\'objectiu és que entenguis cada decisió i et sentis còmode. No hi ha cap pregunta tonta: pregunta-ho tot.',
+    tools: ['Sessió 1:1', '~45 min', 'Sense compromís']
+  },
+  {
+    titol: 'Obrir el compte al broker',
+    data: 'Setmana 1',
+    text: 'Un broker és simplement on viuran les teves inversions, com un banc però pensat per a fons. Triem un de registrat a la CNMV (el regulador espanyol), sense comissions de custòdia. T\'acompanyo pas a pas en el registre.',
+    tools: ['Broker CNMV', 'DNI + IBAN', 'T\'acompanyo', '~30 min']
+  },
+  {
+    titol: 'Posar els diners al compte (sense comprar res encara)',
+    data: 'Setmana 2',
+    text: 'Fas una transferència normal (SEPA) del capital inicial cap al broker. Important: de moment NO comprem res. Els diners esperen tranquils. Així evitem comprar amb pressa o per impuls.',
+    tools: ['Transferència SEPA', '1–2 dies hàbils']
+  },
+  {
+    titol: 'Comprar a poc a poc, no tot de cop',
+    data: 'Setmanes 3–5',
+    text: 'En lloc d\'invertir-ho tot un sol dia, ho repartim en 3 compres durant unes setmanes (50% / 25% / 25%). Així el resultat no depèn d\'haver encertat un dia concret. T\'envio exactament què comprar, amb els codis (ISIN) de cada fons.',
+    tools: ['Llista d\'ISIN', 'Compra en 3 cops', 'T\'ho preparo jo']
+  },
+  {
+    titol: 'Automatitzar l\'estalvi cada mes',
+    data: 'Mes 1',
+    text: 'Configurem que cada mes (per exemple el dia 5) entri la teva aportació i es compri sola. Així inverteixes sense haver-hi de pensar i sense la temptació de deixar-ho per més endavant. Aquesta constància és el més poderós de tot el pla.',
+    tools: ['Ordre permanent', 'Compra automàtica']
+  },
+  {
+    titol: 'La regla d\'or: no miris la cartera cada dia',
+    data: 'Sempre',
+    text: 'Les inversions pugen i baixen contínuament; és del tot normal i sa. Mirar-ho cada dia només genera ansietat i empeny a males decisions. Amb una ullada al trimestre n\'hi ha de sobres. Per això hi soc jo: vigilo pel teu compte.',
+    tools: ['Tranquil·litat', 'Jo vigilo per tu']
+  },
+  {
+    titol: 'Revisió trimestral junts',
+    data: 'Cada trimestre',
+    text: 'Una sessió curta (uns 30 min) per veure com va tot, explicat en paraules clares. Si algun actiu s\'ha desviat força del seu pes objectiu, el tornem al seu lloc (això es diu rebalanceig). Tu només has d\'aparèixer.',
+    tools: ['Portal client TBI', 'Informe clar', '~30 min']
+  },
+  {
+    titol: 'Revisió anual completa',
+    data: 'Cada any',
+    text: 'Un cop l\'any mirem el conjunt amb calma: ha canviat alguna cosa a la teva vida (feina, família, objectius)? Ajustem el pla si cal i optimitzem els impostos perquè paguis només el mínim que toca legalment.',
+    tools: ['Repàs de la teva situació', 'Estalvi fiscal', '~1 h']
+  }
+];
+
+var _FR_PLANTILLA_AVANCADA = [
+  {
+    titol: 'Obertura i operativa',
+    data: 'Setmana 1',
+    text: 'Broker registrat a la CNMV, sense custòdia, amb accés a fons indexats traspassables i ETFs UCITS de baix cost. Si ja operes, validem comissions, fiscalitat de traspassos i disponibilitat dels ISIN objectiu.',
+    tools: ['Broker CNMV', 'Fons traspassables', 'ETFs UCITS']
+  },
+  {
+    titol: 'Provisió de capital',
+    data: 'Setmana 1–2',
+    text: 'Transferència SEPA del capital inicial. Mantenim la liquiditat en un monetari o compte remunerat com a pont fins al desplegament, sense deixar caixa morta.',
+    tools: ['SEPA', 'Monetari pont']
+  },
+  {
+    titol: 'Desplegament esglaonat (DCA pont)',
+    data: 'Setmanes 2–5',
+    text: 'Entrada del nucli en 3 tranches (50/25/25) per reduir el risc de timing. Per a posicions satèl·lit amb més volatilitat, ampliem la finestra d\'entrada. T\'envio els ISIN i els pesos exactes per posició.',
+    tools: ['ISIN + pesos', 'DCA pont', 'Nucli + satèl·lit']
+  },
+  {
+    titol: 'Aportació sistemàtica + bandes',
+    data: 'Mes 1',
+    text: 'Domiciliació mensual amb compra automàtica del nucli indexat. Definim bandes de rebalanceig (±5% absolut o ±25% relatiu sobre el pes objectiu) perquè els ajustos només es disparin quan realment calgui.',
+    tools: ['Aportació automàtica', 'Bandes ±5%']
+  },
+  {
+    titol: 'Rebalanceig per bandes, no per calendari',
+    data: 'Continu',
+    text: 'Reequilibrem quan un actiu traspassa la seva banda, no en una data fixa. Sempre que es pugui, dirigim les aportacions noves cap als actius infraponderats (rebalanceig amb fluxos) per minimitzar la fricció fiscal.',
+    tools: ['Rebalanceig amb fluxos', 'Sense peatge fiscal']
+  },
+  {
+    titol: 'Optimització fiscal activa',
+    data: 'Q4 + continu',
+    text: 'Abans de tancar l\'any, compensem pèrdues amb guanys (tax-loss harvesting) i fem servir els traspassos entre fons per rebalancejar sense tributar. Planifiquem l\'ordre de venda i l\'impacte sobre la base de l\'estalvi.',
+    tools: ['Tax-loss harvesting', 'Traspassos sense peatge', 'Planificació IRPF']
+  },
+  {
+    titol: 'Revisió integral anual',
+    data: 'Anual',
+    text: 'Re-test del perfil de risc, revisió d\'objectius i horitzó, anàlisi del tracking error vs benchmark i decisió sobre possibles tilts (factor, geogràfic o sectorial) per a l\'exercici següent.',
+    tools: ['Re-perfilat', 'Tracking error', 'Tilts']
+  }
+];
+
+async function _frAplicarPlantilla(tipus){
+  var c = getClient();
+  if (!c) return;
+  var plant = (tipus === 'avancada') ? _FR_PLANTILLA_AVANCADA : _FR_PLANTILLA_BASICA;
+  var nom = (tipus === 'avancada') ? 'avançada' : 'bàsica';
+  var actual = c.fullderuta || {};
+  var teCont = !!(actual.execucio && Array.isArray(actual.execucio.passos) && actual.execucio.passos.length);
+  if (teCont && !confirm('Carregar la plantilla ' + nom + '? Substituirà els passos d\'execució actuals. L\'estat actual es desarà com a versió de seguretat per poder tornar enrere.')) return;
+  // 1) Versió de seguretat de l'estat actual abans de sobreescriure
+  if (actual && Object.keys(actual).length){
+    var vers = Array.isArray(c.fullderuta_versions) ? c.fullderuta_versions.slice() : [];
+    var ara = new Date();
+    vers.push({
+      id: _frNovaVersioId(),
+      ts: ara.toISOString(),
+      label: 'Abans de plantilla ' + nom + ' (' + ara.toLocaleDateString('ca-ES',{day:'numeric',month:'short'}) + ' ' + ara.toLocaleTimeString('ca-ES',{hour:'2-digit',minute:'2-digit'}) + ')',
+      autor: (APP.role === 'admin') ? 'assessor' : 'client',
+      auto: true,
+      data: JSON.parse(JSON.stringify(actual))
+    });
+    vers.sort(function(a,b){ return (a.ts||'').localeCompare(b.ts||''); });
+    while (vers.length > 20){
+      var idx = -1;
+      for (var k = 0; k < vers.length; k++){ if (vers[k].auto){ idx = k; break; } }
+      vers.splice(idx >= 0 ? idx : 0, 1);
+    }
+    c.fullderuta_versions = vers;
+    await _frSaveVersions(c, vers);
+    _FR_BASE_VERSIONED = true;
+  }
+  // 2) Aplicar la plantilla — només els passos d'execució; no toquem objectius ni cartera
+  if (!c.fullderuta) c.fullderuta = {};
+  if (!c.fullderuta.execucio) c.fullderuta.execucio = {};
+  c.fullderuta.execucio.passos = JSON.parse(JSON.stringify(plant));
+  _FR_DIRTY = true;
+  await _frPersist();
+  renderView('portal-roadmap');
+  toast('✓ Plantilla ' + nom + ' carregada');
+}
 
 function _frAddPas() {
   var c = getClient();
