@@ -204,7 +204,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--black);font-size:13p
 .hub-card:hover .hub-card-arrow{color:var(--accent);transform:translateX(3px)}
 .hub-card.highlight{border-color:var(--accent);background:linear-gradient(135deg,var(--white) 0%,var(--accent-l) 100%)}
 .hub-card.highlight .hub-card-title{color:var(--accent)}
-.hub-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.hub-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px}
 .hub-stat{padding:16px;background:var(--white);border:1px solid var(--g200);border-radius:10px;text-align:center}
 .hub-stat-val{font-family:var(--fm);font-size:24px;font-weight:500;color:var(--black);margin-bottom:2px}
 .hub-stat-lbl{font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em}
@@ -4358,11 +4358,15 @@ function renderHub(el) {
     // Banner d'alerta pagaments (vençuts o propers a vèncer)
     + renderHubAlertaPagaments()
 
-    // Stats
+    // Stats - carteres gestionades + negoci
     + '<div class="hub-stats">'
       + '<div class="hub-stat"><div class="hub-stat-val" id="hub-stat-clients">' + numClientsActius + '</div><div class="hub-stat-lbl">Clients actius</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:var(--accent)" id="hub-stat-aum">—</div><div class="hub-stat-lbl">Carteres gestionades</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" id="hub-stat-invertit">—</div><div class="hub-stat-lbl">Capital invertit</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" style="color:#1A5C3A" id="hub-stat-benefici">—</div><div class="hub-stat-lbl">Benefici acumulat <span id="hub-stat-benefici-pct" style="font-family:var(--fm)"></span></div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" id="hub-stat-cartera-mitjana">—</div><div class="hub-stat-lbl">Cartera mitjana</div></div>'
+      + '<div class="hub-stat"><div class="hub-stat-val" id="hub-stat-antiguitat">—</div><div class="hub-stat-lbl">Antiguitat mitjana</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val" id="hub-stat-scoring">' + scoringMig + '</div><div class="hub-stat-lbl">Scoring mig</div></div>'
-      + '<div class="hub-stat"><div class="hub-stat-val" style="color:var(--accent)" id="hub-stat-aum">' + totalValor.toLocaleString('ca-ES') + '€</div><div class="hub-stat-lbl">AUM total (demo)</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val" style="color:#7A4A00" id="hub-stat-msgs">—</div><div class="hub-stat-lbl">Missatges pendents</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val" style="color:#1A5C3A" id="hub-stat-ing-any">—</div><div class="hub-stat-lbl">Ingressos any</div></div>'
       + '<div class="hub-stat"><div class="hub-stat-val" style="color:#1A5C3A" id="hub-stat-ing-mes">—</div><div class="hub-stat-lbl">Ingressos mes</div></div>'
@@ -4426,6 +4430,70 @@ function renderHub(el) {
   setTimeout(refrescarHubStats, 100);
 }
 
+// === KPIs de gestor al Hub: valor, cost, benefici, antiguitat ===
+// Valor = suma de posicions[].valor_actual (o ultim snapshot si no n'hi ha).
+// Cost = net de moviments_posicions (compres menys vendes); si no n'hi ha,
+// 'invertit' de l'ultim snapshot; i si no hi ha cap dada de cost, break-even
+// (cost = valor) per no inventar guanys fantasma. Aixi Benefici = AUM - Invertit.
+function _hubValorCartera(c) {
+  var pos = c && c.posicions;
+  if (pos && pos.length) return pos.reduce(function (s, p) { return s + (parseFloat(p && p.valor_actual) || 0); }, 0);
+  var snaps = c && c.snapshots_cartera;
+  if (snaps && snaps.length) return parseFloat(snaps[snaps.length - 1] && snaps[snaps.length - 1].valor) || 0;
+  return 0;
+}
+function _hubCostCartera(c, valor) {
+  var mov = c && c.moviments_posicions;
+  if (mov && mov.length) return mov.reduce(function (s, m) {
+    var imp = parseFloat(m && m.import) || 0;
+    var t = (m && m.tipus ? String(m.tipus) : '').toLowerCase();
+    return (t === 'venda' || t === 'retirada' || t === 'reemborsament') ? s - imp : s + imp;
+  }, 0);
+  var snaps = c && c.snapshots_cartera;
+  if (snaps && snaps.length) {
+    var inv = parseFloat(snaps[snaps.length - 1] && snaps[snaps.length - 1].invertit);
+    if (!isNaN(inv)) return inv;
+  }
+  return valor;
+}
+function _hubAntiguitatAnys(c) {
+  var d = c && (c.activated_at || c.data_creacio);
+  if (!d) return null;
+  var t = new Date(d).getTime();
+  return isNaN(t) ? null : (Date.now() - t) / (365.25 * 24 * 3600 * 1000);
+}
+function _hubFmtEur(v) { return Math.round(v).toLocaleString('ca-ES') + '€'; }
+function _hubFmtEurSigned(v) { var s = Math.round(v).toLocaleString('ca-ES') + '€'; return v > 0 ? '+' + s : s; }
+function _hubFmtAntiguitat(anys) {
+  if (anys == null || anys <= 0) return '—';
+  if (anys < 1) { var m = Math.max(1, Math.round(anys * 12)); return m + (m === 1 ? ' mes' : ' mesos'); }
+  return anys.toLocaleString('ca-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' anys';
+}
+function _hubPintarKPIsGestor(clients) {
+  var aum = 0, invertit = 0, ambCartera = 0, sumaAntig = 0, nAntig = 0;
+  (clients || []).forEach(function (c) {
+    var v = _hubValorCartera(c), cost = _hubCostCartera(c, v);
+    aum += v; invertit += cost;
+    if (v > 0) ambCartera++;
+    var a = _hubAntiguitatAnys(c);
+    if (a != null) { sumaAntig += a; nAntig++; }
+  });
+  var benefici = aum - invertit;
+  var beneficiPct = invertit > 0 ? (benefici / invertit * 100) : 0;
+  function set(id, txt) { var e = document.getElementById(id); if (e) e.textContent = txt; }
+  set('hub-stat-aum', _hubFmtEur(aum));
+  set('hub-stat-invertit', _hubFmtEur(invertit));
+  set('hub-stat-cartera-mitjana', _hubFmtEur(ambCartera > 0 ? aum / ambCartera : 0));
+  set('hub-stat-antiguitat', _hubFmtAntiguitat(nAntig > 0 ? sumaAntig / nAntig : null));
+  var benEl = document.getElementById('hub-stat-benefici');
+  if (benEl) { benEl.textContent = _hubFmtEurSigned(benefici); benEl.style.color = benefici >= 0 ? '#1A5C3A' : '#C0392B'; }
+  var pctEl = document.getElementById('hub-stat-benefici-pct');
+  if (pctEl) {
+    pctEl.textContent = invertit > 0 ? ('· ' + (beneficiPct > 0 ? '+' : '') + beneficiPct.toFixed(1).replace('.', ',') + '%') : '';
+    pctEl.style.color = benefici >= 0 ? '#1A5C3A' : '#C0392B';
+  }
+}
+
 // Refresca els comptadors dinàmics del Hub (missatges pendents + clients actius)
 async function refrescarHubStats() {
   if (APP.role !== 'admin' || !sb) return;
@@ -4448,7 +4516,7 @@ async function refrescarHubStats() {
   // 2. Clients actius reals
   try {
     var resC = await sb.from('clients')
-      .select('id,nom,email,scoring,status,pla,proper_pagament,darrer_pagament', { count:'exact' });
+      .select('id,nom,email,scoring,status,pla,proper_pagament,darrer_pagament,posicions,moviments_posicions,snapshots_cartera,data_creacio,activated_at', { count:'exact' });
     if (!resC.error && resC.data) {
       APP.clientsList = resC.data; // cau per a altres pantalles
       var actius = resC.data.filter(function(c){ return c.status === 'active'; });
@@ -4461,6 +4529,8 @@ async function refrescarHubStats() {
         var elS = document.getElementById('hub-stat-scoring');
         if (elS) elS.textContent = avg;
       }
+
+      _hubPintarKPIsGestor(resC.data);
 
       // Refrescar alerta de pagaments amb la llista actualitzada
       refrescarHubAlertaPagaments();
