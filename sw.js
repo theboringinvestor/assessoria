@@ -60,3 +60,36 @@ self.addEventListener('fetch', function(e){
     })
   );
 });
+
+// ═══════════════════════════════════════════════════════════════════
+// NOTIFICACIONS PUSH
+// ═══════════════════════════════════════════════════════════════════
+// Rep una notificació push del servidor i la mostra.
+self.addEventListener('push', function(e){
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch(err){ data = { body: (e.data && e.data.text()) || '' }; }
+  var titol = data.title || 'The Boring Investor';
+  var opcions = {
+    body: data.body || '',
+    icon: 'manifest-icon-192.png',
+    badge: 'manifest-icon-192.png',
+    tag: data.tag || 'tbi',
+    data: { url: data.url || 'tbi-app.html' },
+    vibrate: [80, 40, 80]
+  };
+  e.waitUntil(self.registration.showNotification(titol, opcions));
+});
+
+// En tocar la notificació, obre/enfoca l'app a la URL indicada.
+self.addEventListener('notificationclick', function(e){
+  e.notification.close();
+  var url = (e.notification.data && e.notification.data.url) || 'tbi-app.html';
+  e.waitUntil(
+    clients.matchAll({ type:'window', includeUncontrolled:true }).then(function(wins){
+      for (var i=0;i<wins.length;i++){
+        if (wins[i].url.indexOf('tbi-app') !== -1 && 'focus' in wins[i]) return wins[i].focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});

@@ -1423,10 +1423,16 @@ function obrirAjuda(){
       + '<div style="font-size:12px;color:var(--g500);line-height:1.6">'+instalLn+'</div>'
       + '<div style="font-size:11px;color:var(--g400);line-height:1.5;margin-top:8px">Un cop instal·lada, entra una vegada i després s\'obrirà sense demanar el correu ni la contrasenya.</div>'
     + '</div>'
+    + '<div style="background:var(--g50);border-radius:11px;padding:14px;margin-top:10px">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px">🔔 Notificacions</div>'
+      + '<div id="push-config-row"><div style="font-size:12px;color:var(--g400)">Comprovant...</div></div>'
+    + '</div>'
     + '<button class="btn-primary" style="margin-top:16px" onclick="tancarAjuda()">Entesos</button>'
   + '</div>';
   document.body.appendChild(modal);
   modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarAjuda(); });
+  // Actualitzar l'estat del botó de notificacions
+  setTimeout(function(){ try { actualitzarFilaPush(); } catch(e){} }, 50);
 }
 function ajudaItem(emoji, titol, desc){
   return '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">'
@@ -1436,6 +1442,127 @@ function ajudaItem(emoji, titol, desc){
   + '</div>';
 }
 function tancarAjuda(){ var m = $('modal-ajuda'); if (m) m.parentNode.removeChild(m); }
+
+
+// ════════════════════════════════════════════
+// NOTIFICACIONS PUSH (subscripció del client)
+// ════════════════════════════════════════════
+var VAPID_PUBLIC_KEY = 'BE_IX5vXaarMOkrMIvNvWeWllqDJokveWIRJsFoYysWeHnisc4xRSovp0-BFPo1m3j3Eo-0th_-w6ID57UhLRaU';
+
+// Converteix la clau VAPID base64url a Uint8Array (format que demana l'API)
+function urlBase64ToUint8Array(base64String){
+  var padding = '='.repeat((4 - base64String.length % 4) % 4);
+  var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  var raw = atob(base64);
+  var arr = new Uint8Array(raw.length);
+  for (var i=0;i<raw.length;i++){ arr[i] = raw.charCodeAt(i); }
+  return arr;
+}
+
+function pushSuportat(){
+  return ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+}
+function esIOSpush(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+
+// Estat actual: 'no-suportat' | 'instal-cal' | 'desactivat' | 'activat' | 'denegat'
+async function estatPush(){
+  if (!pushSuportat()) return 'no-suportat';
+  // iOS només permet push si l'app està instal·lada (standalone)
+  if (esIOSpush() && !appEstaInstalada()) return 'instal-cal';
+  if (Notification.permission === 'denied') return 'denegat';
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    return sub ? 'activat' : 'desactivat';
+  } catch(e){ return 'desactivat'; }
+}
+
+// Activa les notificacions: demana permís, subscriu i desa a Supabase
+async function activarPush(){
+  if (!pushSuportat()){ toast('El teu navegador no suporta notificacions'); return false; }
+  if (esIOSpush() && !appEstaInstalada()){
+    mostrarInstruccionsIOS();
+    return false;
+  }
+  try {
+    var perm = await Notification.requestPermission();
+    if (perm !== 'granted'){ toast('Permís de notificacions denegat'); return false; }
+
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if (!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    var raw = sub.toJSON();
+    var keys = raw.keys || {};
+    // Desar/actualitzar a Supabase (upsert per endpoint)
+    var res = await sb.from('push_subscriptions').upsert({
+      client_email: APP.email,
+      endpoint: raw.endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      user_agent: navigator.userAgent,
+      last_used_at: new Date().toISOString()
+    }, { onConflict: 'endpoint' });
+    if (res.error) throw res.error;
+    toast('✓ Notificacions activades');
+    return true;
+  } catch(e){
+    toast('No s\'han pogut activar: ' + (e.message||e));
+    return false;
+  }
+}
+
+// Desactiva: cancel·la la subscripció i l'esborra de Supabase
+async function desactivarPush(){
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if (sub){
+      var endpoint = sub.endpoint;
+      await sub.unsubscribe();
+      try { await sb.from('push_subscriptions').delete().eq('endpoint', endpoint); } catch(e){}
+    }
+    toast('Notificacions desactivades');
+    return true;
+  } catch(e){ toast('Error: '+(e.message||e)); return false; }
+}
+
+// Toggle des de la UI d'ajuda/configuració
+async function togglePush(){
+  var estat = await estatPush();
+  if (estat === 'activat'){ await desactivarPush(); }
+  else { await activarPush(); }
+  // refrescar la fila de configuració si està oberta
+  try { actualitzarFilaPush(); } catch(e){}
+}
+
+// Actualitza el text del botó de push allà on es mostri
+async function actualitzarFilaPush(){
+  var cont = document.getElementById('push-config-row');
+  if (!cont) return;
+  var estat = await estatPush();
+  var html = '';
+  if (estat === 'no-suportat'){
+    html = '<div style="font-size:12px;color:var(--g400)">El teu dispositiu no suporta notificacions push.</div>';
+  } else if (estat === 'instal-cal'){
+    html = '<div style="font-size:12px;color:var(--g500);line-height:1.5">Per rebre notificacions a l\'iPhone, primer instal\·la l\'app a la pantalla d\'inici.</div>';
+  } else if (estat === 'denegat'){
+    html = '<div style="font-size:12px;color:var(--red);line-height:1.5">Has bloquejat les notificacions. Activa-les des dels ajustos del navegador per a aquesta web.</div>';
+  } else {
+    var actiu = (estat === 'activat');
+    html = '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'
+      + '<div style="font-size:13px;color:var(--g700)">' + (actiu ? '🔔 Notificacions activades' : '🔕 Notificacions desactivades') + '</div>'
+      + '<button onclick="togglePush()" style="background:'+(actiu?'var(--g50)':'var(--navy)')+';color:'+(actiu?'var(--g700)':'#fff')+';border:'+(actiu?'1px solid var(--g200)':'none')+';border-radius:9px;font-size:12px;font-weight:600;padding:9px 14px;cursor:pointer;font-family:inherit">'+(actiu?'Desactivar':'Activar')+'</button>'
+    + '</div>';
+  }
+  cont.innerHTML = html;
+}
 
 
 // ════════════════════════════════════════════
