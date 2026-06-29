@@ -156,6 +156,10 @@ input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
   <div style="text-align:center;margin-top:16px">
     <button onclick="doReset()" style="background:none;color:var(--g500);font-size:12px;text-decoration:underline">He oblidat la contrasenya</button>
   </div>
+  <div id="install-login" style="display:none;margin-top:28px;padding-top:20px;border-top:1px solid var(--g200)">
+    <button onclick="instalarApp()" style="width:100%;padding:13px;background:#fff;color:var(--navy);border:1.5px solid var(--navy);border-radius:11px;font-size:14px;font-weight:600">📲 Instal·lar l'app al mòbil</button>
+    <div style="text-align:center;font-size:11px;color:var(--g400);margin-top:8px">Entra més ràpid: instal·la-la a la pantalla d'inici.</div>
+  </div>
 </div>
 
 <!-- APP -->
@@ -1073,6 +1077,101 @@ async function guardarRegistreAportacio(){
 // ════════════════════════════════════════════
 // MANIFEST embegut + arrencada
 // ════════════════════════════════════════════
+// INSTAL·LACIÓ DE L'APP (PWA)
+// Botó/banner per instal·lar a la pantalla d'inici.
+//  - Android/Chrome: captura beforeinstallprompt i dispara el diàleg natiu.
+//  - iPhone/Safari: mostra instruccions (no hi ha API d'instal·lació a iOS).
+//  - Si ja s'executa instal·lada (standalone): no mostra res.
+// ════════════════════════════════════════════
+var _deferredPrompt = null;
+
+function appEstaInstalada(){
+  // standalone display-mode (Android/desktop) o navigator.standalone (iOS)
+  var mq = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+  return !!(mq || window.navigator.standalone === true);
+}
+function esIOS(){
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent) && !window.MSStream;
+}
+
+// Capturar l'esdeveniment d'instal·lació (Android)
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredPrompt = e;
+  mostrarBotonsInstall();
+});
+
+// Quan s'instal·la, amaguem tot
+window.addEventListener('appinstalled', function(){
+  _deferredPrompt = null;
+  var b = document.getElementById('install-login');
+  if (b) b.style.display = 'none';
+});
+
+// Mostra els botons d'instal·lació si escau
+function mostrarBotonsInstall(){
+  if (appEstaInstalada()) return;
+  var b = document.getElementById('install-login');
+  // Mostrem el botó si tenim prompt (Android) o si és iOS (instruccions)
+  if (b && (_deferredPrompt || esIOS())) b.style.display = 'block';
+}
+
+// Acció del botó "Instal·lar app"
+async function instalarApp(){
+  if (appEstaInstalada()) { toast('L\'app ja està instal·lada'); return; }
+  if (_deferredPrompt){
+    _deferredPrompt.prompt();
+    try {
+      var choice = await _deferredPrompt.userChoice;
+      _deferredPrompt = null;
+      if (choice && choice.outcome === 'accepted'){ toast('✓ Instal·lant l\'app...'); }
+    } catch(e){}
+    return;
+  }
+  if (esIOS()){ mostrarInstruccionsIOS(); return; }
+  // Fallback (alguns Android que no han disparat l'esdeveniment encara)
+  mostrarInstruccionsGeneriques();
+}
+
+function mostrarInstruccionsIOS(){
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-ios';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Instal·lar a l\'iPhone</div>'
+    + '<div class="modal-sub">Safari no instal·la les apps automàticament, però es fa en dos passos:</div>'
+    + '<div style="display:flex;flex-direction:column;gap:16px;margin-bottom:8px">'
+      + '<div style="display:flex;gap:12px;align-items:flex-start">'
+        + '<div style="font-size:22px">1️⃣</div>'
+        + '<div style="font-size:14px;line-height:1.5">Toca el botó <b>Compartir</b> (el quadrat amb la fletxa cap amunt, a baix al centre).</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:12px;align-items:flex-start">'
+        + '<div style="font-size:22px">2️⃣</div>'
+        + '<div style="font-size:14px;line-height:1.5">Baixa i tria <b>"Afegir a la pantalla d\'inici"</b>, i confirma.</div>'
+      + '</div>'
+    + '</div>'
+    + '<button class="btn-primary" style="margin-top:14px" onclick="tancarModalIOS()">Entesos</button>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModalIOS(); });
+}
+function tancarModalIOS(){ var m = document.getElementById('modal-ios'); if (m) m.parentNode.removeChild(m); }
+
+function mostrarInstruccionsGeneriques(){
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-ios';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Instal·lar l\'app</div>'
+    + '<div class="modal-sub">Obre el menú del navegador (els tres punts ⋮ a dalt a la dreta) i tria <b>"Instal·lar app"</b> o <b>"Afegir a la pantalla d\'inici"</b>.</div>'
+    + '<button class="btn-primary" style="margin-top:8px" onclick="tancarModalIOS()">Entesos</button>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModalIOS(); });
+}
+
+
+// ════════════════════════════════════════════
 // Registre del service worker (fa la PWA instal·lable a Android i dóna
 // suport offline mínim). El SW és network-first: amb connexió sempre
 // es veu l'última versió desplegada.
@@ -1113,6 +1212,10 @@ if (sb){
     showSplash(false); showLogin(true);
   }
 })();
+
+// Comprovar si cal mostrar el botó d'instal·lació (cobreix iOS, que no
+// dispara beforeinstallprompt). Petit retard perquè el login ja sigui visible.
+setTimeout(function(){ try { mostrarBotonsInstall(); } catch(e){} }, 600);
 </script>
 </body>
 </html>

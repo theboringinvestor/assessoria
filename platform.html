@@ -2613,17 +2613,6 @@ async function enterApp(role, email, isDemo) {
     setTimeout(function() {
       try { actualitzarBannerMissatges(); } catch(e) {}
       try { comprovarRecordatoriMensual(); } catch(e) {}
-      // Deep-link: si venim d'un email de recordatori, obrim el modal
-      try {
-        if (window._deeplinkActualitzarCartera) {
-          window._deeplinkActualitzarCartera = false;
-          if (window.location.search.indexOf('action=actualitzar-cartera') >= 0) {
-            history.replaceState({}, '', window.location.pathname);
-          }
-          renderView('portal-cartera');
-          setTimeout(function(){ try { obrirModalActualitzarValors(); } catch(e) {} }, 400);
-        }
-      } catch(e) {}
     }, 800);
   }
   if (role === 'admin') {
@@ -2947,15 +2936,6 @@ function normalizeClient(raw) {
     fullderuta_versions: Array.isArray(raw.fullderuta_versions) ? raw.fullderuta_versions : [],
     perfil_assessor: raw.perfil_assessor || {},
     assessor_analisi: raw.assessor_analisi || null,
-    // ── Preferències de notificació per correu ──
-    // CRÍTIC: cal retornar-les explícitament o es perden de APP.clientData
-    // i la pantalla de preferències no reflectiria l'estat real.
-    notification_email: raw.notification_email || null,
-    notify_informe: raw.notify_informe !== false,
-    notify_missatge_admin: raw.notify_missatge_admin !== false,
-    notify_comunitat: raw.notify_comunitat === true,
-    notify_newsletter: raw.notify_newsletter !== false,
-    notify_recordatori: raw.notify_recordatori !== false,
   };
 }
 
@@ -6194,7 +6174,6 @@ function renderPortalNotificacions(el) {
   var nInforme   = c.notify_informe !== false;            // default true
   var nMissatge  = c.notify_missatge_admin !== false;     // default true
   var nComunitat = c.notify_comunitat === true;           // default false
-  var nRecord    = c.notify_recordatori !== false;        // default true
 
   var html = '<div class="content-inner fade-in" style="max-width:780px;margin:0 auto">';
 
@@ -6236,10 +6215,6 @@ function renderPortalNotificacions(el) {
     + notifToggle('notif-comunitat', '📣 Comunicats a la comunitat',
         'Notícies, anàlisis destacades i avisos enviats a tots els clients. Desmarcat per defecte per evitar excés de correus.',
         nComunitat)
-
-    + notifToggle('notif-recordatori', '\ud83d\udcb1 Recordatori mensual d\'actualitzar la cartera',
-        'Un cop al mes t\'enviem un correu amb un enlla\u00e7 directe per posar al dia els valors de la teva cartera. Aquest av\u00eds ja est\u00e0 actiu.',
-        nRecord)
 
   + '</div>';
 
@@ -6284,7 +6259,6 @@ async function guardarNotificacions() {
   var nInforme   = document.getElementById('notif-informe').checked;
   var nMissatge  = document.getElementById('notif-missatge').checked;
   var nComunitat = document.getElementById('notif-comunitat').checked;
-  var nRecord    = document.getElementById('notif-recordatori').checked;
   var btn = document.getElementById('notif-btn');
   var msg = document.getElementById('notif-msg');
 
@@ -6297,7 +6271,6 @@ async function guardarNotificacions() {
       notify_informe:         nInforme,
       notify_missatge_admin:  nMissatge,
       notify_comunitat:       nComunitat,
-      notify_recordatori:     nRecord,
     }).eq('email', email.toLowerCase()).select('id,email');
     if (res.error) throw res.error;
 
@@ -6307,7 +6280,6 @@ async function guardarNotificacions() {
       APP.clientData.notify_informe        = nInforme;
       APP.clientData.notify_missatge_admin = nMissatge;
       APP.clientData.notify_comunitat      = nComunitat;
-      APP.clientData.notify_recordatori    = nRecord;
     }
 
     msg.style.display = 'block';
@@ -17029,19 +17001,6 @@ function renderPlansScreen(el) {
 }
 
 // ── DETECCIÓ DE RETORN DEL QÜESTIONARI ──
-// ── DEEP-LINK: obrir directe el modal d'actualitzar cartera ──
-// Quan el client clica l'enllaç d'un email de recordatori
-// (…?action=actualitzar-cartera) marquem un flag que enterApp consumirà
-// un cop carregades les dades del client.
-function handleActualitzarCartera() {
-  var params = new URLSearchParams(window.location.search);
-  if (params.get('action') === 'actualitzar-cartera') {
-    window._deeplinkActualitzarCartera = true;
-    // No netegem la URL aquí: si encara no hi ha sessió, el client
-    // veurà el login i el flag sobreviu fins després d'autenticar-se.
-  }
-}
-
 function handleQuestionnaireReturn() {
   var params = new URLSearchParams(window.location.search);
 
@@ -17538,7 +17497,6 @@ function checkRetestBanner() {
 handleCheckoutReturn();
 handlePasswordReset();
 handleQuestionnaireReturn();
-handleActualitzarCartera();
 
 if (sb) {
   sb.auth.onAuthStateChange(function(event, session) {
@@ -22467,6 +22425,126 @@ async function eliminarEdu(id) {
 
 
 </script>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- AVÍS INSTAL·LACIÓ APP MÒBIL (bloc autònom)      -->
+<!-- Banner discret, un cop, que porta a tbi-app.html -->
+<!-- ══════════════════════════════════════════════ -->
+<style>
+#tbi-install-banner{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:9000;
+  width:calc(100% - 32px);max-width:440px;background:#fff;border:1px solid #E8E6E1;
+  border-radius:14px;box-shadow:0 8px 30px rgba(10,10,10,.16);padding:14px 16px;
+  display:none;align-items:center;gap:13px;font-family:'DM Sans',sans-serif;
+}
+#tbi-install-banner.show{display:flex;animation:tbiSlideUp .3s ease}
+@keyframes tbiSlideUp{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+#tbi-install-banner .ico{width:38px;height:38px;border-radius:9px;background:#1B3A6B;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+#tbi-install-banner .tx{flex:1;min-width:0}
+#tbi-install-banner .tx b{font-size:13px;color:#0A0A0A;display:block;line-height:1.3}
+#tbi-install-banner .tx span{font-size:11px;color:#6B6762;line-height:1.4}
+#tbi-install-banner .act{background:#1B3A6B;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;padding:9px 14px;cursor:pointer;flex-shrink:0;font-family:inherit}
+#tbi-install-banner .cls{background:none;border:none;color:#9A9690;font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
+
+#tbi-install-modal{position:fixed;inset:0;background:rgba(10,10,10,.55);z-index:9100;display:none;align-items:center;justify-content:center;padding:20px;font-family:'DM Sans',sans-serif}
+#tbi-install-modal.show{display:flex}
+#tbi-install-modal .box{background:#fff;border-radius:16px;max-width:420px;width:100%;padding:26px 24px}
+#tbi-install-modal h3{font-family:'Playfair Display',serif;font-size:21px;font-weight:500;color:#1B3A6B;margin:0 0 6px}
+#tbi-install-modal p{font-size:13px;color:#6B6762;line-height:1.6;margin:0 0 18px}
+#tbi-install-modal .opt{display:flex;gap:13px;align-items:flex-start;padding:14px;border:1.5px solid #E8E6E1;border-radius:12px;margin-bottom:12px;cursor:pointer;text-decoration:none;transition:border-color .15s}
+#tbi-install-modal .opt:hover{border-color:#1B3A6B}
+#tbi-install-modal .opt .e{font-size:24px;flex-shrink:0}
+#tbi-install-modal .opt .t b{font-size:14px;color:#0A0A0A;display:block;margin-bottom:2px}
+#tbi-install-modal .opt .t span{font-size:12px;color:#6B6762;line-height:1.5}
+#tbi-install-modal .modal-cls{width:100%;padding:12px;background:#F4F3F0;color:#4A4845;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;margin-top:4px;font-family:inherit}
+</style>
+
+<div id="tbi-install-banner">
+  <div class="ico">
+    <svg width="22" height="22" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <rect x="1" y="1" width="30" height="30" rx="3" fill="none" stroke="#fff" stroke-width="2"/>
+      <circle cx="10" cy="11" r="2.2" fill="#fff"/><circle cx="10" cy="19" r="2.2" fill="#fff"/>
+      <rect x="14" y="14.2" width="7" height="2" rx="1" fill="#fff"/><rect x="23" y="9" width="2" height="14" rx="1" fill="#fff"/>
+    </svg>
+  </div>
+  <div class="tx"><b>Tens l'app al mòbil</b><span>Entra més ràpid des de la pantalla d'inici.</span></div>
+  <button class="act" onclick="tbiObrirInstallModal()">Veure</button>
+  <button class="cls" onclick="tbiTancarInstallBanner()" aria-label="Tancar">&times;</button>
+</div>
+
+<div id="tbi-install-modal">
+  <div class="box">
+    <h3>Instal·la TBI al mòbil</h3>
+    <p>Tria què vols tenir a la pantalla d'inici del teu telèfon:</p>
+    <a class="opt" href="tbi-app.html" target="_blank" rel="noopener" onclick="tbiTancarInstallModal()">
+      <div class="e">📲</div>
+      <div class="t"><b>App TBI (ràpida)</b><span>El més senzill: cartera, aportacions, evolució i missatges. Recomanada per al dia a dia al mòbil.</span></div>
+    </a>
+    <a class="opt" href="javascript:void(0)" onclick="tbiInstalarPlataforma()">
+      <div class="e">🖥️</div>
+      <div class="t"><b>Plataforma completa</b><span>Totes les eines (FIRE, simuladors, full de ruta…). Es pot afegir a la pantalla d'inici des del menú del navegador.</span></div>
+    </a>
+    <button class="modal-cls" onclick="tbiTancarInstallModal()">Ara no</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var KEY = 'tbi_install_banner_dismissed';
+  function jaInstalada(){
+    var mq = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    return !!(mq || window.navigator.standalone === true);
+  }
+  function descartat(){
+    try { return localStorage.getItem(KEY) === '1'; } catch(e){ return false; }
+  }
+  // Mostrar el banner un cop, si no s'està executant ja com a app instal·lada
+  window.tbiMaybeShowInstall = function(){
+    if (jaInstalada() || descartat()) return;
+    var b = document.getElementById('tbi-install-banner');
+    if (b) b.classList.add('show');
+  };
+  window.tbiTancarInstallBanner = function(){
+    var b = document.getElementById('tbi-install-banner');
+    if (b) b.classList.remove('show');
+    try { localStorage.setItem(KEY, '1'); } catch(e){}
+  };
+  window.tbiObrirInstallModal = function(){
+    var m = document.getElementById('tbi-install-modal');
+    if (m) m.classList.add('show');
+  };
+  window.tbiTancarInstallModal = function(){
+    var m = document.getElementById('tbi-install-modal');
+    if (m) m.classList.remove('show');
+    // En obrir el modal ja considerem l'avís "vist": no el tornem a mostrar
+    try { localStorage.setItem(KEY, '1'); } catch(e){}
+    var b = document.getElementById('tbi-install-banner');
+    if (b) b.classList.remove('show');
+  };
+  window.tbiInstalarPlataforma = function(){
+    var ua = window.navigator.userAgent;
+    var iOS = /iphone|ipad|ipod/i.test(ua) && !window.MSStream;
+    if (typeof toast === 'function'){
+      toast(iOS
+        ? 'A l\u2019iPhone: botó Compartir → "Afegir a pantalla d\u2019inici".'
+        : 'Obre el menú del navegador (⋮) → "Instal·lar app" o "Afegir a pantalla d\u2019inici".');
+    } else {
+      alert(iOS
+        ? 'A l\u2019iPhone: botó Compartir → "Afegir a pantalla d\u2019inici".'
+        : 'Obre el menú del navegador (⋮) → "Instal·lar app" o "Afegir a pantalla d\u2019inici".');
+    }
+    window.tbiTancarInstallModal();
+  };
+  // Tancar el modal tocant el fons
+  document.addEventListener('click', function(ev){
+    var m = document.getElementById('tbi-install-modal');
+    if (m && ev.target === m) window.tbiTancarInstallModal();
+  });
+  // Mostrar amb un petit retard perquè no competeixi amb la càrrega inicial
+  setTimeout(function(){ try { window.tbiMaybeShowInstall(); } catch(e){} }, 2500);
+})();
+</script>
+
 </body>
 </html>
 <script>
