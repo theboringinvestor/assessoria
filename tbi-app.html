@@ -209,11 +209,24 @@ var APP = {
   view: 'cartera'
 };
 
-// ── Taxonomia mínima: només emoji per categoria (no cal tota la de platform.html) ──
+// ── Taxonomia mínima: emoji i nom llegible per categoria (alineat amb platform.html) ──
 var CAT_EMOJI = {
-  rv_global:'🌍', rv_dividend:'💵', rv_reits:'🏠', rv_emergents:'🌱', rv_sectorial:'🏭',
-  rf_global:'🏦', rf_corporativa:'📄', rf_govern:'🏛️', rf_curt:'⏱️',
-  or:'🥇', materies:'⛏️', cripto:'₿', liquiditat:'💶', alternatius:'🔀'
+  rv_global:'🌍', rv_dividend:'💵', rv_reits:'🏠', rv_emergents:'🌱', rv_sectorial:'🏭', rv_growth:'🚀',
+  rf_global:'🏦', rf_corporativa:'📄', rf_govern:'🏛️', rf_curt:'⏱️', rf_emergent:'🌍',
+  or:'🥇', or_metalls:'🥇', materies:'⛏️', materies_primeres:'⛏️',
+  cripto:'₿', crypto:'₿', liquiditat:'💶', alternatius:'🔀',
+  crowdlending:'🤝', private_equity:'🏢', startups:'🌱', immobiliari:'🏠'
+};
+// Noms llegibles (els del target del client tenen prioritat via catInfo)
+var CAT_NOM = {
+  rv_global:'RV Global Indexada', rv_dividend:'RV Dividends / Renda', rv_reits:'REITs / Immobiliaris cotitzats',
+  rv_emergents:'RV Mercats Emergents', rv_sectorial:'RV Sectorial', rv_growth:'RV Growth / Tecnològic',
+  rf_global:'Renda Fixa Global', rf_corporativa:'RF Corporativa', rf_govern:'RF Govern', rf_curt:'RF Curt Termini',
+  rf_emergent:'RF Emergent', or:'Or i Metalls preciosos', or_metalls:'Or i Metalls preciosos',
+  materies:'Matèries Primeres', materies_primeres:'Matèries Primeres', cripto:'Crypto / Actius Digitals',
+  crypto:'Crypto / Actius Digitals', liquiditat:'Liquiditat / Monetari / Dipòsits', alternatius:'Actius Alternatius',
+  crowdlending:'Crowdlending / P2P Lending', private_equity:'Private Equity / Capital Risc',
+  startups:'Start-ups / Venture Capital', immobiliari:'Immobiliari'
 };
 function emojiFor(p){
   if (p && p.cat && CAT_EMOJI[p.cat]) return CAT_EMOJI[p.cat];
@@ -262,8 +275,8 @@ function catInfo(catId){
     var t = target[i];
     if ((t.id || t.nom) === catId) return { nom: t.nom || catId, color: t.color || CAT_PALETTE[i % CAT_PALETTE.length] };
   }
-  // fallback: nom llegible a partir de l'id i color de paleta per hash
-  var nom = String(catId||'altres').replace(/_/g,' ');
+  // fallback: nom llegible des de CAT_NOM, o l'id net si no hi és
+  var nom = CAT_NOM[catId] || String(catId||'altres').replace(/_/g,' ');
   var h = 0; for (var k=0;k<nom.length;k++){ h = (h*31 + nom.charCodeAt(k)) & 0xffff; }
   return { nom: nom, color: CAT_PALETTE[h % CAT_PALETTE.length] };
 }
@@ -536,11 +549,16 @@ function renderCartera(){
     var a = aggPosicio(p);
     var colP = a.pnl >= 0 ? 'var(--green)' : 'var(--red)';
     var dataTxt = p.valor_data ? ('Actualitzat ' + dataHumana(p.valor_data)) : 'Sense valor';
+    var catNom = catInfo(p.cat).nom;
+    var sub = [];
+    if (p.nom && p.nom !== catNom) sub.push(esc(p.nom));
+    if (p.broker) sub.push(esc(p.broker));
+    sub.push(dataTxt);
     html += '<div class="pos-row">'
       + '<span class="pos-emoji">'+emojiFor(p)+'</span>'
       + '<div style="flex:1;min-width:0">'
-        + '<div class="pos-nom">'+esc(p.nom||'Posició')+'</div>'
-        + '<div class="pos-meta">'+(p.broker?esc(p.broker)+' · ':'')+dataTxt+'</div>'
+        + '<div class="pos-nom">'+esc(catNom)+'</div>'
+        + '<div class="pos-meta">'+sub.join(' · ')+'</div>'
       + '</div>'
       + '<div>'
         + '<div class="pos-val">'+eurRound(a.valor)+'</div>'
@@ -560,13 +578,15 @@ function obrirActualitzar(){
 
   var rows = pos.map(function(p){
     var oldv = parseFloat(p.valor_actual)||0;
-    var dataTxt = p.valor_data ? ('anterior: '+eurRound(oldv)+' · '+p.valor_data) : 'sense valor previ';
+    var dataTxt = p.valor_data ? ('anterior: '+eurRound(oldv)+' · '+dataHumana(p.valor_data)) : 'sense valor previ';
+    var catNom = catInfo(p.cat).nom;
+    var subNom = (p.nom && p.nom !== catNom) ? (esc(p.nom)+' · ') : '';
     return '<div class="upd-row">'
       + '<div class="upd-top">'
         + '<span class="pos-emoji">'+emojiFor(p)+'</span>'
         + '<div style="flex:1;min-width:0">'
-          + '<div class="pos-nom">'+esc(p.nom||'Posició')+'</div>'
-          + '<div class="pos-meta">'+dataTxt+'</div>'
+          + '<div class="pos-nom">'+esc(catNom)+'</div>'
+          + '<div class="pos-meta">'+subNom+dataTxt+'</div>'
         + '</div>'
       + '</div>'
       + '<input class="upd-input" inputmode="decimal" data-pos-id="'+esc(p.id)+'" data-old="'+oldv+'" '
