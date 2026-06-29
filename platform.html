@@ -5398,10 +5398,6 @@ function _renderPortalPerfilImpl(el) {
     html += renderPlaIndicator(clientPlaActual);
   }
 
-  // Widget Mercat — Temps real
-  html += '<div id="platform-macro-widget" style="background:#fff;border:1px solid #E8E6E1;border-radius:12px;padding:12px 16px;margin-bottom:16px;">'    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'      + '<span style="font-size:9px;font-weight:500;color:#9A9690;text-transform:uppercase;letter-spacing:.1em">Mercats · Temps real</span>'      + '<span id="platform-macro-update" style="font-size:9px;color:#C8C5BE">Carregant...</span>'    + '</div>'    + '<div id="platform-macro-tickers" style="display:flex;gap:10px;flex-wrap:wrap;min-height:32px;align-items:center">'      + '<span style="font-size:11px;color:#9A9690">Connectant...</span>'    + '</div>'  + '</div>';
-  setTimeout(fetchPlatformMacro, 100);
-
   // Dades financeres — intenta extreure camps del perfil i del questionnaire_responses
   var qr = c.questionnaire_responses;
   // Helpers per treure valors del qüestionari si el perfil els té buits
@@ -5416,51 +5412,16 @@ function _renderPortalPerfilImpl(el) {
     }
     return '—';
   }
-  var dadesF = [
-    ['Capital inicial',   pVal('capitalInicial',   ['capitalInicial','capital_inicial','capital'])],
-    ['Aportació mensual', pVal('aportacioMensual',  ['aportacioMensual','aportacio_mensual','aportacio'])],
-    ['Horitzó',           pVal('horitzo',           ['horitzo','horitz','horitzó','horizon'])],
-    ['Objectiu',          pVal('objectiu',          ['objectiu','objectivo','objective','goal'])],
-    ['Risc financer',     pVal('riscFinancer',      ['riscFinancer','risc_financer','riscF'])],
-    ['Risc emocional',    pVal('riscEmocional',     ['riscEmocional','risc_emocional','riscE'])],
-  ];
-  // ── DADES FINANCERES — disseny professional ─────────────────────────────
-  (function() {
-    var vCap  = pVal('capitalInicial',   ['capitalInicial','capital_inicial','capital']);
-    var vAp   = pVal('aportacioMensual', ['aportacioMensual','aportacio_mensual','aportacio']);
-    var vHor  = pVal('horitzo',          ['horitzo','horitz','horitz\u00f3','horizon']);
-    var vObj  = pVal('objectiu',         ['objectiu','objectivo','objective','goal']);
-    var vRF   = pVal('riscFinancer',     ['riscFinancer','risc_financer','riscF']);
-    var vRE   = pVal('riscEmocional',    ['riscEmocional','risc_emocional','riscE']);
-
-    function rLvl(v) {
-      if (!v||v==='\u2014') return 0;
-      var lv = v.toLowerCase();
-      return (lv==='alt'||lv==='alto') ? 3 : (lv==='moderat'||lv==='moderado'||lv==='mig') ? 2 : 1;
-    }
-    function rCol(v) { return rLvl(v)===3?'#C0392B':rLvl(v)===2?'#D4943A':'#1A5C3A'; }
-    function rBg(v)  { return rLvl(v)===3?'#FDF0F0':rLvl(v)===2?'#FEF5E7':'#EAF3DE'; }
-
-    var kpis = [
-      { icon:'&#x1F4B0;', lbl:'Capital inicial',       val:vCap,  ac:'#1B3A6B', bg:'#EBF0FA' },
-      { icon:'&#x1F4C5;', lbl:'Aportaci\u00f3 mensual', val:vAp,  ac:'#1A5C3A', bg:'#EAF3DE' },
-      { icon:'&#x23F3;',  lbl:'Horit\u00f3 temporal',   val:vHor, ac:'#534AB7', bg:'#EDEAF9' },
-      { icon:'&#x1F3AF;', lbl:'Objectiu financer',      val:vObj, ac:'#7A4A00', bg:'#FEF5E7' },
-    ];
-
+  // ── (Bloc "Perfil financer" amb camps Pendent + widget Mercats eliminats:
+  //     no aportaven valor a la pantalla d'inici. La captura de dades
+  //     financeres viu a la fitxa/edició, no aquí.) ───────────────────────
+  if (false) {
+    var kpis = [];
+    function rCol(v){return '#1A5C3A';}
+    function rBg(v){return '#EAF3DE';}
+    function rLvl(v){return 0;}
+    var vRF='—', vRE='—';
     html += '<div class="card" style="padding:0;overflow:hidden">';
-
-    // ── Capçalera
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px">'
-      + '<div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--g400)">Perfil financer</div>'
-      + (APP.role === 'admin'
-        ? '<button onclick="obrirEditarDadesFinanceres(\'' + (c.email||'') + '\')" '
-          + 'style="display:flex;align-items:center;gap:5px;padding:5px 12px;font-size:11px;border:1px solid var(--g200);border-radius:6px;background:transparent;cursor:pointer;color:var(--g500);font-family:var(--fb)" '
-          + 'onmouseover="this.style.background=\'var(--g100)\'" onmouseout="this.style.background=\'transparent\'">&#x270F;&#xFE0F; Editar</button>'
-        : '')
-      + '</div>';
-
-    // ── Grid 2×2 de KPIs
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--g100)">';
     kpis.forEach(function(k, i) {
       var empty = !k.val || k.val === '\u2014';
@@ -5516,7 +5477,7 @@ function _renderPortalPerfilImpl(el) {
     html += '</div>';
 
     html += '</div>'; // card
-  })();
+  }
 
   // Dimensions
   html += '<div class="card"><div class="card-title">Perfil de les 7 dimensions</div><div class="dims-grid">';
