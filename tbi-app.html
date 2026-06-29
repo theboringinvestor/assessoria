@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B3A6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TBI">
+<title>The Boring Investor</title>
+
+<!-- PWA manifest embegut com a data URI (fitxer únic, sense fitxers externs) -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzFCM0E2QiIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExMiwxMTIpIHNjYWxlKDkpIiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiI+CiAgICA8cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSIzIiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIvPgogIDwvZz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMTIsMTEyKSBzY2FsZSg5KSI+CiAgICA8Y2lyY2xlIGN4PSIxMCIgY3k9IjExIiByPSIyLjIiIGZpbGw9IiNGRkZGRkYiLz4KICAgIDxjaXJjbGUgY3g9IjEwIiBjeT0iMTkiIHI9IjIuMiIgZmlsbD0iI0ZGRkZGRiIvPgogICAgPHJlY3QgeD0iMTQiIHk9IjE0LjIiIHdpZHRoPSI3IiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjRkZGRkZGIi8+CiAgICA8cmVjdCB4PSIyMyIgeT0iOSIgd2lkdGg9IjIiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjRkZGRkZGIi8+CiAgPC9nPgo8L3N2Zz4=">
+
+<style>
+:root{
+  --navy:#1B3A6B; --navy2:#2E5FA3; --cream:#F7F6F4; --gold:#B8902E;
+  --black:#0A0A0A; --g700:#3A3A3A; --g500:#6B6762; --g400:#9A9690;
+  --g200:#D9D6D0; --g100:#ECEAE6; --g50:#F4F3F0;
+  --green:#1A5C3A; --red:#C0392B;
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fm:'DM Mono','SF Mono',Menlo,monospace;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--fb);background:var(--cream);color:var(--black);
+  font-size:15px;line-height:1.5;overscroll-behavior-y:none;
+  -webkit-font-smoothing:antialiased;
+}
+.hidden{display:none !important}
+button{font-family:var(--fb);cursor:pointer;border:none}
+input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
+
+/* ── LOADING ── */
+#splash{
+  position:fixed;inset:0;background:var(--navy);display:flex;
+  flex-direction:column;align-items:center;justify-content:center;z-index:1000;
+}
+#splash .logo{font-family:var(--fd);color:#fff;font-size:30px;letter-spacing:1px}
+#splash .tag{color:rgba(255,255,255,.6);font-size:12px;margin-top:8px;letter-spacing:.05em}
+.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-top:24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;justify-content:center;padding:32px 26px;padding-top:calc(32px + var(--safe-top));z-index:900}
+#login .brand{font-family:var(--fd);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:6px}
+#login h1{font-family:var(--fd);font-size:30px;font-weight:500;text-align:center;color:var(--navy);margin-bottom:6px;letter-spacing:-.5px}
+#login .sub{text-align:center;color:var(--g500);font-size:13px;margin-bottom:32px;line-height:1.6}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--g500);margin-bottom:6px;font-weight:500}
+.field input{width:100%;padding:13px 14px;border:1.5px solid var(--g200);border-radius:11px;background:#fff;transition:border-color .15s}
+.field input:focus{outline:none;border-color:var(--navy)}
+.btn-primary{width:100%;padding:14px;background:var(--navy);color:#fff;border-radius:11px;font-size:15px;font-weight:600;transition:opacity .15s}
+.btn-primary:active{opacity:.85}
+.btn-primary:disabled{opacity:.5}
+#login-msg{min-height:20px;font-size:12px;text-align:center;margin:12px 0}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;height:100%}
+#app.show{display:flex}
+.topbar{
+  background:var(--navy);color:#fff;padding:calc(14px + var(--safe-top)) 20px 14px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.topbar .ttl{font-family:var(--fd);font-size:18px;font-weight:500}
+.topbar .out{background:rgba(255,255,255,.12);color:#fff;font-size:11px;padding:7px 12px;border-radius:8px;font-weight:500}
+.topbar .out:active{background:rgba(255,255,255,.22)}
+
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px;padding-bottom:90px}
+
+/* ── BOTTOM NAV ── */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--g100);
+  display:flex;padding-bottom:var(--safe-bottom);z-index:100;
+}
+.nav button{flex:1;padding:10px 4px 8px;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--g400);font-size:10px;font-weight:500}
+.nav button.active{color:var(--navy)}
+.nav button .ic{font-size:20px;line-height:1}
+
+/* ── CARDS ── */
+.card{background:#fff;border:1px solid var(--g100);border-radius:14px;padding:18px;margin-bottom:14px}
+.card-lbl{font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:4px}
+.kpi-big{font-family:var(--fm);font-size:32px;font-weight:500;color:var(--navy);letter-spacing:-1px}
+.kpi-sub{font-size:13px;margin-top:4px;font-family:var(--fm)}
+.pos-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--g50)}
+.pos-row:last-child{border-bottom:none}
+.pos-emoji{font-size:20px;flex-shrink:0}
+.pos-nom{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-meta{font-size:10px;color:var(--g400);margin-top:1px}
+.pos-val{font-family:var(--fm);font-size:14px;font-weight:500;text-align:right;flex-shrink:0}
+.pos-pnl{font-size:10px;font-family:var(--fm);text-align:right}
+
+.section-h{font-family:var(--fd);font-size:20px;font-weight:500;color:var(--navy);margin:4px 4px 12px}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;background:rgba(10,10,10,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center}
+.modal-inner{background:#fff;border-radius:18px 18px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:22px 18px;padding-bottom:calc(22px + var(--safe-bottom))}
+.modal-h{font-family:var(--fd);font-size:20px;font-weight:500;color:var(--navy);margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.5}
+.upd-row{padding:14px 0;border-bottom:1px solid var(--g50)}
+.upd-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.upd-input{width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:10px;font-family:var(--fm);text-align:right;font-size:16px}
+.upd-input:focus{outline:none;border-color:var(--navy)}
+
+/* ── CHAT ── */
+.chat-wrap{display:flex;flex-direction:column;height:100%}
+.chat-thread{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 12px}
+.bubble{max-width:82%;padding:11px 15px;font-size:14px;line-height:1.55;white-space:pre-line;border-radius:14px}
+.bubble.mine{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+.bubble.theirs{align-self:flex-start;background:#fff;border:1px solid var(--g100);color:var(--black);border-bottom-left-radius:4px}
+.bubble-meta{font-size:9px;color:var(--g400);margin-top:3px;padding:0 4px}
+.chat-input-bar{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--g100)}
+.chat-input-bar textarea{flex:1;padding:11px 13px;border:1.5px solid var(--g200);border-radius:12px;resize:none;max-height:90px;line-height:1.4}
+.chat-input-bar textarea:focus{outline:none;border-color:var(--navy)}
+.chat-send{background:var(--navy);color:#fff;border-radius:12px;padding:0 18px;font-weight:600;font-size:14px}
+.chat-send:disabled{opacity:.5}
+
+.empty{text-align:center;color:var(--g400);font-size:13px;padding:48px 20px;line-height:1.6}
+.toast{position:fixed;bottom:calc(80px + var(--safe-bottom));left:50%;transform:translateX(-50%);background:var(--black);color:#fff;font-size:13px;padding:11px 18px;border-radius:10px;z-index:800;opacity:0;transition:opacity .2s;max-width:88%;text-align:center}
+.toast.show{opacity:1}
+.banner-upd{background:#FEF7E8;border:1px solid #E8C988;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.banner-upd .txt{flex:1;font-size:12px;color:#7A4A00;line-height:1.5}
+.banner-upd button{background:var(--gold);color:#fff;font-size:12px;font-weight:600;padding:9px 14px;border-radius:9px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="logo">The Boring Investor</div>
+  <div class="tag">Avorreix-te invertint i dorm tranquil</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="hidden">
+  <div class="brand">The Boring Investor</div>
+  <h1>El teu espai</h1>
+  <div class="sub">Entra un cop i l'app et recordarà.<br>Després s'obrirà sense demanar res.</div>
+  <div class="field">
+    <label>Correu electrònic</label>
+    <input type="email" id="in-email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="el-teu-correu@exemple.com">
+  </div>
+  <div class="field">
+    <label>Contrasenya</label>
+    <input type="password" id="in-pwd" autocomplete="current-password" placeholder="La teva contrasenya">
+  </div>
+  <div id="login-msg"></div>
+  <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar →</button>
+  <div style="text-align:center;margin-top:16px">
+    <button onclick="doReset()" style="background:none;color:var(--g500);font-size:12px;text-decoration:underline">He oblidat la contrasenya</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="ttl" id="topbar-ttl">La meva cartera</div>
+    <button class="out" onclick="doLogout()">Sortir</button>
+  </div>
+  <div class="scroll" id="view"></div>
+  <div class="nav">
+    <button id="nav-cartera" class="active" onclick="go('cartera')"><span class="ic">📊</span>Cartera</button>
+    <button id="nav-evolucio" onclick="go('evolucio')"><span class="ic">📈</span>Evolució</button>
+    <button id="nav-missatges" onclick="go('missatges')"><span class="ic">💬</span>Missatges</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════════
+// The Boring Investor — PWA mòbil (tbi-app.html)
+// Fitxer únic, ES5/vanilla, mateix backend Supabase que platform.html.
+// Abast: cartera, actualitzar valors, evolució, missatges amb l'assessor.
+// Sessió persistent: login un cop, després obre sol.
+// ═══════════════════════════════════════════════════════════════════
+
+var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
+
+// Client Supabase amb sessió persistent (defaults: persistSession=true, autoRefreshToken=true)
+var sb = null;
+try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.error('Supabase KO', e); }
+
+// Plans amb límit de missatges (coherent amb platform.html)
+var SENYAL_MSG_LIMIT = 2;
+
+var APP = {
+  email: '',
+  client: null,   // fila normalitzada de clients
+  view: 'cartera'
+};
+
+// ── Taxonomia mínima: només emoji per categoria (no cal tota la de platform.html) ──
+var CAT_EMOJI = {
+  rv_global:'🌍', rv_dividend:'💵', rv_reits:'🏠', rv_emergents:'🌱', rv_sectorial:'🏭',
+  rf_global:'🏦', rf_corporativa:'📄', rf_govern:'🏛️', rf_curt:'⏱️',
+  or:'🥇', materies:'⛏️', cripto:'₿', liquiditat:'💶', alternatius:'🔀'
+};
+function emojiFor(p){
+  if (p && p.cat && CAT_EMOJI[p.cat]) return CAT_EMOJI[p.cat];
+  return '•';
+}
+
+// ── Helpers ──
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function eur(n){ return (Math.round((n||0)*100)/100).toLocaleString('ca-ES') + '€'; }
+function eurRound(n){ return Math.round(n||0).toLocaleString('ca-ES') + '€'; }
+function pct(n){ return (n>=0?'+':'') + (n||0).toFixed(1) + '%'; }
+function mesActual(){ return new Date().toISOString().slice(0,10).slice(0,7); }
+function avui(){ return new Date().toISOString().slice(0,10); }
+function nomMesCA(yyyymm){
+  var noms = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+  var m = parseInt((yyyymm||'').slice(5,7),10);
+  return (m>=1 && m<=12) ? noms[m-1] : '';
+}
+function parseNumCA(s){
+  if (s == null) return NaN;
+  s = String(s).trim().replace(/\s|€/g,'').replace(/\./g,'').replace(/,/g,'.');
+  return parseFloat(s);
+}
+function novaId(prefix){
+  return (prefix||'id') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+var _toastTimer = null;
+function toast(msg){
+  var t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+
+// ── Lectura de posicions ──
+function getPosicions(){
+  var c = APP.client;
+  return (c && Array.isArray(c.posicions)) ? c.posicions : [];
+}
+function getMoviments(){
+  var c = APP.client;
+  return (c && Array.isArray(c.moviments_posicions)) ? c.moviments_posicions : [];
+}
+function getSnapshots(){
+  var c = APP.client;
+  return (c && Array.isArray(c.snapshots_cartera)) ? c.snapshots_cartera : [];
+}
+
+// Dies des de l'última actualització de valors. null=sense cartera, Infinity=mai.
+function diesDesActualitzacio(){
+  var pos = getPosicions();
+  if (!pos.length) return null;
+  var dates = pos.map(function(p){ return p.valor_data; }).filter(Boolean);
+  if (!dates.length) return Infinity;
+  dates.sort();
+  var u = new Date(dates[dates.length-1]);
+  if (isNaN(u.getTime())) return Infinity;
+  return Math.floor((new Date() - u) / 86400000);
+}
+function carteraActualitzadaAquestMes(){
+  var pos = getPosicions();
+  var mes = mesActual();
+  for (var i=0;i<pos.length;i++){
+    if (pos[i].valor_data && String(pos[i].valor_data).slice(0,7) === mes) return true;
+  }
+  return false;
+}
+
+// Calcula valor, cost i P&L d'una posició a partir dels moviments
+function aggPosicio(p){
+  var movs = getMoviments().filter(function(m){ return m.posicio_id === p.id; });
+  var cost = 0;
+  movs.forEach(function(m){
+    var im = parseFloat(m.import)||0;
+    if (m.tipus === 'compra') cost += im;
+    else if (m.tipus === 'venda') cost -= im;
+  });
+  var valor = parseFloat(p.valor_actual)||0;
+  var pnl = valor - cost;
+  var pnlPct = cost > 0 ? (pnl/cost*100) : 0;
+  return { cost:cost, valor:valor, pnl:pnl, pnlPct:pnlPct };
+}
+
+// ════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════
+function showSplash(on){ $('splash').classList.toggle('hidden', !on); }
+function showLogin(on){ $('login').classList.toggle('hidden', !on); }
+function showApp(on){ $('app').classList.toggle('show', !!on); }
+
+async function doLogin(){
+  var email = ($('in-email').value||'').trim().toLowerCase();
+  var pwd = $('in-pwd').value || '';
+  var msg = $('login-msg');
+  var btn = $('btn-login');
+  msg.style.color = 'var(--red)';
+  if (!email || email.indexOf('@') === -1){ msg.textContent = 'Introdueix un correu vàlid.'; return; }
+  if (!pwd){ msg.textContent = 'Introdueix la contrasenya.'; return; }
+  if (!sb){ msg.textContent = 'Sense connexió amb el servidor.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Entrant...'; msg.textContent = '';
+  try {
+    var res = await sb.auth.signInWithPassword({ email: email, password: pwd });
+    if (res.error) throw res.error;
+    // onAuthStateChange s'encarregarà de carregar i mostrar l'app
+  } catch(e){
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'No s\'ha pogut entrar. Comprova el correu i la contrasenya.';
+    btn.disabled = false; btn.textContent = 'Entrar →';
+  }
+}
+
+async function doReset(){
+  var email = ($('in-email').value||'').trim().toLowerCase();
+  var msg = $('login-msg');
+  if (!email || email.indexOf('@') === -1){
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Escriu primer el teu correu a dalt.';
+    return;
+  }
+  try {
+    await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://theboringinvestor.es/platform.html' });
+    msg.style.color = 'var(--green)';
+    msg.textContent = 'Si el correu existeix, rebràs un enllaç per canviar la contrasenya.';
+  } catch(e){
+    msg.style.color = 'var(--green)';
+    msg.textContent = 'Si el correu existeix, rebràs un enllaç per canviar la contrasenya.';
+  }
+}
+
+async function doLogout(){
+  if (!confirm('Vols tancar la sessió? Hauràs de tornar a entrar amb el correu i la contrasenya.')) return;
+  try { await sb.auth.signOut(); } catch(e){}
+  APP.email = ''; APP.client = null;
+  showApp(false);
+  showLogin(true);
+}
+
+// Carrega la fila del client i mostra l'app
+async function carregarClient(email){
+  APP.email = email;
+  var res = await sb.from('clients').select('*').eq('email', email).maybeSingle();
+  if (res.error) throw res.error;
+  if (!res.data){
+    // L'usuari està autenticat però no té fila de client
+    showSplash(false);
+    showLogin(false);
+    showApp(true);
+    $('view').innerHTML = '<div class="empty">El teu compte encara no està vinculat a cap cartera.<br><br>Contacta amb el teu assessor a guillem.puig@theboringinvestor.es</div>';
+    return;
+  }
+  APP.client = res.data;
+  showSplash(false);
+  showLogin(false);
+  showApp(true);
+  go(APP.view || 'cartera');
+}
+
+// ════════════════════════════════════════════
+// NAVEGACIÓ
+// ════════════════════════════════════════════
+function go(view){
+  APP.view = view;
+  ['cartera','evolucio','missatges'].forEach(function(v){
+    var b = $('nav-'+v);
+    if (b) b.classList.toggle('active', v === view);
+  });
+  var titols = { cartera:'La meva cartera', evolucio:'Evolució', missatges:'Missatges' };
+  $('topbar-ttl').textContent = titols[view] || 'The Boring Investor';
+  if (view === 'cartera') renderCartera();
+  else if (view === 'evolucio') renderEvolucio();
+  else if (view === 'missatges') renderMissatges();
+}
+
+// ════════════════════════════════════════════
+// VISTA: CARTERA
+// ════════════════════════════════════════════
+function renderCartera(){
+  var pos = getPosicions();
+  var el = $('view');
+
+  if (!pos.length){
+    el.innerHTML = '<div class="empty">Encara no tens posicions registrades.<br><br>El teu assessor les afegirà aviat.</div>';
+    return;
+  }
+
+  var valorTotal = 0, costTotal = 0;
+  pos.forEach(function(p){ var a = aggPosicio(p); valorTotal += a.valor; costTotal += a.cost; });
+  var pnlTotal = valorTotal - costTotal;
+  var pnlPctTotal = costTotal > 0 ? (pnlTotal/costTotal*100) : 0;
+
+  var html = '';
+
+  // Banner si cal actualitzar
+  var dies = diesDesActualitzacio();
+  if (!carteraActualitzadaAquestMes() && dies !== null){
+    var txt = (dies === Infinity)
+      ? 'Encara no has posat cap valor de mercat. Fes-ho perquè el rendiment sigui real.'
+      : 'Fa ' + dies + ' dies que no actualitzes la cartera. Posa-la al dia (1 min).';
+    html += '<div class="banner-upd"><div class="txt">'+txt+'</div>'
+      + '<button onclick="obrirActualitzar()">Actualitzar</button></div>';
+  }
+
+  // KPI principal
+  var colPnl = pnlTotal >= 0 ? 'var(--green)' : 'var(--red)';
+  html += '<div class="card">'
+    + '<div class="card-lbl">Valor total de la cartera</div>'
+    + '<div class="kpi-big">'+eurRound(valorTotal)+'</div>'
+    + '<div class="kpi-sub" style="color:'+colPnl+'">'+(pnlTotal>=0?'+':'')+eurRound(pnlTotal)+' · '+pct(pnlPctTotal)+'</div>'
+    + '<div style="font-size:11px;color:var(--g400);margin-top:6px">Invertit: '+eurRound(costTotal)+'</div>'
+    + '</div>';
+
+  // Botó actualitzar gran
+  html += '<button class="btn-primary" style="margin-bottom:16px" onclick="obrirActualitzar()">💱 Actualitzar valors</button>';
+
+  // Llista de posicions
+  html += '<div class="card"><div class="card-lbl" style="margin-bottom:8px">Posicions</div>';
+  pos.forEach(function(p){
+    var a = aggPosicio(p);
+    var colP = a.pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    var dataTxt = p.valor_data ? ('Actualitzat ' + p.valor_data) : 'Sense valor';
+    html += '<div class="pos-row">'
+      + '<span class="pos-emoji">'+emojiFor(p)+'</span>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div class="pos-nom">'+esc(p.nom||'Posició')+'</div>'
+        + '<div class="pos-meta">'+(p.broker?esc(p.broker)+' · ':'')+dataTxt+'</div>'
+      + '</div>'
+      + '<div>'
+        + '<div class="pos-val">'+eurRound(a.valor)+'</div>'
+        + '<div class="pos-pnl" style="color:'+colP+'">'+pct(a.pnlPct)+'</div>'
+      + '</div>'
+    + '</div>';
+  });
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+// ── Modal actualitzar valors ──
+function obrirActualitzar(){
+  var pos = getPosicions();
+  if (!pos.length){ toast('Encara no hi ha posicions'); return; }
+
+  var rows = pos.map(function(p){
+    var oldv = parseFloat(p.valor_actual)||0;
+    var dataTxt = p.valor_data ? ('anterior: '+eurRound(oldv)+' · '+p.valor_data) : 'sense valor previ';
+    return '<div class="upd-row">'
+      + '<div class="upd-top">'
+        + '<span class="pos-emoji">'+emojiFor(p)+'</span>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div class="pos-nom">'+esc(p.nom||'Posició')+'</div>'
+          + '<div class="pos-meta">'+dataTxt+'</div>'
+        + '</div>'
+      + '</div>'
+      + '<input class="upd-input" inputmode="decimal" data-pos-id="'+esc(p.id)+'" data-old="'+oldv+'" '
+        + 'value="'+(oldv>0?oldv.toLocaleString('ca-ES'):'')+'" placeholder="Valor actual €">'
+    + '</div>';
+  }).join('');
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-upd';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Actualitzar valors</div>'
+    + '<div class="modal-sub">Posa el valor de mercat actual de cada posició. El trobaràs al teu bróker. Mes: '+nomMesCA(mesActual())+'.</div>'
+    + rows
+    + '<div style="display:flex;gap:10px;margin-top:18px">'
+      + '<button onclick="tancarModal()" style="flex:1;padding:13px;background:var(--g50);color:var(--g700);border-radius:11px;font-weight:500">Cancel·lar</button>'
+      + '<button class="btn-primary" style="flex:2" id="btn-upd-save" onclick="guardarActualitzacio()">Desar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModal(); });
+}
+function tancarModal(){
+  var m = $('modal-upd'); if (m) m.parentNode.removeChild(m);
+}
+
+async function guardarActualitzacio(){
+  var data = avui();
+  var mes = data.slice(0,7);
+  var pos = getPosicions().slice();
+  var btn = $('btn-upd-save');
+
+  var suspects = [];
+  var pendents = [];
+  var inputs = document.querySelectorAll('.upd-input');
+  for (var i=0;i<inputs.length;i++){
+    var inp = inputs[i];
+    var id = inp.getAttribute('data-pos-id');
+    var oldv = parseFloat(inp.getAttribute('data-old'))||0;
+    var v = parseNumCA(inp.value);
+    if (isNaN(v) || v < 0) v = oldv;
+    if (oldv > 0 && Math.abs(v-oldv)/oldv > 0.4){
+      var pp = pos.find(function(x){ return x.id === id; });
+      suspects.push((pp&&pp.nom?pp.nom:'Posició')+': '+eurRound(oldv)+' → '+eurRound(v));
+    }
+    pendents.push({ id:id, v:v });
+  }
+  if (suspects.length){
+    if (!confirm('Alguns valors canvien molt:\n\n'+suspects.join('\n')+'\n\nVols desar-los igualment?')) return;
+  }
+  pendents.forEach(function(x){
+    var p = pos.find(function(y){ return y.id === x.id; });
+    if (p){ p.valor_actual = x.v; p.valor_data = data; }
+  });
+
+  // Snapshot mensual
+  var valorTotal = pos.reduce(function(s,p){ return s + (parseFloat(p.valor_actual)||0); }, 0);
+  var movs = getMoviments();
+  var invertit = 0;
+  movs.forEach(function(m){ var im=parseFloat(m.import)||0; if(m.tipus==='compra')invertit+=im; if(m.tipus==='venda')invertit-=im; });
+
+  var snaps = getSnapshots().slice();
+  var idx = snaps.findIndex(function(s){ return s.mes === mes; });
+  var nou = { mes:mes, data:data, valor:valorTotal, invertit:invertit };
+  if (idx >= 0) snaps[idx] = nou; else snaps.push(nou);
+  snaps.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
+  if (btn){ btn.disabled = true; btn.textContent = 'Desant...'; }
+  try {
+    var res = await sb.from('clients')
+      .update({ posicions: pos, snapshots_cartera: snaps })
+      .eq('email', APP.email);
+    if (res.error) throw res.error;
+    APP.client.posicions = pos;
+    APP.client.snapshots_cartera = snaps;
+    tancarModal();
+    toast('✓ Cartera actualitzada · '+eurRound(valorTotal));
+    renderCartera();
+  } catch(e){
+    if (btn){ btn.disabled = false; btn.textContent = 'Desar'; }
+    toast('Error: '+(e.message||e));
+  }
+}
+
+// ════════════════════════════════════════════
+// VISTA: EVOLUCIÓ
+// ════════════════════════════════════════════
+function renderEvolucio(){
+  var el = $('view');
+  var snaps = getSnapshots().slice().sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
+  if (snaps.length < 2){
+    el.innerHTML = '<div class="empty">Encara no hi ha prou històric per dibuixar l\'evolució.<br><br>Actualitza la cartera cada mes i aquí veuràs com creix.</div>';
+    return;
+  }
+
+  var valors = snaps.map(function(s){ return parseFloat(s.valor)||0; });
+  var minV = Math.min.apply(null, valors);
+  var maxV = Math.max.apply(null, valors);
+  var range = (maxV - minV) || 1;
+  var pad = range * 0.12;
+  var lo = Math.max(0, minV - pad);
+  var hi = maxV + pad;
+  var rng = (hi - lo) || 1;
+
+  var W = 320, H = 180, padL = 8, padR = 8, padT = 14, padB = 24;
+  var plotW = W - padL - padR;
+  var plotH = H - padT - padB;
+  var n = snaps.length;
+
+  var pts = snaps.map(function(s, i){
+    var x = padL + (n === 1 ? plotW/2 : (i/(n-1))*plotW);
+    var v = parseFloat(s.valor)||0;
+    var y = padT + plotH - ((v - lo)/rng)*plotH;
+    return { x:x, y:y, s:s };
+  });
+
+  var linePath = pts.map(function(p,i){ return (i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1); }).join(' ');
+  var areaPath = linePath + ' L'+pts[pts.length-1].x.toFixed(1)+' '+(padT+plotH)+' L'+pts[0].x.toFixed(1)+' '+(padT+plotH)+' Z';
+
+  var first = valors[0], last = valors[valors.length-1];
+  var delta = last - first;
+  var deltaPct = first > 0 ? (delta/first*100) : 0;
+  var colD = delta >= 0 ? 'var(--green)' : 'var(--red)';
+
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'
+    + '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="#1B3A6B" stop-opacity="0.18"/>'
+      + '<stop offset="100%" stop-color="#1B3A6B" stop-opacity="0"/>'
+    + '</linearGradient></defs>'
+    + '<path d="'+areaPath+'" fill="url(#grad)"/>'
+    + '<path d="'+linePath+'" fill="none" stroke="#1B3A6B" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+  pts.forEach(function(p){
+    svg += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="#1B3A6B"/>';
+  });
+  // etiquetes primer i últim mes
+  svg += '<text x="'+pts[0].x.toFixed(1)+'" y="'+(H-7)+'" font-size="9" fill="#9A9690" text-anchor="start">'+nomMesCA(snaps[0].mes)+'</text>';
+  svg += '<text x="'+pts[pts.length-1].x.toFixed(1)+'" y="'+(H-7)+'" font-size="9" fill="#9A9690" text-anchor="end">'+nomMesCA(snaps[snaps.length-1].mes)+'</text>';
+  svg += '</svg>';
+
+  var html = '<div class="card">'
+    + '<div class="card-lbl">Evolució del valor</div>'
+    + '<div class="kpi-big" style="font-size:26px">'+eurRound(last)+'</div>'
+    + '<div class="kpi-sub" style="color:'+colD+'">'+(delta>=0?'+':'')+eurRound(delta)+' · '+pct(deltaPct)+' des de '+nomMesCA(snaps[0].mes)+'</div>'
+    + '<div style="margin-top:14px">'+svg+'</div>'
+    + '</div>';
+
+  // Taula de snapshots
+  html += '<div class="card"><div class="card-lbl" style="margin-bottom:8px">Històric mensual</div>';
+  snaps.slice().reverse().forEach(function(s){
+    html += '<div class="pos-row">'
+      + '<div style="flex:1"><div class="pos-nom" style="font-size:13px">'+nomMesCA(s.mes)+' '+(s.mes||'').slice(0,4)+'</div></div>'
+      + '<div class="pos-val">'+eurRound(parseFloat(s.valor)||0)+'</div>'
+    + '</div>';
+  });
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════
+// VISTA: MISSATGES
+// ════════════════════════════════════════════
+var _msgLoading = false;
+
+function renderMissatges(){
+  var el = $('view');
+  el.innerHTML = '<div class="chat-wrap">'
+    + '<div class="chat-thread" id="chat-thread"><div class="empty">Carregant...</div></div>'
+    + '<div class="chat-input-bar">'
+      + '<textarea id="msg-input" rows="1" placeholder="Escriu al teu assessor..." oninput="autoGrow(this)"></textarea>'
+      + '<button class="chat-send" id="msg-send" onclick="enviarMissatge()">Enviar</button>'
+    + '</div>'
+  + '</div>';
+  // ajustar alçada del thread perquè ocupi l'espai
+  carregarThread();
+}
+
+function autoGrow(t){
+  t.style.height = 'auto';
+  t.style.height = Math.min(t.scrollHeight, 90) + 'px';
+}
+
+async function carregarThread(){
+  var thread = $('chat-thread');
+  if (!thread) return;
+  try {
+    var res = await sb.from('messages').select('*').eq('client_email', APP.email).order('created_at', {ascending:true});
+    if (res.error) throw res.error;
+    var msgs = res.data || [];
+    if (!msgs.length){
+      thread.innerHTML = '<div class="empty">Encara no hi ha missatges.<br>Escriu el primer al teu assessor.</div>';
+      return;
+    }
+    var html = '';
+    msgs.forEach(function(m){
+      var mine = m.from_role === 'client';
+      var d = new Date(m.created_at);
+      var ds = d.toLocaleString('ca-ES', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      html += '<div style="display:flex;flex-direction:column;align-items:'+(mine?'flex-end':'flex-start')+'">'
+        + '<div class="bubble '+(mine?'mine':'theirs')+'">'+esc(m.content)+'</div>'
+        + '<div class="bubble-meta">'+(mine?'Tu':'Guillem')+' · '+ds+'</div>'
+      + '</div>';
+    });
+    thread.innerHTML = html;
+    thread.scrollTop = thread.scrollHeight;
+    // marcar com a llegits els de l'admin
+    try { await sb.from('messages').update({read_by_client:true}).eq('client_email', APP.email).eq('read_by_client', false); } catch(e){}
+  } catch(e){
+    thread.innerHTML = '<div class="empty">Error carregant missatges.</div>';
+  }
+}
+
+async function comptarMissatgesMes(){
+  try {
+    var first = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+    var res = await sb.from('messages').select('id',{count:'exact',head:true})
+      .eq('client_email', APP.email).eq('from_role','client').gte('created_at', first);
+    if (res.error) return 0;
+    return res.count || 0;
+  } catch(e){ return 0; }
+}
+function esPlaSenyal(){
+  var pla = (APP.client && APP.client.pla) || 'senyal';
+  if (pla === 'essencial') pla = 'senyal';
+  return pla === 'senyal';
+}
+
+async function enviarMissatge(){
+  var input = $('msg-input');
+  var btn = $('msg-send');
+  if (!input || !input.value.trim()) return;
+  var txt = input.value.trim();
+
+  if (esPlaSenyal()){
+    var used = await comptarMissatgesMes();
+    if (used >= SENYAL_MSG_LIMIT){
+      toast('Has arribat al límit de '+SENYAL_MSG_LIMIT+' missatges aquest mes (pla Senyal).');
+      return;
+    }
+  }
+
+  input.disabled = true; if (btn) btn.disabled = true;
+  try {
+    var res = await sb.from('messages').insert({
+      client_email: APP.email,
+      from_email: APP.email,
+      from_role: 'client',
+      content: txt,
+      read_by_admin: false,
+      read_by_client: true
+    });
+    if (res.error) throw res.error;
+    input.value = ''; autoGrow(input);
+    input.disabled = false; if (btn) btn.disabled = false;
+    input.focus();
+    await carregarThread();
+  } catch(e){
+    input.disabled = false; if (btn) btn.disabled = false;
+    input.value = txt;
+    toast('Error enviant: '+(e.message||e));
+  }
+}
+
+// ════════════════════════════════════════════
+// MANIFEST embegut + arrencada
+// ════════════════════════════════════════════
+// Registre del service worker (fa la PWA instal·lable a Android i dóna
+// suport offline mínim). El SW és network-first: amb connexió sempre
+// es veu l'última versió desplegada.
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(e){
+      console.warn('SW no registrat:', e);
+    });
+  });
+}
+
+// onAuthStateChange: gestiona login/logout/refresh de sessió
+if (sb){
+  sb.auth.onAuthStateChange(function(event, session){
+    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session && session.user && session.user.email){
+      carregarClient(session.user.email.toLowerCase()).catch(function(e){
+        console.error(e);
+        showSplash(false); showLogin(true);
+      });
+    } else if (event === 'SIGNED_OUT'){
+      showApp(false); showLogin(true);
+    }
+  });
+}
+
+// Arrencada: comprovar si ja hi ha sessió persistent
+(async function init(){
+  if (!sb){ showSplash(false); showLogin(true); return; }
+  try {
+    var res = await sb.auth.getSession();
+    var session = res && res.data && res.data.session;
+    if (session && session.user && session.user.email){
+      await carregarClient(session.user.email.toLowerCase());
+    } else {
+      showSplash(false); showLogin(true);
+    }
+  } catch(e){
+    showSplash(false); showLogin(true);
+  }
+})();
+</script>
+</body>
+</html>

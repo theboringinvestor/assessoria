@@ -1,0 +1,17 @@
+{
+  "name": "The Boring Investor",
+  "short_name": "TBI",
+  "description": "El teu espai d'inversió: cartera, evolució i missatges amb el teu assessor.",
+  "start_url": "tbi-app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1B3A6B",
+  "theme_color": "#1B3A6B",
+  "lang": "ca",
+  "icons": [
+    { "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzFCM0E2QiIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExMiwxMTIpIHNjYWxlKDkpIiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiI+CiAgICA8cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSIzIiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIvPgogIDwvZz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMTIsMTEyKSBzY2FsZSg5KSI+CiAgICA8Y2lyY2xlIGN4PSIxMCIgY3k9IjExIiByPSIyLjIiIGZpbGw9IiNGRkZGRkYiLz4KICAgIDxjaXJjbGUgY3g9IjEwIiBjeT0iMTkiIHI9IjIuMiIgZmlsbD0iI0ZGRkZGRiIvPgogICAgPHJlY3QgeD0iMTQiIHk9IjE0LjIiIHdpZHRoPSI3IiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjRkZGRkZGIi8+CiAgICA8cmVjdCB4PSIyMyIgeT0iOSIgd2lkdGg9IjIiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjRkZGRkZGIi8+CiAgPC9nPgo8L3N2Zz4=", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzFCM0E2QiIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExMiwxMTIpIHNjYWxlKDkpIiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiI+CiAgICA8cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSIzIiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMiIvPgogIDwvZz4KICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMTIsMTEyKSBzY2FsZSg5KSI+CiAgICA8Y2lyY2xlIGN4PSIxMCIgY3k9IjExIiByPSIyLjIiIGZpbGw9IiNGRkZGRkYiLz4KICAgIDxjaXJjbGUgY3g9IjEwIiBjeT0iMTkiIHI9IjIuMiIgZmlsbD0iI0ZGRkZGRiIvPgogICAgPHJlY3QgeD0iMTQiIHk9IjE0LjIiIHdpZHRoPSI3IiBoZWlnaHQ9IjIiIHJ4PSIxIiBmaWxsPSIjRkZGRkZGIi8+CiAgICA8cmVjdCB4PSIyMyIgeT0iOSIgd2lkdGg9IjIiIGhlaWdodD0iMTQiIHJ4PSIxIiBmaWxsPSIjRkZGRkZGIi8+CiAgPC9nPgo8L3N2Zz4=", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzFCM0E2QiIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0NiwxNDYpIHNjYWxlKDYuOSkiPgogICAgPHJlY3QgeD0iMSIgeT0iMSIgd2lkdGg9IjMwIiBoZWlnaHQ9IjMwIiByeD0iMyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxjaXJjbGUgY3g9IjEwIiBjeT0iMTEiIHI9IjIuMiIgZmlsbD0iI0ZGRkZGRiIvPgogICAgPGNpcmNsZSBjeD0iMTAiIGN5PSIxOSIgcj0iMi4yIiBmaWxsPSIjRkZGRkZGIi8+CiAgICA8cmVjdCB4PSIxNCIgeT0iMTQuMiIgd2lkdGg9IjciIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9IiNGRkZGRkYiLz4KICAgIDxyZWN0IHg9IjIzIiB5PSI5IiB3aWR0aD0iMiIgaGVpZ2h0PSIxNCIgcng9IjEiIGZpbGw9IiNGRkZGRkYiLz4KICA8L2c+Cjwvc3ZnPg==", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
