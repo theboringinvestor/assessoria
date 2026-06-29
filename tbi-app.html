@@ -153,8 +153,9 @@ input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
   </div>
   <div id="login-msg"></div>
   <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar →</button>
-  <div style="text-align:center;margin-top:16px">
+  <div style="text-align:center;margin-top:16px;display:flex;gap:18px;justify-content:center">
     <button onclick="doReset()" style="background:none;color:var(--g500);font-size:12px;text-decoration:underline">He oblidat la contrasenya</button>
+    <button onclick="obrirAjuda()" style="background:none;color:var(--g500);font-size:12px;text-decoration:underline">Com funciona?</button>
   </div>
   <div id="install-login" style="display:none;margin-top:28px;padding-top:20px;border-top:1px solid var(--g200)">
     <button onclick="instalarApp()" style="width:100%;padding:13px;background:#fff;color:var(--navy);border:1.5px solid var(--navy);border-radius:11px;font-size:14px;font-weight:600">📲 Instal·lar l'app al mòbil</button>
@@ -166,7 +167,10 @@ input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
 <div id="app">
   <div class="topbar">
     <div class="ttl" id="topbar-ttl">La meva cartera</div>
-    <button class="out" onclick="doLogout()">Sortir</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="out" onclick="obrirAjuda()" aria-label="Ajuda" style="padding:7px 11px">?</button>
+      <button class="out" onclick="doLogout()">Sortir</button>
+    </div>
   </div>
   <div class="scroll" id="view"></div>
   <div class="nav">
@@ -231,6 +235,37 @@ function nomMesCA(yyyymm){
   var noms = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
   var m = parseInt((yyyymm||'').slice(5,7),10);
   return (m>=1 && m<=12) ? noms[m-1] : '';
+}
+function mesAbrevCA(yyyymm){
+  var noms = ['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'];
+  var m = parseInt((yyyymm||'').slice(5,7),10);
+  return (m>=1 && m<=12) ? noms[m-1] : '';
+}
+// Data ISO (YYYY-MM-DD) -> format humà curt: "15 jun" o "fa X dies"
+function dataHumana(iso){
+  if (!iso) return 'sense data';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  var dies = Math.floor((new Date() - d) / 86400000);
+  if (dies <= 0) return 'avui';
+  if (dies === 1) return 'ahir';
+  if (dies < 30) return 'fa ' + dies + ' dies';
+  var mesos = ['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'];
+  return d.getDate() + ' ' + mesos[d.getMonth()] + ' ' + d.getFullYear();
+}
+// Paleta de fallback per a categories sense color al target
+var CAT_PALETTE = ['#1B3A6B','#2E5FA3','#4A7CC7','#B8902E','#1A5C3A','#8C6BAA','#C0743A','#5B8A72','#A0526B','#3A7A8C','#9A9690','#6B6762'];
+// Retorna {nom, color} d'una categoria, fent servir el target del client si hi és
+function catInfo(catId){
+  var target = getTarget();
+  for (var i=0;i<target.length;i++){
+    var t = target[i];
+    if ((t.id || t.nom) === catId) return { nom: t.nom || catId, color: t.color || CAT_PALETTE[i % CAT_PALETTE.length] };
+  }
+  // fallback: nom llegible a partir de l'id i color de paleta per hash
+  var nom = String(catId||'altres').replace(/_/g,' ');
+  var h = 0; for (var k=0;k<nom.length;k++){ h = (h*31 + nom.charCodeAt(k)) & 0xffff; }
+  return { nom: nom, color: CAT_PALETTE[h % CAT_PALETTE.length] };
 }
 function parseNumCA(s){
   if (s == null) return NaN;
@@ -394,6 +429,49 @@ function go(view){
 // ════════════════════════════════════════════
 // VISTA: CARTERA
 // ════════════════════════════════════════════
+// Genera un donut SVG a partir de segments [{nom,color,valor}]. Retorna {svg, total}
+function donutSVG(segments){
+  var total = segments.reduce(function(s,x){ return s + (x.valor||0); }, 0);
+  if (total <= 0) return { svg:'', total:0 };
+  var size = 180, cx = size/2, cy = size/2, r = 62, sw = 26;
+  var circ = 2 * Math.PI * r;
+  var offset = 0;
+  var arcs = '';
+  segments.forEach(function(seg){
+    var frac = seg.valor / total;
+    if (frac <= 0) return;
+    var len = frac * circ;
+    // dasharray: tram pintat + buit; rotem amb dashoffset acumulat
+    arcs += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" '
+      + 'stroke="'+seg.color+'" stroke-width="'+sw+'" '
+      + 'stroke-dasharray="'+len.toFixed(2)+' '+(circ-len).toFixed(2)+'" '
+      + 'stroke-dashoffset="'+(-offset).toFixed(2)+'" '
+      + 'transform="rotate(-90 '+cx+' '+cy+')"/>';
+    offset += len;
+  });
+  var svg = '<svg viewBox="0 0 '+size+' '+size+'" style="width:170px;height:170px;display:block;margin:0 auto">'
+    + arcs
+    + '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" font-size="11" fill="#9A9690" font-family="DM Sans,sans-serif">Total</text>'
+    + '<text x="'+cx+'" y="'+(cy+15)+'" text-anchor="middle" font-size="17" fill="#1B3A6B" font-weight="600" font-family="DM Mono,monospace">'+eurRound(total)+'</text>'
+    + '</svg>';
+  return { svg:svg, total:total };
+}
+
+// Agrupa el valor de les posicions per categoria -> [{cat,nom,color,valor}] ordenat desc
+function segmentsPerCategoria(){
+  var per = {};
+  getPosicions().forEach(function(p){
+    var cat = p.cat || 'altres';
+    per[cat] = (per[cat]||0) + (parseFloat(p.valor_actual)||0);
+  });
+  var segs = Object.keys(per).map(function(cat){
+    var info = catInfo(cat);
+    return { cat:cat, nom:info.nom, color:info.color, valor:per[cat] };
+  });
+  segs.sort(function(a,b){ return b.valor - a.valor; });
+  return segs;
+}
+
 function renderCartera(){
   var pos = getPosicions();
   var el = $('view');
@@ -405,39 +483,59 @@ function renderCartera(){
 
   var valorTotal = 0, costTotal = 0;
   pos.forEach(function(p){ var a = aggPosicio(p); valorTotal += a.valor; costTotal += a.cost; });
-  var pnlTotal = valorTotal - costTotal;
-  var pnlPctTotal = costTotal > 0 ? (pnlTotal/costTotal*100) : 0;
+  var guany = valorTotal - costTotal;              // revaloració real (no inclou que aportis més)
+  var guanyPct = costTotal > 0 ? (guany/costTotal*100) : 0;
 
   var html = '';
 
-  // Banner si cal actualitzar
-  var dies = diesDesActualitzacio();
-  if (!carteraActualitzadaAquestMes() && dies !== null){
-    var txt = (dies === Infinity)
-      ? 'Encara no has posat cap valor de mercat. Fes-ho perquè el rendiment sigui real.'
-      : 'Fa ' + dies + ' dies que no actualitzes la cartera. Posa-la al dia (1 min).';
-    html += '<div class="banner-upd"><div class="txt">'+txt+'</div>'
-      + '<button onclick="obrirActualitzar()">Actualitzar</button></div>';
-  }
-
-  // KPI principal
-  var colPnl = pnlTotal >= 0 ? 'var(--green)' : 'var(--red)';
+  // KPI principal: valor total
   html += '<div class="card">'
     + '<div class="card-lbl">Valor total de la cartera</div>'
-    + '<div class="kpi-big">'+eurRound(valorTotal)+'</div>'
-    + '<div class="kpi-sub" style="color:'+colPnl+'">'+(pnlTotal>=0?'+':'')+eurRound(pnlTotal)+' · '+pct(pnlPctTotal)+'</div>'
-    + '<div style="font-size:11px;color:var(--g400);margin-top:6px">Invertit: '+eurRound(costTotal)+'</div>'
+    + '<div class="kpi-big">'+eurRound(valorTotal)+'</div>';
+  // Separació clara: aportat vs guany
+  var colG = guany >= 0 ? 'var(--green)' : 'var(--red)';
+  html += '<div style="display:flex;gap:18px;margin-top:12px">'
+    + '<div><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Has aportat</div>'
+      + '<div style="font-family:var(--fm);font-size:15px;color:var(--g700);margin-top:2px">'+eurRound(costTotal)+'</div></div>'
+    + '<div><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Guany/pèrdua</div>'
+      + '<div style="font-family:var(--fm);font-size:15px;color:'+colG+';margin-top:2px">'+(guany>=0?'+':'')+eurRound(guany)+' · '+pct(guanyPct)+'</div></div>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--g400);margin-top:10px;line-height:1.4">El guany és la revaloració de la teva inversió. Les aportacions noves no compten com a guany.</div>'
     + '</div>';
 
-  // Botó actualitzar gran
-  html += '<button class="btn-primary" style="margin-bottom:16px" onclick="obrirActualitzar()">💱 Actualitzar valors</button>';
+  // Botó actualitzar (acció principal única — sense banner duplicat)
+  var dies = diesDesActualitzacio();
+  var necessitaUpd = !carteraActualitzadaAquestMes() && dies !== null;
+  var btnTxt = necessitaUpd
+    ? (dies === Infinity ? '💱 Posa els valors al dia' : '💱 Actualitzar (fa '+dies+' dies)')
+    : '💱 Actualitzar valors';
+  html += '<button class="btn-primary" style="margin-bottom:16px" onclick="obrirActualitzar()">'+btnTxt+'</button>';
+
+  // ── DONUT: proporció per família d'actius ──
+  var segs = segmentsPerCategoria();
+  var donut = donutSVG(segs);
+  if (donut.svg){
+    html += '<div class="card">'
+      + '<div class="card-lbl" style="margin-bottom:10px">Distribució per família d\'actius</div>'
+      + donut.svg
+      + '<div style="margin-top:14px">';
+    segs.forEach(function(seg){
+      var p = donut.total > 0 ? (seg.valor/donut.total*100) : 0;
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0">'
+        + '<span style="width:11px;height:11px;border-radius:3px;flex-shrink:0;background:'+seg.color+'"></span>'
+        + '<div style="flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(seg.nom)+'</div>'
+        + '<div style="font-family:var(--fm);font-size:13px;color:var(--g700)">'+p.toFixed(0)+'%</div>'
+      + '</div>';
+    });
+    html += '</div></div>';
+  }
 
   // Llista de posicions
   html += '<div class="card"><div class="card-lbl" style="margin-bottom:8px">Posicions</div>';
   pos.forEach(function(p){
     var a = aggPosicio(p);
     var colP = a.pnl >= 0 ? 'var(--green)' : 'var(--red)';
-    var dataTxt = p.valor_data ? ('Actualitzat ' + p.valor_data) : 'Sense valor';
+    var dataTxt = p.valor_data ? ('Actualitzat ' + dataHumana(p.valor_data)) : 'Sense valor';
     html += '<div class="pos-row">'
       + '<span class="pos-emoji">'+emojiFor(p)+'</span>'
       + '<div style="flex:1;min-width:0">'
@@ -561,67 +659,97 @@ function renderEvolucio(){
   var snaps = getSnapshots().slice().sort(function(a,b){ return a.mes.localeCompare(b.mes); });
 
   if (snaps.length < 2){
-    el.innerHTML = '<div class="empty">Encara no hi ha prou històric per dibuixar l\'evolució.<br><br>Actualitza la cartera cada mes i aquí veuràs com creix.</div>';
+    el.innerHTML = '<div class="empty">Encara no hi ha prou històric per dibuixar l\'evolució.<br><br>Actualitza la cartera i registra les aportacions cada mes; aquí veuràs com creix.</div>';
     return;
   }
 
   var valors = snaps.map(function(s){ return parseFloat(s.valor)||0; });
-  var minV = Math.min.apply(null, valors);
-  var maxV = Math.max.apply(null, valors);
+  var aports = snaps.map(function(s){ return parseFloat(s.invertit)||0; });
+
+  // Escala comuna per a les dues sèries
+  var allv = valors.concat(aports);
+  var minV = Math.min.apply(null, allv);
+  var maxV = Math.max.apply(null, allv);
   var range = (maxV - minV) || 1;
   var pad = range * 0.12;
   var lo = Math.max(0, minV - pad);
   var hi = maxV + pad;
   var rng = (hi - lo) || 1;
 
-  var W = 320, H = 180, padL = 8, padR = 8, padT = 14, padB = 24;
+  var W = 320, H = 190, padL = 8, padR = 8, padT = 14, padB = 26;
   var plotW = W - padL - padR;
   var plotH = H - padT - padB;
   var n = snaps.length;
 
-  var pts = snaps.map(function(s, i){
-    var x = padL + (n === 1 ? plotW/2 : (i/(n-1))*plotW);
-    var v = parseFloat(s.valor)||0;
-    var y = padT + plotH - ((v - lo)/rng)*plotH;
-    return { x:x, y:y, s:s };
-  });
+  function ptsFor(arr){
+    return arr.map(function(v, i){
+      var x = padL + (n === 1 ? plotW/2 : (i/(n-1))*plotW);
+      var y = padT + plotH - ((v - lo)/rng)*plotH;
+      return { x:x, y:y, v:v };
+    });
+  }
+  var ptsVal = ptsFor(valors);
+  var ptsApt = ptsFor(aports);
 
-  var linePath = pts.map(function(p,i){ return (i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1); }).join(' ');
-  var areaPath = linePath + ' L'+pts[pts.length-1].x.toFixed(1)+' '+(padT+plotH)+' L'+pts[0].x.toFixed(1)+' '+(padT+plotH)+' Z';
+  function pathOf(pts){ return pts.map(function(p,i){ return (i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1); }).join(' '); }
+  var lineVal = pathOf(ptsVal);
+  var lineApt = pathOf(ptsApt);
+  var areaVal = lineVal + ' L'+ptsVal[n-1].x.toFixed(1)+' '+(padT+plotH)+' L'+ptsVal[0].x.toFixed(1)+' '+(padT+plotH)+' Z';
 
-  var first = valors[0], last = valors[valors.length-1];
-  var delta = last - first;
-  var deltaPct = first > 0 ? (delta/first*100) : 0;
+  var lastVal = valors[n-1], firstVal = valors[0];
+  var lastApt = aports[n-1];
+  var delta = lastVal - firstVal;
+  var deltaPct = firstVal > 0 ? (delta/firstVal*100) : 0;
+  var guanyAbs = lastVal - lastApt; // valor menys aportat = revaloració acumulada
   var colD = delta >= 0 ? 'var(--green)' : 'var(--red)';
 
   var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'
     + '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">'
-      + '<stop offset="0%" stop-color="#1B3A6B" stop-opacity="0.18"/>'
+      + '<stop offset="0%" stop-color="#1B3A6B" stop-opacity="0.16"/>'
       + '<stop offset="100%" stop-color="#1B3A6B" stop-opacity="0"/>'
     + '</linearGradient></defs>'
-    + '<path d="'+areaPath+'" fill="url(#grad)"/>'
-    + '<path d="'+linePath+'" fill="none" stroke="#1B3A6B" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
-  pts.forEach(function(p){
-    svg += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="#1B3A6B"/>';
-  });
-  // etiquetes primer i últim mes
-  svg += '<text x="'+pts[0].x.toFixed(1)+'" y="'+(H-7)+'" font-size="9" fill="#9A9690" text-anchor="start">'+nomMesCA(snaps[0].mes)+'</text>';
-  svg += '<text x="'+pts[pts.length-1].x.toFixed(1)+'" y="'+(H-7)+'" font-size="9" fill="#9A9690" text-anchor="end">'+nomMesCA(snaps[snaps.length-1].mes)+'</text>';
+    + '<path d="'+areaVal+'" fill="url(#grad)"/>'
+    // línia aportat (puntejada, daurada)
+    + '<path d="'+lineApt+'" fill="none" stroke="#B8902E" stroke-width="2" stroke-dasharray="4 3" stroke-linejoin="round" stroke-linecap="round"/>'
+    // línia valor (sòlida, navy)
+    + '<path d="'+lineVal+'" fill="none" stroke="#1B3A6B" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>';
+  ptsVal.forEach(function(p){ svg += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="#1B3A6B"/>'; });
+  svg += '<text x="'+ptsVal[0].x.toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#9A9690" text-anchor="start">'+mesAbrevCA(snaps[0].mes)+'</text>';
+  svg += '<text x="'+ptsVal[n-1].x.toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#9A9690" text-anchor="end">'+mesAbrevCA(snaps[n-1].mes)+'</text>';
   svg += '</svg>';
 
   var html = '<div class="card">'
-    + '<div class="card-lbl">Evolució del valor</div>'
-    + '<div class="kpi-big" style="font-size:26px">'+eurRound(last)+'</div>'
-    + '<div class="kpi-sub" style="color:'+colD+'">'+(delta>=0?'+':'')+eurRound(delta)+' · '+pct(deltaPct)+' des de '+nomMesCA(snaps[0].mes)+'</div>'
+    + '<div class="card-lbl">Evolució de la cartera</div>'
+    + '<div class="kpi-big" style="font-size:26px">'+eurRound(lastVal)+'</div>'
+    + '<div class="kpi-sub" style="color:'+colD+'">'+(delta>=0?'+':'')+eurRound(delta)+' · '+pct(deltaPct)+' des de '+mesAbrevCA(snaps[0].mes)+'</div>'
     + '<div style="margin-top:14px">'+svg+'</div>'
+    // Llegenda
+    + '<div style="display:flex;gap:18px;justify-content:center;margin-top:6px">'
+      + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g500)"><span style="width:16px;height:3px;background:#1B3A6B;border-radius:2px"></span>Valor cartera</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g500)"><span style="width:16px;height:0;border-top:2px dashed #B8902E"></span>Total aportat</div>'
+    + '</div>'
     + '</div>';
 
-  // Taula de snapshots
+  // Resum numèric: aportat vs valor vs guany
+  var colG = guanyAbs >= 0 ? 'var(--green)' : 'var(--red)';
+  html += '<div class="card"><div style="display:flex;gap:14px">'
+    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Total aportat</div>'
+      + '<div style="font-family:var(--fm);font-size:16px;color:var(--gold);margin-top:3px">'+eurRound(lastApt)+'</div></div>'
+    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Valor actual</div>'
+      + '<div style="font-family:var(--fm);font-size:16px;color:var(--navy);margin-top:3px">'+eurRound(lastVal)+'</div></div>'
+    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Guany</div>'
+      + '<div style="font-family:var(--fm);font-size:16px;color:'+colG+';margin-top:3px">'+(guanyAbs>=0?'+':'')+eurRound(guanyAbs)+'</div></div>'
+    + '</div></div>';
+
+  // Taula històric: mes · aportat · valor
   html += '<div class="card"><div class="card-lbl" style="margin-bottom:8px">Històric mensual</div>';
+  html += '<div style="display:flex;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding-bottom:6px;border-bottom:1px solid var(--g100)">'
+    + '<div style="flex:1">Mes</div><div style="width:90px;text-align:right">Aportat</div><div style="width:90px;text-align:right">Valor</div></div>';
   snaps.slice().reverse().forEach(function(s){
-    html += '<div class="pos-row">'
+    html += '<div class="pos-row" style="padding:11px 0">'
       + '<div style="flex:1"><div class="pos-nom" style="font-size:13px">'+nomMesCA(s.mes)+' '+(s.mes||'').slice(0,4)+'</div></div>'
-      + '<div class="pos-val">'+eurRound(parseFloat(s.valor)||0)+'</div>'
+      + '<div style="width:90px;text-align:right;font-family:var(--fm);font-size:13px;color:var(--g500)">'+eurRound(parseFloat(s.invertit)||0)+'</div>'
+      + '<div style="width:90px;text-align:right;font-family:var(--fm);font-size:13px;color:var(--navy)">'+eurRound(parseFloat(s.valor)||0)+'</div>'
     + '</div>';
   });
   html += '</div>';
@@ -1076,6 +1204,46 @@ async function guardarRegistreAportacio(){
 
 // ════════════════════════════════════════════
 // MANIFEST embegut + arrencada
+// ── Modal d'ajuda / "Com funciona?" (opcional, accessible des de login i topbar) ──
+function obrirAjuda(){
+  var iOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent) && !window.MSStream;
+  var instalLn = appEstaInstalada()
+    ? '<div style="font-size:12px;color:var(--green)">✓ Ja tens l\'app instal·lada al mòbil.</div>'
+    : (iOS
+        ? 'Toca <b>Compartir</b> i després <b>"Afegir a pantalla d\'inici"</b>.'
+        : 'Obre el menú del navegador i tria <b>"Instal·lar app"</b>.');
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-ajuda';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Com funciona l\'app</div>'
+    + '<div class="modal-sub">El teu espai d\'inversió, al mòbil. Aquí tens què pots fer:</div>'
+    + ajudaItem('📊', 'Cartera', 'Veus el valor total, quant has aportat, el teu guany real i com es reparteix entre famílies d\'actius.')
+    + ajudaItem('💱', 'Actualitzar valors', 'Un cop al mes, poses el valor de mercat de cada posició (el trobes al teu bróker). Així el rendiment és real.')
+    + ajudaItem('➕', 'Aportar', 'Et diem quant i on aportar segons el teu pla, i registres el que has aportat perquè quedi historial.')
+    + ajudaItem('📈', 'Evolució', 'El gràfic mostra com creix la teva cartera mes a mes, comparada amb el total que has aportat.')
+    + ajudaItem('💬', 'Missatges', 'Parla directament amb el teu assessor.')
+    + '<div style="background:var(--g50);border-radius:11px;padding:14px;margin-top:6px">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px">📲 Instal·lar al mòbil</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.6">'+instalLn+'</div>'
+      + '<div style="font-size:11px;color:var(--g400);line-height:1.5;margin-top:8px">Un cop instal·lada, entra una vegada i després s\'obrirà sense demanar el correu ni la contrasenya.</div>'
+    + '</div>'
+    + '<button class="btn-primary" style="margin-top:16px" onclick="tancarAjuda()">Entesos</button>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarAjuda(); });
+}
+function ajudaItem(emoji, titol, desc){
+  return '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">'
+    + '<div style="font-size:20px;flex-shrink:0">'+emoji+'</div>'
+    + '<div><div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:2px">'+titol+'</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.5">'+desc+'</div></div>'
+  + '</div>';
+}
+function tancarAjuda(){ var m = $('modal-ajuda'); if (m) m.parentNode.removeChild(m); }
+
+
 // ════════════════════════════════════════════
 // INSTAL·LACIÓ DE L'APP (PWA)
 // Botó/banner per instal·lar a la pantalla d'inici.
