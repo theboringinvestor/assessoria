@@ -79,7 +79,7 @@ input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
   position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--g100);
   display:flex;padding-bottom:var(--safe-bottom);z-index:100;
 }
-.nav button{flex:1;padding:10px 4px 8px;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--g400);font-size:10px;font-weight:500}
+.nav button{flex:1;padding:10px 2px 8px;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--g400);font-size:10px;font-weight:500;white-space:nowrap}
 .nav button.active{color:var(--navy)}
 .nav button .ic{font-size:20px;line-height:1}
 
@@ -168,6 +168,7 @@ input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
   <div class="nav">
     <button id="nav-cartera" class="active" onclick="go('cartera')"><span class="ic">📊</span>Cartera</button>
     <button id="nav-evolucio" onclick="go('evolucio')"><span class="ic">📈</span>Evolució</button>
+    <button id="nav-aportar" onclick="go('aportar')"><span class="ic">➕</span>Aportar</button>
     <button id="nav-missatges" onclick="go('missatges')"><span class="ic">💬</span>Missatges</button>
   </div>
 </div>
@@ -374,14 +375,15 @@ async function carregarClient(email){
 // ════════════════════════════════════════════
 function go(view){
   APP.view = view;
-  ['cartera','evolucio','missatges'].forEach(function(v){
+  ['cartera','evolucio','aportar','missatges'].forEach(function(v){
     var b = $('nav-'+v);
     if (b) b.classList.toggle('active', v === view);
   });
-  var titols = { cartera:'La meva cartera', evolucio:'Evolució', missatges:'Missatges' };
+  var titols = { cartera:'La meva cartera', evolucio:'Evolució', aportar:'Aportar', missatges:'Missatges' };
   $('topbar-ttl').textContent = titols[view] || 'The Boring Investor';
   if (view === 'cartera') renderCartera();
   else if (view === 'evolucio') renderEvolucio();
+  else if (view === 'aportar') renderAportar();
   else if (view === 'missatges') renderMissatges();
 }
 
@@ -726,6 +728,347 @@ async function enviarMissatge(){
     toast('Error enviant: '+(e.message||e));
   }
 }
+
+// ════════════════════════════════════════════
+// VISTA: APORTAR
+// Mostra quant i on toca aportar aquest mes (segons cartera target i
+// desviació real, com fa platform.html) i permet REGISTRAR l'aportació
+// feta com a moviments de tipus 'compra' (queda historial i compta al P&L).
+// ════════════════════════════════════════════
+
+// Cartera target del client (array {id,nom,pct,color}); buida si no n'hi ha.
+function getTarget(){
+  var c = APP.client;
+  return (c && Array.isArray(c.cartera_target_custom)) ? c.cartera_target_custom : [];
+}
+
+// Aportació mensual configurada (de perfil.aportacioMensual). 0 si no n'hi ha.
+function getAportacioMensual(){
+  var c = APP.client;
+  if (c && c.perfil && c.perfil.aportacioMensual != null){
+    var v = parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.'));
+    return isNaN(v) ? 0 : v;
+  }
+  return 0;
+}
+
+// Distribució real per categoria: {cat: valor_sumat}
+function distribucioRealPerCat(){
+  var per = {};
+  getPosicions().forEach(function(p){
+    var cat = p.cat || 'altres';
+    var v = parseFloat(p.valor_actual)||0;
+    per[cat] = (per[cat]||0) + v;
+  });
+  return per;
+}
+
+// Algoritme idèntic a calcMatchingITactic de platform.html, però usant
+// cartera_target_custom (que ja porta nom i color per categoria).
+// Retorna { rows:[...], recomanacio:[{cat,nom,color,import,motiu}], valorActual, valorPost, aport }
+function calcAportacio(aport){
+  var target = getTarget();
+  if (!target.length) return null;
+  var real = distribucioRealPerCat();
+  var valorActual = 0;
+  Object.keys(real).forEach(function(k){ valorActual += real[k]; });
+  aport = parseFloat(aport)||0;
+  var valorPost = valorActual + aport;
+
+  var rows = target.map(function(t){
+    var catId = t.id || t.nom;
+    var realEur = real[catId] || 0;
+    var targetPct = parseFloat(t.pct)||0;
+    var targetEur = targetPct/100 * valorPost;
+    var gapEur = targetEur - realEur; // positiu = infraponderat
+    return {
+      cat: catId,
+      nom: t.nom || catId,
+      color: t.color || '#888',
+      targetPct: targetPct,
+      realEur: realEur,
+      realPct: valorPost > 0 ? (realEur/valorPost*100) : 0,
+      gapEur: gapEur
+    };
+  });
+
+  var ordenat = rows.slice().sort(function(a,b){ return b.gapEur - a.gapEur; });
+  var recomanacio = [];
+  if (aport > 0){
+    var top2 = ordenat.filter(function(r){ return r.gapEur > 0; }).slice(0,2);
+    if (top2.length === 0){
+      // cartera equilibrada -> DCA als 2 pesos target més grans
+      var t2 = rows.slice().sort(function(a,b){ return b.targetPct - a.targetPct; }).slice(0,2);
+      var sumP = t2.reduce(function(s,r){ return s+r.targetPct; }, 0);
+      recomanacio = t2.map(function(r){
+        var pct = sumP > 0 ? r.targetPct/sumP : 0.5;
+        return { cat:r.cat, nom:r.nom, color:r.color, import:Math.round(aport*pct), motiu:'DCA equilibrat' };
+      });
+    } else {
+      var sumG = top2.reduce(function(s,r){ return s+r.gapEur; }, 0);
+      recomanacio = top2.map(function(r){
+        var pct = sumG > 0 ? r.gapEur/sumG : 1/top2.length;
+        return { cat:r.cat, nom:r.nom, color:r.color, import:Math.round(aport*pct), motiu:'Infraponderat' };
+      });
+    }
+  }
+  return { rows:rows, recomanacio:recomanacio, valorActual:valorActual, valorPost:valorPost, aport:aport };
+}
+
+// Quantes aportacions s'han registrat aquest mes (per avisar si ja s'ha fet)
+function aportacionsAquestMes(){
+  var mes = mesActual();
+  return getMoviments().filter(function(m){
+    return m.tipus === 'compra' && m.data && String(m.data).slice(0,7) === mes && m.nota && m.nota.indexOf('Aportació') === 0;
+  });
+}
+
+function renderAportar(){
+  var el = $('view');
+  var target = getTarget();
+  var pos = getPosicions();
+
+  if (!pos.length || !target.length){
+    el.innerHTML = '<div class="empty">Encara no tens cartera configurada.<br><br>Quan el teu assessor defineixi la teva cartera, aquí veuràs quant i on aportar cada mes.</div>';
+    return;
+  }
+
+  var aport = getAportacioMensual();
+  var html = '';
+
+  // Cas: sense aportació configurada -> permetre definir-la
+  if (aport <= 0){
+    html += '<div class="card" style="text-align:center">'
+      + '<div style="font-size:30px;margin-bottom:6px">📅</div>'
+      + '<div class="section-h" style="margin:0 0 6px">Quant vols aportar cada mes?</div>'
+      + '<div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:16px">Defineix la teva aportació mensual i et direm a quines categories posar-la per acostar-te a la teva cartera objectiu.</div>'
+      + '<input class="upd-input" id="inp-aport-mens" inputmode="decimal" placeholder="Ex: 300" style="text-align:center;margin-bottom:12px">'
+      + '<button class="btn-primary" onclick="desarAportacioMensual()">Desar aportació mensual</button>'
+      + '</div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  var calc = calcAportacio(aport);
+  var jaFet = aportacionsAquestMes();
+
+  // Capçalera: import mensual
+  html += '<div class="card">'
+    + '<div class="card-lbl">Aportació d\'aquest mes</div>'
+    + '<div class="kpi-big">'+eurRound(aport)+'</div>'
+    + '<div class="kpi-sub" style="color:var(--g500)">Mes de '+nomMesCA(mesActual())+'</div>'
+    + '<button onclick="editarAportMensual()" style="margin-top:10px;background:none;color:var(--navy);font-size:12px;text-decoration:underline">Canviar import</button>'
+    + '</div>';
+
+  // Banner si ja s'ha registrat aquest mes
+  if (jaFet.length){
+    var totalFet = jaFet.reduce(function(s,m){ return s + (parseFloat(m.import)||0); }, 0);
+    html += '<div class="banner-upd" style="background:#EEF3EE;border-color:#A8CDB5">'
+      + '<div class="txt" style="color:#1A5C3A">✓ Aquest mes ja has registrat '+eurRound(totalFet)+' en aportacions.</div></div>';
+  }
+
+  // On toca aportar (recomanació per categoria)
+  html += '<div class="section-h">On aportar aquest mes</div>';
+  html += '<div class="card">';
+  if (calc && calc.recomanacio.length){
+    calc.recomanacio.forEach(function(r){
+      html += '<div class="pos-row">'
+        + '<span style="width:10px;height:10px;border-radius:3px;flex-shrink:0;background:'+r.color+'"></span>'
+        + '<div style="flex:1;min-width:0">'
+          + '<div class="pos-nom">'+esc(r.nom)+'</div>'
+          + '<div class="pos-meta">'+esc(r.motiu)+'</div>'
+        + '</div>'
+        + '<div class="pos-val">'+eurRound(r.import)+'</div>'
+      + '</div>';
+    });
+    html += '<div style="font-size:11px;color:var(--g400);margin-top:10px;line-height:1.5">'
+      + 'Suggerit per acostar la teva cartera a l\'objectiu. Reforça les categories per sota del seu pes ideal.</div>';
+  } else {
+    html += '<div class="empty" style="padding:20px">La teva cartera ja està equilibrada. Pots aportar repartint segons la teva distribució objectiu.</div>';
+  }
+  html += '</div>';
+
+  // Botó registrar
+  html += '<button class="btn-primary" style="margin-bottom:14px" onclick="obrirRegistrarAportacio()">➕ Registrar aportació feta</button>';
+
+  // Distribució objectiu vs real (context)
+  html += '<div class="section-h">La teva cartera objectiu</div><div class="card">';
+  calc.rows.forEach(function(r){
+    var diff = r.targetPct - r.realPct;
+    var diffTxt = (Math.abs(diff) < 0.5) ? 'al punt' : ((diff>0?'+':'')+diff.toFixed(1)+'% per '+(diff>0?'sota':'sobre'));
+    var diffCol = (Math.abs(diff) < 0.5) ? 'var(--g400)' : (diff>0 ? 'var(--gold)' : 'var(--g500)');
+    html += '<div class="pos-row">'
+      + '<span style="width:10px;height:10px;border-radius:3px;flex-shrink:0;background:'+r.color+'"></span>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div class="pos-nom">'+esc(r.nom)+'</div>'
+        + '<div class="pos-meta">Actual '+r.realPct.toFixed(1)+'% · objectiu '+r.targetPct.toFixed(0)+'%</div>'
+      + '</div>'
+      + '<div class="pos-pnl" style="color:'+diffCol+'">'+diffTxt+'</div>'
+    + '</div>';
+  });
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+// ── Desar / editar aportació mensual configurada ──
+async function desarAportacioMensual(){
+  var inp = $('inp-aport-mens');
+  if (!inp) return;
+  var v = parseNumCA(inp.value);
+  if (isNaN(v) || v < 0){ toast('Posa un import vàlid'); return; }
+  await _persistAportMensual(v);
+}
+function editarAportMensual(){
+  var actual = getAportacioMensual();
+  var nou = prompt('Quant vols aportar cada mes? (€)', actual || '');
+  if (nou === null) return;
+  var v = parseNumCA(nou);
+  if (isNaN(v) || v < 0){ toast('Import no vàlid'); return; }
+  _persistAportMensual(v);
+}
+async function _persistAportMensual(v){
+  var nouPerfil = {};
+  var p = APP.client.perfil;
+  if (p && typeof p === 'object'){ for (var k in p){ if (p.hasOwnProperty(k)) nouPerfil[k] = p[k]; } }
+  nouPerfil.aportacioMensual = v;
+  try {
+    var res = await sb.from('clients').update({ perfil: nouPerfil }).eq('email', APP.email);
+    if (res.error) throw res.error;
+    APP.client.perfil = nouPerfil;
+    toast('✓ Aportació mensual: '+eurRound(v));
+    renderAportar();
+  } catch(e){ toast('Error: '+(e.message||e)); }
+}
+
+// ── Modal: registrar aportació feta (per categoria) ──
+function obrirRegistrarAportacio(){
+  var target = getTarget();
+  var calc = calcAportacio(getAportacioMensual());
+  // Pre-omplir amb la recomanació
+  var pre = {};
+  if (calc && calc.recomanacio){
+    calc.recomanacio.forEach(function(r){ pre[r.cat] = r.import; });
+  }
+
+  var rows = target.map(function(t){
+    var cat = t.id || t.nom;
+    var val = pre[cat] || '';
+    return '<div class="upd-row">'
+      + '<div class="upd-top">'
+        + '<span style="width:12px;height:12px;border-radius:3px;flex-shrink:0;background:'+(t.color||'#888')+'"></span>'
+        + '<div style="flex:1;min-width:0"><div class="pos-nom">'+esc(t.nom||cat)+'</div></div>'
+      + '</div>'
+      + '<input class="upd-input" inputmode="decimal" data-cat="'+esc(cat)+'" data-nom="'+esc(t.nom||cat)+'" '
+        + 'value="'+val+'" placeholder="0 €">'
+    + '</div>';
+  }).join('');
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-aport';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Registrar aportació</div>'
+    + '<div class="modal-sub">Posa quant has aportat a cada categoria aquest mes. Ho hem pre-omplert amb la recomanació; ajusta el que calgui.</div>'
+    + rows
+    + '<div id="aport-total" style="text-align:right;font-family:var(--fm);font-size:14px;font-weight:500;color:var(--navy);margin-top:10px"></div>'
+    + '<div style="display:flex;gap:10px;margin-top:14px">'
+      + '<button onclick="tancarModalAport()" style="flex:1;padding:13px;background:var(--g50);color:var(--g700);border-radius:11px;font-weight:500">Cancel·lar</button>'
+      + '<button class="btn-primary" style="flex:2" id="btn-aport-save" onclick="guardarRegistreAportacio()">Registrar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModalAport(); });
+  // total dinàmic
+  var inps = modal.querySelectorAll('.upd-input');
+  function recalc(){
+    var t = 0;
+    for (var i=0;i<inps.length;i++){ var v = parseNumCA(inps[i].value); if(!isNaN(v)) t += v; }
+    $('aport-total').textContent = 'Total: ' + eurRound(t);
+  }
+  for (var i=0;i<inps.length;i++){ inps[i].addEventListener('input', recalc); }
+  recalc();
+}
+function tancarModalAport(){
+  var m = $('modal-aport'); if (m) m.parentNode.removeChild(m);
+}
+
+async function guardarRegistreAportacio(){
+  var data = avui();
+  var mes = mesActual();
+  var btn = $('btn-aport-save');
+  var pos = getPosicions();
+  var movs = getMoviments().slice();
+
+  var inputs = document.querySelectorAll('#modal-aport .upd-input');
+  var nous = [];
+  var totalAport = 0;
+  for (var i=0;i<inputs.length;i++){
+    var inp = inputs[i];
+    var cat = inp.getAttribute('data-cat');
+    var v = parseNumCA(inp.value);
+    if (isNaN(v) || v <= 0) continue;
+    // Buscar una posició d'aquesta categoria per vincular el moviment
+    var posCat = pos.find(function(p){ return (p.cat||'') === cat; });
+    if (!posCat){
+      // No hi ha posició d'aquesta categoria encara: registrem igualment
+      // vinculant a la primera posició (l'import compta al cost global).
+      posCat = pos[0];
+    }
+    if (!posCat) continue;
+    totalAport += v;
+    nous.push({
+      id: novaId('mov'),
+      posicio_id: posCat.id,
+      data: data,
+      tipus: 'compra',
+      import: v,
+      unitats: null,
+      preu_unitat: null,
+      nota: 'Aportació ' + nomMesCA(mes) + ' · ' + (inp.getAttribute('data-nom')||cat)
+    });
+  }
+
+  if (!nous.length){ toast('Posa almenys un import'); return; }
+
+  // Afegir el valor aportat al valor_actual de la posició corresponent
+  // (l'aportació augmenta tant el cost com el valor de mercat de partida).
+  var posAct = pos.slice();
+  nous.forEach(function(m){
+    var p = posAct.find(function(x){ return x.id === m.posicio_id; });
+    if (p){ p.valor_actual = (parseFloat(p.valor_actual)||0) + (parseFloat(m.import)||0); p.valor_data = data; }
+  });
+
+  var allMovs = movs.concat(nous);
+
+  // Actualitzar snapshot del mes
+  var valorTotal = posAct.reduce(function(s,p){ return s+(parseFloat(p.valor_actual)||0); }, 0);
+  var invertit = 0;
+  allMovs.forEach(function(m){ var im=parseFloat(m.import)||0; if(m.tipus==='compra')invertit+=im; if(m.tipus==='venda')invertit-=im; });
+  var snaps = getSnapshots().slice();
+  var idx = snaps.findIndex(function(s){ return s.mes === mes; });
+  var nou = { mes:mes, data:data, valor:valorTotal, invertit:invertit };
+  if (idx >= 0) snaps[idx] = nou; else snaps.push(nou);
+  snaps.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
+  if (btn){ btn.disabled = true; btn.textContent = 'Registrant...'; }
+  try {
+    var res = await sb.from('clients')
+      .update({ posicions: posAct, moviments_posicions: allMovs, snapshots_cartera: snaps })
+      .eq('email', APP.email);
+    if (res.error) throw res.error;
+    APP.client.posicions = posAct;
+    APP.client.moviments_posicions = allMovs;
+    APP.client.snapshots_cartera = snaps;
+    tancarModalAport();
+    toast('✓ Aportació registrada · '+eurRound(totalAport));
+    renderAportar();
+  } catch(e){
+    if (btn){ btn.disabled = false; btn.textContent = 'Registrar'; }
+    toast('Error: '+(e.message||e));
+  }
+}
+
 
 // ════════════════════════════════════════════
 // MANIFEST embegut + arrencada
