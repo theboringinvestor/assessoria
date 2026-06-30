@@ -2407,12 +2407,23 @@ async function doRegister() {
     if (res.error) throw res.error;
 
     // 2. Crear el registre a la taula clients (amb pla Senyal per defecte)
-    await sb.from('clients').upsert({
+    // CRÍTIC: status s'especifica explícitament a 'pending'. No confiar només
+    // en el DEFAULT de la columna a la BD — un client auto-registrat NO ha
+    // d'estar mai actiu fins que l'admin l'aprovi explícitament.
+    // .select() és imprescindible per detectar si l'escriptura ha fallat en
+    // silenci (RLS, etc.) i poder avisar l'usuari en lloc de donar fals èxit.
+    var resClient = await sb.from('clients').upsert({
       email: email,
       nom: nom,
       pla: 'senyal',
+      status: 'pending',
       perfil: { capitalInicial: '—', aportacioMensual: '—', horitzo: '—', objectiu: '—', riscFinancer: '—', riscEmocional: '—' }
-    }, { onConflict: 'email' });
+    }, { onConflict: 'email' }).select('id,status');
+
+    if (resClient.error) throw resClient.error;
+    if (!resClient.data || resClient.data.length === 0) {
+      throw new Error('No s\'ha pogut crear la fila de client (possible problema RLS).');
+    }
 
     msg.className = 'login-msg ok';
     msg.textContent = '✓ Compte creat! Revisa el teu email per confirmar-lo, o accedeix directament.';
