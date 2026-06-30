@@ -3654,13 +3654,17 @@ function renderView(viewId) {
   var content = document.getElementById('content');
   
   // Bloqueig per "client nou": si encara no ha completat el qüestionari,
-  // redirigir-lo directament a fer-lo
-  if (APP.role !== 'admin' && viewId.startsWith('portal-') && viewId !== 'pending-review') {
+  // redirigir-lo directament a fer-lo.
+  // EXCEPCIÓ: un client en espera de validació (pending/review/rejected) SÍ que
+  // pot accedir a la seva fitxa (opcional, per avançar feina mentre espera) i a
+  // la missatgeria (per contactar l'assessor). La resta de portal-* queden vetats.
+  var PENDING_ALLOWED = ['pending-review', 'portal-fitxa', 'portal-missatges'];
+  if (APP.role !== 'admin' && viewId.startsWith('portal-') && PENDING_ALLOWED.indexOf(viewId) < 0) {
     if (esClientNou(APP.clientData)) {
       redirectToQuestionnaire();
       return;
     }
-    // Si client té status≠active, només pot accedir a pending-review
+    // Si client té status≠active, només pot accedir a les vistes permeses en espera
     if (APP.clientData && APP.clientData.status && APP.clientData.status !== 'active') {
       navigateTo('pending-review');
       return;
@@ -5977,10 +5981,16 @@ async function guardarFitxa(){
   if (APP.clientData && APP.clientData.email && APP.clientData.email.toLowerCase()===email) APP.clientData.perfil_assessor = perfil;
   var ok = true;
   if (sb){
-    try { var r = await sb.from('clients').update({ perfil_assessor: perfil }).eq('email', email); if (r.error) throw r.error; }
+    try {
+      // .select() retorna les files REALMENT afectades. Si en surten 0, l'escriptura
+      // ha estat rebutjada en silenci (RLS) i no s'ha persistit res al núvol.
+      var r = await sb.from('clients').update({ perfil_assessor: perfil }).eq('email', email).select('email');
+      if (r.error) throw r.error;
+      if (!r.data || r.data.length === 0) { ok = false; console.warn('guardarFitxa: UPDATE ha afectat 0 files (RLS o sessió):', email); }
+    }
     catch(e){ ok=false; console.warn('guardarFitxa (núvol):', e && e.message); }
-  }
-  toast(ok ? '✓ Fitxa desada' : '✓ Desada localment');
+  } else { ok = false; }
+  toast(ok ? '✓ Fitxa desada' : '⚠ No s\'ha pogut desar al núvol. Torna-ho a provar o avisa l\'assessor.');
   renderView('portal-fitxa');
 }
 
@@ -6027,6 +6037,11 @@ function renderPortalFitxa(el){
   var meta = perfil._meta || {};
 
   var html = '<div class="content-inner fade-in" style="max-width:920px;margin:0 auto">';
+  // Si el client està en espera de validació, oferir tornada a la pantalla d'estat.
+  if (!esAdmin && c.status && c.status !== 'active') {
+    html += '<div onclick="navigateTo(\'pending-review\')" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;color:var(--g600);margin-bottom:14px">'
+      + '<span style="font-size:14px">&larr;</span> Tornar a l\'estat de la sol·licitud</div>';
+  }
   html += '<div style="margin-bottom:18px">'
     + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px">'+(esAdmin?'Fitxa del client':'La meva fitxa d\'assessorament')+'</div>'
     + '<div style="font-size:13px;color:var(--g500);line-height:1.6">'+(esAdmin
@@ -14798,6 +14813,28 @@ function renderPendingReview(el) {
     if (c.scoring)  html += '<div class="pr-card-cell"><div class="pr-cell-lbl">Scoring</div><div class="pr-cell-val pr-cell-accent">' + c.scoring + '/100</div></div>';
     if (date)       html += '<div class="pr-card-cell"><div class="pr-cell-lbl">Enviat</div><div class="pr-cell-val">' + date + '</div></div>';
     html += '</div></div>';
+  }
+  
+  // ── FITXA OPCIONAL (avançar feina mentre s'espera la validació) ──
+  // No bloqueja l'alta: és estrictament voluntària, però ajuda l'assessor a
+  // personalitzar abans i sol accelerar l'activació.
+  if (status !== 'rejected') {
+    var _fComp = 0;
+    try { _fComp = calcFitxaCompleteness(c.perfil_assessor || {}); } catch(e) {}
+    var _fTitol = _fComp > 0 ? 'Continua la teva fitxa' : 'Avança mentre esperes (opcional)';
+    var _fText  = _fComp > 0
+      ? 'Tens la fitxa al ' + _fComp + '%. Completar-la ajuda l\'assessor a afinar la teva cartera.'
+      : 'Pots emplenar la teva fitxa d\'assessorament (situació, objectius, fiscalitat...). És opcional, però com més completa, més personalitzat serà l\'assessorament.';
+    html += '<div class="pr-card" style="cursor:pointer;border:1px solid ' + cfg.accent + '33;background:' + cfg.accentSoft + '" onclick="navigateTo(\'portal-fitxa\')">'
+      + '<div style="display:flex;align-items:center;gap:13px">'
+        + '<div style="font-size:24px;line-height:1">🗂️</div>'
+        + '<div style="flex:1">'
+          + '<div style="font-size:13.5px;font-weight:600;color:' + cfg.accent + ';margin-bottom:3px">' + _fTitol + '</div>'
+          + '<div style="font-size:12px;color:var(--g600);line-height:1.5">' + _fText + '</div>'
+        + '</div>'
+        + '<div style="font-size:12px;font-weight:600;color:' + cfg.accent + ';white-space:nowrap">' + (_fComp > 0 ? _fComp + '% &rarr;' : 'Completar &rarr;') + '</div>'
+      + '</div>'
+    + '</div>';
   }
   
   // ── ACCIONS ──

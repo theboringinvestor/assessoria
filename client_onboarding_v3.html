@@ -1558,6 +1558,12 @@ async function guardarASupabase() {
   var ar = getArquetip(sc);
   var maxSc = 100; // risc 0-100 del mòdul
   var pct = Math.round(sc / maxSc * 100);
+
+  // Perfil complet del mòdul (capacitat, tolerància, coneixement 0-100, sofisticació...)
+  // El nivell de coneixement (eix A1-A3) alimenta la conveniència MIFID i permet
+  // a l'admin suggerir plantilles segons el nivell del client (dim_coneixement).
+  var perfilCalc = TBI_PERFIL.calcPerfil(ans);
+  var dimConeixement = (perfilCalc && typeof perfilCalc.coneixement === 'number') ? perfilCalc.coneixement : null;
   
   // Build scoring_mods (7 dimensions)
   var scoringMods = [1,2,3,4,5,6,7].map(function(dn) {
@@ -1594,6 +1600,7 @@ async function guardarASupabase() {
     cartera: ar.cartera,
     scoring: pct,
     scoring_mods: scoringMods,
+    dim_coneixement: dimConeixement,
     perfil: perfil,
     cartera_composicio: carteraComp,
     nota: '',
