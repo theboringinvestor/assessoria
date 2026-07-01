@@ -17035,7 +17035,7 @@ function renderPlansScreen(el) {
     if (isCurrent) {
       html += '<button disabled style="width:100%;padding:11px;background:var(--g100);color:var(--g400);border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--fb);cursor:default">Pla actiu</button>';
     } else {
-      html += '<button onclick="sollicitarPla(\'' + pid + '\')" style="width:100%;padding:11px;background:' + p.color + ';color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--fb);cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">Sol·licitar →</button>';
+      html += '<button onclick="' + (pid==='partner'?'sollicitarPla':'iniciarCheckout') + '(\'' + pid + '\')" style="width:100%;padding:11px;background:' + p.color + ';color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;font-family:var(--fb);cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">' + (pid==='partner'?'Sol·licitar →':'Contractar →') + '</button>';
     }
     html += '</div>';
   });
