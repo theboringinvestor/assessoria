@@ -15132,7 +15132,10 @@ async function renderAdminNewsletter(el) {
     + '<div style="font-size:13px;color:var(--g500);line-height:1.65;max-width:560px">'
       + 'Redacta i envia la píndola setmanal als clients. Ara mateix hi ha <strong style="color:var(--accent)">' + optIn + '</strong> clients subscrits (amb opt-in). Fes sempre una prova al teu correu abans d\'enviar de debò.'
     + '</div>'
-    + '<button onclick="obrirEditorNewsletter(null)" style="padding:11px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap">＋ Nou número</button>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '<button id="btn-nl-ia" onclick="generarNewsletterIA(this)" style="padding:11px 22px;background:#1B3A6B;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap">✨ Generar amb IA</button>'
+      + '<button onclick="obrirEditorNewsletter(null)" style="padding:11px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap">＋ Nou número</button>'
+    + '</div>'
   + '</div>';
 
   if (rows.length === 0) {
@@ -15422,6 +15425,31 @@ async function enviarNewsletterReal(id) {
     setTimeout(function(){ navigateTo('admin-newsletter'); }, 1500);
   } catch(e) {
     toast('Error: ' + (e.message || e));
+  }
+}
+
+async function generarNewsletterIA(btn) {
+  if (!sb || !sb.functions) { toast('Functions no disponible'); return; }
+  var msg = 'Generar un nou esborrany amb IA?\n\n'
+    + 'Agafar\u00e0 el seg\u00fcent tema pendent del backlog i crear\u00e0 un ESBORRANY.\n'
+    + 'No s\u2019envia res als clients: el revises tu i decideixes.';
+  if (!confirm(msg)) return;
+  if (btn) { btn.disabled = true; btn.textContent = '\u23f3 Generant... (30-60 s)'; }
+  toast('Generant esborrany amb IA...');
+  try {
+    var res = await sb.functions.invoke('generar-newsletter', { body: {} });
+    if (res.error) throw res.error;
+    var d = res.data || {};
+    if (d.ok) {
+      toast('\u2713 Esborrany n\u00fam. ' + d.numero + ' creat' + (d.temes_pendents != null ? ' \u00b7 ' + d.temes_pendents + ' temes pendents' : ''));
+      setTimeout(function(){ navigateTo('admin-newsletter'); }, 1200);
+    } else {
+      toast('No generat: ' + (d.error || 'error desconegut'));
+      if (btn) { btn.disabled = false; btn.textContent = '\u2728 Generar amb IA'; }
+    }
+  } catch(e) {
+    toast('Error: ' + (e.message || e));
+    if (btn) { btn.disabled = false; btn.textContent = '\u2728 Generar amb IA'; }
   }
 }
 
