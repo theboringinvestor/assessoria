@@ -861,7 +861,8 @@ section{padding:100px 28px}
           <li>Pack x3 ideal p<span class="i18n" data-i18n="k165">er revisar diverses posicion</span>s</li>
           <li>Desco<span class="i18n" data-i18n="k166">mptable del Pack Inici si després hi entre</span>s</li>
         </ul>
-        <a href="https://wa.me/34629340892?text=M%27interessa%20un%20estudi%2Fconsulta%20puntual%20%2859%E2%82%AC%20o%20x3%20149%E2%82%AC%29" target="_blank"><button class="btn-secondary" style="width:100%;justify-content:center;font-size:14px;border-color:rgba(200,165,74,.4);color:var(--gold)"><span class="i18n" data-i18n="k167">Demanar un estudi</span> →</button></a>
+        <button class="btn-primary" style="width:100%;justify-content:center;font-size:14px" onclick="comprarLanding('consulta', this)">Comprar estudi · 59€ →</button>
+        <button class="btn-secondary" style="width:100%;justify-content:center;font-size:13px;margin-top:8px;border-color:rgba(200,165,74,.4);color:var(--gold)" onclick="comprarLanding('pack3', this)">Pack de 3 estudis · 149€ →</button>
         <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.35);text-align:center;line-height:1.6"><span class="i18n" data-i18n="k168">Lliurament típic en 3–5 die</span>s laborables</div>
       </div>
     </div>
@@ -1560,6 +1561,36 @@ window.addEventListener("resize",function(){calcAll();drawTbiChart();ciUpdate();
 (function(){var L="ca";try{var s=localStorage.getItem("tbi_lang");if(s==="es"||s==="ca")L=s;}catch(e){}
  var bs=document.querySelectorAll(".lang-btn");for(var b=0;b<bs.length;b++){bs[b].classList.toggle("active",bs[b].getAttribute("data-lang")===L);}
  if(L!=="ca")setLang(L);})();
+</script>
+<script>
+(function(){
+  var TBI_URL='https://nvcmwhzcskihgktltavm.supabase.co/functions/v1/create-checkout-public';
+  var TBI_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
+  window.comprarLanding = async function(itemId, btn){
+    var original = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = 'Connectant\u2026'; }
+    try{
+      var r = await fetch(TBI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'apikey': TBI_ANON, 'Authorization':'Bearer ' + TBI_ANON },
+        body: JSON.stringify({ itemId: itemId })
+      });
+      var d = await r.json();
+      if(!r.ok || !d.url) throw new Error(d.error || 'Error');
+      window.location.href = d.url;
+    }catch(e){
+      if(btn){ btn.disabled = false; btn.textContent = original; }
+      alert('No s\u2019ha pogut iniciar el pagament. Torna-ho a provar en un moment.');
+    }
+  };
+  var p = new URLSearchParams(location.search);
+  if(p.get('compra') === 'success'){
+    setTimeout(function(){
+      alert('\u2713 Compra completada. Gr\u00e0cies! Rebr\u00e0s un correu i Guillem es posar\u00e0 en contacte per coordinar-la.');
+      history.replaceState({}, '', location.pathname);
+    }, 400);
+  }
+})();
 </script>
 </body>
 </html>
