@@ -14985,6 +14985,19 @@ async function renderAdminBroadcast(el) {
       if (sel) sel.style.display = this.value === 'pla' ? 'block' : 'none';
     });
   });
+
+  // Autosalvar l'esborrany mentre s'escriu (protecci\u00f3 contra rec\u00e0rregues de p\u00e0gina)
+  try {
+    var bcA = document.getElementById('bc-assumpte');
+    var bcC = document.getElementById('bc-cos');
+    var dA = localStorage.getItem('tbi_bc_draft_assumpte') || '';
+    var dC = localStorage.getItem('tbi_bc_draft_cos') || '';
+    if (bcA && dA) bcA.value = dA;
+    if (bcC && dC) bcC.value = dC;
+    if (dA || dC) toast('S\u2019ha recuperat l\u2019esborrany del comunicat');
+    if (bcA) bcA.addEventListener('input', function(){ try { localStorage.setItem('tbi_bc_draft_assumpte', this.value); } catch(e){} });
+    if (bcC) bcC.addEventListener('input', function(){ try { localStorage.setItem('tbi_bc_draft_cos', this.value); } catch(e){} });
+  } catch(e) { console.warn('draft comunicat:', e); }
 }
 
 function previsualitzarBroadcast() {
@@ -15078,6 +15091,7 @@ async function enviarBroadcast() {
     var ass = document.getElementById('bc-assumpte'); if (ass) ass.value = '';
     var cosel = document.getElementById('bc-cos'); if (cosel) cosel.value = '';
     var prev = document.getElementById('bc-preview'); if (prev) prev.style.display = 'none';
+    try { localStorage.removeItem('tbi_bc_draft_assumpte'); localStorage.removeItem('tbi_bc_draft_cos'); } catch(e2){}
     // Refrescar per veure historial actualitzat
     setTimeout(function(){ navigateTo('admin-broadcast'); }, 2000);
 
@@ -15448,7 +15462,14 @@ async function generarNewsletterIA(btn) {
       if (btn) { btn.disabled = false; btn.textContent = '\u2728 Generar amb IA'; }
     }
   } catch(e) {
-    toast('Error: ' + (e.message || e));
+    var emsg = (e && e.message) || String(e);
+    try {
+      if (e && e.context && typeof e.context.json === 'function') {
+        var ebody = await e.context.json();
+        if (ebody && ebody.error) emsg = ebody.error;
+      }
+    } catch(e2) {}
+    toast('Error: ' + emsg);
     if (btn) { btn.disabled = false; btn.textContent = '\u2728 Generar amb IA'; }
   }
 }
