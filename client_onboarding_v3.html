@@ -1316,6 +1316,7 @@ function next(){
   cur++;
   while(_skipDades(cur)) cur++; // client validat: saltar nom/email
   render('fwd');
+  _onbAutosave();
   setTimeout(()=>going=false,280);
 }
 
@@ -1325,6 +1326,7 @@ function prev(){
   cur--;
   while(cur>0 && _skipDades(cur)) cur--; // client validat: saltar nom/email
   render('bwd');
+  _onbAutosave();
   setTimeout(()=>going=false,280);
 }
 
@@ -1363,7 +1365,8 @@ async function enviarITancar(){
     return; // ← important: NO iniciem countdown
   }
 
-  // 3. Guardat OK — mostrar confirmació i botó de portal
+  // 3. Guardat OK — netejar el progrés autodesat i mostrar confirmació
+  _onbClearSaved();
   if (btn) {
     btn.textContent = ONB_LANG === 'es' ? '✓ Perfil guardado' : '✓ Perfil guardat';
     btn.style.background = '#1A5C3A';
@@ -1402,8 +1405,8 @@ function mostrarErrorGuardat(errMsg) {
       + '<div style="font-weight:500;margin-bottom:6px">' + (isEs ? '⚠ Tu sesión ha caducado' : '⚠ La teva sessió ha caducat') + '</div>'
       + '<div style="font-size:11px;color:#8B3A2A;margin-bottom:10px">'
         + (isEs
-          ? 'No hemos podido guardar tus respuestas porque tu sesión no estaba activa. Vuelve a iniciar sesión y repite el cuestionario.'
-          : 'No hem pogut desar les teves respostes perquè la teva sessió no estava activa. Torna a iniciar sessió i repeteix el qüestionari.')
+          ? 'No hemos podido guardar tus respuestas porque tu sesión no estaba activa. Tranquilo: tus respuestas están guardadas en este dispositivo. Vuelve a iniciar sesión y las recuperaremos automáticamente para que solo tengas que enviarlas de nuevo.'
+          : 'No hem pogut desar les teves respostes perquè la teva sessió no estava activa. Tranquil: les respostes queden desades en aquest dispositiu. Torna a iniciar sessió i les recuperarem automàticament perquè només les hagis de tornar a enviar.')
       + '</div>'
       + '<button onclick="window.location.href=\'platform.html\'" style="padding:8px 14px;background:#0A0A0A;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit">' + (isEs ? 'Volver a iniciar sesión' : 'Tornar a iniciar sessió') + '</button>';
     btn.parentNode.insertBefore(panel, btn.nextSibling);
@@ -1815,8 +1818,47 @@ function descarregarJSON(data){
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
+// ── AUTODESAT LOCAL DE RESPOSTES ──
+// Es desa el progrés a localStorage a cada pas. Si el navegador recarrega
+// la pàgina (mòbil), la sessió caduca o el desat a Supabase falla, les
+// respostes NO es perden: es recuperen automàticament en tornar a entrar.
+var ONB_SAVE_KEY = 'tbi_onb_progress';
+function _onbAutosave(){
+  try {
+    localStorage.setItem(ONB_SAVE_KEY, JSON.stringify({ ans: ans, txt: txt, actius: actius, cur: cur, ts: Date.now() }));
+  } catch(e){}
+}
+function _onbClearSaved(){ try { localStorage.removeItem(ONB_SAVE_KEY); } catch(e){} }
+function _onbRestore(){
+  try {
+    var raw = localStorage.getItem(ONB_SAVE_KEY);
+    if (!raw) return false;
+    var s = JSON.parse(raw);
+    // Descartem progressos de fa més de 24h
+    if (!s || !s.ts || (Date.now() - s.ts) > 24*3600*1000) { _onbClearSaved(); return false; }
+    var nAns = Object.keys(s.ans || {}).length;
+    if (!nAns) return false;
+    // Si hi ha sessió activa i el progrés desat era d'un altre email, descartar
+    if (txt.email && s.txt && s.txt.email && s.txt.email !== txt.email) { _onbClearSaved(); return false; }
+    var sessEmail = txt.email, sessNom = txt.nom;
+    Object.keys(s.ans || {}).forEach(function(k){ ans[k] = s.ans[k]; });
+    Object.keys(s.txt || {}).forEach(function(k){ if (txt[k] === undefined || txt[k] === '') txt[k] = s.txt[k]; });
+    if (sessEmail) txt.email = sessEmail; // la sessió mana sobre el desat
+    if (sessNom)   txt.nom   = sessNom;
+    if (Array.isArray(s.actius) && s.actius.length) actius = s.actius;
+    if (typeof s.cur === 'number' && s.cur > 0 && s.cur < QS.length) cur = s.cur;
+    while (_skipDades(cur)) cur++;
+    render('none');
+    var pBar = document.getElementById('progress');
+    if (pBar) pBar.style.width = Math.round((cur / (QS.length - 1)) * 100) + '%';
+    toast(ONB_LANG === 'es' ? '✓ Hemos recuperado tus respuestas anteriores' : '✓ Hem recuperat les teves respostes anteriors');
+    return true;
+  } catch(e){ return false; }
+}
+
 function reiniciar(){
   if(!confirm('Vols esborrar totes les respostes i tornar a començar?')) return;
+  _onbClearSaved();
   [ans,txt].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   actius=[{nom:'',pct:'',plat:''}];
   cur=0;
@@ -1933,6 +1975,10 @@ async function inicialitzarQüestionari() {
   // Restaurar llengua
   ONB_LANG = localStorage.getItem('onb_lang') || 'ca';
   setOnbLang(ONB_LANG);
+
+  // Recuperar el progrés autodesat (si n'hi ha) — després de conèixer la
+  // sessió, perquè el filtre per email funcioni correctament.
+  _onbRestore();
 }
 
 function _mostrarBannerSessio(nom, email) {
