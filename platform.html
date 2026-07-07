@@ -15385,6 +15385,11 @@ function _nlStatusBadge(status) {
   return '<span style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;background:#FEF5E7;color:#7A4A00">Esborrany</span>';
 }
 
+function _nlAprovatBadge(aprovat) {
+  if (!aprovat) return '';
+  return '<span style="display:inline-block;margin-left:6px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;background:#EAF0FB;color:#1B3A6B">✓ Aprovat</span>';
+}
+
 async function renderAdminNewsletter(el) {
   if (APP.role !== 'admin') return;
   el.innerHTML = '<div class="content-inner"><div style="text-align:center;padding:40px;color:var(--g500)">Carregant newsletter...</div></div>';
@@ -15409,6 +15414,7 @@ async function renderAdminNewsletter(el) {
   html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:8px">'
     + '<div style="font-size:13px;color:var(--g500);line-height:1.65;max-width:560px">'
       + 'Redacta i envia la píndola setmanal als clients. Ara mateix hi ha <strong style="color:var(--accent)">' + optIn + '</strong> clients subscrits (amb opt-in). Fes sempre una prova al teu correu abans d\'enviar de debò.'
+      + ' <strong>Cada dilluns a les 18:00</strong> un cron intenta enviar l\'últim esborrany automàticament — només ho fa si l\'has marcat com a <strong style="color:#1B3A6B">Aprovat</strong>.'
     + '</div>'
     + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
       + '<button id="btn-nl-ia" onclick="generarNewsletterIA(this)" style="padding:11px 22px;background:#1B3A6B;color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap">✨ Generar amb IA</button>'
@@ -15434,13 +15440,14 @@ async function renderAdminNewsletter(el) {
             + '<div style="font-family:var(--fd);font-size:18px;color:var(--black)">' + escapeHtml(nl.titol || '(sense títol)') + '</div>'
             + (nl.assumpte ? '<div style="font-size:12px;color:var(--g500);margin-top:3px">Assumpte: ' + escapeHtml(nl.assumpte) + '</div>' : '')
           + '</div>'
-          + '<div style="text-align:right;white-space:nowrap">' + _nlStatusBadge(nl.status) + '<div style="font-size:10px;color:var(--g400);font-family:var(--fm);margin-top:5px">' + data + '</div></div>'
+          + '<div style="text-align:right;white-space:nowrap">' + _nlStatusBadge(nl.status) + _nlAprovatBadge(nl.aprovat) + '<div style="font-size:10px;color:var(--g400);font-family:var(--fm);margin-top:5px">' + data + '</div></div>'
         + '</div>'
         + (sentInfo ? '<div style="font-size:11px;color:var(--g400);margin-bottom:10px">' + sentInfo + '</div>' : '')
         + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">'
           + '<button onclick="obrirEditorNewsletter(window._nlRows[' + i + '])" class="nl-act">Editar</button>'
           + '<button onclick="previsualitzarNewsletter(\'' + nl.id + '\')" class="nl-act">Previsualitzar</button>'
           + '<button onclick="provaNewsletter(\'' + nl.id + '\')" class="nl-act">Prova al meu correu</button>'
+          + '<button onclick="toggleAprovatNewsletter(\'' + nl.id + '\', ' + (nl.aprovat ? 'false' : 'true') + ')" class="nl-act' + (nl.aprovat ? ' nl-act-aprovat' : '') + '">' + (nl.aprovat ? '✓ Aprovat (treure)' : '✅ Aprovar per al cron') + '</button>'
           + '<button onclick="enviarNewsletterReal(\'' + nl.id + '\')" class="nl-act nl-act-send">Enviar a tots</button>'
           + '<button onclick="esborrarNewsletter(\'' + nl.id + '\')" class="nl-act nl-act-del">Esborrar</button>'
         + '</div>'
@@ -15453,6 +15460,7 @@ async function renderAdminNewsletter(el) {
     + '.nl-act{padding:7px 13px;background:transparent;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)}'
     + '.nl-act:hover{border-color:var(--g300);background:var(--g50)}'
     + '.nl-act-send{border-color:#1B3A6B;color:#1B3A6B;font-weight:600}'
+    + '.nl-act-aprovat{border-color:#1B3A6B;color:#1B3A6B;font-weight:600;background:#EAF0FB}'
     + '.nl-act-del{color:#B23A3A;border-color:#E8C0C0}'
     + '</style>';
 
@@ -15701,6 +15709,21 @@ async function enviarNewsletterReal(id) {
       toast('No s\'ha enviat: ' + ((d.errors && d.errors[0]) || d.error || d.motiu || 'revisa la config'));
     }
     setTimeout(function(){ navigateTo('admin-newsletter'); }, 1500);
+  } catch(e) {
+    toast('Error: ' + (e.message || e));
+  }
+}
+
+async function toggleAprovatNewsletter(id, nouValor) {
+  if (!sb) { toast('Supabase no disponible'); return; }
+  try {
+    var res = await sb.from('newsletters').update({ aprovat: nouValor }).eq('id', id).select();
+    if (res.error) throw res.error;
+    if (!res.data || res.data.length === 0) {
+      throw new Error('No s\'ha desat (revisa permisos RLS / sessió admin).');
+    }
+    toast(nouValor ? '✓ Aprovat — el cron l\'enviarà dilluns a les 18:00' : 'Aprovació retirada — el cron no l\'enviarà');
+    navigateTo('admin-newsletter');
   } catch(e) {
     toast('Error: ' + (e.message || e));
   }
