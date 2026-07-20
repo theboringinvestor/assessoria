@@ -11,7 +11,7 @@
 // despleguis un canvi gros, perquè la closca antiga s'esborri.
 // ───────────────────────────────────────────────────────────
 
-var CACHE_VERSION = 'tbi-v1';
+var CACHE_VERSION = 'tbi-v2';
 var SHELL = ['tbi-app.html', 'manifest.webmanifest'];
 
 // Instal·lació: cachejar la closca mínima
@@ -71,8 +71,8 @@ self.addEventListener('push', function(e){
   var titol = data.title || 'The Boring Investor';
   var opcions = {
     body: data.body || '',
-    icon: 'manifest-icon-192.png',
-    badge: 'manifest-icon-192.png',
+    icon: 'apple-touch-icon.png',
+    badge: 'apple-touch-icon.png',
     tag: data.tag || 'tbi',
     data: { url: data.url || 'tbi-app.html' },
     vibrate: [80, 40, 80]
