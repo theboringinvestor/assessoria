@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ca"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TBI · previsualització de comunicat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;display=swap">
+<style>
+
+:root{
+  --navy:#16233A; --navy2:#24395C; --cream:#F7F5F0; --gold:#C8A54A;
+  --ink:#16233A; --ink-2:#24395C;
+  --sh-1:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.05);
+  --sh-2:0 4px 8px rgba(16,24,40,.05),0 12px 28px rgba(16,24,40,.09);
+  --sh-3:0 8px 16px rgba(16,24,40,.07),0 24px 56px rgba(16,24,40,.14);
+  --black:#16233A; --g700:#3A3A3A; --g500:#6B6762; --g400:#9A9690;
+  --g200:#D9D6D0; --g100:#ECEAE6; --g50:#F4F3F0;
+  --green:#1A5C3A; --red:#C0392B;
+  --gold-dark:#8A6F28;
+  --green-bg:#EAF3DE; --red-bg:#FBEDED; --gold-bg:#FDF8EC;
+  --fd:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fb:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fm:'IBM Plex Mono','SF Mono',Menlo,monospace;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--fb);background:var(--cream);color:var(--black);
+  font-size:15px;line-height:1.5;overscroll-behavior-y:none;
+  -webkit-font-smoothing:antialiased;
+}
+.hidden{display:none !important}
+button{font-family:var(--fb);cursor:pointer;border:none}
+input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
+
+/* ── LOADING ── */
+#splash{
+  position:fixed;inset:0;background:linear-gradient(160deg,var(--ink-2) 0%,var(--ink) 55%,#080F1A 100%);display:flex;
+  flex-direction:column;align-items:center;justify-content:center;z-index:1000;
+}
+#splash .logo{font-family:var(--fd);color:#fff;font-size:30px;letter-spacing:1px}
+#splash .tag{color:rgba(255,255,255,.6);font-size:12px;margin-top:8px;letter-spacing:.05em}
+.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-top:24px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── LOGIN ── */
+#login{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;justify-content:center;padding:32px 26px;padding-top:calc(32px + var(--safe-top));z-index:900}
+#login .brand{font-family:var(--fd);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:6px}
+#login h1{font-family:var(--fd);font-size:30px;font-weight:500;text-align:center;color:var(--navy);margin-bottom:6px;letter-spacing:-.5px}
+#login .sub{text-align:center;color:var(--g500);font-size:13px;margin-bottom:32px;line-height:1.6}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--g500);margin-bottom:6px;font-weight:500}
+.field input{width:100%;padding:13px 14px;border:1.5px solid var(--g200);border-radius:11px;background:#fff;transition:border-color .15s}
+.field input:focus{outline:none;border-color:var(--navy)}
+.btn-primary{width:100%;padding:14px;background:var(--navy);color:#fff;border-radius:11px;font-size:15px;font-weight:600;transition:opacity .15s}
+.btn-primary:active{opacity:.85}
+.btn-primary:disabled{opacity:.5}
+#login-msg{min-height:20px;font-size:12px;text-align:center;margin:12px 0}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;height:100%}
+#app.show{display:flex}
+.topbar{
+  background:linear-gradient(180deg,var(--ink-2) 0%,var(--ink) 100%);color:#fff;padding:calc(14px + var(--safe-top)) 20px 14px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.topbar .ttl{font-family:var(--fd);font-size:18px;font-weight:500}
+.topbar .out{background:rgba(255,255,255,.12);color:#fff;font-size:11px;padding:7px 12px;border-radius:8px;font-weight:500}
+.topbar .out:active{background:rgba(255,255,255,.22)}
+
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 16px;padding-bottom:90px}
+
+/* ── BOTTOM NAV ── */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--g100);
+  display:flex;padding-bottom:var(--safe-bottom);z-index:100;
+  box-shadow:0 -8px 24px rgba(16,24,40,.06);
+}
+.nav button{flex:1;padding:10px 2px 8px;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--g400);font-size:10px;font-weight:500;white-space:nowrap}
+.nav button.active{color:var(--navy)}
+.nav button .ic{font-size:20px;line-height:1}
+
+/* ── CARDS ── */
+.card{background:#fff;border:1px solid var(--g100);border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:var(--sh-1)}
+.card-lbl{font-size:11px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:4px}
+.kpi-big{font-family:var(--fm);font-size:32px;font-weight:500;color:var(--navy);letter-spacing:-1px}
+.kpi-sub{font-size:13px;margin-top:4px;font-family:var(--fm)}
+.pos-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--g50)}
+.pos-row:last-child{border-bottom:none}
+.pos-emoji{font-size:20px;flex-shrink:0}
+.pos-nom{font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-meta{font-size:10px;color:var(--g400);margin-top:1px}
+.pos-val{font-family:var(--fm);font-size:14px;font-weight:500;text-align:right;flex-shrink:0}
+.pos-pnl{font-size:10px;font-family:var(--fm);text-align:right}
+
+.section-h{font-family:var(--fd);font-size:20px;font-weight:500;color:var(--navy);margin:4px 4px 12px}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;background:rgba(10,10,10,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center}
+.modal-inner{background:#fff;border-radius:18px 18px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:22px 18px;padding-bottom:calc(22px + var(--safe-bottom));box-shadow:var(--sh-3)}
+.modal-inner::before{content:'';display:block;width:36px;height:4px;border-radius:99px;background:var(--g200);margin:0 auto 14px}
+.modal-h{font-family:var(--fd);font-size:20px;font-weight:500;color:var(--navy);margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.5}
+.upd-row{padding:14px 0;border-bottom:1px solid var(--g50)}
+.upd-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.upd-input{width:100%;padding:12px 14px;border:1.5px solid var(--g200);border-radius:10px;font-family:var(--fm);text-align:right;font-size:16px}
+.upd-input:focus{outline:none;border-color:var(--navy)}
+
+/* ── CHAT ── */
+/* Sub-tabs dins Missatges */
+.subtabs{display:flex;gap:4px;background:var(--g50);border-radius:11px;padding:4px;margin-bottom:14px;flex-shrink:0}
+.subtabs button{flex:1;padding:9px 6px;background:none;border:none;border-radius:8px;font-size:13px;font-weight:600;color:var(--g500);cursor:pointer;font-family:inherit;position:relative}
+.subtabs button.active{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(10,10,10,.08)}
+.subtabs .dot{position:absolute;top:6px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+/* Targetes de comunicat */
+.com-card{background:#fff;border:1px solid var(--g100);border-radius:13px;padding:16px 18px;margin-bottom:12px;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:var(--sh-1)}
+.com-card:active{border-color:var(--navy)}
+.com-eyebrow{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.com-titol{font-family:var(--fd);font-size:17px;font-weight:500;color:var(--navy);line-height:1.25;margin-bottom:3px}
+.com-subtitol{font-size:13px;color:var(--g500);line-height:1.4;margin-bottom:8px}
+.com-meta{font-size:11px;color:var(--g400);display:flex;align-items:center;gap:8px}
+.com-new-badge{background:var(--gold);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em}
+/* ── COMUNICAT: pantalla completa ── */
+.com-sheet{position:fixed;inset:0;z-index:600;background:var(--g100);display:flex;flex-direction:column;animation:comUp .3s cubic-bezier(.2,.75,.3,1) both}
+.com-sheet.tancant{animation:comDown .22s ease-in both}
+@keyframes comUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes comDown{from{transform:translateY(0)}to{transform:translateY(100%)}}
+.com-top{flex:none;display:flex;align-items:center;gap:12px;padding:calc(9px + var(--safe-top)) 14px 9px;background:rgba(247,245,240,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--g200)}
+.com-x{width:34px;height:34px;border-radius:50%;background:var(--g100);color:var(--navy);font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;font-weight:500}
+.com-x:active{background:var(--g200)}
+.com-top-ttl{flex:1;min-width:0;font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.com-top-data{flex:none;font-family:var(--fm);font-size:10.5px;color:var(--g400)}
+.com-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + var(--safe-bottom))}
+/* El cos manté el disseny de l'email; només se'n força la responsivitat.
+   Cal !important perquè els estils dels emails són inline. */
+.com-body{font-size:14px;line-height:1.65;color:var(--g700)}
+.com-body *{max-width:100% !important;box-sizing:border-box}
+.com-body table{width:100% !important;border-collapse:collapse;table-layout:auto}
+.com-body img{width:auto !important;height:auto !important;display:block}
+.com-body td,.com-body th{word-break:break-word}
+.com-body a{color:var(--navy)}
+.com-body h1,.com-body h2,.com-body h3{line-height:1.15 !important}
+/* Els emails maqueten amb taules i porten la seva pròpia media query dins d'un
+   <style> que aquí s'elimina per seguretat. Es reprodueix el comportament:
+   en pantalla estreta tot passa a una sola columna. */
+@media (max-width:600px){
+  .com-body table,.com-body tbody,.com-body tr,.com-body td,.com-body th{display:block !important;width:100% !important}
+  .com-body h1{font-size:30px !important}
+}
+.com-buit{padding:56px 26px;text-align:center;color:var(--g400);font-size:13px;line-height:1.6}
+
+.chat-wrap{display:flex;flex-direction:column;height:100%}
+.chat-thread{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 12px}
+.bubble{max-width:82%;padding:11px 15px;font-size:14px;line-height:1.55;white-space:pre-line;border-radius:14px}
+.bubble.mine{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+.bubble.theirs{align-self:flex-start;background:#fff;border:1px solid var(--g100);color:var(--black);border-bottom-left-radius:4px}
+.bubble-meta{font-size:9px;color:var(--g400);margin-top:3px;padding:0 4px}
+.chat-input-bar{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--g100)}
+.chat-input-bar textarea{flex:1;padding:11px 13px;border:1.5px solid var(--g200);border-radius:12px;resize:none;max-height:90px;line-height:1.4}
+.chat-input-bar textarea:focus{outline:none;border-color:var(--navy)}
+.chat-send{background:var(--navy);color:#fff;border-radius:12px;padding:0 18px;font-weight:600;font-size:14px}
+.chat-send:disabled{opacity:.5}
+
+.empty{text-align:center;color:var(--g400);font-size:13px;padding:48px 20px;line-height:1.6}
+/* ── EVOLUCIÓ ── */
+.evo-wrap{margin:18px -2px 0;min-height:196px}
+.evo-wrap svg{display:block;width:100%;height:auto;overflow:visible}
+.evo-band{animation:evoFade .55s ease-out both}
+.evo-line-a{animation:evoFade .55s .1s ease-out both}
+.evo-line-v{animation:evoDraw 1s cubic-bezier(.33,0,.15,1) both}
+.evo-dot{transform-box:fill-box;transform-origin:center;animation:evoPop .34s .78s cubic-bezier(.34,1.4,.5,1) both}
+.evo-halo{transform-box:fill-box;transform-origin:center;animation:evoHalo 2.6s 1.1s ease-out infinite}
+@keyframes evoFade{from{opacity:0}to{opacity:1}}
+@keyframes evoDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes evoPop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes evoHalo{0%{opacity:.5;transform:scale(1)}70%,100%{opacity:0;transform:scale(2.6)}}
+.evo-leg{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:14px}
+.evo-leg span{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:var(--g500);font-weight:500}
+.evo-sw{width:11px;height:11px;border-radius:3px;flex:none}
+.evo-sw-l{width:15px;height:3px;border-radius:2px;flex:none}
+.evo-stats{display:flex;gap:9px}
+.evo-stat{flex:1;background:var(--g50);border:1px solid var(--g100);border-radius:11px;padding:11px 12px;min-width:0}
+.evo-stat .l{font-size:9.5px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;white-space:nowrap}
+.evo-stat .v{font-family:var(--fm);font-size:15px;font-weight:500;margin-top:5px;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evo-mix{display:flex;height:9px;border-radius:5px;overflow:hidden;margin-top:16px;background:var(--g100)}
+.evo-mix i{display:block;height:100%;transition:width .5s ease}
+.evo-mix-lbl{font-size:11.5px;color:var(--g500);margin-top:9px;line-height:1.55}
+.evo-sub-lbl{font-size:9.5px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-top:20px;padding-top:15px;border-top:1px solid var(--g50)}
+.evo-nota{font-size:11.5px;color:var(--g400);line-height:1.6;margin-top:14px;padding-top:13px;border-top:1px solid var(--g50)}
+.evo-hd{display:flex;font-size:9.5px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--g100)}
+.evo-hd div+div,.evo-tr div+div{text-align:right}
+.evo-tr{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid var(--g50);font-size:13px}
+.evo-tr:last-child{border-bottom:none}
+.evo-tr .m{flex:1;font-weight:500;color:var(--ink)}
+.evo-num{font-family:var(--fm);font-size:12.5px;letter-spacing:-.2px}
+@media (prefers-reduced-motion:reduce){.evo-band,.evo-line-a,.evo-line-v,.evo-dot,.evo-halo{animation:none}}
+
+.toast{position:fixed;bottom:calc(80px + var(--safe-bottom));left:50%;transform:translateX(-50%);background:var(--black);color:#fff;font-size:13px;padding:11px 18px;border-radius:10px;z-index:800;opacity:0;transition:opacity .2s;max-width:88%;text-align:center}
+.toast.show{opacity:1}
+.banner-upd{background:#FEF7E8;border:1px solid #E8C988;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.banner-upd .txt{flex:1;font-size:12px;color:#7A4A00;line-height:1.5}
+.banner-upd button{background:var(--gold);color:#fff;font-size:12px;font-weight:600;padding:9px 14px;border-radius:9px;flex-shrink:0}
+
+/* ══ POLISH GLOBAL · mateix llenguatge que la plataforma ══ */
+::selection{background:var(--navy);color:#fff}
+button{transition:transform .1s ease,opacity .15s ease,background-color .15s ease,color .15s ease}
+button:not(:disabled):active{transform:translateY(1px)}
+:focus-visible{outline:2px solid var(--navy2);outline-offset:2px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy)!important;box-shadow:0 0 0 3px rgba(27,58,107,.10)}
+.nav button.active .ic{transform:translateY(-1px)}
+.nav button .ic{transition:transform .15s ease}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ── Hero de cartera ── */
+.hero{position:relative;overflow:hidden}
+.hero .spark{position:absolute;left:0;right:0;bottom:0;width:100%;height:48px;pointer-events:none}
+.hero-pnl{font-family:var(--fm);font-size:15px;font-weight:600;margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hero-pill{padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600}
+.hero-grid{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;padding-top:13px;border-top:1px solid var(--g100);position:relative}
+.hero-nota{font-size:11px;color:var(--g400);margin-top:10px;line-height:1.5;position:relative}
+.mini-lbl{font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.mini-val{font-family:var(--fm);font-size:15px;color:var(--g700);margin-top:2px}
+.mini-sub{font-size:10px;color:var(--g400);margin-top:1px}
+
+/* ── Semàfor de coherència ── */
+.salut{display:flex;align-items:center;gap:16px;padding:15px 17px;border-radius:14px;margin-bottom:14px}
+.salut-num{font-family:var(--fm);font-size:26px;font-weight:700;line-height:1;flex-shrink:0}
+.salut-num span{font-size:13px;opacity:.55;font-weight:500}
+.salut-txt{font-size:12px;color:var(--g700);line-height:1.55}
+
+/* ── Cost real ── */
+.ter-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px}
+.ter-big{font-family:var(--fm);font-size:19px;font-weight:600;margin-top:3px}
+
+/* ── Llegenda del donut ── */
+.leg-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.leg-nom{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leg-pct{font-family:var(--fm);font-size:13px;color:var(--g700)}
+
+/* ── Estats buits amb acció ── */
+.empty-rich{text-align:center;padding:44px 26px}
+.empty-ico{font-size:42px;margin-bottom:12px}
+.empty-tit{font-size:19px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.empty-sub{font-size:13.5px;color:var(--g500);line-height:1.65;margin-bottom:22px;max-width:340px;margin-left:auto;margin-right:auto}
+
+/* ── Esquelets de càrrega ── */
+.skel{background:linear-gradient(90deg,var(--g100) 25%,var(--g50) 37%,var(--g100) 63%);
+  background-size:400% 100%;animation:skel 1.3s ease infinite;border-radius:8px}
+@keyframes skel{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.skel-card{height:118px;margin-bottom:14px}
+.skel-row{height:52px;margin-bottom:9px}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+
+/* ── Badge de deriva a la llista de l'objectiu ── */
+.badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:9.5px;font-weight:700;letter-spacing:.02em}
+.badge-ok{background:var(--green-bg);color:var(--green)}
+.badge-infra{background:var(--gold-bg);color:var(--gold-dark)}
+.badge-sobre{background:var(--red-bg);color:var(--red)}
+
+/* nomes per a la previsualitzacio: simular un mobil */
+body{background:#3A3A3A;display:flex;justify-content:center;align-items:flex-start;padding:24px 12px;gap:24px;flex-wrap:wrap}
+.telefon{width:390px;height:800px;position:relative;border-radius:34px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.5);border:1px solid #555;flex:none}
+.telefon .com-sheet{position:absolute;animation:none}
+.telefon.ample{width:768px}
+.etiqueta{color:#B4B0A6;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;width:100%;text-align:center;margin-bottom:4px}
+</style></head>
+<body>
+<div class="etiqueta">Previsualitzacio del comunicat · esquerra 390px (mobil) · dreta 768px (tauleta)</div>
+<div class="telefon"><div class="com-sheet"><div class="com-top">
+  <button class="com-x">&#10005;</button>
+  <div class="com-top-ttl">Benvingut a l'avorriment</div>
+  <div class="com-top-data">20 jul</div>
+</div><div class="com-scroll"><div class="com-body" id="cos1"></div></div></div></div>
+
+<div class="telefon ample"><div class="com-sheet"><div class="com-top">
+  <button class="com-x">&#10005;</button>
+  <div class="com-top-ttl">Benvingut a l'avorriment</div>
+  <div class="com-top-data">20 jul</div>
+</div><div class="com-scroll"><div class="com-body" id="cos2"></div></div></div></div>
+
+<script type="text/plain" id="cru"><!DOCTYPE html>
+<html lang="ca" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Boring Investor — Newsletter Nº 01</title>
+<!--[if mso]>
+<style>* { font-family: Arial, sans-serif !important; }</style>
+<![endif]-->
+<style>
+  @media (max-width:600px){
+    .container{width:100% !important;}
+    .px{padding-left:22px !important;padding-right:22px !important;}
+    .stat{display:block !important;width:100% !important;}
+    .h1{font-size:30px !important;}
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#E9E6DF;">
+
+<!-- preheader (hidden) -->
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#E9E6DF;font-size:1px;line-height:1px;">
+  La primera. Benvingut a l'avorriment que compon. &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#E9E6DF;">
+<tr><td align="center" style="padding:28px 12px;">
+  <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#F7F5F0;border-radius:16px;overflow:hidden;box-shadow:0 18px 44px rgba(22,35,58,0.14);">
+    <!-- Header -->
+    <tr>
+      <td style="background-color:#16233A;padding:26px 34px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td align="left" valign="middle">
+              <img src="https://theboringinvestor.es/newsletter-logo.png" width="200" alt="The Boring Investor" style="display:block;width:200px;max-width:200px;height:auto;border:0;">
+            </td>
+            <td align="right" valign="middle">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#B4B0A6;text-transform:uppercase;">Nº 01</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <!-- Eyebrow + title -->
+    <tr>
+      <td class="px" style="padding:38px 40px 0 40px;">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#C8A54A;text-transform:uppercase;">Newsletter &middot; Juliol 2026</div>
+        <h1 class="h1" style="margin:14px 0 0 0;font-family:'Fraunces',Georgia,serif;font-size:40px;line-height:1.08;font-weight:600;color:#16233A;">Benvingut a<br>l&rsquo;avorriment.</h1>
+      </td>
+    </tr>
+    <!-- Intro -->
+    <tr>
+      <td class="px" style="padding:22px 40px 0 40px;">
+        <p style="margin:0 0 16px 0;font-family:'IBM Plex Sans',Arial,sans-serif;font-size:15px;line-height:1.6;color:#16233A;">
+          Gr&agrave;cies per ser aqu&iacute; des del principi. Aix&ograve; &eacute;s <strong style="font-weight:600;">The Boring Investor</strong>: educaci&oacute; financera sense soroll &mdash; i aix&ograve; &eacute;s la bona not&iacute;cia. For&ccedil;a, seg&uuml;ent, perqu&egrave;.
+        </p>
+      </td>
+    </tr>
+    <!-- divider -->
+    <tr><td class="px" style="padding:14px 40px 0 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="border-top:1px solid #E9E6DF;font-size:0;line-height:0;">&nbsp;</td>
+      </tr></table>
+    </td></tr>
+    <!-- Chart -->
+    <tr>
+      <td class="px" align="center" style="padding:22px 40px 0 40px;">
+        <img src="https://quickchart.io/chart?bkg=%23F7F5F0&w=520&h=300&v=4&c=%7B%22type%22%3A%20%22line%22%7D" width="520" alt="Corba d'inter&egrave;s compost" style="display:block;width:100%;max-width:520px;height:auto;border:1px solid #E9E6DF;border-radius:12px;">
+      </td>
+    </tr>
+    <!-- Stat row -->
+    <tr>
+      <td class="px" style="padding:22px 40px 0 40px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td class="stat" width="33%" valign="top" style="padding:14px 6px;background-color:#FFFFFF;border-radius:12px;text-align:center;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#16233A;">54.000&nbsp;&euro;</div>
+              <div style="font-family:'IBM Plex Sans',Arial,sans-serif;font-size:12px;color:#6B685F;">El que hi has posat</div>
+            </td>
+            <td width="8">&nbsp;</td>
+            <td class="stat" width="33%" valign="top" style="padding:14px 6px;background-color:#FFFFFF;border-radius:12px;text-align:center;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#C8A54A;">151.000&nbsp;&euro;</div>
+              <div style="font-family:'IBM Plex Sans',Arial,sans-serif;font-size:12px;color:#6B685F;">El que val al final</div>
+            </td>
+            <td width="8">&nbsp;</td>
+            <td class="stat" width="33%" valign="top" style="padding:14px 6px;background-color:#FFFFFF;border-radius:12px;text-align:center;">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:#1A5C3A;">+97.000&nbsp;&euro;</div>
+              <div style="font-family:'IBM Plex Sans',Arial,sans-serif;font-size:12px;color:#6B685F;">Ho ha fet el temps</div>
+            </td>
+          </tr>
+        </table>
+        <p style="margin:12px 0 0 0;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6B685F;">
+          Exemple il&middot;lustratiu amb un 6&nbsp;% anual constant. No &eacute;s una previsi&oacute; ni una recomanaci&oacute;.
+        </p>
+      </td>
+    </tr>
+    <!-- Footer -->
+    <tr>
+      <td style="padding:26px 40px 30px 40px;background-color:#16233A;">
+        <p style="margin:0 0 10px 0;font-family:'IBM Plex Sans',Arial,sans-serif;font-size:12px;color:#B4B0A6;">
+          <strong style="color:#F7F5F0;font-weight:600;">The Boring Investor</strong> &mdash; educaci&oacute; i an&agrave;lisi financera. Cap contingut d&rsquo;aquesta newsletter constitueix assessorament d&rsquo;inversi&oacute; personalitzat.
+        </p>
+        <p style="margin:0 0 14px 0;font-family:'IBM Plex Sans',Arial,sans-serif;font-size:12px;color:#B4B0A6;">
+          Barcelona &middot; <a href="https://theboringinvestor.es" style="color:#C8A54A;text-decoration:none;">theboringinvestor.es</a> &middot; <a href="mailto:guillem.puig@theboringinvestor.es" style="color:#C8A54A;text-decoration:none;">guillem.puig@theboringinvestor.es</a>
+        </p>
+        <p style="margin:0;font-family:'IBM Plex Sans',Arial,sans-serif;font-size:11px;color:#6B685F;">
+          Reps aquest correu perqu&egrave; t&rsquo;hi vas subscriure. <a href="{{unsubscribe_url}}" style="color:#B4B0A6;text-decoration:underline;">Donar-me de baixa</a>.
+        </p>
+      </td>
+    </tr>
+  </table>
+</td></tr>
+</table>
+</body>
+</html>
+</script>
+<script>
+var COM_TAGS_OK = {A:1,B:1,BLOCKQUOTE:1,BR:1,CAPTION:1,CENTER:1,CODE:1,DIV:1,EM:1,
+  FIGCAPTION:1,FIGURE:1,FONT:1,H1:1,H2:1,H3:1,H4:1,H5:1,H6:1,HR:1,I:1,IMG:1,LI:1,
+  OL:1,P:1,PRE:1,SMALL:1,SPAN:1,STRIKE:1,STRONG:1,SUB:1,SUP:1,TABLE:1,TBODY:1,
+  TD:1,TFOOT:1,TH:1,THEAD:1,TR:1,U:1,UL:1};
+var COM_ATTR_OK = {href:1,src:1,alt:1,style:1,align:1,valign:1,colspan:1,rowspan:1,bgcolor:1};
+
+function comArr(nl){ var a = [], i; for (i=0;i<nl.length;i++) a.push(nl[i]); return a; }
+
+function comTreu(el){ if (el && el.parentNode) el.parentNode.removeChild(el); }
+
+// Ancestre més proper amb un dels noms d'etiqueta donats
+function comAncestre(el, noms){
+  var p = el;
+  while (p && p.nodeType === 1){
+    if (noms[p.nodeName]) return p;
+    p = p.parentNode;
+  }
+  return null;
+}
+
+function comSenseComentaris(node){
+  var kids = comArr(node.childNodes), i;
+  for (i=0;i<kids.length;i++){
+    if (kids[i].nodeType === 8) comTreu(kids[i]);
+    else if (kids[i].nodeType === 1) comSenseComentaris(kids[i]);
+  }
+}
+
+// Trau el que és decoració d'email i dins l'app només fa nosa.
+// La capçalera amb el logo es CONSERVA: dins la pantalla de lectura funciona
+// com a capçalera d'article i no duplica res del que hi ha a la barra superior.
+function comSenseChrome(root){
+  var i, el, s;
+
+  // Píxels de seguiment
+  var imgs = comArr(root.querySelectorAll('img'));
+  for (i=0;i<imgs.length;i++){
+    el = imgs[i];
+    var src = (el.getAttribute('src')||'').toLowerCase();
+    var w = parseInt(el.getAttribute('width'), 10);
+    if ((w > 0 && w <= 3) || /(open|track|pixel|beacon)\.(gif|png)/.test(src)) comTreu(el);
+  }
+
+  // Enllaç de baixa: dins l'app no té sentit. S'elimina només el paràgraf que
+  // el conté, mai la cel·la sencera: hi conviu el descàrrec legal, que ha de quedar.
+  var links = comArr(root.querySelectorAll('a'));
+  for (i=0;i<links.length;i++){
+    el = links[i];
+    var h = (el.getAttribute('href')||'').toLowerCase();
+    var t = (el.textContent||'').toLowerCase();
+    if (h.indexOf('baixa-newsletter') !== -1 || h.indexOf('unsubscribe') !== -1
+        || h.indexOf('{{unsubscribe') !== -1
+        || /donar-me de baixa|donar-se de baixa|darse de baja|unsubscribe/.test(t)){
+      comTreu(comAncestre(el, {P:1,LI:1}) || el);
+    }
+  }
+
+  // Preheader i altres blocs amagats a l'email: en text pla sortien com a
+  // soroll («&nbsp;&zwnj;&nbsp;&zwnj;...») al capdamunt del comunicat.
+  var amb = comArr(root.querySelectorAll('[style]'));
+  for (i=0;i<amb.length;i++){
+    el = amb[i];
+    s = (el.getAttribute('style')||'').replace(/\s+/g,'').toLowerCase();
+    if (/display:none|visibility:hidden|opacity:0|max-height:0|font-size:1px|mso-hide:all/.test(s)) comTreu(el);
+  }
+
+  // Cel·les separadores (<td width="8">&nbsp;</td>): amb el layout apilat del
+  // mòbil es convertirien en forats sense sentit. Les cel·les buides amb vora
+  // sí que es conserven: són les línies divisòries del disseny.
+  var cel = comArr(root.querySelectorAll('td,th'));
+  for (i=0;i<cel.length;i++){
+    el = cel[i];
+    s = (el.getAttribute('style')||'').toLowerCase();
+    if (el.getElementsByTagName('*').length === 0
+        && !/[^\s\u00a0\u200b]/.test(el.textContent || '')
+        && s.indexOf('border') === -1
+        && s.indexOf('background') === -1) comTreu(el);
+  }
+}
+
+function comNetejaStyle(v){
+  if (!v) return '';
+  var parts = String(v).split(';'), out = [], i;
+  for (i=0;i<parts.length;i++){
+    var p = parts[i];
+    var tall = p.indexOf(':');
+    if (tall < 1) continue;
+    var prop = p.slice(0, tall).trim().toLowerCase();
+    var val = p.slice(tall+1).trim();
+    if (!prop || !val) continue;
+    if (/^(position|z-index|behavior|filter|-moz-binding)$/.test(prop)) continue;
+    if (/expression\(|javascript:|url\s*\(/i.test(val)) continue;
+    // Amplades fixes d'email (600px, 520px...) -> responsive
+    if (prop === 'width' || prop === 'min-width'){
+      var m = val.match(/^(\d+)px$/);
+      if (m && parseInt(m[1],10) > 320){ out.push('max-width:'+m[1]+'px'); out.push('width:100%'); continue; }
+    }
+    out.push(prop+':'+val);
+  }
+  return out.join(';');
+}
+
+function comSanitize(raw){
+  if (!raw) return '';
+  var doc = null;
+  try { doc = new DOMParser().parseFromString(String(raw), 'text/html'); } catch(e){ doc = null; }
+  if (!doc || !doc.body) return '';
+  var root = doc.body, i, j;
+
+  comSenseComentaris(root);
+
+  var fora = comArr(root.querySelectorAll('script,style,link,meta,base,title,iframe,object,embed,applet,form,input,textarea,select,button,noscript,svg,math'));
+  for (i=0;i<fora.length;i++) comTreu(fora[i]);
+
+  comSenseChrome(root);
+
+  // Etiquetes fora de la llista blanca: es desembolcallen (es conserva el text)
+  var guard = 0;
+  while (guard++ < 300){
+    var tots = comArr(root.querySelectorAll('*')), dolent = null;
+    for (i=0;i<tots.length;i++){ if (!COM_TAGS_OK[tots[i].nodeName]){ dolent = tots[i]; break; } }
+    if (!dolent || !dolent.parentNode) break;
+    var pare = dolent.parentNode;
+    while (dolent.firstChild) pare.insertBefore(dolent.firstChild, dolent);
+    pare.removeChild(dolent);
+  }
+
+  // Atributs
+  var els = comArr(root.querySelectorAll('*'));
+  for (i=0;i<els.length;i++){
+    var el = els[i];
+    var noms = [];
+    for (j=0;j<el.attributes.length;j++) noms.push(el.attributes[j].name);
+    for (j=0;j<noms.length;j++){
+      var a = noms[j], low = a.toLowerCase();
+      if (!COM_ATTR_OK[low]){ el.removeAttribute(a); continue; }
+      var v = el.getAttribute(a) || '';
+      if (low === 'href'){
+        if (!/^(https?:|mailto:)/i.test(v.trim())) el.removeAttribute(a);
+        else { el.setAttribute('target','_blank'); el.setAttribute('rel','noopener noreferrer'); }
+      } else if (low === 'src'){
+        if (!/^https:\/\//i.test(v.trim())) comTreu(el);
+      } else if (low === 'style'){
+        var net = comNetejaStyle(v);
+        if (net) el.setAttribute('style', net); else el.removeAttribute('style');
+      }
+    }
+  }
+
+  return root.innerHTML;
+}
+
+
+var cru = document.getElementById('cru').textContent;
+var net = comSanitize(cru);
+document.getElementById('cos1').innerHTML = net;
+document.getElementById('cos2').innerHTML = net;
+console.log('entrada', cru.length, 'sortida', net.length);
+</script>
+</body></html>

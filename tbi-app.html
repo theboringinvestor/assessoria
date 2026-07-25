@@ -14,6 +14,15 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
+<!-- Fonts de marca. Abans es carregaven amb una regla @import dins del full
+     d'estils, col·locada després del :root: la spec CSS exigeix que @import
+     precedeixi qualsevol altra regla, així que el navegador la descartava i
+     l'app requeia en fonts de sistema. Fraunces només l'usen els titulars
+     de les newsletters. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;display=swap">
+
 <style>
 :root{
   --navy:#16233A; --navy2:#24395C; --cream:#F7F5F0; --gold:#C8A54A;
@@ -32,7 +41,6 @@
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{
@@ -131,7 +139,35 @@ input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
 .com-subtitol{font-size:13px;color:var(--g500);line-height:1.4;margin-bottom:8px}
 .com-meta{font-size:11px;color:var(--g400);display:flex;align-items:center;gap:8px}
 .com-new-badge{background:var(--gold);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.04em}
-.com-body{font-size:14px;line-height:1.65;color:var(--g700);white-space:pre-line}
+/* ── COMUNICAT: pantalla completa ── */
+.com-sheet{position:fixed;inset:0;z-index:600;background:var(--g100);display:flex;flex-direction:column;animation:comUp .3s cubic-bezier(.2,.75,.3,1) both}
+.com-sheet.tancant{animation:comDown .22s ease-in both}
+@keyframes comUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes comDown{from{transform:translateY(0)}to{transform:translateY(100%)}}
+.com-top{flex:none;display:flex;align-items:center;gap:12px;padding:calc(9px + var(--safe-top)) 14px 9px;background:rgba(247,245,240,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--g200)}
+.com-x{width:34px;height:34px;border-radius:50%;background:var(--g100);color:var(--navy);font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;font-weight:500}
+.com-x:active{background:var(--g200)}
+.com-top-ttl{flex:1;min-width:0;font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.com-top-data{flex:none;font-family:var(--fm);font-size:10.5px;color:var(--g400)}
+.com-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + var(--safe-bottom))}
+/* El cos manté el disseny de l'email; només se'n força la responsivitat.
+   Cal !important perquè els estils dels emails són inline. */
+.com-body{font-size:14px;line-height:1.65;color:var(--g700)}
+.com-body *{max-width:100% !important;box-sizing:border-box}
+.com-body table{width:100% !important;border-collapse:collapse;table-layout:auto}
+.com-body img{width:auto !important;height:auto !important;display:block}
+.com-body td,.com-body th{word-break:break-word}
+.com-body a{color:var(--navy)}
+.com-body h1,.com-body h2,.com-body h3{line-height:1.15 !important}
+/* Els emails maqueten amb taules i porten la seva pròpia media query dins d'un
+   <style> que aquí s'elimina per seguretat. Es reprodueix el comportament:
+   en pantalla estreta tot passa a una sola columna. */
+@media (max-width:600px){
+  .com-body table,.com-body tbody,.com-body tr,.com-body td,.com-body th{display:block !important;width:100% !important}
+  .com-body h1{font-size:30px !important}
+}
+.com-buit{padding:56px 26px;text-align:center;color:var(--g400);font-size:13px;line-height:1.6}
+
 .chat-wrap{display:flex;flex-direction:column;height:100%}
 .chat-thread{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 12px}
 .bubble{max-width:82%;padding:11px 15px;font-size:14px;line-height:1.55;white-space:pre-line;border-radius:14px}
@@ -1359,29 +1395,203 @@ async function renderComunicats(){
   }
 }
 
+// ── Sanejador d'HTML d'email ──────────────────────────────────────────
+// Es renderitza el disseny real del comunicat (gràfics, imatges, botons) però
+// només amb etiquetes i atributs d'una llista blanca. Res de script, style,
+// iframe ni handlers inline. DOMParser ja descodifica totes les entitats HTML,
+// així que desapareixen els &agrave; &rsquo; &middot; que sortien en cru.
+var COM_TAGS_OK = {A:1,B:1,BLOCKQUOTE:1,BR:1,CAPTION:1,CENTER:1,CODE:1,DIV:1,EM:1,
+  FIGCAPTION:1,FIGURE:1,FONT:1,H1:1,H2:1,H3:1,H4:1,H5:1,H6:1,HR:1,I:1,IMG:1,LI:1,
+  OL:1,P:1,PRE:1,SMALL:1,SPAN:1,STRIKE:1,STRONG:1,SUB:1,SUP:1,TABLE:1,TBODY:1,
+  TD:1,TFOOT:1,TH:1,THEAD:1,TR:1,U:1,UL:1};
+var COM_ATTR_OK = {href:1,src:1,alt:1,style:1,align:1,valign:1,colspan:1,rowspan:1,bgcolor:1};
+
+function comArr(nl){ var a = [], i; for (i=0;i<nl.length;i++) a.push(nl[i]); return a; }
+
+function comTreu(el){ if (el && el.parentNode) el.parentNode.removeChild(el); }
+
+// Ancestre més proper amb un dels noms d'etiqueta donats
+function comAncestre(el, noms){
+  var p = el;
+  while (p && p.nodeType === 1){
+    if (noms[p.nodeName]) return p;
+    p = p.parentNode;
+  }
+  return null;
+}
+
+function comSenseComentaris(node){
+  var kids = comArr(node.childNodes), i;
+  for (i=0;i<kids.length;i++){
+    if (kids[i].nodeType === 8) comTreu(kids[i]);
+    else if (kids[i].nodeType === 1) comSenseComentaris(kids[i]);
+  }
+}
+
+// Trau el que és decoració d'email i dins l'app només fa nosa.
+// La capçalera amb el logo es CONSERVA: dins la pantalla de lectura funciona
+// com a capçalera d'article i no duplica res del que hi ha a la barra superior.
+function comSenseChrome(root){
+  var i, el, s;
+
+  // Píxels de seguiment
+  var imgs = comArr(root.querySelectorAll('img'));
+  for (i=0;i<imgs.length;i++){
+    el = imgs[i];
+    var src = (el.getAttribute('src')||'').toLowerCase();
+    var w = parseInt(el.getAttribute('width'), 10);
+    if ((w > 0 && w <= 3) || /(open|track|pixel|beacon)\.(gif|png)/.test(src)) comTreu(el);
+  }
+
+  // Enllaç de baixa: dins l'app no té sentit. S'elimina només el paràgraf que
+  // el conté, mai la cel·la sencera: hi conviu el descàrrec legal, que ha de quedar.
+  var links = comArr(root.querySelectorAll('a'));
+  for (i=0;i<links.length;i++){
+    el = links[i];
+    var h = (el.getAttribute('href')||'').toLowerCase();
+    var t = (el.textContent||'').toLowerCase();
+    if (h.indexOf('baixa-newsletter') !== -1 || h.indexOf('unsubscribe') !== -1
+        || h.indexOf('{{unsubscribe') !== -1
+        || /donar-me de baixa|donar-se de baixa|darse de baja|unsubscribe/.test(t)){
+      comTreu(comAncestre(el, {P:1,LI:1}) || el);
+    }
+  }
+
+  // Preheader i altres blocs amagats a l'email: en text pla sortien com a
+  // soroll («&nbsp;&zwnj;&nbsp;&zwnj;...») al capdamunt del comunicat.
+  var amb = comArr(root.querySelectorAll('[style]'));
+  for (i=0;i<amb.length;i++){
+    el = amb[i];
+    s = (el.getAttribute('style')||'').replace(/\s+/g,'').toLowerCase();
+    if (/display:none|visibility:hidden|opacity:0|max-height:0|font-size:1px|mso-hide:all/.test(s)) comTreu(el);
+  }
+
+  // Cel·les separadores (<td width="8">&nbsp;</td>): amb el layout apilat del
+  // mòbil es convertirien en forats sense sentit. Les cel·les buides amb vora
+  // sí que es conserven: són les línies divisòries del disseny.
+  var cel = comArr(root.querySelectorAll('td,th'));
+  for (i=0;i<cel.length;i++){
+    el = cel[i];
+    s = (el.getAttribute('style')||'').toLowerCase();
+    if (el.getElementsByTagName('*').length === 0
+        && !/[^\s\u00a0\u200b]/.test(el.textContent || '')
+        && s.indexOf('border') === -1
+        && s.indexOf('background') === -1) comTreu(el);
+  }
+}
+
+function comNetejaStyle(v){
+  if (!v) return '';
+  var parts = String(v).split(';'), out = [], i;
+  for (i=0;i<parts.length;i++){
+    var p = parts[i];
+    var tall = p.indexOf(':');
+    if (tall < 1) continue;
+    var prop = p.slice(0, tall).trim().toLowerCase();
+    var val = p.slice(tall+1).trim();
+    if (!prop || !val) continue;
+    if (/^(position|z-index|behavior|filter|-moz-binding)$/.test(prop)) continue;
+    if (/expression\(|javascript:|url\s*\(/i.test(val)) continue;
+    // Amplades fixes d'email (600px, 520px...) -> responsive
+    if (prop === 'width' || prop === 'min-width'){
+      var m = val.match(/^(\d+)px$/);
+      if (m && parseInt(m[1],10) > 320){ out.push('max-width:'+m[1]+'px'); out.push('width:100%'); continue; }
+    }
+    out.push(prop+':'+val);
+  }
+  return out.join(';');
+}
+
+function comSanitize(raw){
+  if (!raw) return '';
+  var doc = null;
+  try { doc = new DOMParser().parseFromString(String(raw), 'text/html'); } catch(e){ doc = null; }
+  if (!doc || !doc.body) return '';
+  var root = doc.body, i, j;
+
+  comSenseComentaris(root);
+
+  var fora = comArr(root.querySelectorAll('script,style,link,meta,base,title,iframe,object,embed,applet,form,input,textarea,select,button,noscript,svg,math'));
+  for (i=0;i<fora.length;i++) comTreu(fora[i]);
+
+  comSenseChrome(root);
+
+  // Etiquetes fora de la llista blanca: es desembolcallen (es conserva el text)
+  var guard = 0;
+  while (guard++ < 300){
+    var tots = comArr(root.querySelectorAll('*')), dolent = null;
+    for (i=0;i<tots.length;i++){ if (!COM_TAGS_OK[tots[i].nodeName]){ dolent = tots[i]; break; } }
+    if (!dolent || !dolent.parentNode) break;
+    var pare = dolent.parentNode;
+    while (dolent.firstChild) pare.insertBefore(dolent.firstChild, dolent);
+    pare.removeChild(dolent);
+  }
+
+  // Atributs
+  var els = comArr(root.querySelectorAll('*'));
+  for (i=0;i<els.length;i++){
+    var el = els[i];
+    var noms = [];
+    for (j=0;j<el.attributes.length;j++) noms.push(el.attributes[j].name);
+    for (j=0;j<noms.length;j++){
+      var a = noms[j], low = a.toLowerCase();
+      if (!COM_ATTR_OK[low]){ el.removeAttribute(a); continue; }
+      var v = el.getAttribute(a) || '';
+      if (low === 'href'){
+        if (!/^(https?:|mailto:)/i.test(v.trim())) el.removeAttribute(a);
+        else { el.setAttribute('target','_blank'); el.setAttribute('rel','noopener noreferrer'); }
+      } else if (low === 'src'){
+        if (!/^https:\/\//i.test(v.trim())) comTreu(el);
+      } else if (low === 'style'){
+        var net = comNetejaStyle(v);
+        if (net) el.setAttribute('style', net); else el.removeAttribute('style');
+      }
+    }
+  }
+
+  return root.innerHTML;
+}
+
+// ── Comunicat a pantalla completa ─────────────────────────────────────
+var _comEsc = null;
+
 function obrirComunicat(id){
   var n = (_comunicats||[]).find(function(x){ return x.id === id; });
   if (!n) return;
   marcarComunicatLlegit(id);
-  var cos = htmlAText(n.html);
+
+  var cos = comSanitize(n.html);
   var dataTxt = n.sent_at ? dataHumana(String(n.sent_at).slice(0,10)) : '';
 
-  var modal = document.createElement('div');
-  modal.className = 'modal';
-  modal.id = 'modal-com';
-  modal.innerHTML = '<div class="modal-inner">'
-    + (n.eyebrow ? '<div class="com-eyebrow">'+esc(n.eyebrow)+'</div>' : '')
-    + '<div class="modal-h" style="margin-bottom:4px">'+esc(n.titol||'Comunicat')+'</div>'
-    + (n.subtitol ? '<div class="modal-sub" style="margin-bottom:6px">'+esc(n.subtitol)+'</div>' : '')
-    + '<div style="font-size:11px;color:var(--g400);margin-bottom:16px">'+dataTxt+'</div>'
-    + '<div class="com-body">'+esc(cos)+'</div>'
-    + '<button class="btn-primary" style="margin-top:20px" onclick="tancarComunicat()">Tancar</button>'
-  + '</div>';
-  document.body.appendChild(modal);
-  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarComunicat(); });
+  var sheet = document.createElement('div');
+  sheet.className = 'com-sheet';
+  sheet.id = 'com-sheet';
+  sheet.innerHTML = '<div class="com-top">'
+      + '<button class="com-x" onclick="tancarComunicat()" aria-label="Tancar">\u2715</button>'
+      + '<div class="com-top-ttl">'+esc(n.titol||'Comunicat')+'</div>'
+      + '<div class="com-top-data">'+esc(dataTxt)+'</div>'
+    + '</div>'
+    + '<div class="com-scroll" id="com-scroll">'
+      + (cos
+          ? '<div class="com-body">'+cos+'</div>'
+          : '<div class="com-buit">Aquest comunicat no s\'ha pogut mostrar.<br>Revisa\'l al correu que et vam enviar.</div>')
+    + '</div>';
+
+  document.body.appendChild(sheet);
+  document.body.style.overflow = 'hidden';
+
+  _comEsc = function(ev){ if (ev.key === 'Escape') tancarComunicat(); };
+  document.addEventListener('keydown', _comEsc);
 }
+
 function tancarComunicat(){
-  var m = $('modal-com'); if (m) m.parentNode.removeChild(m);
+  var s = $('com-sheet');
+  if (s){
+    s.className = 'com-sheet tancant';
+    setTimeout(function(){ if (s.parentNode) s.parentNode.removeChild(s); }, 210);
+  }
+  document.body.style.overflow = '';
+  if (_comEsc){ document.removeEventListener('keydown', _comEsc); _comEsc = null; }
   // refrescar la llista perquè desaparegui el badge "Nou" i el punt del sub-tab
   if (APP.view === 'missatges' && APP.msgTab === 'comunicats') renderMissatges();
   actualitzarAvisComunicats();
