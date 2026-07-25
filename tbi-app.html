@@ -169,9 +169,7 @@ input,textarea{font-family:var(--fb);font-size:16px;color:var(--black)}/* 16px e
   display:flex;flex-direction:column;align-items:center;gap:4px;
   color:var(--g400);font-size:10px;font-weight:600;letter-spacing:.01em;white-space:nowrap
 }
-.nav button svg{width:22px;height:22px;stroke-width:1.7;transition:transform .18s ease}
 .nav button.active{color:var(--navy)}
-.nav button.active svg{transform:translateY(-1px)}
 .nav button.active::before{
   content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
   width:26px;height:2px;border-radius:0 0 2px 2px;background:var(--gold)
@@ -201,14 +199,24 @@ input,textarea{font-family:var(--fb);font-size:16px;color:var(--black)}/* 16px e
 .pos-val{font-family:var(--fm);font-size:14px;font-weight:500;text-align:right;flex-shrink:0}
 .pos-pnl{font-size:10.5px;font-family:var(--fm);text-align:right;margin-top:2px}
 
-/* ── Pastilla de categoria (substitueix els emojis) ── */
+/* ══ ICONES ══ */
+/* Mateixa llibreria i mateix contracte que platform.html: 24x24, traç 1.7,
+   currentColor i mida en em, així hereten el context on es posen. */
+.ei{width:1.15em;height:1.15em;display:inline-block;vertical-align:-.19em;
+  fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;
+  stroke-linejoin:round;flex-shrink:0}
+.nav .ei{width:22px;height:22px;vertical-align:0;transition:transform .18s ease}
+.nav button.active .ei{transform:translateY(-1px)}
+.topbar .ei,.btn-primary .ei,.btn-ghost .ei{width:1.1em;height:1.1em}
+/* Icona de categoria: traç navy sobre fons neutre, sense color de fons */
 .chip{
   width:34px;height:34px;border-radius:10px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--fm);font-size:11px;font-weight:600;color:#fff;
-  letter-spacing:.01em;box-shadow:inset 0 -1px 0 rgba(0,0,0,.12)
+  background:var(--g50);border:1px solid var(--line);color:var(--navy)
 }
-.chip-sm{width:26px;height:26px;border-radius:8px;font-size:9.5px}
+.chip .ei{width:18px;height:18px;vertical-align:0}
+.chip-sm{width:28px;height:28px;border-radius:8px}
+.chip-sm .ei{width:15px;height:15px}
 
 /* ══ MODAL ══ */
 .modal{position:fixed;inset:0;background:rgba(11,20,34,.5);z-index:500;display:flex;align-items:flex-end;justify-content:center;animation:fade .18s ease}
@@ -366,7 +374,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy)!im
   </div>
   <div id="login-msg"></div>
   <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+    <svg class="ei" viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
   </button>
   <div style="text-align:center;margin-top:18px;display:flex;gap:20px;justify-content:center">
     <button class="link-sm" onclick="doReset()">He oblidat la contrasenya</button>
@@ -374,7 +382,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy)!im
   </div>
   <div id="install-login" style="display:none;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)">
     <button class="btn-ghost" onclick="instalarApp()">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg>
+      <svg class="ei" viewBox="0 0 24 24"><rect x="6.6" y="2.6" width="10.8" height="18.8" rx="2.6"/><path d="M10.8 18.4h2.4"/></svg>
       Instal·lar l'app al mòbil
     </button>
     <div style="text-align:center;font-size:11.5px;color:var(--g400);margin-top:9px">Entra més ràpid: instal·la-la a la pantalla d'inici.</div>
@@ -392,25 +400,25 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy)!im
     </svg>
     <div class="ttl" id="topbar-ttl">La meva cartera</div>
     <button class="icobtn" onclick="obrirAjuda()" aria-label="Ajuda">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M9.2 9.3a2.9 2.9 0 1 1 3.6 2.8c-.5.2-.8.7-.8 1.2v.6"/><path d="M12 17.2v.01"/></svg>
+      <svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.2 9.3a2.9 2.9 0 1 1 3.6 2.8c-.5.2-.8.7-.8 1.2v.6"/><path d="M12 17.2v.01"/></svg>
     </button>
     <button class="icobtn" onclick="doLogout()" aria-label="Sortir">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4.5H18a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3.5"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/></svg>
+      <svg class="ei" viewBox="0 0 24 24"><path d="M14.5 4.5H18a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3.5"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/></svg>
     </button>
   </div>
   <div class="scroll" id="view"></div>
   <div class="nav">
     <button id="nav-cartera" class="active" onclick="go('cartera')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3.5v5.1M19.4 15.2l-4.7-2"/></svg>
+      <svg class="ei" viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12.5" rx="2.2"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5"/><path d="M3 12.5h18"/></svg>
       Cartera</button>
     <button id="nav-evolucio" onclick="go('evolucio')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 19.5h17"/><path d="M6 15.5l4.2-4.6 3.2 2.6 4.8-6"/><path d="M14.6 7.5h3.6v3.4"/></svg>
+      <svg class="ei" viewBox="0 0 24 24"><path d="M3.5 19.5h17"/><path d="m6 15.5 4.2-4.6 3.2 2.6 4.8-6"/><path d="M14.6 7.5h3.6v3.4"/></svg>
       Evolució</button>
     <button id="nav-aportar" onclick="go('aportar')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg>
+      <svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg>
       Aportar</button>
     <button id="nav-missatges" onclick="go('missatges')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 11.6c0 4-3.8 7.2-8.5 7.2-1 0-2-.15-2.9-.42L4 20l1.3-3.4C4.1 15.3 3.5 13.5 3.5 11.6c0-4 3.8-7.2 8.5-7.2s8.5 3.2 8.5 7.2Z"/></svg>
+      <svg class="ei" viewBox="0 0 24 24"><path d="M20.5 11.6c0 4-3.8 7.2-8.5 7.2-1 0-2-.15-2.9-.42L4 20l1.3-3.4C4.1 15.3 3.5 13.5 3.5 11.6c0-4 3.8-7.2 8.5-7.2s8.5 3.2 8.5 7.2Z"/></svg>
       Missatges</button>
   </div>
 </div>
@@ -446,15 +454,7 @@ var APP = {
   view: 'cartera'
 };
 
-// ── Taxonomia mínima: emoji i nom llegible per categoria (alineat amb platform.html) ──
-var CAT_EMOJI = {
-  rv_global:'🌍', rv_dividend:'💵', rv_reits:'🏠', rv_emergents:'🌱', rv_sectorial:'🏭', rv_growth:'🚀',
-  rf_global:'🏦', rf_corporativa:'📄', rf_govern:'🏛️', rf_curt:'⏱️', rf_emergent:'🌍',
-  or:'🥇', or_metalls:'🥇', materies:'⛏️', materies_primeres:'⛏️',
-  cripto:'₿', crypto:'₿', liquiditat:'💶', alternatius:'🔀',
-  crowdlending:'🤝', private_equity:'🏢', startups:'🌱', immobiliari:'🏠'
-};
-// Noms llegibles (els del target del client tenen prioritat via catInfo)
+// ── Taxonomia mínima: nom llegible per categoria (alineat amb platform.html) ──
 var CAT_NOM = {
   rv_global:'RV Global Indexada', rv_dividend:'RV Dividends / Renda', rv_reits:'REITs / Immobiliaris cotitzats',
   rv_emergents:'RV Mercats Emergents', rv_sectorial:'RV Sectorial', rv_growth:'RV Growth / Tecnològic',
@@ -465,31 +465,54 @@ var CAT_NOM = {
   crowdlending:'Crowdlending / P2P Lending', private_equity:'Private Equity / Capital Risc',
   startups:'Start-ups / Venture Capital', immobiliari:'Immobiliari'
 };
-function emojiFor(p){
-  if (p && p.cat && CAT_EMOJI[p.cat]) return CAT_EMOJI[p.cat];
-  return '•';
+// ── Pastilles de categoria ─────────────────────────────────────────────
+// Icona de traç sobre fons neutre, igual que a la plataforma. El color
+// identificatiu de la categoria ja el dona el donut de distribució.
+function chipCat(catId, mida){
+  var cls = (mida === 'sm') ? 'chip chip-sm' : 'chip';
+  return '<span class="' + cls + '" aria-hidden="true">' + icoCat(catId) + '</span>';
 }
 
-// ── Pastilles de categoria ─────────────────────────────────────────────
-// Substitueixen els emojis: un quadrat arrodonit amb el color real de la
-// categoria (el mateix del donut) i les inicials del nom. Mateix llenguatge
-// visual que la plataforma, i llegible a qualsevol mida.
-function catInicials(nom){
-  var s = String(nom || '').replace(/[^A-Za-z\u00C0-\u024F ]/g, ' ').trim();
-  if (!s) return '\u00b7\u00b7';
-  var mots = s.split(/\s+/).filter(function(w){
-    return ['i','de','del','la','el','les','els','a','per','amb'].indexOf(w.toLowerCase()) === -1;
-  });
-  if (!mots.length) mots = s.split(/\s+/);
-  if (mots.length === 1) return mots[0].slice(0,2).toUpperCase();
-  return (mots[0].charAt(0) + mots[1].charAt(0)).toUpperCase();
+// ── Llibreria d'icones ────────────────────────────────────────────────
+// La mateixa que platform.html: 24x24, traç 1.7, currentColor. La mida surt
+// del CSS (.ei), no de l'SVG, així una icona val per a qualsevol context.
+var TBI_ICO = {
+  'briefcase':'<rect x="3" y="7.5" width="18" height="12.5" rx="2.2"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5"/><path d="M3 12.5h18"/>',
+  'trend-up':'<path d="M3.5 19.5h17"/><path d="m6 15.5 4.2-4.6 3.2 2.6 4.8-6"/><path d="M14.6 7.5h3.6v3.4"/>',
+  'plus-circle':'<circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v7.6M8.2 12h7.6"/>',
+  'message':'<path d="M20.5 11.6c0 4-3.8 7.2-8.5 7.2-1 0-2-.15-2.9-.42L4 20l1.3-3.4C4.1 15.3 3.5 13.5 3.5 11.6c0-4 3.8-7.2 8.5-7.2s8.5 3.2 8.5 7.2Z"/>',
+  'help':'<circle cx="12" cy="12" r="8.5"/><path d="M9.2 9.3a2.9 2.9 0 1 1 3.6 2.8c-.5.2-.8.7-.8 1.2v.6"/><path d="M12 17.2v.01"/>',
+  'logout':'<path d="M14.5 4.5H18a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3.5"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/>',
+  'arrow-right':'<path d="M5 12h13M13 6l6 6-6 6"/>',
+  'mobile':'<rect x="6.6" y="2.6" width="10.8" height="18.8" rx="2.6"/><path d="M10.8 18.4h2.4"/>',
+  'refresh':'<path d="M20 11.5A8 8 0 0 0 6.3 6.3L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 12.5a8 8 0 0 0 13.7 5.2L20 15.5"/><path d="M20 20v-4.5h-4.5"/>',
+  'bell':'<path d="M18 15.6V11a6 6 0 1 0-12 0v4.6L4.4 18h15.2Z"/><path d="M9.8 18a2.4 2.4 0 0 0 4.4 0"/>',
+  'globe':'<circle cx="12" cy="12" r="8.5"/><path d="M3.6 12h16.8"/><path d="M12 3.5c2.3 2.4 3.5 5.4 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.4-3.5-8.5S9.7 5.9 12 3.5Z"/>',
+  'banknote':'<rect x="2.5" y="6" width="19" height="12" rx="2.2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 10v4M18 10v4"/>',
+  'home':'<path d="M4 10.5 12 4l8 6.5"/><path d="M6 9.6V20h12V9.6"/><path d="M10 20v-5h4v5"/>',
+  'seedling':'<path d="M12 20.5v-7"/><path d="M12 13.5C12 10 9.4 7.6 5.6 7.6c0 3.5 2.6 5.9 6.4 5.9Z"/><path d="M12 13.5c0-3 2.2-5.2 5.6-5.2 0 3-2.2 5.2-5.6 5.2Z"/>',
+  'factory':'<path d="M3.5 20.5V10l5.2 3.4V10l5.2 3.4V6.6l6.6 3.6v10.3Z"/><path d="M7.4 17h1.6M12.4 17h1.6M17 17h1.6"/>',
+  'rocket':'<path d="M12 3.2c3.2 2.4 4.8 5.6 4.8 9.2l-2.4 3.6H9.6l-2.4-3.6c0-3.6 1.6-6.8 4.8-9.2Z"/><circle cx="12" cy="10" r="1.8"/><path d="M9.6 16 7.2 20l3.2-1.2M14.4 16l2.4 4-3.2-1.2"/>',
+  'bank':'<path d="M3.5 9.5 12 4l8.5 5.5"/><path d="M5.5 9.5v8M10 9.5v8M14 9.5v8M18.5 9.5v8"/><path d="M3.2 20.5h17.6"/>',
+  'file':'<path d="M6 3.5h7.5L19 9v11.5H6Z"/><path d="M13.5 3.5V9H19"/>',
+  'clock':'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3.2 1.9"/>',
+  'medal':'<circle cx="12" cy="14.6" r="5.4"/><path d="m8.4 9.6-2.6-6h4l2 4.4M15.6 9.6l2.6-6h-4l-1.4 3.1"/>',
+  'tools':'<path d="m14.6 6.6 2.8-2.8a4 4 0 0 1-5.2 5.2L4.6 16.6a2 2 0 0 0 2.8 2.8l7.6-7.6a4 4 0 0 1 5.2-5.2l-2.8 2.8Z"/>',
+  'crypto':'<circle cx="12" cy="12" r="8.5"/><path d="M9.6 7.8v8.4"/><path d="M9.6 12h3.6a2.1 2.1 0 0 1 0 4.2H9.6"/><path d="M9.6 7.8h3.2a2.1 2.1 0 0 1 0 4.2"/><path d="M11.6 6.2v1.6M11.6 16.2v1.6"/>',
+  'shuffle':'<path d="M3.5 6.5h3.2c3.4 0 5.2 11 8.6 11h5.2"/><path d="M3.5 17.5h3.2c1.7 0 2.9-2.7 4-5.5"/><path d="m17.6 3.8 3 2.7-3 2.7"/><path d="m17.6 14.8 3 2.7-3 2.7"/>',
+  'handshake':'<path d="M11 7.4 8.6 9.8a1.9 1.9 0 0 0 2.7 2.7l1.5-1.5 4 4a1.7 1.7 0 0 1-2.4 2.4"/><path d="m14.4 17.4-1.2 1.2a1.7 1.7 0 0 1-2.4 0l-3.4-3.4"/><path d="M2.6 8.4 6 5h4l2 1.6L14 5h4l3.4 3.4"/><path d="M18 8.4v6.2M6 8.4v6.2"/>',
+  'building':'<path d="M4.5 20.5V5.2A1.7 1.7 0 0 1 6.2 3.5h7.6a1.7 1.7 0 0 1 1.7 1.7v15.3"/><path d="M15.5 10h2.8a1.7 1.7 0 0 1 1.7 1.7v8.8"/><path d="M8 7.4h3.8M8 11.2h3.8M8 15h3.8"/><path d="M3 20.5h18"/>',
+  'coins':'<ellipse cx="9" cy="7" rx="5.5" ry="2.6"/><path d="M3.5 7v4.4c0 1.44 2.46 2.6 5.5 2.6s5.5-1.16 5.5-2.6V7"/><path d="M14.5 11.6c2.75.2 4.8 1.28 4.8 2.58v3.2c0 1.44-2.46 2.6-5.5 2.6-2.5 0-4.6-.79-5.28-1.87"/>',
+  'box':'<path d="m12 3.2 8 4.2v9.2l-8 4.2-8-4.2V7.4Z"/><path d="m4 7.4 8 4.2 8-4.2M12 11.6V20.8"/>'
+};
+function ico(nom, cls){
+  var d = TBI_ICO[nom];
+  if (!d) return '';
+  return '<svg class="ei' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24">' + d + '</svg>';
 }
-function chipCat(catId, mida){
-  var info = catInfo(catId);
-  var cls = (mida === 'sm') ? 'chip chip-sm' : 'chip';
-  return '<span class="' + cls + '" style="background:' + (info.color || '#6B7280') + '" aria-hidden="true">'
-    + esc(catInicials(info.nom || catId)) + '</span>';
-}
+// Categoria d'actiu -> icona (abans eren emojis)
+var CAT_ICO = {rv_global:'globe', rv_dividend:'banknote', rv_reits:'home', rv_emergents:'seedling', rv_sectorial:'factory', rv_growth:'rocket', rf_global:'bank', rf_corporativa:'file', rf_govern:'bank', rf_curt:'clock', rf_emergent:'globe', or:'medal', or_metalls:'medal', materies:'tools', materies_primeres:'tools', cripto:'crypto', crypto:'crypto', liquiditat:'coins', alternatius:'shuffle', crowdlending:'handshake', private_equity:'building', startups:'seedling', immobiliari:'home'};
+function icoCat(cat){ return ico(CAT_ICO[cat] || 'box'); }
 
 // ── Helpers ──
 function $(id){ return document.getElementById(id); }
@@ -880,7 +903,7 @@ function renderCartera(){
     ? (dies === Infinity ? 'Posa els valors al dia' : 'Actualitzar (fa '+dies+' dies)')
     : 'Actualitzar valors';
   html += '<button class="btn-primary" style="margin-bottom:12px" onclick="obrirActualitzar()">'
-    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5A8 8 0 0 0 6.3 6.3L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 12.5a8 8 0 0 0 13.7 5.2L20 15.5"/><path d="M20 20v-4.5h-4.5"/></svg>' + btnTxt + '</button>';
+    + '<svg class="ei" viewBox="0 0 24 24"><path d="M20 11.5A8 8 0 0 0 6.3 6.3L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 12.5a8 8 0 0 0 13.7 5.2L20 15.5"/><path d="M20 20v-4.5h-4.5"/></svg>' + btnTxt + '</button>';
 
   // ── Semàfor de bandes ──
   html += bandesHTML();
@@ -1560,7 +1583,7 @@ function renderAportar(){
 
   // Botó registrar
   html += '<button class="btn-primary" style="margin-bottom:12px" onclick="obrirRegistrarAportacio()">'
-    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>' + 'Registrar aportació feta</button>';
+    + '<svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg>' + 'Registrar aportació feta</button>';
 
   // Distribució objectiu vs real (context)
   html += '<div class="section-h">La teva cartera objectiu</div><div class="card">';
@@ -1784,20 +1807,14 @@ function obrirAjuda(){
   setTimeout(function(){ try { actualitzarFilaPush(); } catch(e){} }, 50);
 }
 // Icones de l'ajuda: el mateix joc que la barra de navegacio.
-var AJUDA_ICONES = {
-  cartera:  '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3.5v5.1M19.4 15.2l-4.7-2"/>',
-  valors:   '<path d="M20 11.5A8 8 0 0 0 6.3 6.3L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 12.5a8 8 0 0 0 13.7 5.2L20 15.5"/><path d="M20 20v-4.5h-4.5"/>',
-  aportar:  '<circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v7.6M8.2 12h7.6"/>',
-  evolucio: '<path d="M3.5 19.5h17"/><path d="M6 15.5l4.2-4.6 3.2 2.6 4.8-6"/><path d="M14.6 7.5h3.6v3.4"/>',
-  missatges:'<path d="M20.5 11.6c0 4-3.8 7.2-8.5 7.2-1 0-2-.15-2.9-.42L4 20l1.3-3.4C4.1 15.3 3.5 13.5 3.5 11.6c0-4 3.8-7.2 8.5-7.2s8.5 3.2 8.5 7.2Z"/>'
-};
+var AJUDA_ICONES = { cartera:'briefcase', valors:'refresh', aportar:'plus-circle',
+                     evolucio:'trend-up', missatges:'message' };
 function ajudaItem(clau, titol, desc){
-  var d = AJUDA_ICONES[clau] || AJUDA_ICONES.cartera;
+  var nom = AJUDA_ICONES[clau] || AJUDA_ICONES.cartera;
   return '<div style="display:flex;gap:13px;align-items:flex-start;margin-bottom:15px">'
     + '<div style="width:34px;height:34px;border-radius:10px;background:var(--g50);border:1px solid var(--line);'
       + 'display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--navy)">'
-      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
-      + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+d+'</svg></div>'
+      + ico(nom) + '</div>'
     + '<div><div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:3px">'+titol+'</div>'
       + '<div style="font-size:12.5px;color:var(--g500);line-height:1.6">'+desc+'</div></div>'
   + '</div>';
