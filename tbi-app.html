@@ -24,6 +24,8 @@
   --black:#16233A; --g700:#3A3A3A; --g500:#6B6762; --g400:#9A9690;
   --g200:#D9D6D0; --g100:#ECEAE6; --g50:#F4F3F0;
   --green:#1A5C3A; --red:#C0392B;
+  --gold-dark:#8A6F28;
+  --green-bg:#EAF3DE; --red-bg:#FBEDED; --gold-bg:#FDF8EC;
   --fd:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --fb:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --fm:'IBM Plex Mono','SF Mono',Menlo,monospace;
@@ -160,6 +162,53 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy)!im
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+/* ── Hero de cartera ── */
+.hero{position:relative;overflow:hidden}
+.hero .spark{position:absolute;left:0;right:0;bottom:0;width:100%;height:48px;pointer-events:none}
+.hero-pnl{font-family:var(--fm);font-size:15px;font-weight:600;margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hero-pill{padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600}
+.hero-grid{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;padding-top:13px;border-top:1px solid var(--g100);position:relative}
+.hero-nota{font-size:11px;color:var(--g400);margin-top:10px;line-height:1.5;position:relative}
+.mini-lbl{font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.mini-val{font-family:var(--fm);font-size:15px;color:var(--g700);margin-top:2px}
+.mini-sub{font-size:10px;color:var(--g400);margin-top:1px}
+
+/* ── Semàfor de coherència ── */
+.salut{display:flex;align-items:center;gap:16px;padding:15px 17px;border-radius:14px;margin-bottom:14px}
+.salut-num{font-family:var(--fm);font-size:26px;font-weight:700;line-height:1;flex-shrink:0}
+.salut-num span{font-size:13px;opacity:.55;font-weight:500}
+.salut-txt{font-size:12px;color:var(--g700);line-height:1.55}
+
+/* ── Cost real ── */
+.ter-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px}
+.ter-big{font-family:var(--fm);font-size:19px;font-weight:600;margin-top:3px}
+
+/* ── Llegenda del donut ── */
+.leg-row{display:flex;align-items:center;gap:10px;padding:6px 0}
+.leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.leg-nom{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leg-pct{font-family:var(--fm);font-size:13px;color:var(--g700)}
+
+/* ── Estats buits amb acció ── */
+.empty-rich{text-align:center;padding:44px 26px}
+.empty-ico{font-size:42px;margin-bottom:12px}
+.empty-tit{font-size:19px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.empty-sub{font-size:13.5px;color:var(--g500);line-height:1.65;margin-bottom:22px;max-width:340px;margin-left:auto;margin-right:auto}
+
+/* ── Esquelets de càrrega ── */
+.skel{background:linear-gradient(90deg,var(--g100) 25%,var(--g50) 37%,var(--g100) 63%);
+  background-size:400% 100%;animation:skel 1.3s ease infinite;border-radius:8px}
+@keyframes skel{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.skel-card{height:118px;margin-bottom:14px}
+.skel-row{height:52px;margin-bottom:9px}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+
+/* ── Badge de deriva a la llista de l'objectiu ── */
+.badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:9.5px;font-weight:700;letter-spacing:.02em}
+.badge-ok{background:var(--green-bg);color:var(--green)}
+.badge-infra{background:var(--gold-bg);color:var(--gold-dark)}
+.badge-sobre{background:var(--red-bg);color:var(--red)}
 </style>
 </head>
 <body>
@@ -217,6 +266,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy)!im
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="tbi-cartera.js"></script>
+<script src="tbi-fiscal.js"></script>
+<script src="tbi-fire.js"></script>
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════════════════
@@ -302,17 +354,19 @@ function dataHumana(iso){
 // Paleta de fallback per a categories sense color al target
 var CAT_PALETTE = ['#1B3A6B','#2E5FA3','#4A7CC7','#B8902E','#1A5C3A','#8C6BAA','#C0743A','#5B8A72','#A0526B','#3A7A8C','#9A9690','#6B6762'];
 // Retorna {nom, color} d'una categoria, fent servir el target del client si hi és
+// Nom i color d'una categoria. Prioritat: el target del client (que pot
+// portar colors personalitzats per l'assessor) i, si no, la taxonomia
+// canonica compartida — la mateixa que fa servir la plataforma.
 function catInfo(catId){
   var target = getTarget();
   for (var i=0;i<target.length;i++){
     var t = target[i];
-    if ((t.id || t.nom) === catId) return { nom: t.nom || catId, color: t.color || CAT_PALETTE[i % CAT_PALETTE.length] };
+    if ((t.id || t.nom) === catId && t.color) return { nom: t.nom || catId, color: t.color };
   }
-  // fallback: nom llegible des de CAT_NOM, o l'id net si no hi és
-  var nom = CAT_NOM[catId] || String(catId||'altres').replace(/_/g,' ');
-  var h = 0; for (var k=0;k<nom.length;k++){ h = (h*31 + nom.charCodeAt(k)) & 0xffff; }
-  return { nom: nom, color: CAT_PALETTE[h % CAT_PALETTE.length] };
+  var c = TBI_CARTERA.cat(catId);
+  return { nom: c.nom, color: c.color, emoji: c.emoji, grup: c.grup };
 }
+
 function parseNumCA(s){
   if (s == null) return NaN;
   s = String(s).trim().replace(/\s|€/g,'').replace(/\./g,'').replace(/,/g,'.');
@@ -340,6 +394,17 @@ function getMoviments(){
   var c = APP.client;
   return (c && Array.isArray(c.moviments_posicions)) ? c.moviments_posicions : [];
 }
+// KPIs complets (inclou TIR i ratio de plusvalua) del motor compartit
+function kpisCartera(){
+  return TBI_CARTERA.kpis(getPosicions(), getMoviments());
+}
+function terCartera(){
+  return TBI_CARTERA.ter(getPosicions(), getMoviments(), getTarget());
+}
+function twrCartera(){
+  return TBI_CARTERA.twr(getSnapshots(), getPosicions(), getMoviments());
+}
+
 function getSnapshots(){
   var c = APP.client;
   return (c && Array.isArray(c.snapshots_cartera)) ? c.snapshots_cartera : [];
@@ -366,23 +431,20 @@ function carteraActualitzadaAquestMes(){
 }
 
 // Calcula valor, cost i P&L d'una posició a partir dels moviments
+// Agregats d'una posicio. Delega al motor compartit perque l'app i la
+// plataforma no puguin tornar a donar numeros diferents.
 function aggPosicio(p){
-  var movs = getMoviments().filter(function(m){ return m.posicio_id === p.id; });
-  var cost = 0;
-  movs.forEach(function(m){
-    var im = parseFloat(m.import)||0;
-    if (m.tipus === 'compra') cost += im;
-    else if (m.tipus === 'venda') cost -= im;
-  });
-  var valor = parseFloat(p.valor_actual)||0;
-  var pnl = valor - cost;
-  var pnlPct = cost > 0 ? (pnl/cost*100) : 0;
-  return { cost:cost, valor:valor, pnl:pnl, pnlPct:pnlPct };
+  var a = TBI_CARTERA.agregats([p], getMoviments())[0] || {};
+  return {
+    valor: parseFloat(p.valor_actual)||0,
+    cost: a.cost_base || 0,
+    unitats: a.unitats_total || 0,
+    pnl: a.pnl_eur || 0,
+    pnlPct: a.pnl_pct || 0,
+    ratioGuany: a.ratio_guany || 0
+  };
 }
 
-// ════════════════════════════════════════════
-// AUTH
-// ════════════════════════════════════════════
 function showSplash(on){ $('splash').classList.toggle('hidden', !on); }
 function showLogin(on){ $('login').classList.toggle('hidden', !on); }
 function showApp(on){ $('app').classList.toggle('show', !!on); }
@@ -460,6 +522,13 @@ async function carregarClient(email){
 // ════════════════════════════════════════════
 // NAVEGACIÓ
 // ════════════════════════════════════════════
+// Esquelet de carrega: millor que una pantalla en blanc mentre arriba Supabase
+function skeleton(){
+  var el = $('view');
+  if (el) el.innerHTML = '<div class="skel skel-card"></div>'
+    + '<div class="skel skel-row"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';
+}
+
 function go(view){
   APP.view = view;
   ['cartera','evolucio','aportar','missatges'].forEach(function(v){
@@ -520,85 +589,172 @@ function segmentsPerCategoria(){
   return segs;
 }
 
+// ── Sparkline del valor de la cartera ───────────────────────────────────
+// Fa servir els snapshots mensuals reals. Sense prou història no dibuixa
+// res: una línia inventada de dos punts no informa de res.
+function sparklineSVG(){
+  var snaps = getSnapshots().slice().sort(function(a,b){ return String(a.mes).localeCompare(String(b.mes)); });
+  var k = kpisCartera();
+  var mesAra = mesActual();
+  var serie = snaps.map(function(s){ return { mes:String(s.mes), valor:parseFloat(s.valor)||0 }; });
+  var idx = -1;
+  for (var i=0;i<serie.length;i++) if (serie[i].mes === mesAra) idx = i;
+  if (k.valor_total > 0){
+    if (idx >= 0) serie[idx] = { mes:mesAra, valor:k.valor_total };
+    else serie.push({ mes:mesAra, valor:k.valor_total });
+  }
+  if (serie.length < 3) return '';
+
+  var vals = serie.map(function(s){ return s.valor; });
+  var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+  if (max <= min) return '';
+  var W = 300, H = 48;
+  var pts = vals.map(function(v,i){
+    var x = (i/(vals.length-1))*W;
+    var y = H - ((v-min)/(max-min))*(H-6) - 3;
+    return x.toFixed(1)+','+y.toFixed(1);
+  });
+  var puja = vals[vals.length-1] >= vals[0];
+  var col = puja ? 'var(--green)' : 'var(--red)';
+  return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'
+    + '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="2" '
+      + 'stroke-linejoin="round" stroke-linecap="round" opacity=".55"/>'
+    + '<circle cx="'+W+'" cy="'+pts[pts.length-1].split(',')[1]+'" r="3" fill="'+col+'"/>'
+    + '</svg>';
+}
+
+// ── Semàfor de bandes ───────────────────────────────────────────────────
+function bandesHTML(){
+  var calc = calcAportacio(0);
+  if (!calc || !calc.resum || calc.resum.coherencia === null) return '';
+  var r = calc.resum;
+  var col = r.coherencia >= 90 ? 'var(--green)' : (r.coherencia >= 75 ? 'var(--gold-dark)' : 'var(--red)');
+  var bg  = r.coherencia >= 90 ? 'var(--green-bg)' : (r.coherencia >= 75 ? 'var(--gold-bg)' : 'var(--red-bg)');
+  var fora = calc.rows.filter(function(x){ return x.foraBanda; });
+  var txt = r.cal_rebalanceig
+    ? (fora.length === 1
+        ? esc(fora[0].nom) + ' està fora de banda. La propera aportació hi anirà.'
+        : fora.length + ' categories fora de banda. Les properes aportacions les corregiran.')
+    : 'Tot dins de banda. No cal tocar res: aporta i prou.';
+  return '<div class="salut" style="background:'+bg+'">'
+    + '<div class="salut-num" style="color:'+col+'">'+r.coherencia+'<span>/100</span></div>'
+    + '<div class="salut-txt"><strong>Coherència amb el teu pla</strong><br>'+txt+'</div>'
+  + '</div>';
+}
+
 function renderCartera(){
   var pos = getPosicions();
   var el = $('view');
 
   if (!pos.length){
-    el.innerHTML = '<div class="empty">Encara no tens posicions registrades.<br><br>El teu assessor les afegirà aviat.</div>';
+    el.innerHTML = '<div class="empty-rich">'
+      + '<div class="empty-ico">📊</div>'
+      + '<div class="empty-tit">Encara no tens posicions</div>'
+      + '<div class="empty-sub">Quan el teu assessor configuri la teva cartera, aquí veuràs el valor, el rendiment real i si estàs alineat amb el teu pla.</div>'
+      + '<button class="btn-primary" onclick="go(\'missatges\')">Escriure a l\'assessor</button>'
+      + '</div>';
     return;
   }
 
-  var valorTotal = 0, costTotal = 0;
-  pos.forEach(function(p){ var a = aggPosicio(p); valorTotal += a.valor; costTotal += a.cost; });
-  var guany = valorTotal - costTotal;              // revaloració real (no inclou que aportis més)
-  var guanyPct = costTotal > 0 ? (guany/costTotal*100) : 0;
-
+  var k = kpisCartera();
   var html = '';
 
-  // KPI principal: valor total
-  html += '<div class="card">'
+  // ── HERO ──
+  var colG = k.pnl_eur >= 0 ? 'var(--green)' : 'var(--red)';
+  var fletxa = k.pnl_eur >= 0 ? '▲' : '▼';
+  html += '<div class="card hero">'
+    + sparklineSVG()
     + '<div class="card-lbl">Valor total de la cartera</div>'
-    + '<div class="kpi-big">'+eurRound(valorTotal)+'</div>';
-  // Separació clara: aportat vs guany
-  var colG = guany >= 0 ? 'var(--green)' : 'var(--red)';
-  html += '<div style="display:flex;gap:18px;margin-top:12px">'
-    + '<div><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Has aportat</div>'
-      + '<div style="font-family:var(--fm);font-size:15px;color:var(--g700);margin-top:2px">'+eurRound(costTotal)+'</div></div>'
-    + '<div><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Guany/pèrdua</div>'
-      + '<div style="font-family:var(--fm);font-size:15px;color:'+colG+';margin-top:2px">'+(guany>=0?'+':'')+eurRound(guany)+' · '+pct(guanyPct)+'</div></div>'
-    + '</div>'
-    + '<div style="font-size:11px;color:var(--g400);margin-top:10px;line-height:1.4">El guany és la revaloració de la teva inversió. Les aportacions noves no compten com a guany.</div>'
-    + '</div>';
+    + '<div class="kpi-big">'+eurRound(k.valor_total)+'</div>'
+    + '<div class="hero-pnl" style="color:'+colG+'">'+fletxa+' '+(k.pnl_eur>=0?'+':'')+eurRound(k.pnl_eur)
+      + ' <span class="hero-pill" style="background:'+(k.pnl_eur>=0?'var(--green-bg)':'var(--red-bg)')+'">'+pct(k.pnl_pct)+'</span></div>'
+    + '<div class="hero-grid">';
 
-  // Botó actualitzar (acció principal única — sense banner duplicat)
+  // Rendiment anualitzat: TIR si l'històric dona, acumulat si no
+  var rendLbl, rendVal, rendCol;
+  if (k.xirr !== null && k.xirr_fiable){
+    rendLbl = 'Rendiment anual'; rendVal = pct(k.xirr);
+    rendCol = k.xirr >= 0 ? 'var(--green)' : 'var(--red)';
+  } else {
+    rendLbl = 'Rendiment acumulat'; rendVal = pct(k.pnl_pct);
+    rendCol = k.pnl_pct >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+  html += '<div><div class="mini-lbl">Has aportat</div><div class="mini-val">'+eurRound(k.cost_total)+'</div></div>'
+    + '<div><div class="mini-lbl">'+rendLbl+'</div><div class="mini-val" style="color:'+rendCol+'">'+rendVal+'</div></div>';
+  var tw = twrCartera();
+  if (tw && tw.fiable){
+    html += '<div><div class="mini-lbl">TWR anual</div><div class="mini-val">'+pct(tw.anual)+'</div></div>';
+  }
+  html += '</div>';
+  if (k.xirr !== null && k.xirr_fiable){
+    html += '<div class="hero-nota">El rendiment anual és la TIR: té en compte quan vas posar cada euro, no només quant.</div>';
+  } else {
+    html += '<div class="hero-nota">Amb menys de 6 mesos d\'històric, anualitzar el rendiment enganya. T\'ensenyem l\'acumulat.</div>';
+  }
+  html += '</div>';
+
+  // ── Acció principal ──
   var dies = diesDesActualitzacio();
   var necessitaUpd = !carteraActualitzadaAquestMes() && dies !== null;
   var btnTxt = necessitaUpd
     ? (dies === Infinity ? '💱 Posa els valors al dia' : '💱 Actualitzar (fa '+dies+' dies)')
     : '💱 Actualitzar valors';
-  html += '<button class="btn-primary" style="margin-bottom:16px" onclick="obrirActualitzar()">'+btnTxt+'</button>';
+  html += '<button class="btn-primary" style="margin-bottom:14px" onclick="obrirActualitzar()">'+btnTxt+'</button>';
 
-  // ── DONUT: proporció per família d'actius ──
+  // ── Semàfor de bandes ──
+  html += bandesHTML();
+
+  // ── Cost real ──
+  var t = terCartera();
+  if (t){
+    html += '<div class="card">'
+      + '<div class="card-lbl">Cost real de la teva cartera</div>'
+      + '<div class="ter-row">'
+        + '<div><div class="mini-lbl">TER ponderat</div><div class="ter-big">'+t.ter_real.toFixed(2).replace('.',',')+'%</div>'
+          + '<div class="mini-sub">'+eurRound(t.cost_anual_eur)+'/any</div></div>'
+        + '<div><div class="mini-lbl">Banca tradicional</div><div class="ter-big" style="color:var(--g400)">'+t.ter_banc.toFixed(2).replace('.',',')+'%</div>'
+          + '<div class="mini-sub">'+eurRound(t.cost_banc_eur)+'/any</div></div>'
+        + '<div><div class="mini-lbl">T\'estalvies</div><div class="ter-big" style="color:var(--green)">'+eurRound(t.estalvi_anual_eur)+'</div>'
+          + '<div class="mini-sub">cada any</div></div>'
+      + '</div></div>';
+  }
+
+  // ── Donut ──
   var segs = segmentsPerCategoria();
   var donut = donutSVG(segs);
   if (donut.svg){
     html += '<div class="card">'
       + '<div class="card-lbl" style="margin-bottom:10px">Distribució per família d\'actius</div>'
-      + donut.svg
-      + '<div style="margin-top:14px">';
+      + donut.svg + '<div style="margin-top:14px">';
     segs.forEach(function(seg){
       var p = donut.total > 0 ? (seg.valor/donut.total*100) : 0;
-      html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0">'
-        + '<span style="width:11px;height:11px;border-radius:3px;flex-shrink:0;background:'+seg.color+'"></span>'
-        + '<div style="flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(seg.nom)+'</div>'
-        + '<div style="font-family:var(--fm);font-size:13px;color:var(--g700)">'+p.toFixed(0)+'%</div>'
+      html += '<div class="leg-row">'
+        + '<span class="leg-dot" style="background:'+seg.color+'"></span>'
+        + '<div class="leg-nom">'+esc(seg.nom)+'</div>'
+        + '<div class="leg-pct">'+p.toFixed(0)+'%</div>'
       + '</div>';
     });
     html += '</div></div>';
   }
 
-  // Llista de posicions
+  // ── Posicions ──
   html += '<div class="card"><div class="card-lbl" style="margin-bottom:8px">Posicions</div>';
-  pos.forEach(function(p){
-    var a = aggPosicio(p);
-    var colP = a.pnl >= 0 ? 'var(--green)' : 'var(--red)';
-    var dataTxt = p.valor_data ? ('Actualitzat ' + dataHumana(p.valor_data)) : 'Sense valor';
+  TBI_CARTERA.agregats(pos, getMoviments()).forEach(function(p){
+    var valor = parseFloat(p.valor_actual)||0;
+    var colP = p.pnl_eur >= 0 ? 'var(--green)' : 'var(--red)';
     var catNom = catInfo(p.cat).nom;
     var sub = [];
     if (p.nom && p.nom !== catNom) sub.push(esc(p.nom));
     if (p.broker) sub.push(esc(p.broker));
-    sub.push(dataTxt);
+    sub.push(p.valor_data ? ('Actualitzat ' + dataHumana(p.valor_data)) : 'Sense valor');
     html += '<div class="pos-row">'
       + '<span class="pos-emoji">'+emojiFor(p)+'</span>'
       + '<div style="flex:1;min-width:0">'
         + '<div class="pos-nom">'+esc(catNom)+'</div>'
         + '<div class="pos-meta">'+sub.join(' · ')+'</div>'
       + '</div>'
-      + '<div>'
-        + '<div class="pos-val">'+eurRound(a.valor)+'</div>'
-        + '<div class="pos-pnl" style="color:'+colP+'">'+pct(a.pnlPct)+'</div>'
-      + '</div>'
+      + '<div><div class="pos-val">'+eurRound(valor)+'</div>'
+        + '<div class="pos-pnl" style="color:'+colP+'">'+pct(p.pnl_pct)+'</div></div>'
     + '</div>';
   });
   html += '</div>';
@@ -1111,53 +1267,32 @@ function distribucioRealPerCat(){
 // Algoritme idèntic a calcMatchingITactic de platform.html, però usant
 // cartera_target_custom (que ja porta nom i color per categoria).
 // Retorna { rows:[...], recomanacio:[{cat,nom,color,import,motiu}], valorActual, valorPost, aport }
+// El calcul d'aportacio viu a TBI_CARTERA. Abans l'app en tenia una copia
+// amb l'algoritme antic (top-2, sense bandes ni minim per ordre): amb la
+// mateixa cartera i 500 euros, l'app deia "RF Corp 499 + Or 1" i la
+// plataforma "RF Corp 500". Ara nomes hi ha una implementacio.
+function ctxCartera(){
+  return { posicions: getPosicions(), moviments: getMoviments(), target: getTarget() };
+}
 function calcAportacio(aport){
   var target = getTarget();
   if (!target.length) return null;
-  var real = distribucioRealPerCat();
-  var valorActual = 0;
-  Object.keys(real).forEach(function(k){ valorActual += real[k]; });
-  aport = parseFloat(aport)||0;
-  var valorPost = valorActual + aport;
-
-  var rows = target.map(function(t){
-    var catId = t.id || t.nom;
-    var realEur = real[catId] || 0;
-    var targetPct = parseFloat(t.pct)||0;
-    var targetEur = targetPct/100 * valorPost;
-    var gapEur = targetEur - realEur; // positiu = infraponderat
-    return {
-      cat: catId,
-      nom: t.nom || catId,
-      color: t.color || '#888',
-      targetPct: targetPct,
-      realEur: realEur,
-      realPct: valorPost > 0 ? (realEur/valorPost*100) : 0,
-      gapEur: gapEur
-    };
-  });
-
-  var ordenat = rows.slice().sort(function(a,b){ return b.gapEur - a.gapEur; });
-  var recomanacio = [];
-  if (aport > 0){
-    var top2 = ordenat.filter(function(r){ return r.gapEur > 0; }).slice(0,2);
-    if (top2.length === 0){
-      // cartera equilibrada -> DCA als 2 pesos target més grans
-      var t2 = rows.slice().sort(function(a,b){ return b.targetPct - a.targetPct; }).slice(0,2);
-      var sumP = t2.reduce(function(s,r){ return s+r.targetPct; }, 0);
-      recomanacio = t2.map(function(r){
-        var pct = sumP > 0 ? r.targetPct/sumP : 0.5;
-        return { cat:r.cat, nom:r.nom, color:r.color, import:Math.round(aport*pct), motiu:'DCA equilibrat' };
-      });
-    } else {
-      var sumG = top2.reduce(function(s,r){ return s+r.gapEur; }, 0);
-      recomanacio = top2.map(function(r){
-        var pct = sumG > 0 ? r.gapEur/sumG : 1/top2.length;
-        return { cat:r.cat, nom:r.nom, color:r.color, import:Math.round(aport*pct), motiu:'Infraponderat' };
-      });
-    }
-  }
-  return { rows:rows, recomanacio:recomanacio, valorActual:valorActual, valorPost:valorPost, aport:aport };
+  var m = TBI_CARTERA.matching(ctxCartera(), aport);
+  if (!m) return null;
+  // Forma que espera el render de l'app
+  return {
+    rows: m.rows.map(function(r){
+      return { cat:r.id, nom:r.nom, color:r.color, targetPct:r.target_pct,
+               realEur:r.real_eur, realPct:r.real_pct, gapEur:r.gap_eur,
+               gapPct:r.gap_pct, banda:r.banda_pp, foraBanda:r.fora_banda,
+               estat:r.estat, foraPla:r.fora_pla };
+    }),
+    recomanacio: m.recomanacio.map(function(l){
+      return { cat:l.cat, nom:l.nom, color:l.color, import:l.import, motiu:l.motiu, prioritat:l.prioritat };
+    }),
+    resum: m.resum,
+    valorActual: m.valor_actual, valorPost: m.valor_post, aport: m.aportacio
+  };
 }
 
 // Quantes aportacions s'han registrat aquest mes (per avisar si ja s'ha fet)
@@ -1174,7 +1309,12 @@ function renderAportar(){
   var pos = getPosicions();
 
   if (!pos.length || !target.length){
-    el.innerHTML = '<div class="empty">Encara no tens cartera configurada.<br><br>Quan el teu assessor defineixi la teva cartera, aquí veuràs quant i on aportar cada mes.</div>';
+    el.innerHTML = '<div class="empty-rich">'
+      + '<div class="empty-ico">📅</div>'
+      + '<div class="empty-tit">Encara no tens cartera objectiu</div>'
+      + '<div class="empty-sub">Quan el teu assessor defineixi la teva cartera, aquí veuràs cada mes quant aportar i a quina categoria exactament.</div>'
+      + '<button class="btn-primary" onclick="go(\'missatges\')">Escriure a l\'assessor</button>'
+      + '</div>';
     return;
   }
 
@@ -1227,7 +1367,8 @@ function renderAportar(){
       + '</div>';
     });
     html += '<div style="font-size:11px;color:var(--g400);margin-top:10px;line-height:1.5">'
-      + 'Suggerit per acostar la teva cartera a l\'objectiu. Reforça les categories per sota del seu pes ideal.</div>';
+      + 'Calculat amb bandes 5/25: primer el que està fora de banda, mai més enllà del seu forat i amb un mínim de '
+      + TBI_CARTERA.PARAMS.import_min_ordre + '€ per ordre. És exactament el mateix càlcul que veu el teu assessor.</div>';
   } else {
     html += '<div class="empty" style="padding:20px">La teva cartera ja està equilibrada. Pots aportar repartint segons la teva distribució objectiu.</div>';
   }
@@ -1239,14 +1380,18 @@ function renderAportar(){
   // Distribució objectiu vs real (context)
   html += '<div class="section-h">La teva cartera objectiu</div><div class="card">';
   calc.rows.forEach(function(r){
-    var diff = r.targetPct - r.realPct;
-    var diffTxt = (Math.abs(diff) < 0.5) ? 'al punt' : ((diff>0?'+':'')+diff.toFixed(1)+'% per '+(diff>0?'sota':'sobre'));
-    var diffCol = (Math.abs(diff) < 0.5) ? 'var(--g400)' : (diff>0 ? 'var(--gold)' : 'var(--g500)');
+    // La referencia ja no es un llindar arbitrari sino la banda 5/25 real
+    var diff = r.gapPct;
+    var dins = !r.foraBanda;
+    var diffTxt = dins ? 'dins de banda' : ((diff>0?'+':'')+diff.toFixed(1)+'pp per '+(diff>0?'sota':'sobre'));
+    var diffCol = dins ? 'var(--g400)' : (diff>0 ? 'var(--gold-dark)' : 'var(--red)');
+    var badge = '<span class="badge '+(dins?'badge-ok':(diff>0?'badge-infra':'badge-sobre'))+'">'
+      + (dins?'ok':(diff>0?'infra':'sobre'))+'</span>';
     html += '<div class="pos-row">'
       + '<span style="width:10px;height:10px;border-radius:3px;flex-shrink:0;background:'+r.color+'"></span>'
       + '<div style="flex:1;min-width:0">'
         + '<div class="pos-nom">'+esc(r.nom)+'</div>'
-        + '<div class="pos-meta">Actual '+r.realPct.toFixed(1)+'% · objectiu '+r.targetPct.toFixed(0)+'%</div>'
+        + '<div class="pos-meta">Actual '+r.realPct.toFixed(1)+'% · objectiu '+r.targetPct.toFixed(0)+'% · banda ±'+r.banda.toFixed(1)+'pp '+badge+'</div>'
       + '</div>'
       + '<div class="pos-pnl" style="color:'+diffCol+'">'+diffTxt+'</div>'
     + '</div>';
