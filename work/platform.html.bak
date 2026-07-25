@@ -4448,7 +4448,6 @@ var ADMIN_NAV = [
   {id:'admin-ingressos',    icon:'&#128182;', label:'Ingressos'},
   {id:'admin-parametres',  icon:'&#128202;', label:'Par\u00e0metres d\u2019actius'},
   {id:'admin-radar',       icon:'&#128201;', label:'Radar d\u2019Oportunitats'},
-  {action:'tbiObrirInstallModal', icon:'📱', label:'App mòbil TBI'},
   {section:'Clients'},
   {id:'admin-leads',       icon:'🧲', label:'Leads \u00b7 Test salut'},
   {id:'admin-educacio',    icon:'🎓', label:'Educaci\u00f3 \u00b7 progr\u00e9s'},
@@ -4494,7 +4493,6 @@ var CLIENT_NAV = [
   {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
   {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
   {id:'portal-missatges', icon:'💬', label:'Missatges'},
-  {action:'tbiObrirInstallModal', icon:'📱', label:'App mòbil TBI'},
   {section:'Contingut', collapsible:true},
   {id:'portal-informes', icon:'📋', label:'Informes'},
   {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
@@ -4566,14 +4564,6 @@ function setupSidebar() {
       }
     } else if (item.external) {
       html += '<button class="sidebar-item" onclick="openExternal(\'' + item.external + '\')">'
-        + '<span class="sidebar-item-icon">' + item.icon + '</span>'
-        + item.label
-        + '<span class="sidebar-item-badge">↗</span>'
-        + '</button>';
-    } else if (item.action) {
-      // Item de menú que crida una funció global (p. ex. el modal d'instal·lació
-      // de l'app mòbil). No canvia de vista: no porta data-view ni estat actiu.
-      html += '<button class="sidebar-item" onclick="if(window[\'' + item.action + '\'])window[\'' + item.action + '\']()">'
         + '<span class="sidebar-item-icon">' + item.icon + '</span>'
         + item.label
         + '<span class="sidebar-item-badge">↗</span>'
@@ -24215,30 +24205,30 @@ async function eliminarEdu(id) {
 <style>
 #tbi-install-banner{
   position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:9000;
-  width:calc(100% - 32px);max-width:440px;background:#fff;border:1px solid #E4E0D8;
+  width:calc(100% - 32px);max-width:440px;background:#fff;border:1px solid #E8E6E1;
   border-radius:14px;box-shadow:0 8px 30px rgba(10,10,10,.16);padding:14px 16px;
   display:none;align-items:center;gap:13px;font-family:'IBM Plex Sans',sans-serif;
 }
 #tbi-install-banner.show{display:flex;animation:tbiSlideUp .3s ease}
 @keyframes tbiSlideUp{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
-#tbi-install-banner .ico{width:38px;height:38px;border-radius:9px;background:#16233A;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+#tbi-install-banner .ico{width:38px;height:38px;border-radius:9px;background:#1B3A6B;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 #tbi-install-banner .tx{flex:1;min-width:0}
-#tbi-install-banner .tx b{font-size:13px;color:#16233A;display:block;line-height:1.3}
-#tbi-install-banner .tx span{font-size:11px;color:#6B7280;line-height:1.4}
-#tbi-install-banner .act{background:#16233A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;padding:9px 14px;cursor:pointer;flex-shrink:0;font-family:inherit}
-#tbi-install-banner .cls{background:none;border:none;color:#9AA1AC;font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
+#tbi-install-banner .tx b{font-size:13px;color:#0A0A0A;display:block;line-height:1.3}
+#tbi-install-banner .tx span{font-size:11px;color:#6B6762;line-height:1.4}
+#tbi-install-banner .act{background:#1B3A6B;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;padding:9px 14px;cursor:pointer;flex-shrink:0;font-family:inherit}
+#tbi-install-banner .cls{background:none;border:none;color:#9A9690;font-size:18px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1}
 
 #tbi-install-modal{position:fixed;inset:0;background:rgba(10,10,10,.55);z-index:9100;display:none;align-items:center;justify-content:center;padding:20px;font-family:'IBM Plex Sans',sans-serif}
 #tbi-install-modal.show{display:flex}
 #tbi-install-modal .box{background:#fff;border-radius:16px;max-width:420px;width:100%;padding:26px 24px}
-#tbi-install-modal h3{font-family:'IBM Plex Sans',sans-serif;font-size:21px;font-weight:500;color:#16233A;margin:0 0 6px}
-#tbi-install-modal p{font-size:13px;color:#6B7280;line-height:1.6;margin:0 0 18px}
-#tbi-install-modal .opt{display:flex;gap:13px;align-items:flex-start;padding:14px;border:1.5px solid #E4E0D8;border-radius:12px;margin-bottom:12px;cursor:pointer;text-decoration:none;transition:border-color .15s}
-#tbi-install-modal .opt:hover{border-color:#16233A}
+#tbi-install-modal h3{font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:500;color:#1B3A6B;margin:0 0 6px}
+#tbi-install-modal p{font-size:13px;color:#6B6762;line-height:1.6;margin:0 0 18px}
+#tbi-install-modal .opt{display:flex;gap:13px;align-items:flex-start;padding:14px;border:1.5px solid #E8E6E1;border-radius:12px;margin-bottom:12px;cursor:pointer;text-decoration:none;transition:border-color .15s}
+#tbi-install-modal .opt:hover{border-color:#1B3A6B}
 #tbi-install-modal .opt .e{font-size:24px;flex-shrink:0}
-#tbi-install-modal .opt .t b{font-size:14px;color:#16233A;display:block;margin-bottom:2px}
-#tbi-install-modal .opt .t span{font-size:12px;color:#6B7280;line-height:1.5}
-#tbi-install-modal .modal-cls{width:100%;padding:12px;background:#F2F0EB;color:#4A4845;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;margin-top:4px;font-family:inherit}
+#tbi-install-modal .opt .t b{font-size:14px;color:#0A0A0A;display:block;margin-bottom:2px}
+#tbi-install-modal .opt .t span{font-size:12px;color:#6B6762;line-height:1.5}
+#tbi-install-modal .modal-cls{width:100%;padding:12px;background:#F4F3F0;color:#4A4845;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;margin-top:4px;font-family:inherit}
 </style>
 
 <div id="tbi-install-banner">
@@ -24249,7 +24239,7 @@ async function eliminarEdu(id) {
       <path d="M30 66 L70 61.5" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
     </svg>
   </div>
-  <div class="tx"><b>Instal·la l'app TBI al mòbil</b><span>La teva cartera a la pantalla d'inici, sense contrasenya cada cop.</span></div>
+  <div class="tx"><b>Tens l'app al mòbil</b><span>Entra més ràpid des de la pantalla d'inici.</span></div>
   <button class="act" onclick="tbiObrirInstallModal()">Veure</button>
   <button class="cls" onclick="tbiTancarInstallBanner()" aria-label="Tancar">&times;</button>
 </div>
@@ -24272,7 +24262,7 @@ async function eliminarEdu(id) {
 
 <script>
 (function(){
-  var KEY = 'tbi_install_banner_dismissed_v2';
+  var KEY = 'tbi_install_banner_dismissed';
   function jaInstalada(){
     var mq = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
     return !!(mq || window.navigator.standalone === true);

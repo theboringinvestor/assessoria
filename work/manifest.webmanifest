@@ -1,0 +1,32 @@
+{
+  "name": "The Boring Investor",
+  "short_name": "TBI",
+  "description": "El teu espai d'inversió: cartera, evolució i missatges amb el teu assessor.",
+  "start_url": "tbi-app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16233A",
+  "theme_color": "#16233A",
+  "lang": "ca",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
