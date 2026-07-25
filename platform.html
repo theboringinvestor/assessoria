@@ -16,6 +16,7 @@
 <script src="tbi-perfil.js"></script>
 <script src="tbi-hipoteca.js"></script>
 <script src="tbi-fiscal.js"></script>
+<script src="tbi-fire.js"></script>
 <style>
 :root{
   --black:#16233A;--white:#FFFFFF;--bg:#F7F5F0;
@@ -4756,6 +4757,349 @@ function calcMatchingITactic(aportacio, opts) {
     aportacio: aport,
     import_min_ordre: importMin,
     recomanacio: recomanacio
+  };
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FASE DE RETIRADA — el matching a la inversa
+// Mentre acumules, l'aportació va a les categories INFRAponderades.
+// Mentre liquides, la venda surt de les SOBREponderades: cada retirada
+// rebalanceja sola i evites vendre justament el que va endarrerit.
+//
+// Dues capes de decisió:
+//   1. QUINA CATEGORIA — per excés sobre el target, amb bandes 5/25
+//   2. QUINA POSICIÓ dins la categoria — la de menor ràtio de plusvàlua,
+//      perquè el mateix euro de caixa generi menys impost
+// ════════════════════════════════════════════════════════════════════════════
+
+// Ràtio de plusvàlua latent de tota la cartera: (valor − cost) / valor.
+// És el que determina quant has de vendre de més per obtenir un net.
+function calcRatioGuanyCartera() {
+  var posAgg = calcPosicionsAmbAgregats();
+  var valor = 0, cost = 0;
+  posAgg.forEach(function (p) {
+    var v = parseFloat(p.valor_actual) || 0;
+    if (v <= 0) return;
+    valor += v;
+    cost += Math.max(0, p.cost_base);
+  });
+  if (valor <= 0) return 0;
+  return Math.max(0, Math.min(1, (valor - cost) / valor));
+}
+
+// Ràtio de plusvàlua d'una posició concreta
+function _ratioGuanyPosicio(p) {
+  var v = parseFloat(p.valor_actual) || 0;
+  if (v <= 0) return 0;
+  var cost = Math.max(0, p.cost_base);
+  return Math.max(0, Math.min(1, (v - cost) / v));
+}
+
+// Reparteix un import de venda entre categories sobreponderades.
+// Simètric a _repartirAportacio: allà s'omplien els forats, aquí es retallen
+// els excessos, sense passar-se mai de l'excés de cada categoria.
+function _repartirVenda(candidats, totsElsRows, importVenda) {
+  var assign = {}, i;
+  candidats.forEach(function (r) { assign[r.id] = 0; });
+  var restant = importVenda;
+  for (i = 0; i < 8 && restant > 0.01; i++) {
+    var oberts = candidats.filter(function (r) { return assign[r.id] < r.exces_plan - 0.01; });
+    if (oberts.length === 0) break;
+    var sumE = 0;
+    oberts.forEach(function (r) { sumE += (r.exces_plan - assign[r.id]); });
+    if (sumE <= 0) break;
+    var disponible = restant;
+    oberts.forEach(function (r) {
+      var quota = (r.exces_plan - assign[r.id]) / sumE;
+      var add = Math.min(disponible * quota, r.exces_plan - assign[r.id]);
+      assign[r.id] += add;
+      restant -= add;
+    });
+  }
+  // Si retallar els excessos no arriba, la resta surt de tothom a pes de
+  // target: així la cartera es manté proporcionada mentre es va buidant.
+  if (restant > 0.01) {
+    var base = (totsElsRows && totsElsRows.length) ? totsElsRows : candidats;
+    var sumT = 0;
+    base.forEach(function (r) { sumT += (r.real_eur || 0); });
+    base.forEach(function (r) {
+      if (assign[r.id] === undefined) assign[r.id] = 0;
+      var quota = sumT > 0 ? (r.real_eur || 0) / sumT : 1 / base.length;
+      assign[r.id] += restant * quota;
+    });
+  }
+  return assign;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// calcRetiradaTactica(importNet, opts)
+// importNet: euros que el client vol tenir a la butxaca DESPRÉS d'impostos.
+// Retorna les ordres de venda concretes, l'impost estimat i el brut real.
+// ════════════════════════════════════════════════════════════════════════
+function calcRetiradaTactica(importNet, opts) {
+  var c = getClient();
+  if (!c) return null;
+  opts = opts || {};
+  var net = parseFloat(importNet) || 0;
+  if (net <= 0) return null;
+
+  var importMin = (opts.import_min_ordre != null) ? opts.import_min_ordre : MOTOR_V3.import_min_ordre;
+  var altresRend = parseFloat(opts.altres_rendiments) || 0;
+  var ambImpostos = (opts.considerar_impostos !== false);
+
+  var posAgg = calcPosicionsAmbAgregats().filter(function (p) { return (parseFloat(p.valor_actual) || 0) > 0; });
+  if (!posAgg.length) return null;
+
+  var valorTotal = 0;
+  posAgg.forEach(function (p) { valorTotal += (parseFloat(p.valor_actual) || 0); });
+  if (valorTotal <= 0) return null;
+
+  // ── Brut necessari per obtenir el net demanat ──
+  // Primera estimació amb la ràtio de plusvàlua de tota la cartera. No és
+  // suficient: la venda concreta surt de les posicions que triem, que poden
+  // tenir molta més (o molta menys) plusvàlua que la mitjana. Després de
+  // construir les ordres reals cal tornar-hi i ajustar.
+  var ratioCartera = calcRatioGuanyCartera();
+  var grossUp = ambImpostos && typeof TBI_FIRE !== 'undefined'
+    ? TBI_FIRE.brutPerNet(net, ratioCartera, altresRend)
+    : { brut: net, impost: 0, guany: 0, tipus_efectiu: 0 };
+  var brut = Math.min(grossUp.brut, valorTotal);
+  var insuficient = grossUp.brut > valorTotal;
+
+  // ── Capa 1: quina categoria ──
+  var arq = getArquetip(c.arquetipId || 'navegant');
+  var target = (c.cartera_target_custom && c.cartera_target_custom.length > 0)
+    ? c.cartera_target_custom : (arq.actius || []);
+  var real = calcDistribucioReal();
+  var valorPost = Math.max(0, valorTotal - brut);
+
+  var idsTarget = {};
+  var rows = (target || []).map(function (t) {
+    var catId = t.id || (function () {
+      var f = ACTIUS_TAXONOMY.find(function (a) { return a.ca === t.nom || a.id === t.nom; });
+      return f ? f.id : t.nom;
+    })();
+    idsTarget[catId] = true;
+    var taxon = ACTIUS_TAXONOMY.find(function (a) { return a.id === catId; });
+    var realRow = real.find(function (r) { return r.id === catId; });
+    var targetPct = parseFloat(t.pct) || 0;
+    var realEur = realRow ? realRow.valor : 0;
+    var realPct = valorTotal > 0 ? realEur / valorTotal * 100 : 0;
+    var banda = Math.max(MOTOR_V3.banda_min_pp, Math.min(MOTOR_V3.banda_abs_pp, targetPct * MOTOR_V3.banda_rel));
+    return {
+      id: catId, nom: taxon ? taxon.ca : (t.nom || catId), emoji: taxon ? taxon.emoji : '•',
+      color: t.color || (taxon ? taxon.color : '#888'),
+      target_pct: targetPct, real_eur: realEur, real_pct: realPct,
+      // Excés sobre el target un cop feta la retirada: és el que convé vendre
+      exces_plan: realEur - targetPct / 100 * valorPost,
+      exces_pct: realPct - targetPct,
+      banda_pp: banda,
+      fora_banda: Math.abs(realPct - targetPct) > banda,
+      fora_pla: false
+    };
+  });
+  // Categories que no són al pla: es venen primer, sempre
+  real.forEach(function (r) {
+    if (idsTarget[r.id] || r.valor <= 0) return;
+    rows.push({
+      id: r.id, nom: r.nom, emoji: r.emoji, color: r.color,
+      target_pct: 0, real_eur: r.valor,
+      real_pct: valorTotal > 0 ? r.valor / valorTotal * 100 : 0,
+      exces_plan: r.valor, exces_pct: valorTotal > 0 ? r.valor / valorTotal * 100 : 0,
+      banda_pp: MOTOR_V3.banda_min_pp, fora_banda: true, fora_pla: true
+    });
+  });
+
+  var sobre = rows.filter(function (r) { return r.exces_plan > 0.5; });
+  // Primer les que estan fora de banda o fora de pla; si no n'hi ha, totes
+  var prioritaris = sobre.filter(function (r) { return r.fora_banda || r.fora_pla; });
+  var baseCands = prioritaris.length > 0 ? prioritaris : sobre;
+
+  // ── Capa 2: quina posició dins de cada categoria ──
+  // A igual categoria, ven primer la que porta menys plusvàlua: mateixa
+  // caixa, menys factura fiscal. No és evasió, és ordre de venda.
+  function _construirOrdres(brutObjectiu) {
+    var assignCat = baseCands.length > 0
+      ? _repartirVenda(baseCands, rows, brutObjectiu)
+      : (function () {
+          // Cartera perfectament alineada: venda proporcional a tot arreu
+          var a = {}, sumV = 0;
+          rows.forEach(function (r) { sumV += r.real_eur; });
+          rows.forEach(function (r) { a[r.id] = sumV > 0 ? brutObjectiu * r.real_eur / sumV : 0; });
+          return a;
+        })();
+
+    var res = [];
+    Object.keys(assignCat).forEach(function (catId) {
+      var aVendre = assignCat[catId];
+      if (!(aVendre > 0.5)) return;
+      var pos = posAgg.filter(function (p) { return p.cat === catId; })
+        .map(function (p) {
+          return {
+            id: p.id, nom: p.nom || catId, cat: catId,
+            valor: parseFloat(p.valor_actual) || 0,
+            cost_base: Math.max(0, p.cost_base),
+            ratio_guany: _ratioGuanyPosicio(p)
+          };
+        })
+        .sort(function (a, b) { return a.ratio_guany - b.ratio_guany; });
+
+      var restant = aVendre;
+      for (var i = 0; i < pos.length && restant > 0.5; i++) {
+        var imp = Math.min(restant, pos[i].valor);
+        if (imp <= 0.5) continue;
+        var taxon = ACTIUS_TAXONOMY.find(function (a) { return a.id === catId; });
+        res.push({
+          posicio_id: pos[i].id, nom: pos[i].nom, cat: catId,
+          nom_cat: taxon ? taxon.ca : catId, emoji: taxon ? taxon.emoji : '•',
+          color: taxon ? taxon.color : '#888',
+          import: imp,
+          valor_posicio: pos[i].valor,
+          ratio_guany: pos[i].ratio_guany,
+          guany: imp * pos[i].ratio_guany,
+          pct_posicio: pos[i].valor > 0 ? imp / pos[i].valor * 100 : 0,
+          liquida_tot: imp >= pos[i].valor - 0.5
+        });
+        restant -= imp;
+      }
+    });
+
+    // Mínim per ordre: agrupar les engrunes a l'ordre més gran de la categoria
+    res = res.filter(function (o) { return o.import > 0.5; })
+             .sort(function (a, b) { return b.import - a.import; });
+    if (res.length > 1) {
+      var guard = 0;
+      while (res.length > 1 && guard++ < 40 && res[res.length - 1].import < importMin) {
+        var petita = res.pop();
+        var receptor = null;
+        for (var k = 0; k < res.length; k++) {
+          if (res[k].cat === petita.cat) { receptor = res[k]; break; }
+        }
+        if (!receptor) receptor = res[0];
+        var marge = Math.max(0, receptor.valor_posicio - receptor.import);
+        var mou = Math.min(petita.import, marge);
+        receptor.import += mou;
+        receptor.guany = receptor.import * receptor.ratio_guany;
+        receptor.pct_posicio = receptor.valor_posicio > 0 ? receptor.import / receptor.valor_posicio * 100 : 0;
+        receptor.liquida_tot = receptor.import >= receptor.valor_posicio - 0.5;
+        if (mou < petita.import - 0.5) { petita.import -= mou; res.push(petita); break; }
+        res.sort(function (a, b) { return b.import - a.import; });
+      }
+    }
+    return res;
+  }
+
+  function _impostDe(guany) {
+    return (ambImpostos && typeof TBI_FISCAL !== 'undefined')
+      ? TBI_FISCAL.impostEstalvi(altresRend + guany) - TBI_FISCAL.impostEstalvi(altresRend)
+      : 0;
+  }
+
+  // ── Punt fix: ajustar el brut fins que el NET sigui el demanat ──
+  // La ràtio de plusvàlua de les posicions que acabem venent no és la de la
+  // cartera sencera, així que la primera estimació es queda curta o llarga.
+  // Com que l'impost marginal és < 30%, la iteració convergeix de pressa.
+  var ordres = [], brutReal = 0, guanyReal = 0, impostReal = 0, netReal = 0, it;
+  for (it = 0; it < 12; it++) {
+    ordres = _construirOrdres(Math.min(brut, valorTotal));
+    brutReal = 0; guanyReal = 0;
+    ordres.forEach(function (o) { brutReal += o.import; guanyReal += o.guany; });
+    impostReal = _impostDe(guanyReal);
+    netReal = brutReal - impostReal;
+    var err = net - netReal;
+    // Si ja hem tocat sostre no es pot ajustar més
+    if (brutReal >= valorTotal - 0.5) { insuficient = insuficient || (netReal < net - 0.5); break; }
+    if (Math.abs(err) < 0.5) break;
+    brut = Math.min(valorTotal, brutReal + err);
+  }
+
+  // Com queda la cartera després de la venda
+  var perCat = {};
+  ordres.forEach(function (o) { perCat[o.cat] = (perCat[o.cat] || 0) + o.import; });
+  var despres = rows.map(function (r) {
+    var venut = perCat[r.id] || 0;
+    var nou = Math.max(0, r.real_eur - venut);
+    var totalDespres = Math.max(1, valorTotal - brutReal);
+    return {
+      id: r.id, nom: r.nom, emoji: r.emoji, color: r.color,
+      target_pct: r.target_pct, fora_pla: r.fora_pla,
+      abans_pct: r.real_pct, venut: venut,
+      despres_pct: nou / totalDespres * 100,
+      desviacio_abans: r.real_pct - r.target_pct,
+      desviacio_despres: nou / totalDespres * 100 - r.target_pct
+    };
+  }).sort(function (a, b) { return b.venut - a.venut; });
+
+  var derivaAbans = 0, derivaDespres = 0;
+  despres.forEach(function (d) {
+    derivaAbans += Math.abs(d.desviacio_abans);
+    derivaDespres += Math.abs(d.desviacio_despres);
+  });
+
+  return {
+    net_demanat: net,
+    brut_necessari: brutReal,
+    guany_realitzat: guanyReal,
+    impost: impostReal,
+    net_real: netReal,
+    tipus_efectiu: brutReal > 0 ? impostReal / brutReal * 100 : 0,
+    ratio_guany_cartera: ratioCartera,
+    valor_abans: valorTotal,
+    valor_despres: valorTotal - brutReal,
+    pct_cartera_venut: valorTotal > 0 ? brutReal / valorTotal * 100 : 0,
+    ordres: ordres,
+    rows: rows,
+    despres: despres,
+    coherencia_abans: Math.max(0, Math.round(100 - derivaAbans / 2)),
+    coherencia_despres: Math.max(0, Math.round(100 - derivaDespres / 2)),
+    insuficient: insuficient,
+    import_min_ordre: importMin,
+    considerar_impostos: ambImpostos
+  };
+}
+
+// Taxa de retirada actual de la cartera respecte de la SWR recomanada.
+// És el semàfor de la fase de liquidació.
+function calcSalutRetirada(retiradaAnualNeta) {
+  var c = getClient();
+  if (!c) return null;
+  var kpis = calcKPIsCartera();
+  if (!kpis.valor_total) return null;
+
+  // Pes de RV real de la cartera
+  var dist = calcDistribucioReal();
+  var pctRV = 0;
+  dist.forEach(function (d) {
+    var taxon = ACTIUS_TAXONOMY.find(function (a) { return a.id === d.id; });
+    if (taxon && taxon.grup === 'rv') pctRV += d.pct;
+    if (taxon && taxon.grup === 'mixt') pctRV += d.pct * 0.6;
+  });
+
+  var ter = 0.25;
+  try { var t = calcTERCartera(); if (t) ter = t.ter_real; } catch (e) {}
+
+  var edat = parseFloat(c.perfil && c.perfil.edat) || 55;
+  var anysRet = TBI_FIRE.anysRetirada(edat, TBI_FIRE.REF.esperanca_vida_defecte);
+  var s = TBI_FIRE.swr({ anys_retirada: anysRet, pct_rv: pctRV, ter: ter });
+
+  var ratio = calcRatioGuanyCartera();
+  var brut = TBI_FIRE.brutPerNet(retiradaAnualNeta, ratio, 0);
+  var taxaActual = brut.brut / kpis.valor_total * 100;
+
+  return {
+    valor_cartera: kpis.valor_total,
+    retirada_neta: retiradaAnualNeta,
+    retirada_bruta: brut.brut,
+    impost_anual: brut.impost,
+    taxa_actual: taxaActual,
+    swr_recomanada: s.swr,
+    swr_detall: s,
+    pct_rv: pctRV,
+    ter: ter,
+    anys_retirada: anysRet,
+    marge: s.swr - taxaActual,
+    estat: taxaActual <= s.swr * 0.85 ? 'folgat' : (taxaActual <= s.swr ? 'ajustat' : 'excessiu'),
+    capital_per_sostenible: brut.brut / (s.swr / 100)
   };
 }
 
@@ -10529,7 +10873,209 @@ async function _guardarAportacioMensual(valor) {
 // ══════════════════════════════════════════════════
 // VIEW: PLA D'APORTACIONS
 // ══════════════════════════════════════════════════
+// ── Estat de la fase de retirada ────────────────────────────────────────
+var _RETIR_STATE = { mode: 'acumular', import_net: 1500, frequencia: 'Mensual', considerar_impostos: true };
+
+function canviarModeAportacions(m) { _RETIR_STATE.mode = m; renderView('portal-aportacions'); }
+
+function _rEur(x) { return Math.round(x).toLocaleString('ca-ES') + '€'; }
+function _rEur2(x) { return (Math.round(x * 100) / 100).toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '€'; }
+function _rPct(x) { return (Math.round(x * 100) / 100).toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%'; }
+function _rKpi(l, v, s, destacat) {
+  return '<div style="flex:1;min-width:145px;padding:15px 17px;border-radius:11px;background:' + (destacat ? 'var(--black)' : 'var(--g50)') + '">'
+    + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:' + (destacat ? 'rgba(255,255,255,.55)' : 'var(--g400)') + ';margin-bottom:4px">' + l + '</div>'
+    + '<div style="font-family:var(--fm);font-size:21px;font-weight:600;letter-spacing:-.5px;color:' + (destacat ? '#C8A54A' : 'var(--black)') + '">' + v + '</div>'
+    + (s ? '<div style="font-size:10px;color:' + (destacat ? 'rgba(255,255,255,.5)' : 'var(--g400)') + ';margin-top:2px">' + s + '</div>' : '')
+    + '</div>';
+}
+
+// ── Wrapper amb selector de mode ────────────────────────────────────────
 function renderPortalAportacions(el) {
+  var mode = _RETIR_STATE.mode || 'acumular';
+  var bar = '<div class="content-inner fade-in" style="padding-bottom:0">'
+    + '<div style="display:flex;gap:6px;margin-bottom:20px;background:var(--g50);padding:4px;border-radius:9px;width:fit-content">';
+  [['acumular', '📈 Acumular', 'Aportar i comprar'], ['retirar', '📉 Retirar', 'Liquidar i vendre']].forEach(function (t) {
+    var on = mode === t[0];
+    bar += '<button onclick="canviarModeAportacions(\'' + t[0] + '\')" title="' + t[2] + '" '
+      + 'style="padding:9px 20px;border-radius:7px;border:none;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb);'
+      + 'background:' + (on ? 'var(--white)' : 'transparent') + ';color:' + (on ? 'var(--black)' : 'var(--g400)') + ';'
+      + 'box-shadow:' + (on ? '0 1px 4px rgba(0,0,0,.1)' : 'none') + '">' + t[1] + '</button>';
+  });
+  bar += '</div></div>';
+
+  el.innerHTML = bar + '<div id="aport-panel"></div>';
+  var panel = document.getElementById('aport-panel');
+  if (mode === 'retirar') renderAportacionsRetirar(panel);
+  else renderAportacionsAcumular(panel);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MODE RETIRAR — el matching a la inversa
+// ════════════════════════════════════════════════════════════════════════
+function renderAportacionsRetirar(el) {
+  var c = getClient();
+  if (!c) { el.innerHTML = '<div class="content-inner"><p style="padding:40px;color:var(--g400)">Carregant…</p></div>'; return; }
+
+  var kpis = calcKPIsCartera();
+  if (!kpis.valor_total) {
+    el.innerHTML = '<div class="content-inner fade-in">'
+      + '<div style="max-width:600px;margin:30px auto;text-align:center">'
+        + '<div style="font-size:40px;margin-bottom:14px">📉</div>'
+        + '<div style="font-family:var(--fd);font-size:24px;margin-bottom:10px">Encara no hi ha res per retirar</div>'
+        + '<div style="font-size:14px;color:var(--g500);line-height:1.7;margin-bottom:22px">'
+          + 'Quan tinguis posicions amb valor de mercat, aquí veuràs de quines vendre per obtenir els diners que necessites '
+          + 'sense desequilibrar la cartera.</div>'
+        + '<button onclick="navigateTo(\'portal-cartera\')" style="padding:12px 26px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Anar a la cartera</button>'
+      + '</div></div>';
+    return;
+  }
+
+  var s = _RETIR_STATE;
+  var esMensual = (s.frequencia === 'Mensual');
+  var netAnual = esMensual ? s.import_net * 12 : s.import_net;
+  var r = calcRetiradaTactica(s.import_net, { considerar_impostos: s.considerar_impostos });
+  var salut = null;
+  try { salut = calcSalutRetirada(netAnual); } catch (e) {}
+
+  var html = '<div class="content-inner fade-in">';
+
+  // ── Controls ──
+  html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px;margin-bottom:18px">'
+    + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Quant necessites</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:16px;line-height:1.6">Indica els diners que vols tenir <strong>a la butxaca</strong>. La plataforma calcula quant cal vendre perquè, després d’impostos, et quedi exactament això.</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;align-items:end">'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Import net (€)</label>'
+        + '<input type="number" value="' + s.import_net + '" oninput="_RETIR_STATE.import_net=parseFloat(this.value)||0;renderView(\'portal-aportacions\')" '
+        + 'style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:14px;font-family:var(--fm);text-align:right"></div>'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Freqüència</label>'
+        + '<select onchange="_RETIR_STATE.frequencia=this.value;renderView(\'portal-aportacions\')" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:14px;font-family:var(--fb)">'
+        + ['Mensual', 'Anual'].map(function (f) { return '<option' + (s.frequencia === f ? ' selected' : '') + '>' + f + '</option>'; }).join('')
+        + '</select></div>'
+      + '<div><label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">Impostos</label>'
+        + '<select onchange="_RETIR_STATE.considerar_impostos=(this.value===\'si\');renderView(\'portal-aportacions\')" style="width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:14px;font-family:var(--fb)">'
+        + '<option value="si"' + (s.considerar_impostos ? ' selected' : '') + '>Incloure IRPF</option>'
+        + '<option value="no"' + (!s.considerar_impostos ? ' selected' : '') + '>Només brut</option>'
+        + '</select></div>'
+    + '</div></div>';
+
+  if (!r) { html += '<div style="padding:20px;color:var(--g400)">No es pot calcular la retirada.</div></div>'; el.innerHTML = html; return; }
+
+  // ── Semàfor de sostenibilitat ──
+  if (salut) {
+    var colEstat = salut.estat === 'folgat' ? '#1A5C3A' : (salut.estat === 'ajustat' ? '#7A4A00' : '#C0392B');
+    var bgEstat = salut.estat === 'folgat' ? '#EAF3DE' : (salut.estat === 'ajustat' ? '#FEF5E7' : '#FDF0F0');
+    var txtEstat = salut.estat === 'folgat' ? 'Sostenible amb marge'
+      : (salut.estat === 'ajustat' ? 'Al límit del sostenible' : 'Per sobre del sostenible');
+    html += '<div style="background:' + bgEstat + ';border-radius:13px;padding:20px 24px;margin-bottom:18px">'
+      + '<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">'
+        + '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--g500);margin-bottom:3px">Taxa de retirada</div>'
+          + '<div style="font-family:var(--fm);font-size:26px;font-weight:600;color:' + colEstat + '">' + _rPct(salut.taxa_actual) + '</div></div>'
+        + '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--g500);margin-bottom:3px">Taxa segura per a tu</div>'
+          + '<div style="font-family:var(--fm);font-size:26px;font-weight:600;color:var(--black)">' + _rPct(salut.swr_recomanada) + '</div></div>'
+        + '<div style="flex:1;min-width:230px">'
+          + '<div style="font-size:13px;font-weight:600;color:' + colEstat + ';margin-bottom:4px">' + txtEstat + '</div>'
+          + '<div style="font-size:11.5px;color:var(--g600);line-height:1.6">'
+            + 'Amb ' + salut.anys_retirada + ' anys de retirada per davant, un ' + _rPct(salut.pct_rv) + ' de renda variable i un TER del '
+            + _rPct(salut.ter) + ', la taxa sostenible surt al ' + _rPct(salut.swr_recomanada) + '. '
+            + (salut.estat === 'excessiu'
+                ? 'Per fer sostenible aquesta retirada et caldrien <strong>' + _rEur(salut.capital_per_sostenible) + '</strong> de cartera.'
+                : 'Tens <strong>' + _rPct(salut.marge) + '</strong> de marge.')
+          + '</div>'
+        + '</div>'
+      + '</div>'
+      + '<div style="margin-top:12px;font-size:10.5px;color:var(--g500);line-height:1.6">' + salut.swr_detall.nota_fiabilitat + '</div>'
+    + '</div>';
+  }
+
+  // ── KPIs de l'operació ──
+  html += '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px">'
+    + _rKpi('Cal vendre', _rEur(r.brut_necessari), _rPct(r.pct_cartera_venut) + ' de la cartera', true)
+    + _rKpi('Impost estimat', _rEur(r.impost), _rPct(r.tipus_efectiu) + ' sobre la venda')
+    + _rKpi('Et queda net', _rEur(r.net_real), 'objectiu: ' + _rEur(r.net_demanat))
+    + _rKpi('Coherència', r.coherencia_abans + ' → ' + r.coherencia_despres,
+        r.coherencia_despres >= r.coherencia_abans ? 'la venda rebalanceja' : 'atenció a la deriva')
+    + '</div>';
+
+  if (r.insuficient) {
+    html += '<div style="padding:14px 17px;background:#FDF0F0;border:1px solid #E8B4B4;border-radius:10px;font-size:12.5px;color:#8C2F2F;margin-bottom:18px;line-height:1.6">'
+      + '⚠ La cartera no dona per a aquesta retirada un cop descomptat l’impost. S’ha calculat amb el màxim disponible.</div>';
+  }
+
+  // ── Ordres de venda ──
+  html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px;margin-bottom:18px">'
+    + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Què vendre</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:16px;line-height:1.6">'
+      + 'Ordenat per dos criteris: primer les categories que van <strong>sobreponderades</strong> respecte del teu target, '
+      + 'i dins de cada categoria la posició amb <strong>menys plusvàlua acumulada</strong> — mateixa caixa, menys impost.</div>';
+
+  if (!r.ordres.length) {
+    html += '<div style="padding:20px;text-align:center;color:var(--g400);font-size:12px">Cap ordre de venda necessària.</div>';
+  } else {
+    html += '<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>'
+      + ['Posició', 'Categoria', 'Vendre', '% posició', 'Plusvàlua', 'Guany'].map(function (t, i) {
+          return '<th style="text-align:' + (i < 2 ? 'left' : 'right') + ';padding:9px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">' + t + '</th>';
+        }).join('')
+      + '</tr></thead><tbody>';
+    r.ordres.forEach(function (o) {
+      html += '<tr style="border-bottom:1px solid var(--g50)">'
+        + '<td style="padding:10px 6px;font-weight:500">' + o.nom + (o.liquida_tot ? ' <span style="font-size:9px;color:#C0392B">liquida tot</span>' : '') + '</td>'
+        + '<td style="padding:10px 6px;color:var(--g500);font-size:11.5px">' + o.emoji + ' ' + o.nom_cat + '</td>'
+        + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm);font-weight:600">' + _rEur(o.import) + '</td>'
+        + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm);color:var(--g500)">' + _rPct(o.pct_posicio) + '</td>'
+        + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm);color:var(--g500)">' + _rPct(o.ratio_guany * 100) + '</td>'
+        + '<td style="padding:10px 6px;text-align:right;font-family:var(--fm);color:#7A4A00">' + _rEur(o.guany) + '</td></tr>';
+    });
+    html += '</tbody></table>'
+      + '<div style="margin-top:14px;padding:12px 15px;background:var(--g50);border-radius:9px;font-size:11.5px;color:var(--g600);line-height:1.7">'
+        + 'Vendre primer el que menys plusvàlua porta és ordre de venda, no enginyeria fiscal: l’impost s’acaba pagant igual quan liquidis la resta. '
+        + 'El que guanyes és diferir-lo, i el diner diferit segueix component.'
+      + '</div>';
+    if (r.considerar_impostos) {
+      html += '<div style="margin-top:10px;padding:12px 15px;background:#FEF5E7;border:1px solid #E8C285;border-radius:9px;font-size:11.5px;color:#7A4A00;line-height:1.7">'
+        + 'Si tens <strong>pèrdues latents</strong> a la cartera, aflorar-ne una part el mateix any compensaria aquests '
+        + _rEur(r.guany_realitzat) + ' de guany i reduiria la factura. Ho tens a Fiscalitat → Compensar pèrdues.'
+      + '</div>';
+    }
+  }
+  html += '</div>';
+
+  // ── Com queda la cartera ──
+  html += '<div style="background:#fff;border:1px solid var(--g100);border-radius:13px;padding:20px 24px;margin-bottom:18px">'
+    + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Com queda la cartera</div>'
+    + '<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>'
+    + ['Categoria', 'Target', 'Abans', 'Venut', 'Després', 'Desviació'].map(function (t, i) {
+        return '<th style="text-align:' + (i === 0 ? 'left' : 'right') + ';padding:9px 6px;font-size:10px;color:var(--g400);font-weight:500;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--g100)">' + t + '</th>';
+      }).join('')
+    + '</tr></thead><tbody>';
+  r.despres.forEach(function (d) {
+    var millora = Math.abs(d.desviacio_despres) < Math.abs(d.desviacio_abans);
+    html += '<tr style="border-bottom:1px solid var(--g50);background:' + (d.fora_pla ? '#FDF0F0' : 'transparent') + '">'
+      + '<td style="padding:9px 6px;font-weight:500">' + d.emoji + ' ' + d.nom + (d.fora_pla ? ' <span style="font-size:9px;color:#8C2F2F">fora de pla</span>' : '') + '</td>'
+      + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm)">' + d.target_pct.toFixed(0) + '%</td>'
+      + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm);color:var(--g500)">' + _rPct(d.abans_pct) + '</td>'
+      + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm)">' + (d.venut > 0 ? _rEur(d.venut) : '—') + '</td>'
+      + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm);font-weight:600">' + _rPct(d.despres_pct) + '</td>'
+      + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm);color:' + (millora ? '#1A5C3A' : 'var(--g500)') + '">'
+        + (d.desviacio_despres >= 0 ? '+' : '') + d.desviacio_despres.toFixed(1) + 'pp ' + (millora ? '↓' : '') + '</td></tr>';
+  });
+  html += '</tbody></table>'
+    + '<div style="margin-top:14px;padding:12px 15px;background:' + (r.coherencia_despres >= r.coherencia_abans ? '#EAF3DE' : 'var(--g50)') + ';border-radius:9px;font-size:11.5px;color:' + (r.coherencia_despres >= r.coherencia_abans ? '#1A5C3A' : 'var(--g600)') + ';line-height:1.7">'
+      + (r.coherencia_despres >= r.coherencia_abans
+          ? 'La retirada <strong>rebalanceja sola</strong>: la coherència amb el target puja de ' + r.coherencia_abans + ' a ' + r.coherencia_despres + '. '
+            + 'Aquest és tot el sentit de vendre del que va sobrat en comptes de vendre-ho tot a parts iguals.'
+          : 'Aquesta retirada no millora l’alineació perquè la cartera ja estava dins de bandes. Es ven de manera proporcional per no desequilibrar-la.')
+    + '</div></div>';
+
+  html += '<div style="padding:13px 16px;background:var(--g50);border-radius:9px;font-size:11px;color:var(--g500);line-height:1.6">'
+    + 'ⓘ Simulació d’ordres de venda amb la normativa fiscal vigent per a l’exercici ' + TBI_FISCAL.REF.exercici + '. '
+    + 'L’impost real dependrà de la resta de rendes de l’exercici i de les compensacions disponibles. No és assessorament fiscal ni d’inversió.'
+    + '</div></div>';
+
+  el.innerHTML = html;
+}
+
+// Mode ACUMULAR: la vista d'aportacions original, sense canvis funcionals.
+function renderAportacionsAcumular(el) {
   var c = getClient();
   if (!c) { el.innerHTML = '<div class="content-inner"><p style="padding:40px;color:var(--g400)">Carregant...</p></div>'; return; }
   var arq = getArquetip(c.arquetipId || 'navegant');
@@ -11834,46 +12380,106 @@ function fireRecalc(){
   _fireRenderComparador(resultats);
 }
 
+// ── SWR dinàmica ────────────────────────────────────────────────────────
+// La taxa de retirada deixa de ser una constant per model. Depèn dels anys
+// que ha de durar la cartera i del seu pes en renda variable: el 4,75% de
+// Bengen assumeix 30 anys i una cartera diversificada; qui es retira als 45
+// té 47 anys per davant i necessita força menys.
+function _fireSWR(modelId){
+  var m = FIRE_MODELS[modelId] || FIRE_MODELS.regular;
+  var edatRet = _FIRE_STATE.edatObjectiu || 65;
+  var anysRet = TBI_FIRE.anysRetirada(edatRet, TBI_FIRE.REF.esperanca_vida_defecte);
+
+  // Pes de RV real de la cartera; si no n'hi ha, el de l'arquetip
+  var pctRV = 60;
+  try {
+    var dist = calcDistribucioReal(), acum = 0, total = 0;
+    dist.forEach(function(d){
+      var tx = ACTIUS_TAXONOMY.find(function(a){ return a.id === d.id; });
+      total += d.pct;
+      if (tx && tx.grup === 'rv') acum += d.pct;
+      if (tx && tx.grup === 'mixt') acum += d.pct * 0.6;
+    });
+    if (total > 1) pctRV = acum;
+    else {
+      var c = getClient();
+      var arq = getArquetip(c && c.arquetipId ? c.arquetipId : 'navegant');
+      var a2 = 0;
+      (arq.actius || []).forEach(function(x){
+        var tx2 = ACTIUS_TAXONOMY.find(function(a){ return a.id === x.id; });
+        if (tx2 && tx2.grup === 'rv') a2 += (parseFloat(x.pct)||0);
+        if (tx2 && tx2.grup === 'mixt') a2 += (parseFloat(x.pct)||0) * 0.6;
+      });
+      if (a2 > 0) pctRV = a2;
+    }
+  } catch(e) {}
+
+  var ter = 0.25;
+  try { var t = calcTERCartera(); if (t && t.ter_real > 0) ter = t.ter_real; } catch(e) {}
+
+  var s = TBI_FIRE.swr({ anys_retirada: anysRet, pct_rv: pctRV, ter: ter });
+  s.classica = m.withdrawal;
+  s.diferencia = s.swr - m.withdrawal;
+  return s;
+}
+
+// Ràtio de plusvàlua latent, per calcular el brut que cal vendre
+function _fireRatioGuany(){
+  try { var r = calcRatioGuanyCartera(); return (r > 0) ? r : 0.35; } catch(e) { return 0.35; }
+}
+
 function _fireCalcModel(modelId, despeses, capital, aportMens, retornPct, edat){
   var m = FIRE_MODELS[modelId];
   if (!m) return null;
   var rMens = retornPct/100/12;
-  // Multiplicador derivat de la taxa de retirada (100/SWR) \u2014 evita valors duplicats o inconsistents
-  var mult = 100 / (m.withdrawal || 4);
+  // Taxa de retirada dinàmica (horitzó + pes de RV + TER real), no constant
+  var _swr = _fireSWR(modelId);
+  var taxa = _swr.swr;
+  // Les despeses són NETES: cal vendre més perquè la plusvàlua tributa
+  var _gu = TBI_FIRE.brutPerNet(despeses, _fireRatioGuany(), 0);
+  var despesesBrutes = _gu.brut;
+  var mult = 100 / taxa;
 
   if (modelId === 'coast'){
     var edatObj = _FIRE_STATE.edatObjectiu;
     var anysFins = Math.max(1, edatObj - edat);
-    var objectiuFinal = despeses * mult;
+    var objectiuFinal = despesesBrutes * mult;
     var capitalNecCoast = objectiuFinal / Math.pow(1 + retornPct/100, anysFins);
     var anysCoast = _firePmtSearch(capitalNecCoast, capital, aportMens, rMens);
     return {
       modelId: modelId, objectiuFIRE: objectiuFinal, capitalNecAvui: capitalNecCoast,
       anysFinsObjectiu: anysFins, anysCoast: anysCoast,
       progresPct: Math.min(100, capital/capitalNecCoast*100),
-      taxaRetirada: m.withdrawal, assolit: capital >= capitalNecCoast
+      taxaRetirada: taxa, taxaClassica: m.withdrawal, swrDetall: _swr,
+      despesesBrutes: despesesBrutes, impostAnual: _gu.impost,
+      assolit: capital >= capitalNecCoast
     };
   }
 
   if (modelId === 'barista'){
     var fp = _FIRE_STATE.feinaPartial || 0;
     var necCartera = Math.max(0, despeses - fp);
-    var objectiu = necCartera * mult;
+    var necBrut = TBI_FIRE.brutPerNet(necCartera, _fireRatioGuany(), 0).brut;
+    var objectiu = necBrut * mult;
     var anys = _firePmtSearch(objectiu, capital, aportMens, rMens);
     return {
       modelId: modelId, objectiuFIRE: objectiu,
       despesesCobertesCartera: necCartera, despesesCobertesFeina: fp,
       anysEstimats: anys, progresPct: objectiu > 0 ? Math.min(100, capital/objectiu*100) : 100,
-      taxaRetirada: m.withdrawal, assolit: capital >= objectiu
+      taxaRetirada: taxa, taxaClassica: m.withdrawal, swrDetall: _swr,
+      despesesBrutes: necBrut, impostAnual: necBrut - necCartera,
+      assolit: capital >= objectiu
     };
   }
 
-  var obj = despeses * mult;
+  var obj = despesesBrutes * mult;
   var anys2 = _firePmtSearch(obj, capital, aportMens, rMens);
   return {
     modelId: modelId, objectiuFIRE: obj, anysEstimats: anys2,
     progresPct: obj > 0 ? Math.min(100, capital/obj*100) : 100,
-    taxaRetirada: m.withdrawal, assolit: capital >= obj
+    taxaRetirada: taxa, taxaClassica: m.withdrawal, swrDetall: _swr,
+    despesesBrutes: despesesBrutes, impostAnual: _gu.impost,
+    assolit: capital >= obj
   };
 }
 
@@ -11901,7 +12507,7 @@ function _fireRenderResultats(r, modelId){
     + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">'
       + '<div style="font-size:32px">' + m.emoji + '</div>'
       + '<div>'
-        + '<div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">' + m.nom + ' \u00b7 Regla del ' + String(m.withdrawal).replace('.',',') + '%</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em">' + m.nom + ' \u00b7 Taxa ' + (r.taxaRetirada || m.withdrawal).toFixed(2).replace('.',',') + '%</div>'
         + '<div style="font-size:14px;font-weight:500;margin-top:2px">' + m.descripcio + '</div>'
       + '</div>'
     + '</div>';
@@ -12011,7 +12617,7 @@ function _fireRenderComparador(allRes){
         var active = _FIRE_STATE.modelActiu === k;
         var obj = (k === 'coast') ? r.capitalNecAvui : r.objectiuFIRE;
         var despLine = (r.despesesUsades != null)
-          ? '<div style="font-size:9px;color:var(--g400);margin-top:6px">' + Math.round(r.despesesUsades).toLocaleString('ca-ES') + '\u20ac/any \u00b7 ' + String(m.withdrawal).replace('.',',') + '%</div>'
+          ? '<div style="font-size:9px;color:var(--g400);margin-top:6px">' + Math.round(r.despesesUsades).toLocaleString('ca-ES') + '\u20ac/any \u00b7 ' + (r.taxaRetirada || m.withdrawal).toFixed(2).replace('.',',') + '%</div>'
           : '';
         return '<div class="fire-comp-cell" style="' + (active ? 'background:' + m.bg + ';border:2px solid ' + m.color : 'border:2px solid transparent') + '" onclick="fireSetModel(\'' + k + '\')">'
           + '<div style="font-size:18px;margin-bottom:4px">' + m.emoji + '</div>'
@@ -12088,7 +12694,7 @@ async function fireVincularRuta(){
   for (var vi = 0; vi < c.fullderuta.objectius.length; vi++) {
     if (c.fullderuta.objectius[vi] && c.fullderuta.objectius[vi].tipus === 'fire') { trobat = c.fullderuta.objectius[vi]; break; }
   }
-  var metaTxt = m.nom + ' \u00b7 retirada ' + String(m.withdrawal).replace('.',',') + '% \u00b7 sincronitzat amb la calculadora';
+  var metaTxt = m.nom + ' \u00b7 retirada ' + ((f && f.taxaRetirada) ? f.taxaRetirada.toFixed(2).replace('.',',') : String(m.withdrawal).replace('.',',')) + '% \u00b7 sincronitzat amb la calculadora';
   if (trobat) {
     trobat.icona = '\ud83d\udd25'; trobat.titol = 'Independ\u00e8ncia financera (FIRE)';
     trobat.meta = metaTxt; trobat.import = objImport; trobat.termini = termini;
