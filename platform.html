@@ -2269,7 +2269,9 @@ async function loadQuestionsFromSupabase() {
 // AUTH
 // ══════════════════════════════════════════════════
 async function doLogin() {
-  var email = document.getElementById('login-email').value.trim();
+  // Minuscules sempre: Supabase desa els emails normalitzats i una majuscula
+  // despistada no ha de costar un "credencials invalides".
+  var email = document.getElementById('login-email').value.trim().toLowerCase();
   var password = document.getElementById('login-password').value;
   var msg = document.getElementById('login-msg');
   var btn = document.getElementById('btn-login');
@@ -2294,12 +2296,24 @@ async function doLogin() {
       msg.className = 'login-msg err';
       // Missatges d'error més útils
       var errMsg = e.message || 'No s\'ha pogut connectar';
-      if (errMsg.toLowerCase().indexOf('invalid login') >= 0 || errMsg.toLowerCase().indexOf('invalid_credentials') >= 0) {
+      var esCredencials = errMsg.toLowerCase().indexOf('invalid login') >= 0
+                       || errMsg.toLowerCase().indexOf('invalid_credentials') >= 0;
+      if (esCredencials) {
         errMsg = 'Email o contrasenya incorrectes.';
       } else if (errMsg.toLowerCase().indexOf('email not confirmed') >= 0) {
         errMsg = 'Has de confirmar el teu email primer. Mira el correu que t\'hem enviat.';
       }
-      msg.textContent = errMsg;
+      // Oferir la sortida al mateix moment de l'error. El navegador sol
+      // autocompletar contrasenyes antigues i la gent reintenta a cegues.
+      if (esCredencials) {
+        msg.innerHTML = errMsg
+          + '<br><a href="#" onclick="showAuthTab(\'forgot\');document.getElementById(\'forgot-email\').value=\''
+          + email.replace(/'/g, "\\'") + '\';return false" style="color:var(--accent);font-weight:600">Restablir la contrasenya</a>'
+          + ' · <a href="#" onclick="showAuthTab(\'magic\');document.getElementById(\'magic-email\').value=\''
+          + email.replace(/'/g, "\\'") + '\';return false" style="color:var(--accent);font-weight:600">entrar sense contrasenya</a>';
+      } else {
+        msg.textContent = errMsg;
+      }
       btn.disabled = false; btn.textContent = 'Accedir →';
       return;
     }
@@ -2433,6 +2447,26 @@ async function doRegister() {
       }
     });
     if (res.error) throw res.error;
+
+    // ── Email que JA té compte ────────────────────────────────────────────
+    // Supabase respon 200 sense error encara que l'usuari ja existeixi: ho fa
+    // expressament per no revelar qui està registrat. L'única manera de
+    // detectar-ho és que la llista d'identitats torni buida. Sense aquesta
+    // comprovació dèiem "Compte creat, revisa el teu email" i no s'enviava
+    // cap correu — el client es quedava esperant-lo indefinidament.
+    var jaExisteix = res.data && res.data.user
+      && Array.isArray(res.data.user.identities)
+      && res.data.user.identities.length === 0;
+    if (jaExisteix) {
+      msg.className = 'login-msg err';
+      msg.innerHTML = 'Aquest email ja té un compte. '
+        + '<a href="#" onclick="showAuthTab(\'login\');document.getElementById(\'login-email\').value=\''
+        + email.replace(/'/g, "\\'") + '\';return false" style="color:var(--accent);font-weight:600">Accedeix</a>'
+        + ' o <a href="#" onclick="showAuthTab(\'forgot\');document.getElementById(\'forgot-email\').value=\''
+        + email.replace(/'/g, "\\'") + '\';return false" style="color:var(--accent);font-weight:600">recupera la contrasenya</a>.';
+      btn.disabled = false; btn.textContent = 'Crear compte →';
+      return;
+    }
 
     // 2. Crear el registre a la taula clients (amb pla Senyal per defecte)
     // CRÍTIC: status s'especifica explícitament a 'pending'. No confiar només
@@ -5617,6 +5651,7 @@ function renderClientsList(el) {
           + '<button onclick="event.stopPropagation();canviarPlaClient(\'' + c.email + '\')" style="padding:4px 9px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g500)" title="Canviar pla">&#128179;</button>'
           + '<button onclick="event.stopPropagation();confirmarEsborrarClientDirect(\'' + c.email + '\')" style="padding:4px 7px;background:transparent;border:1px solid #FCA5A5;border-radius:6px;font-size:11px;cursor:pointer;color:#DC2626" title="Esborrar">&#128465;</button>'
           + '<button onclick="event.stopPropagation();obrirEditarTargetAdmin(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:var(--accent)" title="Editar cartera target">&#127917;</button>'
+          + '<button onclick="event.stopPropagation();reenviarAccesClient(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:#1B3A6B" title="Enviar enlla\u00e7 d\u2019acc\u00e9s">&#128273;</button>'
           + '<button onclick="event.stopPropagation();desbloquarRetest(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:#534AB7" title="Autoritzar re-test">&#128260;</button>'
           + '<button onclick="event.stopPropagation();obrirDocsClient(\'' + c.email + '\')" style="padding:4px 8px;background:transparent;border:1px solid var(--g200);border-radius:6px;font-size:11px;cursor:pointer;color:#1B3A6B" title="Contractes i full de ruta">&#128221;</button>'
           + '<span style="color:var(--g300);font-size:14px">&#8594;</span>'
@@ -17529,27 +17564,42 @@ async function forcarActivacioRapida() {
 async function reenviarAccesClient(emailPreomplert) {
   if (!sb || APP.role !== 'admin') return;
 
-  var email = prompt(
-    'Email del client al qual vols reenviar l\u2019acc\u00e9s:\n\n' +
-    'S\u2019enviar\u00e0 un email de Supabase amb un enlla\u00e7 per establir nova contrasenya.',
-    emailPreomplert || ''
-  );
-  if (!email) return;
+  var email = emailPreomplert;
+  if (!email) {
+    email = prompt('Email del client al qual vols reenviar l\u2019acc\u00e9s:', '');
+    if (!email) return;
+  }
   email = email.toLowerCase().trim();
   if (!email.includes('@')) { toast('\u26a0 Email no v\u00e0lid'); return; }
 
-  if (!confirm(
-    'Enviar email de restabliment de contrasenya a:\n\n' + email + '\n\n' +
-    'El client rebrà un enlla\u00e7 v\u00e0lid durant 1 hora per establir una nova contrasenya.'
-  )) return;
+  // Dues vies. L'enllaç màgic el fa entrar directament sense inventar-se cap
+  // contrasenya, que és on es queda encallada la majoria de gent.
+  var magic = confirm(
+    'Com vols desbloquejar ' + email + '?\n\n' +
+    'ACCEPTAR \u2192 Enlla\u00e7 d\u2019acc\u00e9s directe (entra sense contrasenya)\n' +
+    'CANCEL\u00b7LAR \u2192 Enlla\u00e7 per establir una contrasenya nova'
+  );
 
   try {
-    var res = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://theboringinvestor.es/platform.html?reset=true'
-    });
+    var res;
+    if (magic) {
+      // shouldCreateUser:false evita crear comptes fantasma per una errada
+      // d'escriptura a l'email.
+      res = await sb.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false,
+          emailRedirectTo: 'https://theboringinvestor.es/platform.html'
+        }
+      });
+    } else {
+      res = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://theboringinvestor.es/platform.html?reset=true'
+      });
+    }
     if (res.error) throw res.error;
 
-    toast('\u2713 Email de reset enviat a ' + email);
+    toast('\u2713 ' + (magic ? 'Enlla\u00e7 d\u2019acc\u00e9s' : 'Email de reset') + ' enviat a ' + email);
 
     // Missatge intern: notificar al client que l'hem enviat
     try {
