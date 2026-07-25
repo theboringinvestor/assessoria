@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora d'hipoteca: quota, amortització anticipada i TAE real · The Boring Investor</title>
+<meta name="description" content="Calcula la quota de la teva hipoteca, el quadre d'amortització complet i quant estalvies amortitzant anticipadament. Inclou la comparativa amortitzar vs invertir amb impostos i el límit legal de comissions.">
+<link rel="canonical" href="https://theboringinvestor.es/calculadora-hipoteca.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://theboringinvestor.es/calculadora-hipoteca.html">
+<meta property="og:site_name" content="The Boring Investor">
+<meta property="og:title" content="Calculadora d'hipoteca — quota, amortització i TAE real">
+<meta property="og:description" content="Quota, quadre d'amortització, estalvi per amortització anticipada i la pregunta clau: amortitzar o invertir? Amb impostos i comissions legals incloses.">
+<meta property="og:image" content="https://theboringinvestor.es/og-image.png">
+<meta property="og:locale" content="ca_ES">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#16233A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Calculadora d'hipoteca TBI","url":"https://theboringinvestor.es/calculadora-hipoteca.html","applicationCategory":"FinanceApplication","operatingSystem":"Web","inLanguage":"ca","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"description":"Calculadora de quota hipotecària, quadre d'amortització, amortització anticipada i comparativa amortitzar vs invertir.","publisher":{"@type":"Organization","name":"The Boring Investor","url":"https://theboringinvestor.es"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Què és millor: reduir quota o reduir termini?","acceptedAnswer":{"@type":"Answer","text":"Reduir el termini estalvia molts més interessos, perquè el capital deixa de generar interès durant tots els mesos que t'estalvies. Reduir la quota allibera flux de caixa mensual però manté el préstec viu fins al final. Amb el mateix import amortitzat, reduir termini sol estalviar entre dues i tres vegades més interessos."}},
+{"@type":"Question","name":"Quina comissió em poden cobrar per amortitzar anticipadament?","acceptedAnswer":{"@type":"Answer","text":"La Llei 5/2019 fixa màxims: a tipus fix, 2% del capital reemborsat durant els 10 primers anys i 1,5% després. A tipus variable, l'entitat tria entre 0,25% durant els 3 primers anys o 0,15% durant els 5 primers; passat aquest període, zero. En tots els casos la comissió no pot superar la pèrdua financera real del prestador."}},
+{"@type":"Question","name":"És millor amortitzar hipoteca o invertir els diners?","acceptedAnswer":{"@type":"Answer","text":"Depèn del tipus de la teva hipoteca i de la rendibilitat que esperis obtenir després d'impostos i comissions. Amortitzar és un rendiment segur i lliure d'impostos igual al tipus del préstec. Invertir ha de superar aquest tipus un cop descomptats l'IRPF de la base de l'estalvi i el cost del producte, i a canvi assumeixes risc de mercat."}},
+{"@type":"Question","name":"Per què a la meitat de la hipoteca encara dec més del 60% del capital?","acceptedAnswer":{"@type":"Answer","text":"Pel sistema francès de quota constant. Els primers anys la major part de la quota són interessos i molt poc capital; l'amortització s'accelera al final. Per això les amortitzacions anticipades dels primers anys són molt més rendibles que les dels últims."}}]}
+</script>
+<style>
+:root{
+  --black:#16233A;--white:#FFFFFF;--cream:#F7F5F0;
+  --gold:#C8A54A;--gold-light:#E8D49A;--gold-dark:#9A7B2F;
+  --green:#1A5C3A;--green-light:#EAF3DE;--red:#8B1A1A;--blue:#24395C;
+  --g50:#F9F8F5;--g100:#E9E6DF;--g200:#D4D1C9;--g300:#B4B0A6;--g400:#8A8780;--g500:#6B685F;--g600:#4A473F;
+  --fb:"IBM Plex Sans",system-ui,sans-serif;--fm:"IBM Plex Mono",monospace;--max:1080px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);color:var(--black);background:var(--white);-webkit-font-smoothing:antialiased;line-height:1.6}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:var(--black);padding:14px 0}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:#fff}
+.nav-links{display:flex;gap:18px;align-items:center}
+.nav-links a{font-size:13px;color:rgba(255,255,255,.6);font-weight:500}
+.nav-links a:hover{color:#fff}
+.nav-cta{padding:8px 18px;background:var(--gold);color:var(--black)!important;border-radius:8px;font-weight:600}
+@media(max-width:720px){.nav-links a:not(.nav-cta){display:none}}
+
+/* HERO */
+.hero{background:var(--black);color:#fff;padding:44px 0 56px}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+.hero h1{font-size:clamp(28px,4.4vw,42px);font-weight:600;letter-spacing:-.02em;line-height:1.18;margin-bottom:14px}
+.hero p{font-size:16px;color:rgba(255,255,255,.72);max-width:640px}
+.hero .avis{margin-top:18px;font-size:12px;color:rgba(255,255,255,.5);border-left:2px solid var(--gold);padding-left:12px;max-width:640px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--g50);padding:4px;border-radius:11px;margin:-26px auto 26px;position:relative;max-width:calc(var(--max) - 48px);flex-wrap:wrap;box-shadow:0 6px 18px rgba(22,35,58,.09)}
+.tabs button{flex:1;min-width:130px;padding:11px 14px;border:none;background:transparent;border-radius:8px;font-size:13px;font-weight:500;color:var(--g500)}
+.tabs button.on{background:#fff;color:var(--black);font-weight:600;box-shadow:0 1px 4px rgba(22,35,58,.12)}
+
+/* FORM */
+.card{background:#fff;border:1px solid var(--g100);border-radius:14px;padding:22px 24px;margin-bottom:18px}
+.card h2{font-size:17px;font-weight:600;margin-bottom:4px}
+.card .sub{font-size:13px;color:var(--g500);margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+label{display:block;font-size:11px;font-weight:600;color:var(--g500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+input,select{width:100%;padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:14px;font-family:var(--fm);color:var(--black);background:#fff}
+input:focus,select:focus{outline:none;border-color:var(--gold)}
+select{font-family:var(--fb)}
+.hint{font-size:11px;color:var(--g400);margin-top:4px;font-family:var(--fb)}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--g50);border-radius:11px;padding:16px 18px}
+.kpi .l{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--g500);margin-bottom:5px}
+.kpi .v{font-family:var(--fm);font-size:23px;font-weight:600;letter-spacing:-.5px}
+.kpi .s{font-size:11px;color:var(--g400);margin-top:3px}
+.kpi.hi{background:var(--black);color:#fff}
+.kpi.hi .l{color:rgba(255,255,255,.55)}
+.kpi.hi .v{color:var(--gold)}
+.kpi.hi .s{color:rgba(255,255,255,.5)}
+
+/* TAULES */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:right;padding:9px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--g500);font-weight:600;border-bottom:1.5px solid var(--g100)}
+th:first-child,td:first-child{text-align:left}
+td{padding:9px 8px;border-bottom:1px solid var(--g50);text-align:right;font-family:var(--fm)}
+td:first-child{font-family:var(--fb);font-weight:500}
+tbody tr:hover{background:var(--g50)}
+.taula-scroll{max-height:420px;overflow-y:auto;border:1px solid var(--g100);border-radius:11px}
+
+/* AVISOS */
+.nota{padding:13px 16px;border-radius:10px;font-size:12.5px;line-height:1.6;margin-top:14px}
+.nota.info{background:var(--g50);color:var(--g600)}
+.nota.or{background:#FDF8EC;border:1px solid var(--gold-light);color:var(--gold-dark)}
+.nota.verd{background:var(--green-light);color:var(--green)}
+.nota.vermell{background:#FBEDED;color:var(--red)}
+
+.btn{padding:11px 22px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600}
+.btn.or{background:var(--gold);color:var(--black)}
+.btn.ghost{background:transparent;color:var(--black);border:1.5px solid var(--g200)}
+.hidden{display:none!important}
+
+/* CTA + FAQ */
+.cta{background:var(--black);color:#fff;border-radius:16px;padding:34px;text-align:center;margin:34px 0}
+.cta h2{font-size:23px;font-weight:600;margin-bottom:8px}
+.cta p{color:rgba(255,255,255,.7);font-size:14px;max-width:520px;margin:0 auto 20px}
+.faq{margin:34px 0}
+.faq h2{font-size:22px;font-weight:600;margin-bottom:18px}
+.faq details{border-bottom:1px solid var(--g100);padding:15px 0}
+.faq summary{font-size:15px;font-weight:600;cursor:pointer;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:'+';color:var(--gold);font-weight:600;margin-right:10px}
+.faq details[open] summary::before{content:'\2212'}
+.faq p{font-size:14px;color:var(--g600);margin-top:9px;padding-left:24px}
+footer{background:var(--black);color:rgba(255,255,255,.55);padding:30px 0;font-size:12px;margin-top:40px}
+footer a{color:var(--gold)}
+.barra{height:9px;border-radius:99px;background:var(--g100);overflow:hidden;display:flex}
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="wrap">
+  <a href="index.html" class="nav-logo">
+    <svg width="26" height="26" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="100" height="100" rx="24" fill="#F7F5F0"/>
+      <circle cx="34" cy="40" r="6.4" fill="#16233A"/><circle cx="66" cy="40" r="6.4" fill="#16233A"/>
+      <path d="M30 66 L70 61.5" stroke="#16233A" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+    The Boring Investor
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Inici</a>
+    <a href="index.html#pricing">Productes</a>
+    <a href="test-salut-financera.html" class="nav-cta">Fes el test →</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Eina gratuïta · Sense registre</div>
+  <h1>Calculadora d'hipoteca</h1>
+  <p>Quota real, quadre d'amortització complet i quant estalvies si amortitzes anticipadament. I la pregunta que ningú et respon amb números: <strong style="color:#fff">amortitzar o invertir?</strong></p>
+  <div class="avis">Eina de simulació i anàlisi. No és intermediació de crèdit immobiliari ni recomanació de cap producte concret. Els càlculs són il·lustratius i no substitueixen l'oferta vinculant de cap entitat.</div>
+</div></header>
+
+<div class="tabs" id="tabs">
+  <button class="on" data-t="sim">Simulador</button>
+  <button data-t="amort">Amortitzar</button>
+  <button data-t="vs">Amortitzar o invertir</button>
+  <button data-t="quadre">Quadre complet</button>
+</div>
+
+<main class="wrap">
+
+  <!-- DADES DE LA HIPOTECA -->
+  <section class="card">
+    <h2>La teva hipoteca</h2>
+    <div class="sub">Canvia qualsevol dada i tots els resultats es recalculen a l'instant.</div>
+    <div class="grid">
+      <div><label for="f-capital">Capital pendent (€)</label><input id="f-capital" type="number" value="150000" min="0" step="1000"></div>
+      <div><label for="f-anys">Anys que queden</label><input id="f-anys" type="number" value="30" min="1" max="40" step="1"></div>
+      <div><label for="f-modalitat">Modalitat</label>
+        <select id="f-modalitat">
+          <option value="fix">Tipus fix</option>
+          <option value="variable">Tipus variable</option>
+          <option value="mixt">Tipus mixt</option>
+        </select>
+      </div>
+      <div id="w-fix"><label for="f-tipus">Tipus fix (%)</label><input id="f-tipus" type="number" value="3" min="0" max="20" step="0.05"></div>
+      <div id="w-dif" class="hidden"><label for="f-dif">Diferencial (%)</label><input id="f-dif" type="number" value="0.75" min="0" max="5" step="0.05"><div class="hint">S'hi suma l'euríbor</div></div>
+      <div id="w-eur" class="hidden"><label for="f-euribor">Euríbor previst (%)</label><input id="f-euribor" type="number" value="2.82" min="-1" max="10" step="0.05"><div class="hint" id="hint-eur"></div></div>
+      <div id="w-anysfix" class="hidden"><label for="f-anysfix">Anys a tipus fix</label><input id="f-anysfix" type="number" value="5" min="1" max="20" step="1"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ SIMULADOR ══════════ -->
+  <section id="p-sim">
+    <div class="kpis" id="sim-kpis"></div>
+    <div class="card">
+      <h2>On van els teus diners</h2>
+      <div class="sub">Repartiment entre capital i interessos al llarg de la vida del préstec.</div>
+      <div id="sim-grafic"></div>
+    </div>
+    <div class="card" id="sim-stress-card">
+      <h2>I si els tipus es mouen?</h2>
+      <div class="sub">Amb tipus variable o mixt, la quota no és una promesa. Aquests són els escenaris.</div>
+      <div id="sim-stress"></div>
+    </div>
+  </section>
+
+  <!-- ══════════ AMORTITZAR ══════════ -->
+  <section id="p-amort" class="hidden">
+    <div class="card">
+      <h2>Amortització anticipada</h2>
+      <div class="sub">Quant estalvies si hi destines diners avui — i quina modalitat et convé.</div>
+      <div class="grid">
+        <div><label for="a-import">Import a amortitzar (€)</label><input id="a-import" type="number" value="20000" min="0" step="1000"></div>
+        <div><label for="a-mes">D'aquí a quants mesos</label><input id="a-mes" type="number" value="1" min="1" max="480" step="1"></div>
+        <div><label for="a-comissio">Comissió pactada (%)</label><input id="a-comissio" type="number" value="" min="0" max="5" step="0.05" placeholder="màxim legal"><div class="hint" id="hint-com"></div></div>
+      </div>
+    </div>
+    <div id="amort-res"></div>
+  </section>
+
+  <!-- ══════════ AMORTITZAR VS INVERTIR ══════════ -->
+  <section id="p-vs" class="hidden">
+    <div class="card">
+      <h2>Amortitzar o invertir?</h2>
+      <div class="sub">Els dos escenaris tenen exactament el mateix cost mensual: el que un estalvia de quota, l'altre l'inverteix. Amb IRPF de la base de l'estalvi i comissions incloses.</div>
+      <div class="grid">
+        <div><label for="v-import">Diners disponibles (€)</label><input id="v-import" type="number" value="20000" min="0" step="1000"></div>
+        <div><label for="v-mode">Si amortitzes…</label>
+          <select id="v-mode"><option value="termini">Redueixo el termini</option><option value="quota">Redueixo la quota</option></select>
+        </div>
+        <div><label for="v-retorn">Retorn brut esperat (%)</label><input id="v-retorn" type="number" value="6" min="0" max="20" step="0.25"></div>
+        <div><label for="v-ter">Cost del producte, TER (%)</label><input id="v-ter" type="number" value="0.25" min="0" max="3" step="0.05"></div>
+        <div><label for="v-ded">Habitatge comprat abans de 2013?</label>
+          <select id="v-ded"><option value="no">No</option><option value="si">Sí, i em dedueixo</option></select>
+          <div class="hint">Canvia molt el resultat</div>
+        </div>
+      </div>
+    </div>
+    <div id="vs-res"></div>
+  </section>
+
+  <!-- ══════════ QUADRE ══════════ -->
+  <section id="p-quadre" class="hidden">
+    <div class="card">
+      <h2>Quadre d'amortització</h2>
+      <div class="sub">Any a any, amb les amortitzacions anticipades que hagis definit a la pestanya anterior.</div>
+      <div id="q-avis"></div>
+      <div class="taula-scroll"><table id="q-taula"></table></div>
+      <div class="nota info">El sistema francès concentra els interessos al principi. Per això una amortització al primer any val molt més que la mateixa amortització a l'any vint.</div>
+    </div>
+  </section>
+
+  <div class="cta">
+    <h2>Aquesta calculadora és la part fàcil</h2>
+    <p>La difícil és encaixar la hipoteca amb la resta: fons d'emergència, inversió, jubilació i impostos. Comença pel test de salut financera — 2 minuts, gratuït i sense compromís.</p>
+    <a href="test-salut-financera.html" class="btn or">Fes el test de salut financera →</a>
+  </div>
+
+  <section class="faq">
+    <h2>Preguntes freqüents</h2>
+    <details open><summary>Què és millor: reduir quota o reduir termini?</summary>
+      <p>Reduir el termini estalvia molts més interessos, perquè el capital deixa de generar interès durant tots els mesos que t'estalvies. Reduir la quota allibera flux de caixa mensual però manté el préstec viu fins al final. Amb el mateix import amortitzat, reduir termini sol estalviar entre dues i tres vegades més interessos. Si vas just de tresoreria, però, reduir quota compra tranquil·litat — i això també val diners.</p></details>
+    <details><summary>Quina comissió em poden cobrar per amortitzar anticipadament?</summary>
+      <p>La Llei 5/2019 fixa màxims: a tipus fix, 2% del capital reemborsat durant els 10 primers anys i 1,5% després. A tipus variable, l'entitat tria en el moment de signar entre 0,25% durant els 3 primers anys o 0,15% durant els 5 primers; passat aquest període, zero. Si passes de variable a fix, el límit és del 0,05% els 3 primers anys. En tots els casos la comissió no pot superar la pèrdua financera real del prestador, i moltes hipoteques no en cobren cap. Mira la teva escriptura abans de suposar res.</p></details>
+    <details><summary>És millor amortitzar o invertir els diners?</summary>
+      <p>Amortitzar és un rendiment segur, immediat i lliure d'impostos exactament igual al tipus de la teva hipoteca. Invertir ha de superar aquest tipus després de l'IRPF de la base de l'estalvi (19% a 30%) i del cost del producte, i a canvi assumeixes risc de mercat i volatilitat. La pestanya "Amortitzar o invertir" et calcula el break-even: la rendibilitat bruta mínima que hauries d'obtenir per compensar. Per sota d'aquest número, amortitzar guanya sense assumir cap risc.</p></details>
+    <details><summary>Per què a la meitat de la hipoteca encara dec més del 60%?</summary>
+      <p>Pel sistema francès de quota constant. Els primers anys la major part de la quota són interessos i molt poc capital; l'amortització s'accelera al final. És matemàtica, no una trampa del banc. La conseqüència pràctica sí que és important: les amortitzacions anticipades dels primers anys són molt més rendibles que les dels últims.</p></details>
+    <details><summary>Vaig comprar abans de 2013 i em dedueixo l'habitatge. Canvia alguna cosa?</summary>
+      <p>Molt. La deducció estatal per inversió en habitatge habitual et permet deduir el 15% sobre una base màxima de 9.040 € anuals — fins a 1.356 € l'any. La base inclou el capital amortitzat, els interessos i les amortitzacions anticipades. Si la teva quota anual no arriba als 9.040 €, amortitzar just la diferència cada any et surt pràcticament gratis. En canvi, una amortització gran de cop supera el topall en un sol any i et fa perdre anys futurs de deducció. Marca la casella corresponent i la calculadora ho té en compte.</p></details>
+  </section>
+</main>
+
+<footer><div class="wrap">
+  <div><strong style="color:#fff">The Boring Investor</strong> · Assessorament financer independent, sense comissions de producte</div>
+  <div style="margin-top:8px">Contingut d'educació i anàlisi financera. No constitueix assessorament d'inversió ni intermediació de crèdit immobiliari. Dades fiscals vigents per a l'exercici 2026.</div>
+  <div style="margin-top:8px"><a href="index.html">Inici</a> · <a href="test-salut-financera.html">Test de salut financera</a> · <a href="platform.html">Accés clients</a></div>
+</div></footer>
+
+<script src="tbi-hipoteca.js"></script>
+<script>
+(function(){
+"use strict";
+var H = TBI_HIPOTECA;
+
+function $(id){ return document.getElementById(id); }
+function n(id){ var v = parseFloat($(id).value); return isFinite(v) ? v : 0; }
+function eur(x){ return Math.round(x).toLocaleString('ca-ES') + ' €'; }
+function eur2(x){ return (Math.round(x*100)/100).toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €'; }
+function pct(x){ return (Math.round(x*100)/100).toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%'; }
+function mesosTxt(m){
+  var a = Math.floor(m/12), r = m%12;
+  return (a>0 ? a + ' any' + (a>1?'s':'') : '') + (a>0&&r>0 ? ' i ' : '') + (r>0 ? r + ' mes' + (r>1?'os':'') : '') || '0 mesos';
+}
+
+$('hint-eur').textContent = 'Mitjana de ' + H.REF.euribor_data + ': ' + pct(H.REF.euribor_12m);
+
+/* ── Configuració llegida del formulari ── */
+function llegirCfg(){
+  var mod = $('f-modalitat').value;
+  var cfg = { capital:n('f-capital'), anys:n('f-anys'), modalitat:mod, revisio_mesos:12 };
+  if (mod === 'fix') cfg.tipus_fix = n('f-tipus');
+  if (mod === 'variable') cfg.diferencial = n('f-dif');
+  if (mod === 'mixt'){ cfg.tipus_fix = n('f-tipus'); cfg.anys_fix = n('f-anysfix'); cfg.diferencial = n('f-dif'); }
+  var com = $('a-comissio').value;
+  if (com !== '' && isFinite(parseFloat(com))) cfg.comissio_amort_pct = parseFloat(com);
+  return cfg;
+}
+function escenari(){ return ($('f-modalitat').value === 'fix') ? 0 : n('f-euribor'); }
+
+function ajustarCamps(){
+  var mod = $('f-modalitat').value;
+  $('w-fix').classList.toggle('hidden', mod === 'variable');
+  $('w-dif').classList.toggle('hidden', mod === 'fix');
+  $('w-eur').classList.toggle('hidden', mod === 'fix');
+  $('w-anysfix').classList.toggle('hidden', mod !== 'mixt');
+  $('sim-stress-card').classList.toggle('hidden', mod === 'fix');
+}
+
+/* ── Gràfic de barres apilades: capital vs interessos per any ── */
+function grafic(files){
+  var anys = H.perAnys(files);
+  if (!anys.length) return '';
+  var maxAny = 0;
+  anys.forEach(function(a){ maxAny = Math.max(maxAny, a.interes + a.principal + a.extra); });
+  var w = 900, h = 210, pad = 4;
+  var bw = (w - pad*(anys.length-1)) / anys.length;
+  var s = '<svg viewBox="0 0 ' + w + ' ' + (h+26) + '" style="width:100%;height:auto" role="img" aria-label="Repartiment anual entre capital i interessos">';
+  anys.forEach(function(a,i){
+    var x = i*(bw+pad);
+    var tot = a.interes + a.principal + a.extra;
+    var hi = maxAny>0 ? a.interes/maxAny*h : 0;
+    var hp = maxAny>0 ? (a.principal+a.extra)/maxAny*h : 0;
+    s += '<rect x="'+x.toFixed(1)+'" y="'+(h-hp-hi).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+hi.toFixed(1)+'" fill="#C8A54A" opacity=".85"><title>Any '+a.any+': '+eur(a.interes)+' d’interessos</title></rect>';
+    s += '<rect x="'+x.toFixed(1)+'" y="'+(h-hp).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+hp.toFixed(1)+'" fill="#16233A"><title>Any '+a.any+': '+eur(a.principal+a.extra)+' de capital</title></rect>';
+    if (anys.length<=32 && (i===0 || (i+1)%5===0))
+      s += '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(h+18)+'" text-anchor="middle" font-size="11" fill="#8A8780" font-family="IBM Plex Mono, monospace">'+a.any+'</text>';
+  });
+  s += '</svg>';
+  s += '<div style="display:flex;gap:18px;margin-top:10px;font-size:12px;color:var(--g500)">'
+     + '<span><span style="display:inline-block;width:11px;height:11px;background:#16233A;border-radius:2px;margin-right:5px"></span>Capital</span>'
+     + '<span><span style="display:inline-block;width:11px;height:11px;background:#C8A54A;border-radius:2px;margin-right:5px"></span>Interessos</span></div>';
+  return s;
+}
+
+function kpi(l, v, s, hi){
+  return '<div class="kpi'+(hi?' hi':'')+'"><div class="l">'+l+'</div><div class="v">'+v+'</div>'+(s?'<div class="s">'+s+'</div>':'')+'</div>';
+}
+
+/* ── Amortitzacions actives ── */
+function amortitzacions(){
+  var imp = n('a-import');
+  if (imp <= 0) return [];
+  return [{ mes: Math.max(1, Math.round(n('a-mes'))), import: imp, mode: $('v-mode').value }];
+}
+
+/* ══════════ RENDER ══════════ */
+function render(){
+  ajustarCamps();
+  var cfg = llegirCfg(), esc = escenari();
+  var base = H.generarQuadre(cfg, { escenari: esc });
+
+  if (!base.files.length){
+    $('sim-kpis').innerHTML = '<div class="nota vermell">Revisa les dades: cal un capital i un termini superiors a zero.</div>';
+    $('sim-grafic').innerHTML = ''; $('q-taula').innerHTML = '';
+    $('amort-res').innerHTML = ''; $('vs-res').innerHTML = '';
+    return;
+  }
+
+  /* ── Simulador ── */
+  var tae = H.calcularTAE(cfg, { escenari: esc });
+  var r = base.resum;
+  var pctInteressos = r.total_interessos / cfg.capital * 100;
+  $('sim-kpis').innerHTML =
+      kpi('Quota mensual', eur2(r.quota_inicial), (r.quota_maxima - r.quota_minima > 1 ? 'màx. ' + eur(r.quota_maxima) : 'constant'), true)
+    + kpi('Interessos totals', eur(r.total_interessos), pct(pctInteressos) + ' del capital')
+    + kpi('Total a retornar', eur(r.total_pagat), mesosTxt(r.mesos))
+    + kpi('TAE amb despeses', tae ? pct(tae.tae) : '—', tae ? eur(tae.despeses_inicials) + ' de despeses' : '');
+
+  $('sim-grafic').innerHTML = grafic(base.files)
+    + '<div class="nota or">De cada euro que pagaràs, <strong>' + pct(r.total_interessos/r.total_pagat*100)
+    + '</strong> són interessos. A la meitat del termini encara deuràs <strong>'
+    + pct(base.files[Math.floor(base.files.length/2)].pendent / cfg.capital * 100)
+    + '</strong> del capital inicial.</div>';
+
+  /* ── Stress d'euríbor ── */
+  if ($('f-modalitat').value !== 'fix'){
+    var st = H.stressEuribor(cfg);
+    var sh = '<table><thead><tr><th>Escenari</th><th>Euríbor</th><th>Quota inicial</th><th>Quota màxima</th><th>Interessos totals</th></tr></thead><tbody>';
+    st.forEach(function(e){
+      var dest = Math.abs(e.euribor - n('f-euribor')) < 0.01;
+      sh += '<tr style="'+(dest?'background:#FDF8EC':'')+'"><td>'+e.nom+(dest?' <span style="color:var(--gold-dark);font-size:11px">← el teu</span>':'')+'</td>'
+         + '<td>'+pct(e.euribor)+'</td><td>'+eur2(e.quota_inicial)+'</td><td>'+eur2(e.quota_maxima)+'</td><td>'+eur(e.total_interessos)+'</td></tr>';
+    });
+    sh += '</tbody></table>';
+    var dif = st[3].quota_inicial - st[0].quota_inicial;
+    sh += '<div class="nota info">Entre l’escenari més favorable i el més advers hi ha <strong>'+eur2(dif)
+       + '</strong> de diferència mensual. Pregunta’t si podries pagar la columna de la dreta durant un any sencer — no si t’agradaria.</div>';
+    $('sim-stress').innerHTML = sh;
+  }
+
+  /* ── Amortitzar ── */
+  var amorts = amortitzacions();
+  var quadreAmb = amorts.length ? H.generarQuadre(cfg, { escenari: esc, amortitzacions: amorts }) : base;
+
+  if (amorts.length){
+    var mesAm = amorts[0].mes;
+    var comPct = H.comissioMaximaPct(cfg, mesAm);
+    $('hint-com').textContent = 'Màxim legal en aquest moment: ' + pct(comPct);
+
+    var qT = H.generarQuadre(cfg, { escenari: esc, amortitzacions: [{ mes: mesAm, import: amorts[0].import, mode:'termini' }] });
+    var qQ = H.generarQuadre(cfg, { escenari: esc, amortitzacions: [{ mes: mesAm, import: amorts[0].import, mode:'quota' }] });
+    var estT = r.total_interessos - qT.resum.total_interessos;
+    var estQ = r.total_interessos - qQ.resum.total_interessos;
+    var comEur = amorts[0].import * comPct / 100;
+
+    var ah = '<div class="kpis">'
+      + kpi('Estalvi reduint termini', eur(estT), mesosTxt(base.files.length - qT.files.length) + ' menys', true)
+      + kpi('Estalvi reduint quota', eur(estQ), 'quota ' + eur2(qQ.resum.quota_minima))
+      + kpi('Comissió', comEur > 0 ? eur(comEur) : 'Cap', comEur > 0 ? pct(comPct) + ' del capital' : 'fora de període')
+      + kpi('Rendiment implícit', pct(base.files[mesAm-1] ? base.files[mesAm-1].tipus : 0), 'segur i lliure d’impostos')
+      + '</div>';
+
+    ah += '<div class="card"><h2>Les dues opcions, costat a costat</h2>'
+      + '<div class="sub">Mateix import amortitzat, resultats molt diferents.</div>'
+      + '<table><thead><tr><th>&nbsp;</th><th>Sense amortitzar</th><th>Reduint termini</th><th>Reduint quota</th></tr></thead><tbody>'
+      + '<tr><td>Quota mensual</td><td>'+eur2(r.quota_inicial)+'</td><td>'+eur2(qT.resum.quota_inicial)+'</td><td>'+eur2(qQ.resum.quota_minima)+'</td></tr>'
+      + '<tr><td>Durada</td><td>'+mesosTxt(base.files.length)+'</td><td>'+mesosTxt(qT.files.length)+'</td><td>'+mesosTxt(qQ.files.length)+'</td></tr>'
+      + '<tr><td>Interessos totals</td><td>'+eur(r.total_interessos)+'</td><td>'+eur(qT.resum.total_interessos)+'</td><td>'+eur(qQ.resum.total_interessos)+'</td></tr>'
+      + '<tr><td><strong>Estalvi d’interessos</strong></td><td>—</td><td style="color:var(--green);font-weight:600">'+eur(estT)+'</td><td style="color:var(--green);font-weight:600">'+eur(estQ)+'</td></tr>'
+      + '</tbody></table>';
+
+    if (estT > estQ * 1.05){
+      ah += '<div class="nota verd"><strong>Reduir el termini estalvia ' + eur(estT - estQ) + ' més</strong> que reduir la quota. '
+         + 'La contrapartida és que no notes cap alleujament mensual: segueixes pagant ' + eur2(r.quota_inicial) + ' cada mes. '
+         + 'Si la teva tresoreria va justa, reduir quota és una decisió perfectament defensable — la tranquil·litat també val diners.</div>';
+    }
+    if (comEur > 0){
+      ah += '<div class="nota or">La comissió de ' + eur(comEur) + ' es menja el '
+         + pct(comEur / Math.max(estT,1) * 100) + ' de l’estalvi. Comprova a l’escriptura quina comissió tens pactada: '
+         + 'molt sovint és inferior al màxim legal, o directament zero.</div>';
+    }
+    ah += '</div>';
+    $('amort-res').innerHTML = ah;
+  } else {
+    $('amort-res').innerHTML = '<div class="card"><div class="nota info">Introdueix un import per veure quant estalviaries.</div></div>';
+  }
+
+  /* ── Amortitzar vs invertir ── */
+  var vImport = n('v-import');
+  if (vImport > 0){
+    var vs = H.amortitzarVsInvertir(cfg, {
+      import: vImport, mode: $('v-mode').value,
+      retorn_brut: n('v-retorn'), ter: n('v-ter'),
+      deduccio_habitatge: ($('v-ded').value === 'si'), escenari: esc
+    });
+    if (vs){
+      var guanyaInv = (vs.guanya === 'invertir');
+      var be = vs.breakeven_pct;
+      var vh = '<div class="card" style="background:var(--black);color:#fff;border:none">'
+        + '<div style="font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">El número que importa</div>'
+        + '<div style="font-size:clamp(26px,4vw,38px);font-weight:600;letter-spacing:-.02em;line-height:1.25;margin-bottom:10px">'
+        + (be !== null
+            ? 'Has de superar un <span style="color:var(--gold)">' + pct(be) + ' brut anual</span> perquè invertir compensi'
+            : 'Amortitzar guanya en qualsevol escenari raonable')
+        + '</div>'
+        + '<div style="color:rgba(255,255,255,.7);font-size:14px;max-width:640px">'
+        + (be !== null
+            ? 'Aquest és el rendiment brut que hauria de donar la teva inversió, un cop pagats el ' + pct(n('v-ter'))
+              + ' de cost del producte i l’IRPF de la base de l’estalvi, per igualar el que t’estalvies amortitzant. '
+              + 'Per sota d’aquest número, amortitzar guanya <strong style="color:#fff">sense assumir cap risc de mercat</strong>.'
+            : 'Amb aquestes dades, la certesa d’estalviar interessos supera qualsevol expectativa raonable de mercat.')
+        + '</div></div>';
+
+      vh += '<div class="kpis">'
+        + kpi('Si amortitzes', eur(vs.net_amortitzar), 'patrimoni net al final', !guanyaInv)
+        + kpi('Si inverteixes', eur(vs.net_invertir), 'net d’impostos', guanyaInv)
+        + kpi('Diferència', (vs.diferencia>=0?'+':'') + eur(vs.diferencia), guanyaInv ? 'a favor d’invertir' : 'a favor d’amortitzar')
+        + kpi('Interessos estalviats', eur(vs.interessos_estalviats), mesosTxt(vs.mesos_estalviats) + ' menys')
+        + '</div>';
+
+      vh += '<div class="card"><h2>Com s’ha calculat</h2><div class="sub">Sense trampes de flux de caixa: els dos camins et costen el mateix cada mes.</div>'
+        + '<table><tbody>'
+        + '<tr><td>Horitzó de comparació</td><td>' + mesosTxt(vs.horitzo_mesos) + '</td></tr>'
+        + '<tr><td>Retorn brut assumit</td><td>' + pct(vs.retorn_brut) + ' anual</td></tr>'
+        + '<tr><td>Cost del producte (TER)</td><td>−' + pct(vs.ter) + ' anual</td></tr>'
+        + '<tr><td>Comissió d’amortització</td><td>' + (vs.comissio_amortitzacio>0 ? eur(vs.comissio_amortitzacio) + ' (' + pct(vs.comissio_pct) + ')' : 'cap') + '</td></tr>'
+        + '<tr><td>Cartera final si inverteixes</td><td>' + eur(vs.cartera_final_invertir) + ' (abans d’impostos)</td></tr>'
+        + '<tr><td>Cartera final si amortitzes</td><td>' + eur(vs.cartera_final_amortitzar) + ' (abans d’impostos)</td></tr>'
+        + ($('v-ded').value === 'si'
+            ? '<tr><td>Deducció acumulada amortitzant</td><td>' + eur(vs.deduccio_amortitzar) + '</td></tr>'
+            + '<tr><td>Deducció acumulada invertint</td><td>' + eur(vs.deduccio_invertir) + '</td></tr>' : '')
+        + '</tbody></table>';
+
+      if ($('v-ded').value === 'si' && vs.deduccio_invertir > vs.deduccio_amortitzar){
+        var quotaAnual = vs.quota_abans * 12;
+        var forat = H.REF.deduccio.base_max - quotaAnual;
+        vh += '<div class="nota or"><strong>Compte amb la deducció.</strong> Amortitzar de cop et fa perdre '
+           + eur(vs.deduccio_invertir - vs.deduccio_amortitzar) + ' de deducció acumulada: superes el topall de '
+           + eur(H.REF.deduccio.base_max) + ' en un sol any i escurces els anys en què encara et podries deduir.'
+           + (forat > 0
+              ? ' La teva quota anual és de ' + eur(quotaAnual) + ', així que la jugada fina és amortitzar <strong>'
+                + eur(forat) + ' cada any</strong> per arribar just al topall — ni un euro més.'
+              : ' La teva quota ja supera el topall pel seu compte, així que la deducció no et dóna cap marge extra.')
+           + '</div>';
+      }
+
+      vh += '<div class="nota info">Aquesta comparativa assumeix un rendiment constant, i els mercats no en donen cap. '
+         + 'Amortitzar és un resultat cert; invertir és una expectativa amb volatilitat pel mig. Quan els dos números queden a prop, '
+         + 'la decisió no és matemàtica sinó de què et deixa dormir millor.</div></div>';
+
+      $('vs-res').innerHTML = vh;
+    }
+  } else {
+    $('vs-res').innerHTML = '<div class="card"><div class="nota info">Introdueix un import disponible per veure la comparativa.</div></div>';
+  }
+
+  /* ── Quadre ── */
+  // Deixar clar quan la taula ja incorpora una amortització: si no, el lector
+  // veu 25 anys on n'havia escrit 30 i no entén per què.
+  $('q-avis').innerHTML = amorts.length
+    ? '<div class="nota or" style="margin-top:0;margin-bottom:14px">Aquesta taula inclou l’amortització de <strong>'
+      + eur(amorts[0].import) + '</strong> al mes ' + amorts[0].mes + ' ('
+      + (amorts[0].mode === 'termini' ? 'reduint termini' : 'reduint quota') + '). '
+      + 'El préstec passa de <strong>' + mesosTxt(base.files.length) + '</strong> a <strong>'
+      + mesosTxt(quadreAmb.files.length) + '</strong>. Posa l’import a zero per veure el quadre original.</div>'
+    : '';
+  var anys = H.perAnys(quadreAmb.files);
+  var qh = '<thead><tr><th>Any</th><th>Quotes</th><th>Interessos</th><th>Capital</th><th>Amortitzat</th><th>Pendent</th></tr></thead><tbody>';
+  anys.forEach(function(a){
+    qh += '<tr><td>' + a.any + '</td><td>' + eur(a.quota) + '</td><td style="color:var(--gold-dark)">' + eur(a.interes) + '</td>'
+       + '<td>' + eur(a.principal) + '</td><td>' + (a.extra>0 ? '<strong style="color:var(--green)">' + eur(a.extra) + '</strong>' : '—') + '</td>'
+       + '<td>' + eur(a.pendent) + '</td></tr>';
+  });
+  qh += '</tbody>';
+  $('q-taula').innerHTML = qh;
+}
+
+/* ── Pestanyes ── */
+var panels = { sim:'p-sim', amort:'p-amort', vs:'p-vs', quadre:'p-quadre' };
+$('tabs').addEventListener('click', function(e){
+  var b = e.target.closest('button');
+  if (!b) return;
+  var t = b.getAttribute('data-t');
+  Array.prototype.forEach.call($('tabs').children, function(x){ x.classList.toggle('on', x === b); });
+  for (var k in panels) if (panels.hasOwnProperty(k)) $(panels[k]).classList.toggle('hidden', k !== t);
+});
+
+/* ── Recàlcul en viu ── */
+['f-capital','f-anys','f-modalitat','f-tipus','f-dif','f-euribor','f-anysfix',
+ 'a-import','a-mes','a-comissio','v-import','v-mode','v-retorn','v-ter','v-ded'].forEach(function(id){
+  var el = $(id);
+  if (el){ el.addEventListener('input', render); el.addEventListener('change', render); }
+});
+
+/* Sincronitzar els dos camps d'import (amortitzar i comparativa) */
+$('a-import').addEventListener('input', function(){ $('v-import').value = this.value; });
+$('v-import').addEventListener('input', function(){ $('a-import').value = this.value; });
+
+render();
+})();
+</script>
+</body>
+</html>
