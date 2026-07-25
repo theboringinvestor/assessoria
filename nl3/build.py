@@ -1,0 +1,302 @@
+# -*- coding: utf-8 -*-
+URL_A = open('urlA.txt').read().strip()
+URL_B = open('urlB.txt').read().strip()
+
+FB = "'IBM Plex Sans',Arial,sans-serif"
+FM = "'IBM Plex Mono',monospace"
+FD = "'Fraunces',Georgia,serif"
+
+HTML = u"""<!DOCTYPE html>
+<html lang="ca" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>The Boring Investor &mdash; Newsletter N&ordm; 03</title>
+<!--[if mso]>
+<style>* { font-family: Arial, sans-serif !important; }</style>
+<![endif]-->
+<style>
+  @media (max-width:600px){
+    .container{width:100% !important;}
+    .px{padding-left:22px !important;padding-right:22px !important;}
+    .stat{display:block !important;width:100% !important;margin-bottom:8px !important;}
+    .h1{font-size:30px !important;}
+    .bignum{font-size:34px !important;}
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#E9E6DF;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#E9E6DF;font-size:1px;line-height:1px;">
+  El fons no va canviar. El que va canviar va ser quan hi entraven els diners. &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#E9E6DF;">
+<tr><td align="center" style="padding:28px 12px;">
+
+  <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#F7F5F0;border-radius:16px;overflow:hidden;box-shadow:0 18px 44px rgba(22,35,58,0.14);">
+
+    <!-- Header -->
+    <tr>
+      <td style="background-color:#16233A;padding:26px 34px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td align="left" valign="middle">
+              <img src="https://theboringinvestor.es/newsletter-logo.png" width="200" alt="The Boring Investor" style="display:block;width:200px;max-width:200px;height:auto;border:0;">
+            </td>
+            <td align="right" valign="middle">
+              <span style="font-family:__FM__;font-size:11px;font-weight:500;color:#B4B0A6;letter-spacing:0.08em;text-transform:uppercase;">N&ordm; 03</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Eyebrow + title -->
+    <tr>
+      <td class="px" style="padding:38px 40px 0 40px;">
+        <div style="font-family:__FM__;font-size:11px;font-weight:500;color:#C8A54A;letter-spacing:0.14em;text-transform:uppercase;">L&rsquo;estrat&egrave;gia &middot; Aportacions ponderades</div>
+        <h1 class="h1" style="margin:14px 0 0 0;font-family:__FD__;font-size:40px;line-height:1.08;font-weight:600;color:#16233A;letter-spacing:-0.01em;">El mateix fons.<br>Dues rendibilitats.</h1>
+      </td>
+    </tr>
+
+    <!-- Intro -->
+    <tr>
+      <td class="px" style="padding:22px 40px 0 40px;">
+        <p style="margin:0 0 16px 0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          Una clienta nostra, la <strong style="font-weight:600;">Mireia</strong>, inverteix des del mar&ccedil; de 2021 en una cartera indexada global de perfil agressiu. Cinc anys i quatre mesos. Els mateixos fons, les mateixes comissions, la mateixa cartera que qualsevol altre client amb el seu perfil.
+        </p>
+        <p style="margin:0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          I tot i aix&iacute;, la seva rendibilitat i la de la cartera de refer&egrave;ncia no s&rsquo;assemblen gens:
+        </p>
+      </td>
+    </tr>
+
+    <!-- BIG NUMBERS -->
+    <tr>
+      <td class="px" style="padding:22px 40px 0 40px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#16233A;border-radius:16px;">
+          <tr>
+            <td style="padding:26px 24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="stat" width="48%" valign="top" align="center" style="padding:6px 4px;">
+                    <div style="font-family:__FM__;font-size:10px;color:#B4B0A6;letter-spacing:0.12em;text-transform:uppercase;">Cartera model</div>
+                    <div class="bignum" style="font-family:__FM__;font-size:38px;font-weight:500;color:#F7F5F0;line-height:1.1;padding-top:8px;">+69,53&nbsp;%</div>
+                    <div style="font-family:__FB__;font-size:12px;color:#B4B0A6;padding-top:4px;">10,31&nbsp;% TAE</div>
+                  </td>
+                  <td width="4%" align="center" valign="middle" style="font-family:__FB__;font-size:16px;color:#6B685F;">vs</td>
+                  <td class="stat" width="48%" valign="top" align="center" style="padding:6px 4px;">
+                    <div style="font-family:__FM__;font-size:10px;color:#C8A54A;letter-spacing:0.12em;text-transform:uppercase;">La cartera de la Mireia</div>
+                    <div class="bignum" style="font-family:__FM__;font-size:38px;font-weight:500;color:#C8A54A;line-height:1.1;padding-top:8px;">+104,82&nbsp;%</div>
+                    <div style="font-family:__FB__;font-size:12px;color:#C8A54A;padding-top:4px;">14,26&nbsp;% TAE</div>
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
+                <tr><td style="border-top:1px solid #24395C;padding-top:14px;" align="center">
+                  <span style="font-family:__FB__;font-size:14px;color:#F7F5F0;">Difer&egrave;ncia: <strong style="font-weight:600;color:#C8A54A;">35,3 punts</strong> de rendibilitat acumulada &middot; <strong style="font-weight:600;color:#C8A54A;">3,95 punts</strong> de TAE</span>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Chart A -->
+    <tr>
+      <td class="px" align="center" style="padding:18px 40px 0 40px;">
+        <img src="__URLA__" width="520" alt="Gr&agrave;fic de barres: cartera model +69,53 % vs cartera de la Mireia +104,82 %" style="display:block;width:100%;max-width:520px;height:auto;border:1px solid #E9E6DF;border-radius:12px;">
+        <p style="margin:10px 0 0 0;font-family:__FM__;font-size:11px;line-height:1.5;color:#6B685F;text-align:left;">
+          Dades reals d&rsquo;una clienta de TBI, del 09/03/2021 al 24/07/2026, publicades amb el seu perm&iacute;s. Rendibilitats passades no garanteixen rendibilitats futures.
+        </p>
+      </td>
+    </tr>
+
+    <!-- divider -->
+    <tr><td class="px" style="padding:24px 40px 0 40px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="border-top:1px solid #E9E6DF;font-size:0;line-height:0;">&nbsp;</td>
+      </tr></table>
+    </td></tr>
+
+    <!-- Concepte -->
+    <tr>
+      <td class="px" style="padding:26px 40px 0 40px;">
+        <div style="font-family:__FM__;font-size:11px;font-weight:500;color:#C8A54A;letter-spacing:0.14em;text-transform:uppercase;">La p&iacute;ndola &middot; N&ordm; 03</div>
+        <h2 style="margin:10px 0 0 0;font-family:__FD__;font-size:26px;line-height:1.15;font-weight:600;color:#16233A;">Qu&egrave; &eacute;s una aportaci&oacute; ponderada</h2>
+        <p style="margin:16px 0 0 0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          El pla d&rsquo;aportacions cl&agrave;ssic &eacute;s senzill: la mateixa quantitat cada mes, passi el que passi. &Eacute;s bo, &eacute;s avorrit i funciona.
+        </p>
+        <p style="margin:14px 0 0 0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          L&rsquo;<strong style="font-weight:600;">aportaci&oacute; ponderada</strong> hi afegeix una capa: mantens l&rsquo;aportaci&oacute; base cada mes i, quan el mercat cau per sota d&rsquo;uns llindars fixats per endavant, hi poses un extra que tenies reservat justament per a aix&ograve;.
+        </p>
+        <p style="margin:14px 0 0 0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          No consisteix a endevinar el terra. Consisteix a tenir escrit qu&egrave; far&agrave;s <em>si</em> arriba. La mec&agrave;nica &eacute;s pura aritm&egrave;tica: quan el preu baixa, els mateixos euros compren m&eacute;s participacions.
+        </p>
+      </td>
+    </tr>
+
+    <!-- Chart B -->
+    <tr>
+      <td class="px" align="center" style="padding:20px 40px 0 40px;">
+        <img src="__URLB__" width="520" alt="Gr&agrave;fic de barres: amb 100 euros compres 1 participaci&oacute; a m&agrave;xims, 1,18 amb el mercat un 15 % avall i 1,43 amb el mercat un 30 % avall" style="display:block;width:100%;max-width:520px;height:auto;border:1px solid #E9E6DF;border-radius:12px;">
+        <p style="margin:10px 0 0 0;font-family:__FM__;font-size:11px;line-height:1.5;color:#6B685F;text-align:left;">
+          Exemple il&middot;lustratiu. Amb el mercat un 30&nbsp;% avall, els mateixos 100&nbsp;&euro; compren un 43&nbsp;% m&eacute;s de participacions &mdash; i cadascuna d&rsquo;aquestes participacions compon des de m&eacute;s avall.
+        </p>
+      </td>
+    </tr>
+
+    <!-- Regla -->
+    <tr>
+      <td class="px" style="padding:28px 40px 0 40px;">
+        <h3 style="margin:0 0 6px 0;font-family:__FB__;font-size:18px;font-weight:600;color:#16233A;">La regla s&rsquo;escriu abans, no durant</h3>
+        <p style="margin:0 0 14px 0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          Un exemple d&rsquo;escala. Res de m&agrave;gic: nom&eacute;s una decisi&oacute; presa en fred, quan encara no fa mal.
+        </p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E9E6DF;border-radius:12px;background-color:#FFFFFF;">
+          <tr>
+            <td style="padding:12px 18px;font-family:__FM__;font-size:10px;color:#6B685F;letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid #E9E6DF;">Caiguda des de m&agrave;xims</td>
+            <td align="right" style="padding:12px 18px;font-family:__FM__;font-size:10px;color:#6B685F;letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid #E9E6DF;">Aportaci&oacute; d&rsquo;aquell mes</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 18px;font-family:__FB__;font-size:15px;color:#16233A;border-bottom:1px solid #E9E6DF;">Mercat normal</td>
+            <td align="right" style="padding:13px 18px;font-family:__FM__;font-size:15px;color:#16233A;border-bottom:1px solid #E9E6DF;">&times;&nbsp;1&nbsp;(base)</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 18px;font-family:__FB__;font-size:15px;color:#16233A;border-bottom:1px solid #E9E6DF;">&minus;10&nbsp;%</td>
+            <td align="right" style="padding:13px 18px;font-family:__FM__;font-size:15px;color:#16233A;border-bottom:1px solid #E9E6DF;">&times;&nbsp;1,5</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 18px;font-family:__FB__;font-size:15px;color:#16233A;border-bottom:1px solid #E9E6DF;">&minus;20&nbsp;%</td>
+            <td align="right" style="padding:13px 18px;font-family:__FM__;font-size:15px;color:#16233A;border-bottom:1px solid #E9E6DF;">&times;&nbsp;2</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 18px;font-family:__FB__;font-size:15px;color:#16233A;font-weight:600;">&minus;30&nbsp;% o m&eacute;s</td>
+            <td align="right" style="padding:13px 18px;font-family:__FM__;font-size:15px;color:#C8A54A;font-weight:500;">&times;&nbsp;3</td>
+          </tr>
+        </table>
+        <p style="margin:10px 0 0 0;font-family:__FM__;font-size:11px;line-height:1.5;color:#6B685F;">
+          Xifres orientatives. L&rsquo;escala concreta dep&egrave;n de la teva capacitat d&rsquo;estalvi i del teu mat&agrave;s de liquiditat.
+        </p>
+      </td>
+    </tr>
+
+    <!-- Per que passa -->
+    <tr>
+      <td class="px" style="padding:28px 40px 0 40px;">
+        <h3 style="margin:0 0 10px 0;font-family:__FB__;font-size:18px;font-weight:600;color:#16233A;">Per qu&egrave; les dues xifres de la Mireia no mesuren el mateix</h3>
+        <p style="margin:0 0 14px 0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          Aix&ograve; &eacute;s important i sovint es passa per alt:
+        </p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="padding:0 0 12px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+              <td width="4" style="background-color:#B4B0A6;border-radius:2px;font-size:0;line-height:0;">&nbsp;</td>
+              <td style="padding-left:14px;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+                <strong style="font-weight:600;">Cartera model &mdash; ponderada per temps.</strong> El que hauria fet la cartera amb tots els diners a dins des del primer dia. Ignora quan entren i surten els diners.
+              </td>
+            </tr></table>
+          </td></tr>
+          <tr><td>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+              <td width="4" style="background-color:#C8A54A;border-radius:2px;font-size:0;line-height:0;">&nbsp;</td>
+              <td style="padding-left:14px;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+                <strong style="font-weight:600;">La seva cartera &mdash; ponderada per diners.</strong> El que han fet realment els seus euros. &Eacute;s una TIR: t&eacute; en compte quant capital hi havia dins en cada moment.
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+        <p style="margin:16px 0 0 0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          La Mireia va aportar per damunt de la seva base durant les caigudes del 2022 i del 2025. Aquell capital va entrar barat i ha compost des de m&eacute;s avall. Els 35 punts de difer&egrave;ncia no venen d&rsquo;encertar el mercat: venen de la <strong style="font-weight:600;">mida de les aportacions</strong> en els moments inc&ograve;modes.
+        </p>
+      </td>
+    </tr>
+
+    <!-- Lletres petites -->
+    <tr>
+      <td class="px" style="padding:28px 40px 0 40px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;border:1px solid #E9E6DF;border-radius:12px;">
+          <tr><td style="padding:22px 24px;">
+            <div style="font-family:__FM__;font-size:11px;font-weight:500;color:#8B1A1A;letter-spacing:0.12em;text-transform:uppercase;">Les lletres petites</div>
+            <p style="margin:12px 0 0 0;font-family:__FB__;font-size:14px;line-height:1.6;color:#16233A;">
+              <strong style="font-weight:600;">Cal liquiditat guardada.</strong> Sense un mat&agrave;s a part, no hi ha res per ponderar. I aquest mat&agrave;s rendeix poc mentre espera.
+            </p>
+            <p style="margin:10px 0 0 0;font-family:__FB__;font-size:14px;line-height:1.6;color:#16233A;">
+              <strong style="font-weight:600;">Si el mercat no cau, perds una mica.</strong> Guardar p&oacute;lvora seca t&eacute; un cost d&rsquo;oportunitat real i mesurable.
+            </p>
+            <p style="margin:10px 0 0 0;font-family:__FB__;font-size:14px;line-height:1.6;color:#16233A;">
+              <strong style="font-weight:600;">Mai substitueix l&rsquo;aportaci&oacute; base.</strong> Deixar d&rsquo;aportar per &laquo;esperar el moment&raquo; &eacute;s timing de mercat, i el timing de mercat no funciona.
+            </p>
+            <p style="margin:10px 0 0 0;font-family:__FB__;font-size:14px;line-height:1.6;color:#16233A;">
+              <strong style="font-weight:600;">Un cas no &eacute;s una llei.</strong> La Mireia va tenir un per&iacute;ode amb caigudes aprofitables i mitjans per aprofitar-les. En un altre per&iacute;ode, la difer&egrave;ncia hauria estat molt m&eacute;s petita &mdash; o nul&middot;la.
+            </p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Takeaway -->
+    <tr>
+      <td class="px" style="padding:24px 40px 0 40px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background-color:#16233A;border-radius:12px;padding:22px 24px;">
+            <div style="font-family:__FM__;font-size:11px;font-weight:500;color:#C8A54A;letter-spacing:0.12em;text-transform:uppercase;">La idea</div>
+            <p style="margin:8px 0 0 0;font-family:__FB__;font-size:16px;line-height:1.5;color:#F7F5F0;font-weight:500;">
+              No pots controlar qu&egrave; far&agrave; el mercat. S&iacute; que pots controlar quants diners hi tens a dins quan est&agrave; barat. Aquest &eacute;s tot el truc &mdash; i &eacute;s prou avorrit com per funcionar.
+            </p>
+          </td>
+        </tr></table>
+      </td>
+    </tr>
+
+    <!-- Signature -->
+    <tr>
+      <td class="px" style="padding:26px 40px 6px 40px;">
+        <p style="margin:0 0 14px 0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          Si vols que mirem quina escala de ponderaci&oacute; encaixa amb la teva capacitat d&rsquo;estalvi, respon a aquest correu.
+        </p>
+        <p style="margin:0;font-family:__FB__;font-size:15px;line-height:1.6;color:#16233A;">
+          Ens llegim a la propera p&iacute;ndola.<br>
+          <strong style="font-weight:600;">Guillem Puig</strong><br>
+          <span style="color:#6B685F;font-size:13px;">The Boring Investor</span>
+        </p>
+      </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+      <td style="padding:26px 40px 30px 40px;background-color:#16233A;">
+        <p style="margin:0 0 10px 0;font-family:__FB__;font-size:12px;line-height:1.6;color:#B4B0A6;">
+          <strong style="color:#F7F5F0;font-weight:600;">The Boring Investor</strong> &mdash; educaci&oacute; i an&agrave;lisi financera. Cap contingut d&rsquo;aquesta newsletter constitueix assessorament d&rsquo;inversi&oacute; personalitzat ni una recomanaci&oacute; de compra o venda. Les rendibilitats esmentades s&oacute;n hist&ograve;riques i no garanteixen resultats futurs.
+        </p>
+        <p style="margin:0 0 14px 0;font-family:__FB__;font-size:12px;line-height:1.6;color:#B4B0A6;">
+          Barcelona &middot; <a href="https://theboringinvestor.es" style="color:#C8A54A;text-decoration:none;">theboringinvestor.es</a> &middot; <a href="mailto:guillem.puig@theboringinvestor.es" style="color:#C8A54A;text-decoration:none;">guillem.puig@theboringinvestor.es</a>
+        </p>
+        <p style="margin:0;font-family:__FB__;font-size:11px;line-height:1.6;color:#6B685F;">
+          Reps aquest correu perqu&egrave; t&rsquo;hi vas subscriure. <a href="{{unsubscribe_url}}" style="color:#B4B0A6;text-decoration:underline;">Donar-me de baixa</a>.
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+</td></tr>
+</table>
+
+</body>
+</html>
+"""
+
+out = (HTML.replace('__FB__', FB).replace('__FM__', FM).replace('__FD__', FD)
+           .replace('__URLA__', URL_A).replace('__URLB__', URL_B))
+# escape remaining non-ascii to numeric entities for max email-client safety
+out_ascii = out.encode('ascii', 'xmlcharrefreplace').decode('ascii')
+open('newsletter-03.html','w').write(out_ascii)
+print("bytes:", len(out_ascii))
+print("non-ascii left:", sum(1 for c in out_ascii if ord(c)>127))
+print("placeholders left:", out_ascii.count('__'))
