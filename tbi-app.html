@@ -145,6 +145,39 @@ input,textarea{font-family:var(--fb);font-size:16px}/* 16px evita zoom a iOS */
 .chat-send:disabled{opacity:.5}
 
 .empty{text-align:center;color:var(--g400);font-size:13px;padding:48px 20px;line-height:1.6}
+/* ── EVOLUCIÓ ── */
+.evo-wrap{margin:18px -2px 0;min-height:196px}
+.evo-wrap svg{display:block;width:100%;height:auto;overflow:visible}
+.evo-band{animation:evoFade .55s ease-out both}
+.evo-line-a{animation:evoFade .55s .1s ease-out both}
+.evo-line-v{animation:evoDraw 1s cubic-bezier(.33,0,.15,1) both}
+.evo-dot{transform-box:fill-box;transform-origin:center;animation:evoPop .34s .78s cubic-bezier(.34,1.4,.5,1) both}
+.evo-halo{transform-box:fill-box;transform-origin:center;animation:evoHalo 2.6s 1.1s ease-out infinite}
+@keyframes evoFade{from{opacity:0}to{opacity:1}}
+@keyframes evoDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes evoPop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes evoHalo{0%{opacity:.5;transform:scale(1)}70%,100%{opacity:0;transform:scale(2.6)}}
+.evo-leg{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-top:14px}
+.evo-leg span{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:var(--g500);font-weight:500}
+.evo-sw{width:11px;height:11px;border-radius:3px;flex:none}
+.evo-sw-l{width:15px;height:3px;border-radius:2px;flex:none}
+.evo-stats{display:flex;gap:9px}
+.evo-stat{flex:1;background:var(--g50);border:1px solid var(--g100);border-radius:11px;padding:11px 12px;min-width:0}
+.evo-stat .l{font-size:9.5px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;white-space:nowrap}
+.evo-stat .v{font-family:var(--fm);font-size:15px;font-weight:500;margin-top:5px;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evo-mix{display:flex;height:9px;border-radius:5px;overflow:hidden;margin-top:16px;background:var(--g100)}
+.evo-mix i{display:block;height:100%;transition:width .5s ease}
+.evo-mix-lbl{font-size:11.5px;color:var(--g500);margin-top:9px;line-height:1.55}
+.evo-sub-lbl{font-size:9.5px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-top:20px;padding-top:15px;border-top:1px solid var(--g50)}
+.evo-nota{font-size:11.5px;color:var(--g400);line-height:1.6;margin-top:14px;padding-top:13px;border-top:1px solid var(--g50)}
+.evo-hd{display:flex;font-size:9.5px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--g100)}
+.evo-hd div+div,.evo-tr div+div{text-align:right}
+.evo-tr{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid var(--g50);font-size:13px}
+.evo-tr:last-child{border-bottom:none}
+.evo-tr .m{flex:1;font-weight:500;color:var(--ink)}
+.evo-num{font-family:var(--fm);font-size:12.5px;letter-spacing:-.2px}
+@media (prefers-reduced-motion:reduce){.evo-band,.evo-line-a,.evo-line-v,.evo-dot,.evo-halo{animation:none}}
+
 .toast{position:fixed;bottom:calc(80px + var(--safe-bottom));left:50%;transform:translateX(-50%);background:var(--black);color:#fff;font-size:13px;padding:11px 18px;border-radius:10px;z-index:800;opacity:0;transition:opacity .2s;max-width:88%;text-align:center}
 .toast.show{opacity:1}
 .banner-upd{background:#FEF7E8;border:1px solid #E8C988;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
@@ -865,107 +898,343 @@ async function guardarActualitzacio(){
 // ════════════════════════════════════════════
 // VISTA: EVOLUCIÓ
 // ════════════════════════════════════════════
+// Sèrie ordenada: mes, aportat, valor, rendiment
+function evoSeries(){
+  var snaps = getSnapshots().slice().filter(function(s){ return s && s.mes; });
+  snaps.sort(function(a,b){ return String(a.mes).localeCompare(String(b.mes)); });
+  return snaps.map(function(s){
+    var v = parseFloat(s.valor)||0, a = parseFloat(s.invertit)||0;
+    return { mes:String(s.mes), valor:v, aportat:a, rend:(v-a) };
+  });
+}
+
+// Pas "net" per a l'eix Y (1, 2, 2.5, 5, 10 × 10^n)
+function evoNiceStep(v){
+  if (!(v > 0)) return 100;
+  var mag = Math.pow(10, Math.floor(Math.log(v)/Math.LN10));
+  var norm = v/mag, step;
+  if (norm <= 1) step = 1;
+  else if (norm <= 2) step = 2;
+  else if (norm <= 2.5) step = 2.5;
+  else if (norm <= 5) step = 5;
+  else step = 10;
+  return step*mag;
+}
+
+// Escala amb base retallada: si la cartera és gran i el moviment petit, mantenir
+// la base a 0 aplanaria el gràfic i el rendiment seria invisible.
+function evoEscala(vals){
+  var vmin = Infinity, vmax = -Infinity, i;
+  for (i=0;i<vals.length;i++){ vmin = Math.min(vmin, vals[i]); vmax = Math.max(vmax, vals[i]); }
+  if (!isFinite(vmin)) { vmin = 0; vmax = 1; }
+  var span = (vmax - vmin) || Math.abs(vmax)*0.1 || 1;
+  var lo = Math.max(0, vmin - span*0.55);
+  var hi = vmax + span*0.30;
+  var step = evoNiceStep((hi-lo)/4);
+  var guard = 0;
+  while (((hi-lo)/step) > 6 && guard++ < 6) step *= 2;
+  lo = Math.max(0, Math.floor(lo/step)*step);
+  hi = Math.ceil(hi/step)*step;
+  if (hi <= lo) hi = lo + step;
+  var ticks = [], t;
+  for (t = lo; t <= hi + step*0.001; t += step) ticks.push(t);
+  return { lo:lo, hi:hi, ticks:ticks };
+}
+
+// 12400 -> "12k" · 1250000 -> "1,3M"
+function evoCurt(n){
+  var a = Math.abs(n), s;
+  if (a >= 1000000){ s = (n/1000000).toFixed(1).replace('.', ',')+'M'; }
+  else if (a >= 10000){ s = Math.round(n/1000)+'k'; }
+  else if (a >= 1000){ s = (n/1000).toFixed(1).replace('.', ',')+'k'; }
+  else return String(Math.round(n));
+  return s.replace(',0', '');
+}
+
+// Gràfic d'àrea apilada: base = capital aportat, capa superior = rendiment
+function evoChartSVG(d, W){
+  var n = d.length;
+  if (n < 2) return '';
+  var H = Math.max(184, Math.min(240, Math.round(W*0.60)));
+  var padL = 6, padR = 46, padT = 14, padB = 26;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+
+  var vals = [], i;
+  for (i=0;i<n;i++){ vals.push(d[i].valor); vals.push(d[i].aportat); }
+  var sc = evoEscala(vals);
+  var lo = sc.lo, hi = sc.hi, rng = (hi - lo) || 1;
+
+  function X(k){ return padL + (n===1 ? plotW/2 : (k/(n-1))*plotW); }
+  function Y(v){ var y = padT + plotH - ((v - lo)/rng)*plotH; return Math.max(padT, Math.min(padT+plotH, y)); }
+  function f(x){ return (Math.round(x*10)/10); }
+
+  // Punts amb creuaments interpolats (perquè guany i pèrdua no es barregin en un mateix polígon)
+  var pts = [];
+  for (i=0;i<n;i++){
+    pts.push({ x:X(i), a:d[i].aportat, v:d[i].valor });
+    if (i < n-1){
+      var d0 = d[i].rend, d1 = d[i+1].rend;
+      if ((d0 > 0 && d1 < 0) || (d0 < 0 && d1 > 0)){
+        var t = d0/(d0-d1);
+        var xc = X(i) + t*(X(i+1)-X(i));
+        var ac = d[i].aportat + t*(d[i+1].aportat - d[i].aportat);
+        pts.push({ x:xc, a:ac, v:ac });
+      }
+    }
+  }
+
+  var base = padT + plotH;
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="Evolució del capital aportat i del rendiment">';
+
+  // Definicions de degradats (userSpaceOnUse: els polígons contigus encaixen sense costures)
+  svg += '<defs>'
+    + '<linearGradient id="evoG-apt" gradientUnits="userSpaceOnUse" x1="0" y1="'+padT+'" x2="0" y2="'+base+'">'
+      + '<stop offset="0%" stop-color="#C8A54A" stop-opacity=".30"/><stop offset="100%" stop-color="#C8A54A" stop-opacity=".07"/></linearGradient>'
+    + '<linearGradient id="evoG-pos" gradientUnits="userSpaceOnUse" x1="0" y1="'+padT+'" x2="0" y2="'+base+'">'
+      + '<stop offset="0%" stop-color="#1A5C3A" stop-opacity=".34"/><stop offset="100%" stop-color="#1A5C3A" stop-opacity=".12"/></linearGradient>'
+    + '<linearGradient id="evoG-neg" gradientUnits="userSpaceOnUse" x1="0" y1="'+padT+'" x2="0" y2="'+base+'">'
+      + '<stop offset="0%" stop-color="#C0392B" stop-opacity=".42"/><stop offset="100%" stop-color="#C0392B" stop-opacity=".22"/></linearGradient>'
+    + '</defs>';
+
+  // Graella + eix Y
+  var k, gy, gv;
+  for (k=0;k<sc.ticks.length;k++){
+    gv = sc.ticks[k]; gy = f(Y(gv));
+    var isBase = (k === 0);
+    svg += '<line x1="'+padL+'" y1="'+gy+'" x2="'+f(padL+plotW)+'" y2="'+gy+'" stroke="'+(isBase?'#D9D6D0':'#ECEAE6')+'" stroke-width="1"'
+        + (isBase ? '' : ' stroke-dasharray="2 4"')+'/>';
+    svg += '<text x="'+f(padL+plotW+8)+'" y="'+f(gy+3.5)+'" font-family="\'IBM Plex Mono\',monospace" font-size="10" fill="#9A9690">'+evoCurt(gv)+'</text>';
+  }
+
+  // Banda base: capital viu (des de la base fins al menor dels dos) — mai se superposa
+  // amb la banda de rendiment, així la pèrdua no queda tapada per l'or.
+  var pmin = '';
+  for (i=0;i<pts.length;i++){ pmin += (i===0?'M':'L')+f(pts[i].x)+' '+f(Y(Math.min(pts[i].a, pts[i].v))); }
+  svg += '<path class="evo-band" d="'+pmin+' L'+f(pts[pts.length-1].x)+' '+f(base)+' L'+f(pts[0].x)+' '+f(base)+' Z" fill="url(#evoG-apt)"/>';
+
+  // Banda de rendiment: trams consecutius del mateix signe en un sol polígon (sense costures)
+  var runs = [], cur = null, sgn;
+  for (i=0;i<pts.length-1;i++){
+    sgn = ((pts[i].v-pts[i].a) + (pts[i+1].v-pts[i+1].a)) >= 0 ? 1 : -1;
+    if (!cur || cur.s !== sgn){ cur = { s:sgn, from:i, to:i+1 }; runs.push(cur); }
+    else cur.to = i+1;
+  }
+  for (var r=0;r<runs.length;r++){
+    var run = runs[r], dd = '', kk;
+    for (kk=run.from;kk<=run.to;kk++){ dd += (kk===run.from?'M':'L')+f(pts[kk].x)+' '+f(Y(Math.max(pts[kk].a, pts[kk].v))); }
+    for (kk=run.to;kk>=run.from;kk--){ dd += 'L'+f(pts[kk].x)+' '+f(Y(Math.min(pts[kk].a, pts[kk].v))); }
+    svg += '<path class="evo-band" d="'+dd+' Z" fill="'+(run.s>0?'url(#evoG-pos)':'url(#evoG-neg)')+'"/>';
+  }
+
+  // Línia del capital aportat (or, discontínua)
+  var pa = '';
+  for (i=0;i<pts.length;i++){ pa += (i===0?'M':'L')+f(pts[i].x)+' '+f(Y(pts[i].a)); }
+  svg += '<path class="evo-line-a" d="'+pa+'" fill="none" stroke="#C8A54A" stroke-width="1.8" stroke-dasharray="5 4" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // Línia del valor de mercat (navy, sòlida, animada)
+  var pv = '';
+  for (i=0;i<n;i++){ pv += (i===0?'M':'L')+f(X(i))+' '+f(Y(d[i].valor)); }
+  svg += '<path class="evo-line-v" d="'+pv+'" fill="none" stroke="#16233A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/>';
+
+  // Punt final destacat
+  var lx = f(X(n-1)), ly = f(Y(d[n-1].valor));
+  var cLast = d[n-1].rend >= 0 ? '#1A5C3A' : '#C0392B';
+  svg += '<circle class="evo-halo" cx="'+lx+'" cy="'+ly+'" r="4.5" fill="'+cLast+'"/>'
+      + '<circle class="evo-dot" cx="'+lx+'" cy="'+ly+'" r="4.5" fill="#16233A" stroke="#fff" stroke-width="2"/>';
+
+  // Etiquetes de mes (màxim 4, sense encavalcaments)
+  var idx = [], want = Math.min(4, n);
+  for (k=0;k<want;k++){ idx.push(Math.round(k*(n-1)/(want-1||1))); }
+  var seen = {};
+  for (k=0;k<idx.length;k++){
+    var ix = idx[k];
+    if (seen[ix]) continue;
+    seen[ix] = 1;
+    var anchor = ix===0 ? 'start' : (ix===n-1 ? 'end' : 'middle');
+    var lab = mesAbrevCA(d[ix].mes);
+    if (n <= 12 || ix===0 || ix===n-1) lab += ' ' + d[ix].mes.slice(2,4);
+    svg += '<text x="'+f(X(ix))+'" y="'+(H-7)+'" font-size="10" fill="#9A9690" text-anchor="'+anchor+'">'+lab+'</text>';
+  }
+
+  svg += '</svg>';
+  return svg;
+}
+
+// L'eix vertical comença per sobre de zero? (cal dir-ho: xifres nues)
+function evoBaseRetallada(d){
+  var vals = [], i;
+  for (i=0;i<d.length;i++){ vals.push(d[i].valor); vals.push(d[i].aportat); }
+  return evoEscala(vals).lo > 0;
+}
+
+// Mini-gràfic: només el rendiment acumulat, amb línia de zero. Aquí sí que es veu
+// el detall encara que el rendiment sigui petit comparat amb el capital.
+function evoRendSVG(d, W){
+  var n = d.length;
+  if (n < 2) return '';
+  var H = 76, padL = 4, padR = 46, padT = 10, padB = 14;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+
+  var mx = 0, i;
+  for (i=0;i<n;i++){ mx = Math.max(mx, Math.abs(d[i].rend)); }
+  if (!(mx > 0)) mx = 1;
+  var hasNeg = false;
+  for (i=0;i<n;i++){ if (d[i].rend < 0) hasNeg = true; }
+  var top = mx*1.20, bot = hasNeg ? -mx*1.20 : 0;
+  var rng = (top - bot) || 1;
+
+  function X(k){ return padL + (n===1 ? plotW/2 : (k/(n-1))*plotW); }
+  function Y(v){ return padT + plotH - ((v - bot)/rng)*plotH; }
+  function f(x){ return Math.round(x*10)/10; }
+
+  var y0 = f(Y(0));
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" role="img" aria-label="Rendiment acumulat mes a mes">'
+    + '<defs>'
+      + '<linearGradient id="evoR-pos" gradientUnits="userSpaceOnUse" x1="0" y1="'+padT+'" x2="0" y2="'+y0+'">'
+        + '<stop offset="0%" stop-color="#1A5C3A" stop-opacity=".30"/><stop offset="100%" stop-color="#1A5C3A" stop-opacity=".04"/></linearGradient>'
+      + '<linearGradient id="evoR-neg" gradientUnits="userSpaceOnUse" x1="0" y1="'+y0+'" x2="0" y2="'+f(padT+plotH)+'">'
+        + '<stop offset="0%" stop-color="#C0392B" stop-opacity=".04"/><stop offset="100%" stop-color="#C0392B" stop-opacity=".26"/></linearGradient>'
+      + '<clipPath id="evoR-cUp"><rect x="0" y="0" width="'+W+'" height="'+y0+'"/></clipPath>'
+      + '<clipPath id="evoR-cDn"><rect x="0" y="'+y0+'" width="'+W+'" height="'+f(H-y0)+'"/></clipPath>'
+    + '</defs>';
+
+  var line = '', area;
+  for (i=0;i<n;i++){ line += (i===0?'M':'L')+f(X(i))+' '+f(Y(d[i].rend)); }
+  area = line + ' L'+f(X(n-1))+' '+y0+' L'+f(X(0))+' '+y0+' Z';
+
+  svg += '<path class="evo-band" d="'+area+'" fill="url(#evoR-pos)" clip-path="url(#evoR-cUp)"/>'
+      + '<path class="evo-band" d="'+area+'" fill="url(#evoR-neg)" clip-path="url(#evoR-cDn)"/>'
+      + '<line x1="'+padL+'" y1="'+y0+'" x2="'+f(padL+plotW)+'" y2="'+y0+'" stroke="#D9D6D0" stroke-width="1" stroke-dasharray="2 3"/>'
+      + '<text x="'+f(padL+plotW+8)+'" y="'+f(y0+3.5)+'" font-family="\'IBM Plex Mono\',monospace" font-size="9.5" fill="#9A9690">0€</text>';
+
+  // Un tram per segment perquè el color segueixi el signe
+  for (i=0;i<n-1;i++){
+    var neg = (d[i].rend + d[i+1].rend) < 0;
+    svg += '<path class="evo-line-v" d="M'+f(X(i))+' '+f(Y(d[i].rend))+' L'+f(X(i+1))+' '+f(Y(d[i+1].rend))+'"'
+        + ' fill="none" stroke="'+(neg?'#C0392B':'#1A5C3A')+'" stroke-width="2" stroke-linecap="round" pathLength="1" stroke-dasharray="1"/>';
+  }
+  var cl = d[n-1].rend >= 0 ? '#1A5C3A' : '#C0392B';
+  svg += '<circle class="evo-dot" cx="'+f(X(n-1))+'" cy="'+f(Y(d[n-1].rend))+'" r="3.6" fill="'+cl+'" stroke="#fff" stroke-width="1.8"/>';
+  svg += '</svg>';
+  return svg;
+}
+
+// Repinta el gràfic a l'amplada real del contenidor (evita text i traços deformats)
+var _evoResizeT = null;
+function evoPaint(){
+  var host = $('evo-chart');
+  if (!host) return;
+  var d = evoSeries();
+  var w = Math.round(host.clientWidth || 0);
+  if (w < 220) w = 320;
+  if (w > 640) w = 640;
+  host.innerHTML = evoChartSVG(d, w);
+
+  var mini = $('evo-rend');
+  if (mini){
+    var w2 = Math.round(mini.clientWidth || 0);
+    if (w2 < 220) w2 = 320;
+    if (w2 > 640) w2 = 640;
+    mini.innerHTML = evoRendSVG(d, w2);
+  }
+}
+
 function renderEvolucio(){
   var el = $('view');
-  var snaps = getSnapshots().slice().sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+  var d = evoSeries();
+  var n = d.length;
 
-  if (snaps.length < 2){
-    el.innerHTML = '<div class="empty">Encara no hi ha prou històric per dibuixar l\'evolució.<br><br>Actualitza la cartera i registra les aportacions cada mes; aquí veuràs com creix.</div>';
+  if (n < 2){
+    el.innerHTML = '<div class="card empty-rich">'
+      + '<div class="empty-ico">📈</div>'
+      + '<div class="empty-tit">Encara no hi ha històric</div>'
+      + '<div class="empty-sub">Amb dos mesos de dades ja podràs veure quina part del teu patrimoni és capital que has aportat i quina part és rendiment del mercat.</div>'
+      + '<div class="empty-sub" style="font-size:12.5px;color:var(--g400)">Actualitza els valors de la cartera un cop al mes i el gràfic es construeix sol.</div>'
+      + '</div>';
     return;
   }
 
-  var valors = snaps.map(function(s){ return parseFloat(s.valor)||0; });
-  var aports = snaps.map(function(s){ return parseFloat(s.invertit)||0; });
+  var last = d[n-1], first = d[0];
+  var rend = last.rend;
+  var rendPct = last.aportat > 0 ? (rend/last.aportat*100) : 0;
+  var colR = rend >= 0 ? 'var(--green)' : 'var(--red)';
+  var hexR = rend >= 0 ? '#1A5C3A' : '#C0392B';
 
-  // Escala comuna per a les dues sèries
-  var allv = valors.concat(aports);
-  var minV = Math.min.apply(null, allv);
-  var maxV = Math.max.apply(null, allv);
-  var range = (maxV - minV) || 1;
-  var pad = range * 0.12;
-  var lo = Math.max(0, minV - pad);
-  var hi = maxV + pad;
-  var rng = (hi - lo) || 1;
-
-  var W = 320, H = 190, padL = 8, padR = 8, padT = 14, padB = 26;
-  var plotW = W - padL - padR;
-  var plotH = H - padT - padB;
-  var n = snaps.length;
-
-  function ptsFor(arr){
-    return arr.map(function(v, i){
-      var x = padL + (n === 1 ? plotW/2 : (i/(n-1))*plotW);
-      var y = padT + plotH - ((v - lo)/rng)*plotH;
-      return { x:x, y:y, v:v };
-    });
-  }
-  var ptsVal = ptsFor(valors);
-  var ptsApt = ptsFor(aports);
-
-  function pathOf(pts){ return pts.map(function(p,i){ return (i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1); }).join(' '); }
-  var lineVal = pathOf(ptsVal);
-  var lineApt = pathOf(ptsApt);
-  var areaVal = lineVal + ' L'+ptsVal[n-1].x.toFixed(1)+' '+(padT+plotH)+' L'+ptsVal[0].x.toFixed(1)+' '+(padT+plotH)+' Z';
-
-  var lastVal = valors[n-1], firstVal = valors[0];
-  var lastApt = aports[n-1];
-  var delta = lastVal - firstVal;
-  var deltaPct = firstVal > 0 ? (delta/firstVal*100) : 0;
-  var guanyAbs = lastVal - lastApt; // valor menys aportat = revaloració acumulada
-  var colD = delta >= 0 ? 'var(--green)' : 'var(--red)';
-
-  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'
-    + '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">'
-      + '<stop offset="0%" stop-color="#1B3A6B" stop-opacity="0.16"/>'
-      + '<stop offset="100%" stop-color="#1B3A6B" stop-opacity="0"/>'
-    + '</linearGradient></defs>'
-    + '<path d="'+areaVal+'" fill="url(#grad)"/>'
-    // línia aportat (puntejada, daurada)
-    + '<path d="'+lineApt+'" fill="none" stroke="#B8902E" stroke-width="2" stroke-dasharray="4 3" stroke-linejoin="round" stroke-linecap="round"/>'
-    // línia valor (sòlida, navy)
-    + '<path d="'+lineVal+'" fill="none" stroke="#1B3A6B" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>';
-  ptsVal.forEach(function(p){ svg += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="#1B3A6B"/>'; });
-  svg += '<text x="'+ptsVal[0].x.toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#9A9690" text-anchor="start">'+mesAbrevCA(snaps[0].mes)+'</text>';
-  svg += '<text x="'+ptsVal[n-1].x.toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#9A9690" text-anchor="end">'+mesAbrevCA(snaps[n-1].mes)+'</text>';
-  svg += '</svg>';
-
-  var html = '<div class="card">'
-    + '<div class="card-lbl">Evolució de la cartera</div>'
-    + '<div class="kpi-big" style="font-size:26px">'+eurRound(lastVal)+'</div>'
-    + '<div class="kpi-sub" style="color:'+colD+'">'+(delta>=0?'+':'')+eurRound(delta)+' · '+pct(deltaPct)+' des de '+mesAbrevCA(snaps[0].mes)+'</div>'
-    + '<div style="margin-top:14px">'+svg+'</div>'
-    // Llegenda
-    + '<div style="display:flex;gap:18px;justify-content:center;margin-top:6px">'
-      + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g500)"><span style="width:16px;height:3px;background:#1B3A6B;border-radius:2px"></span>Valor cartera</div>'
-      + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g500)"><span style="width:16px;height:0;border-top:2px dashed #B8902E"></span>Total aportat</div>'
+  // ── Targeta principal: valor + gràfic ──
+  var html = '<div class="card" style="padding:20px 18px">'
+    + '<div class="card-lbl">Valor de la cartera</div>'
+    + '<div class="kpi-big" style="font-size:30px;margin-top:2px">'+eurRound(last.valor)+'</div>'
+    + '<div class="kpi-sub" style="color:'+colR+'">'+(rend>=0?'+':'')+eurRound(rend)+' · '+pct(rendPct)+' sobre el capital aportat</div>'
+    + '<div class="evo-wrap" id="evo-chart"></div>'
+    + '<div class="evo-leg">'
+      + '<span><i class="evo-sw" style="background:#C8A54A;opacity:.55"></i>Capital aportat</span>'
+      + '<span><i class="evo-sw" style="background:'+hexR+';opacity:.5"></i>Rendiment</span>'
+      + '<span><i class="evo-sw-l" style="background:#16233A"></i>Valor total</span>'
+    + '</div>'
+    + '<div class="evo-nota">L\'àrea daurada és el que hi has posat tu. La franja de sobre és el que ha fet el mercat. La suma de les dues és el valor de la cartera.'
+      + (evoBaseRetallada(d) ? ' <span style="color:var(--g400)">L\'eix vertical no comença a zero: està ajustat al rang real per veure el moviment.</span>' : '')
     + '</div>'
     + '</div>';
 
-  // Resum numèric: aportat vs valor vs guany
-  var colG = guanyAbs >= 0 ? 'var(--green)' : 'var(--red)';
-  html += '<div class="card"><div style="display:flex;gap:14px">'
-    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Total aportat</div>'
-      + '<div style="font-family:var(--fm);font-size:16px;color:var(--gold);margin-top:3px">'+eurRound(lastApt)+'</div></div>'
-    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Valor actual</div>'
-      + '<div style="font-family:var(--fm);font-size:16px;color:var(--navy);margin-top:3px">'+eurRound(lastVal)+'</div></div>'
-    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Guany</div>'
-      + '<div style="font-family:var(--fm);font-size:16px;color:'+colG+';margin-top:3px">'+(guanyAbs>=0?'+':'')+eurRound(guanyAbs)+'</div></div>'
-    + '</div></div>';
+  // ── Desglossament + composició ──
+  var baseMix = Math.max(last.valor, last.aportat) || 1;
+  var wApt, wRend, mixLbl;
+  if (rend >= 0){
+    wApt = last.aportat/baseMix*100;
+    wRend = rend/baseMix*100;
+    mixLbl = '<b style="color:var(--ink);font-weight:600">'+Math.round(wApt)+'%</b> del valor actual és capital teu · '
+           + '<b style="color:var(--green);font-weight:600">'+Math.round(wRend)+'%</b> l\'ha generat el mercat.';
+  } else {
+    wApt = last.valor/baseMix*100;
+    wRend = (-rend)/baseMix*100;
+    mixLbl = 'La cartera val avui un <b style="color:var(--ink);font-weight:600">'+Math.round(wApt)+'%</b> del que hi has aportat. '
+           + 'Les caigudes formen part del camí: el que compta és el pla, no el mes.';
+  }
 
-  // Taula històric: mes · aportat · valor
-  html += '<div class="card"><div class="card-lbl" style="margin-bottom:8px">Històric mensual</div>';
-  html += '<div style="display:flex;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding-bottom:6px;border-bottom:1px solid var(--g100)">'
-    + '<div style="flex:1">Mes</div><div style="width:90px;text-align:right">Aportat</div><div style="width:90px;text-align:right">Valor</div></div>';
-  snaps.slice().reverse().forEach(function(s){
-    html += '<div class="pos-row" style="padding:11px 0">'
-      + '<div style="flex:1"><div class="pos-nom" style="font-size:13px">'+nomMesCA(s.mes)+' '+(s.mes||'').slice(0,4)+'</div></div>'
-      + '<div style="width:90px;text-align:right;font-family:var(--fm);font-size:13px;color:var(--g500)">'+eurRound(parseFloat(s.invertit)||0)+'</div>'
-      + '<div style="width:90px;text-align:right;font-family:var(--fm);font-size:13px;color:var(--navy)">'+eurRound(parseFloat(s.valor)||0)+'</div>'
+  html += '<div class="card">'
+    + '<div class="card-lbl" style="margin-bottom:12px">Desglossament</div>'
+    + '<div class="evo-stats">'
+      + '<div class="evo-stat"><div class="l">Aportat</div><div class="v" style="color:var(--gold-dark)">'+eurRound(last.aportat)+'</div></div>'
+      + '<div class="evo-stat"><div class="l">Rendiment</div><div class="v" style="color:'+colR+'">'+(rend>=0?'+':'')+eurRound(rend)+'</div></div>'
+      + '<div class="evo-stat"><div class="l">Valor</div><div class="v" style="color:var(--navy)">'+eurRound(last.valor)+'</div></div>'
+    + '</div>'
+    + '<div class="evo-mix">'
+      + '<i style="width:'+wApt.toFixed(1)+'%;background:#C8A54A"></i>'
+      + '<i style="width:'+wRend.toFixed(1)+'%;background:'+hexR+'"></i>'
+    + '</div>'
+    + '<div class="evo-mix-lbl">'+mixLbl+'</div>'
+    + '<div class="evo-sub-lbl">Rendiment acumulat mes a mes</div>'
+    + '<div class="evo-wrap" id="evo-rend" style="margin-top:6px;min-height:76px"></div>'
     + '</div>';
-  });
+
+  // ── Històric mensual ──
+  html += '<div class="card"><div class="card-lbl" style="margin-bottom:10px">Històric mensual</div>'
+    + '<div class="evo-hd"><div style="flex:1">Mes</div><div style="width:78px">Aportat</div>'
+    + '<div style="width:78px">Valor</div><div style="width:74px">Rendiment</div></div>';
+
+  for (var j=n-1;j>=0;j--){
+    var s = d[j];
+    var cR = s.rend >= 0 ? 'var(--green)' : 'var(--red)';
+    html += '<div class="evo-tr">'
+      + '<div class="m">'+nomMesCA(s.mes)+' <span style="color:var(--g400);font-weight:400">'+s.mes.slice(0,4)+'</span></div>'
+      + '<div class="evo-num" style="width:78px;color:var(--gold-dark)">'+eurRound(s.aportat)+'</div>'
+      + '<div class="evo-num" style="width:78px;color:var(--navy)">'+eurRound(s.valor)+'</div>'
+      + '<div class="evo-num" style="width:74px;color:'+cR+'">'+(s.rend>=0?'+':'')+eurRound(s.rend)+'</div>'
+    + '</div>';
+  }
   html += '</div>';
 
   el.innerHTML = html;
+  evoPaint();
+
+  if (!window._evoResizeBound){
+    window._evoResizeBound = true;
+    window.addEventListener('resize', function(){
+      if (APP.view !== 'evolucio') return;
+      if (_evoResizeT) clearTimeout(_evoResizeT);
+      _evoResizeT = setTimeout(evoPaint, 140);
+    });
+  }
 }
 
 // ════════════════════════════════════════════
@@ -1580,7 +1849,7 @@ function obrirAjuda(){
     + ajudaItem('📊', 'Cartera', 'Veus el valor total, quant has aportat, el teu guany real i com es reparteix entre famílies d\'actius.')
     + ajudaItem('💱', 'Actualitzar valors', 'Un cop al mes, poses el valor de mercat de cada posició (el trobes al teu bróker). Així el rendiment és real.')
     + ajudaItem('➕', 'Aportar', 'Et diem quant i on aportar segons el teu pla, i registres el que has aportat perquè quedi historial.')
-    + ajudaItem('📈', 'Evolució', 'El gràfic mostra com creix la teva cartera mes a mes, comparada amb el total que has aportat.')
+    + ajudaItem('📈', 'Evolució', 'Veus, mes a mes, quina part del teu patrimoni és capital que hi has posat tu i quina part l\'ha generat el mercat.')
     + ajudaItem('💬', 'Missatges', 'Parla directament amb el teu assessor.')
     + '<div style="background:var(--g50);border-radius:11px;padding:14px;margin-top:6px">'
       + '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px">📲 Instal·lar al mòbil</div>'
