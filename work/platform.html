@@ -1317,9 +1317,9 @@ var ADMIN_EMAILS = ['guillem@theboringinvestor.com', 'guillem.puig@gmail.com', '
 var DEMO_CLIENT = {
   nom: 'Maria García López',
   email: 'maria.garcia@example.com',
-  arquetipId: 'arquitecte',
-  arquetip: "L'Arquitecte — Brunelleschi",
-  cartera: 'IV · Amsterdam',
+  arquetipId: 'multiactiu',
+  arquetip: 'Moderat · Multi-actiu',
+  cartera: 'Moderat · Multi-actiu',
   scoring: 67,
   perfil: {
     capitalInicial: '5.000 €',
@@ -1341,11 +1341,11 @@ var DEMO_CLIENT = {
 };
 
 var DEMO_CLIENTS_LIST = [
-  {nom:'Maria García López', email:'maria.garcia@example.com', arquetipId:'arquitecte', arquetip:"L'Arquitecte", cartera:'IV · Amsterdam', scoring:67, pla:'bruxola'},
-  {nom:'Joan Martí Valls', email:'joan.marti@example.com', arquetipId:'estoic', arquetip:"L'Estoic", cartera:'I · Nova York', scoring:78, pla:'rumb'},
-  {nom:'Laia Pujol Serra', email:'laia.pujol@example.com', arquetipId:'explorador', arquetip:"L'Exploradora", cartera:'II · Singapur', scoring:52, pla:'senyal'},
-  {nom:'Pere Font Solé', email:'pere.font@example.com', arquetipId:'tresorer', arquetip:"El Tresorer", cartera:'V · Ginebra', scoring:41, pla:'bruxola'},
-  {nom:'Anna Rovira Costa', email:'anna.rovira@example.com', arquetipId:'navegant', arquetip:"La Navegant", cartera:'III · Roma', scoring:85, pla:'mapa'},
+  {nom:'Maria García López', email:'maria.garcia@example.com', arquetipId:'multiactiu', arquetip:'Moderat · Multi-actiu', cartera:'Moderat · Multi-actiu', scoring:67, pla:'bruxola'},
+  {nom:'Joan Martí Valls', email:'joan.marti@example.com', arquetipId:'totindex', arquetip:'Agressiu · Tot índex global', cartera:'Agressiu · Tot índex global', scoring:78, pla:'rumb'},
+  {nom:'Laia Pujol Serra', email:'laia.pujol@example.com', arquetipId:'dinamic_alt', arquetip:'Dinàmic · Dinàmic alternatiu', cartera:'Dinàmic · Dinàmic alternatiu', scoring:52, pla:'senyal'},
+  {nom:'Pere Font Solé', email:'pere.font@example.com', arquetipId:'preservacio_div', arquetip:'Defensiu · Preservació diversificada', cartera:'Defensiu · Preservació diversificada', scoring:41, pla:'bruxola'},
+  {nom:'Anna Rovira Costa', email:'anna.rovira@example.com', arquetipId:'equilibrat', arquetip:'Moderat · Equilibrat', cartera:'Moderat · Equilibrat', scoring:85, pla:'mapa'},
 ];
 
 var DEMO_ANALISIS = [
@@ -1654,7 +1654,7 @@ function getActiuNom(id, lang) {
 }
 
 // ══════════════════════════════════════════════════
-// CARTERES MODEL — 10 arquetips amb noms de ciutats
+// CARTERES MODEL — 13 arquetips, anomenats per perfil de risc i estratègia
 // Alineades amb la taxonomia ACTIUS_TAXONOMY
 // ══════════════════════════════════════════════════
 // Derivat del mòdul compartit TBI_PERFIL (font única) — vegeu tbi-perfil.js
@@ -1747,7 +1747,7 @@ var DEMO_MISSATGES = [
 
 var DEMO_INFORMES = [
   {id:'r1', titol:'Informe trimestral Q1 2026', data:'2026-04-01', tipus:'trimestral', desc:'Revisió completa de cartera, rendiment vs benchmark, i recomanacions pel Q2.', estat:'disponible'},
-  {id:'r2', titol:'Informe perfil inversor', data:'2026-01-15', tipus:'perfil', desc:'Resultat del qüestionari de perfil. Arquetip: L\'Arquitecte. Cartera: Amsterdam.', estat:'disponible'},
+  {id:'r2', titol:'Informe perfil inversor', data:'2026-01-15', tipus:'perfil', desc:'Resultat del qüestionari de perfil. Arquetip: Moderat \u00b7 Multi-actiu.', estat:'disponible'},
   {id:'r3', titol:'Pla financer personalitzat', data:'2026-01-20', tipus:'pla', desc:'Pla a 15 anys amb projeccions Montecarlo, objectius i estratègia d\'aportacions.', estat:'disponible'},
   {id:'r4', titol:'Informe trimestral Q2 2026', data:'2026-07-01', tipus:'trimestral', desc:'Pendent de generació.', estat:'pendent'},
 ];
@@ -2863,11 +2863,15 @@ async function loadAllClientsFromSupabase() {
         nom: c.nom || 'Sense nom',
         email: c.email,
         arquetipId: deriveArquetipId(c.arquetip),
-        arquetip: c.arquetip ? c.arquetip.split('—')[0].trim() : '—',
+        arquetip: (function(){
+          var a = getArquetip(deriveArquetipId(c.arquetip));
+          return (a && a.perfil) ? (a.perfil + ' · ' + a.nom)
+               : (c.arquetip ? c.arquetip.split('—')[0].trim() : '—');
+        })(),
         cartera: (function(){
           var aid = deriveArquetipId(c.arquetip);
           var arq = getArquetip(aid);
-          return (arq && arq.cartRoma) ? arq.cartRoma : (c.cartera || '—');
+          return (arq && arq.cartNom) ? arq.cartNom : (c.cartera || '—');
         })(),
         scoring: c.scoring || 0,
         pla: c.pla || (c.perfil && c.perfil.pla && c.perfil.pla !== 'diagnostic' ? c.perfil.pla : null) || 'senyal',
@@ -2915,7 +2919,7 @@ async function previewClient(email) {
       APP.clientData = {
         nom: listItem.nom, email: listItem.email,
         arquetipId: listItem.arquetipId,
-        arquetip: arq.nom + ' — ' + arq.ep.split('·')[0].trim(),
+        arquetip: arq.perfil + ' · ' + arq.nom,
         cartera: arq.cartNom, scoring: listItem.scoring,
         perfil: DEMO_CLIENT.perfil, scoring_mods: arq.dims,
         projeccions: DEMO_CLIENT.projeccions,
@@ -2968,8 +2972,8 @@ function normalizeClient(raw) {
     nom: raw.nom || 'Client',
     email: raw.email || '',
     arquetipId: arquetipId,
-    arquetip: raw.arquetip || arq.nom + ' — ' + arq.ep.split('·')[0].trim(),
-    cartera: raw.cartera || arq.cartNom,
+    arquetip: arq.perfil ? (arq.perfil + ' · ' + arq.nom) : (raw.arquetip || arq.nom),
+    cartera: arq.cartNom || raw.cartera,
     scoring: raw.scoring || 0,
     // ── Camps de validació admin (CRÍTIC: sense això enterApp no detecta active) ──
     status: status,
@@ -4651,32 +4655,32 @@ function navigateTo(viewId) {
     'admin-ingressos': ['Ingressos', 'Facturació i ingressos de l\'assessoria'],
     'admin-parametres': ['Paràmetres d\'actius', 'Rendiments, volatilitats i correlacions \u2014 base de tots els anàlisis'],
     'admin-radar': ['Radar d\'Oportunitats', 'Detecció de caigudes i reforç dinàmic d\'aportacions'],
-    'portal-oportunitat': APP.role === 'admin' ? ['Portal Client · Oportunitat', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Oportunitat de reforç', 'Aprofita les caigudes per millorar el preu d\'entrada'],
+    'portal-oportunitat': APP.role === 'admin' ? ['Portal Client · Oportunitat', 'Previsualització'] : ['Oportunitat de reforç', 'Aprofita les caigudes per millorar el preu d\'entrada'],
     'admin-diagnostic': ['Diagn\u00f2stic de Client', 'Genera el pla financer personalitzat amb AI'],
-    'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Resum', 'Vista general del teu perfil inversor'],
-    'portal-roadmap': APP.role === 'admin' ? ['Portal Client · Full de Ruta', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització · Editable'] : ['Full de Ruta', 'El teu pla financer personalitzat'],
-    'portal-cartera': APP.role === 'admin' ? ['Portal Client · Cartera', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['La meva cartera', 'Seguiment i moviments'],
-    'portal-aportacions': APP.role === 'admin' ? ['Portal Client · Aportacions', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ["Pla d'aportacions", 'Properes aportacions i distribució'],
-    'portal-missatges': APP.role === 'admin' ? ['Portal Client · Missatges', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Missatges', 'Comunicació amb el teu assessor'],
-    'portal-assessoria': APP.role === 'admin' ? ['Portal Client · Assessoria', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Anàlisi de mercat', 'Informació financera de The Boring Investor'],
-    'portal-informes': APP.role === 'admin' ? ['Portal Client · Informes', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Informes', 'Documents i informes generats'],
-    'portal-carteres': APP.role === 'admin' ? ['Portal Client · Carteres Model', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Carteres Model', '10 carteres personalitzades per perfil'],
+    'portal-perfil': APP.role === 'admin' ? ['Portal Client · Perfil', 'Previsualització'] : ['Resum', 'Vista general del teu perfil inversor'],
+    'portal-roadmap': APP.role === 'admin' ? ['Portal Client · Full de Ruta', 'Previsualització · Editable'] : ['Full de Ruta', 'El teu pla financer personalitzat'],
+    'portal-cartera': APP.role === 'admin' ? ['Portal Client · Cartera', 'Previsualització'] : ['La meva cartera', 'Seguiment i moviments'],
+    'portal-aportacions': APP.role === 'admin' ? ['Portal Client · Aportacions', 'Previsualització'] : ["Pla d'aportacions", 'Properes aportacions i distribució'],
+    'portal-missatges': APP.role === 'admin' ? ['Portal Client · Missatges', 'Previsualització'] : ['Missatges', 'Comunicació amb el teu assessor'],
+    'portal-assessoria': APP.role === 'admin' ? ['Portal Client · Assessoria', 'Previsualització'] : ['Anàlisi de mercat', 'Informació financera de The Boring Investor'],
+    'portal-informes': APP.role === 'admin' ? ['Portal Client · Informes', 'Previsualització'] : ['Informes', 'Documents i informes generats'],
+    'portal-carteres': APP.role === 'admin' ? ['Portal Client · Carteres Model', 'Previsualització'] : ['Carteres Model', '10 carteres personalitzades per perfil'],
     'portal-ajuda':    ['Ajuda', 'Com funciona la plataforma'],
     'portal-actius': ['Guia d\'Actius', '25 categories d\'inversió — educació i referència'],
-    'portal-simuladors': APP.role === 'admin' ? ['Portal Client · Simulador', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Simulador', 'Projecció, FIRE, Monte Carlo i Turbo Estalvi en un sol lloc'],
-    'portal-fire': APP.role === 'admin' ? ['Portal Client · FIRE', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Calculadora FIRE', 'Financial Independence, Retire Early'],
-    'portal-simulador': APP.role === 'admin' ? ['Portal Client · Simulador', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Simulador d\'actius', 'Projecta el rendiment d\'una cartera segons μ i σ'],
-    'portal-montecarlo': APP.role === 'admin' ? ['Portal Client · Monte Carlo', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Monte Carlo', 'Simula milers d\'escenaris per la teva cartera'],
-    'portal-fiscalitat': APP.role === 'admin' ? ['Portal Client · Fiscalitat', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Fiscalitat', 'IRPF, compensacions, fons vs ETF, pensions i dividends · 2026'],
-    'portal-hipoteca': APP.role === 'admin' ? ['Portal Client · Hipoteca', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Hipoteca i deute', 'Simulació, amortització i comparativa amb la teva cartera'],
-    'portal-turbo': APP.role === 'admin' ? ['Portal Client · Turbo Estalvi', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització · Editable'] : ['Turbo Estalvi', 'Optimitza la teva taxa d\'estalvi'],
-    'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
-    'portal-notificacions': APP.role === 'admin' ? ['Portal Client · Notificacions', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Notificacions', 'Gestiona les alertes per correu electrònic'],
-    'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
-    'portal-presentacions': APP.role === 'admin' ? ['Portal Client · Presentacions', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['Presentacions', 'Material visual per a explicacions ràpides'],
-    'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['El meu qüestionari', 'Perfil de conveniència i idoneïtat · MIFID II'],
-    'portal-fitxa': APP.role === 'admin' ? ['Fitxa del client', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Previsualització'] : ['La meva fitxa', 'Informació per personalitzar el teu assessorament'],
-    'portal-analisi': ['Anàlisi IA', '<svg class="ei" viewBox="0 0 24 24"><path d="M2.4 12S5.8 5.8 12 5.8 21.6 12 21.6 12 18.2 18.2 12 18.2 2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg> Suport a la decisió'],
+    'portal-simuladors': APP.role === 'admin' ? ['Portal Client · Simulador', 'Previsualització'] : ['Simulador', 'Projecció, FIRE, Monte Carlo i Turbo Estalvi en un sol lloc'],
+    'portal-fire': APP.role === 'admin' ? ['Portal Client · FIRE', 'Previsualització'] : ['Calculadora FIRE', 'Financial Independence, Retire Early'],
+    'portal-simulador': APP.role === 'admin' ? ['Portal Client · Simulador', 'Previsualització'] : ['Simulador d\'actius', 'Projecta el rendiment d\'una cartera segons μ i σ'],
+    'portal-montecarlo': APP.role === 'admin' ? ['Portal Client · Monte Carlo', 'Previsualització'] : ['Monte Carlo', 'Simula milers d\'escenaris per la teva cartera'],
+    'portal-fiscalitat': APP.role === 'admin' ? ['Portal Client · Fiscalitat', 'Previsualització'] : ['Fiscalitat', 'IRPF, compensacions, fons vs ETF, pensions i dividends · 2026'],
+    'portal-hipoteca': APP.role === 'admin' ? ['Portal Client · Hipoteca', 'Previsualització'] : ['Hipoteca i deute', 'Simulació, amortització i comparativa amb la teva cartera'],
+    'portal-turbo': APP.role === 'admin' ? ['Portal Client · Turbo Estalvi', 'Previsualització · Editable'] : ['Turbo Estalvi', 'Optimitza la teva taxa d\'estalvi'],
+    'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', 'Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
+    'portal-notificacions': APP.role === 'admin' ? ['Portal Client · Notificacions', 'Previsualització'] : ['Notificacions', 'Gestiona les alertes per correu electrònic'],
+    'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', 'Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
+    'portal-presentacions': APP.role === 'admin' ? ['Portal Client · Presentacions', 'Previsualització'] : ['Presentacions', 'Material visual per a explicacions ràpides'],
+    'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', 'Previsualització'] : ['El meu qüestionari', 'Perfil de conveniència i idoneïtat · MIFID II'],
+    'portal-fitxa': APP.role === 'admin' ? ['Fitxa del client', 'Previsualització'] : ['La meva fitxa', 'Informació per personalitzar el teu assessorament'],
+    'portal-analisi': ['Anàlisi IA', 'Suport a la decisió'],
     'settings': ['Configuració', 'Gestió del sistema'],
     'plans': ['Plans i subscripcions', 'Tria el que millor s\'adapta a tu'],
     'admin-plans': ['Plans i subscripcions', 'Gestió de tarifes i subscripcions'],
@@ -5865,12 +5869,12 @@ async function crearNouClient() {
     try {
       var msgBenv;
       if (skipQuiz) {
-        msgBenv = '<svg class="ei" viewBox="0 0 24 24"><path d="m12 3.4 1.9 5.3 5.3 1.9-5.3 1.9L12 17.8l-1.9-5.3L4.8 10.6l5.3-1.9Z"/><path d="M18.6 16.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></svg> Hola ' + nom.split(' ')[0] + ', benvingut a The Boring Investor!\n\n'
+        msgBenv = 'Hola ' + nom.split(' ')[0] + ', benvingut a The Boring Investor!\n\n'
           + 'T\'he donat d\'alta al pla ' + getPlaLabel(pla) + '.\n\n'
           + 'Ja pots accedir al teu portal. Quan vulguis, completa el qüestionari de perfil inversor des de la fitxa "El meu qüestionari" perquè et pugui personalitzar millor la cartera.\n\n'
           + 'Qualsevol dubte, escriu-me!\n\n— Guillem';
       } else {
-        msgBenv = '<svg class="ei" viewBox="0 0 24 24"><path d="m12 3.4 1.9 5.3 5.3 1.9-5.3 1.9L12 17.8l-1.9-5.3L4.8 10.6l5.3-1.9Z"/><path d="M18.6 16.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></svg> Hola ' + nom.split(' ')[0] + ', benvingut a The Boring Investor!\n\n'
+        msgBenv = 'Hola ' + nom.split(' ')[0] + ', benvingut a The Boring Investor!\n\n'
           + 'T\'he donat d\'alta al pla ' + getPlaLabel(pla) + '.\n\n'
           + 'El primer pas és completar el qüestionari de perfil inversor — el tens al teu portal al iniciar sessió. Quan l\'acabis, jo el revisaré i activarem el teu compte.\n\n'
           + '— Guillem';
@@ -5887,7 +5891,7 @@ async function crearNouClient() {
 
     // 4. Èxit — mostrar credencials per copiar
     var notaAuthExistent = authAlreadyExists
-      ? '\n\n<svg class="ei" viewBox="0 0 24 24"><path d="M12 3.6 21.2 19.6H2.8Z"/><path d="M12 9.6v4.4M12 17.2v.01"/></svg> Aquest email ja existia a Auth — s\'ha actualitzat la fila de client però l\'usuari ha de fer servir la contrasenya antiga. Si l\'ha oblidat, demana-li que faci "He oblidat la contrasenya".'
+      ? '\n\nAquest email ja existia a Auth — s\'ha actualitzat la fila de client però l\'usuari ha de fer servir la contrasenya antiga. Si l\'ha oblidat, demana-li que faci "He oblidat la contrasenya".'
       : '';
 
     showMsg('✓ Client creat. Comunica-li:', false);
@@ -6429,7 +6433,6 @@ function _renderPortalPerfilImpl(el) {
     + '<div class="score-left">'
       + '<div class="score-arquetip-eye">El teu arquetip inversor</div>'
       + '<div class="score-arquetip">' + arq.nom + '</div>'
-      + '<div style="font-size:11px;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:8px">' + arq.ep + '</div>'
       + '<div class="score-cartera">Cartera assignada: <strong style="color:rgba(255,255,255,.85)">' + arq.cartNom + '</strong></div>'
       + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">' + arq.cartSub + '</div>'
     + '</div>'
@@ -8088,7 +8091,7 @@ async function enviarSolicitudReunioMissatge() {
   if (!c) { toast('Cap client carregat'); return; }
 
   var tipusLbl = tipus ? (REUNIO_TIPUS[tipus.value]||{}).lbl||'' : 'reunió';
-  var text = '<svg class="ei" viewBox="0 0 24 24"><rect x="3.5" y="5.2" width="17" height="15.3" rx="2.2"/><path d="M3.5 10h17"/><path d="M8 3.2v4M16 3.2v4"/></svg> Sol·licitud de reunió\n'
+  var text = 'Sol·licitud de reunió\n'
     + 'Tipus: '+tipusLbl+'\n'
     + (data&&data.value?'Data preferida: '+data.value+'\n':'')
     + (hora&&hora.value?'Hora preferida: '+hora.value+'\n':'')
@@ -8349,7 +8352,7 @@ function renderPortalCarteres(el) {
       + '<div class="cg-header-text">'
         + (isMine ? '<div class="cg-mine-badge"><svg class="ei" viewBox="0 0 24 24"><path d="m12 3.4 1.9 5.3 5.3 1.9-5.3 1.9L12 17.8l-1.9-5.3L4.8 10.6l5.3-1.9Z"/><path d="M18.6 16.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></svg> La teva cartera</div>' : '')
         + '<div class="cg-cart-nom">' + arq.cartNom + '</div>'
-        + '<div class="cg-arq-nom">' + arq.nom + ' — ' + arq.ep.split('·')[0].trim() + ' · ' + arq.cartSub + '</div>'
+        + '<div class="cg-arq-nom">' + arq.cartSub + '</div>'
       + '</div>'
       + '<div class="cg-chevron">›</div>'
     + '</div>';
@@ -8364,7 +8367,7 @@ function renderPortalCarteres(el) {
     + '</div>';
 
     // Asset allocation (donut + legend)
-    html += renderCarteraDonut(arq.actius, {donutSize: 160, centerLabel: arq.cartNom.split('·')[0].trim(), centerSublabel: 'Cartera'});
+    html += renderCarteraDonut(arq.actius, {donutSize: 160, centerLabel: arq.nom, centerSublabel: 'Cartera'});
 
     // KPIs
     html += '<div class="kpi-grid" style="margin-top:14px">'
@@ -8876,7 +8879,7 @@ function renderPortalCartera(el) {
       + '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">'
         + '<div>'
           + '<div style="font-family:var(--fd);font-size:20px;font-weight:400;color:var(--black);margin-bottom:3px">'
-            + '<svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1"/></svg> ' + arq.cartRoma + ' \u00b7 ' + arq.cartNom
+            + '<svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1"/></svg> ' + arq.cartNom
           + '</div>'
           + '<div style="font-size:12px;color:var(--g500)">La teva cartera ideal segons l\'arquetip <strong>' + arq.nom + '</strong></div>'
         + '</div>'
@@ -9589,7 +9592,7 @@ async function comprovarRecordatoriMensual() {
   if (!(sb && APP.user && APP.user.email)) return;
   try {
     var nomMes = _nomMesCA(mes);
-    var msg = '<svg class="ei" viewBox="0 0 24 24"><path d="M18 15.6V11a6 6 0 1 0-12 0v4.6L4.4 18h15.2Z"/><path d="M9.8 18a2.4 2.4 0 0 0 4.4 0"/></svg> Recordatori mensual\n\n\u00c9s hora d\u2019actualitzar la teva cartera del mes de ' + nomMes + '. Entra a \u00abLa meva cartera\u00bb i prem \u00abActualitzar valors\u00bb: nom\u00e9s et portar\u00e0 un minut i aix\u00ed el seguiment i els KPIs es mantenen reals.\n\n\u2014 The Boring Investor';
+    var msg = 'Recordatori mensual\n\n\u00c9s hora d\u2019actualitzar la teva cartera del mes de ' + nomMes + '. Entra a \u00abLa meva cartera\u00bb i prem \u00abActualitzar valors\u00bb: nom\u00e9s et portar\u00e0 un minut i aix\u00ed el seguiment i els KPIs es mantenen reals.\n\n\u2014 The Boring Investor';
     var res = await sb.from('messages').insert({ client_email: APP.user.email.toLowerCase(), from_email: 'guillem@theboringinvestor.com', from_role: 'admin', content: msg, read_by_admin: true, read_by_client: false });
     if (res && res.error) throw res.error;
     try { localStorage.setItem(key, '1'); } catch(e){}
@@ -12931,7 +12934,7 @@ var _FR_OBJECTIUS_TIPUS = [
   { id:'vehicle',          icona:'<svg class="ei" viewBox="0 0 24 24"><path d="M3.4 15.6v-2.4l2-4.6a2 2 0 0 1 1.8-1.2h9.6a2 2 0 0 1 1.8 1.2l2 4.6v2.4Z"/><path d="M3.4 13.2h17.2"/><circle cx="7.4" cy="17.4" r="1.6"/><circle cx="16.6" cy="17.4" r="1.6"/></svg>', titol:'Vehicle nou',                  meta:'Cotxe / moto / vehicle el\u00e8ctric',  import:30000,  termini:'4 anys'  },
   { id:'reforma',          icona:'<svg class="ei" viewBox="0 0 24 24"><path d="m14.6 6.6 2.8-2.8a4 4 0 0 1-5.2 5.2L4.6 16.6a2 2 0 0 0 2.8 2.8l7.6-7.6a4 4 0 0 1 5.2-5.2l-2.8 2.8Z"/></svg>', titol:'Reforma habitatge',            meta:'Renovaci\u00f3 i millora energ\u00e8tica', import:35000,  termini:'3 anys'  },
   { id:'negoci',           icona:'<svg class="ei" viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12.5" rx="2.2"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5"/><path d="M3 12.5h18"/></svg>', titol:'Capital inicial de negoci',    meta:'Inversi\u00f3 emprenedora',             import:50000,  termini:'3 anys'  },
-  { id:'patrimoni',        icona:'<svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>\u200D<svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>\u200D<svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>', titol:'Patrimoni familiar', meta:'Llegat de transmissi\u00f3 familiar', import:200000, termini:'25 anys' },
+  { id:'patrimoni',        icona:'<svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.8 20.2a7.2 7.2 0 0 1 14.4 0"/></svg>', titol:'Patrimoni familiar', meta:'Llegat de transmissi\u00f3 familiar', import:200000, termini:'25 anys' },
   { id:'lliure',           icona:'<svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1"/></svg>', titol:'Objectiu personalitzat',       meta:'Descripci\u00f3 breu',                  import:10000,  termini:'5 anys'  },
 ];
 
@@ -13776,7 +13779,7 @@ function renderPortalRoadmap(el) {
     // ─── PANELL D'AJUDA ADMIN ───
     + '.fr-admin-panel{background:#FCF3E2;border:1px dashed #D4943A;border-radius:10px;padding:14px 18px;margin-bottom:24px;font-size:11.5px;color:#5C3D0A;line-height:1.6}'
     + '.fr-admin-panel-t{font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#7A4A00;margin-bottom:8px;display:flex;align-items:center;gap:8px}'
-    + '.fr-admin-panel-t::before{content:"<svg class="ei" viewBox="0 0 24 24"><path d="M9.2 17.4a5.6 5.6 0 1 1 5.6 0v1.4h-5.6Z"/><path d="M10 21.2h4"/></svg>";font-size:13px}'
+    + '.fr-admin-panel-t::before{content:"";font-size:13px}'
     + '.fr-admin-panel table{width:100%;margin-top:8px;font-family:var(--fm);font-size:10.5px}'
     + '.fr-admin-panel td{padding:3px 8px 3px 0}'
     + '.fr-admin-panel td:first-child{color:#7A4A00;font-weight:500;width:170px}'
@@ -14067,7 +14070,7 @@ function renderPortalRoadmap(el) {
     + '<div class="fr-h2">'
       + _frEdField(notes.arquetip_nom, { key:'arquetip_nom', autoVal:arq.nom, placeholder:'Nom de l\u2019arquetip...', tag:'span', showBadge:false })
       + ' <em style="font-style:italic;color:var(--g400)"> \u2014 '
-      + _frEdField(notes.cartera_ref, { key:'cartera_ref', autoVal:arq.cartRoma, placeholder:'Ref. cartera...', tag:'span', showBadge:false })
+      + _frEdField(notes.cartera_ref, { key:'cartera_ref', autoVal:arq.cartNom, placeholder:'Ref. cartera...', tag:'span', showBadge:false })
       + '</em></div>'
     + '<div class="fr-lead">' + _frEdField(notes.perfil_desc, { key:'perfil_desc', autoVal: arq.rationale || '', multiline:true, placeholder:'Descripci\u00f3 del perfil inversor...', tag:'span' }) + '</div>'
     + '<div class="fr-chips">'
@@ -14164,7 +14167,7 @@ function renderPortalRoadmap(el) {
 
   // ─── 4. CARTERA ─────────────────────────────────────────────
   var rationaleAuto = arq.diff || arq.rationale || 'Cartera ajustada al teu perfil i horitz\u00f3.';
-  var carteraTitolAuto = 'Cartera ' + arq.cartRoma;
+  var carteraTitolAuto = 'Cartera ' + arq.cartNom;
   var carteraOriginBadge = hasCustom
     ? '<span style="font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:#EAF3DE;color:#1A5C3A;padding:2px 8px;border-radius:99px;margin-left:10px;vertical-align:middle">Personalitzada</span>'
     : '<span style="font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;background:var(--g100);color:var(--g500);padding:2px 8px;border-radius:99px;margin-left:10px;vertical-align:middle">Est\u00e0ndard \u00b7 ' + arq.cartRoma + '</span>';
@@ -16324,33 +16327,33 @@ async function crearMissatgeBenvinguda(email, pla) {
   var nom = (APP.user && APP.user.name) || 'inversor';
   var firstName = nom.split(' ')[0];
   
-  var msgComu = '<svg class="ei" viewBox="0 0 24 24"><path d="m12 3.4 1.9 5.3 5.3 1.9-5.3 1.9L12 17.8l-1.9-5.3L4.8 10.6l5.3-1.9Z"/><path d="M18.6 16.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></svg> Hola ' + firstName + ', benvingut a The Boring Investor!\n\n'
+  var msgComu = 'Hola ' + firstName + ', benvingut a The Boring Investor!\n\n'
     + 'Sóc Guillem, el teu assessor. He vist que has completat el perfil i t\'hem assignat l\'arquetip ' + (APP.clientData && APP.clientData.arquetip ? APP.clientData.arquetip.split('—')[0].trim() : '') + '. Enhorabona per la primera passa!\n\n';
   
   var msgPla = '';
   if (pla === 'essencial' || !pla) {
-    msgPla = '<svg class="ei" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="15.5" rx="2"/><rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><path d="M9 11h6M9 15h4"/></svg> Com funciona el teu pla Essencial:\n\n'
+    msgPla = 'Com funciona el teu pla Essencial:\n\n'
       + '• Tens accés complet a la plataforma, arquetip i cartera recomanada\n'
       + '• Pots fer-me 1 pregunta per setmana (acumulable fins a 4)\n'
       + '• Les trobaràs al widget "Pregunta setmanal" del teu Resum\n'
       + '• Resposta en 48h màxim\n\n'
       + 'Si vols missatgeria il·limitada, sessions personalitzades o pla fiscal, puja a Brúixola, Rumb o Mapa des del menú "El meu pla".';
   } else if (pla === 'bruxola') {
-    msgPla = '<svg class="ei" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="15.5" rx="2"/><rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><path d="M9 11h6M9 15h4"/></svg> Com funciona el teu pla Brúixola:\n\n'
+    msgPla = 'Com funciona el teu pla Brúixola:\n\n'
       + '• Missatgeria il·limitada amb mi — aquí mateix\n'
       + '• Anàlisis mensuals de mercat personalitzades\n'
       + '• Informes PDF trimestrals\n'
       + '• Turbo Estalvi personalitzat\n\n'
       + 'Escriu-me sempre que necessitis. Responc en 24-48h laborables.';
   } else if (pla === 'rumb') {
-    msgPla = '<svg class="ei" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="15.5" rx="2"/><rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><path d="M9 11h6M9 15h4"/></svg> Com funciona el teu pla Rumb:\n\n'
+    msgPla = 'Com funciona el teu pla Rumb:\n\n'
       + '• Missatgeria il·limitada amb mi\n'
       + '• Sessió 1h cada 3 mesos (agendarem la primera aviat)\n'
       + '• Revisió completa de cartera\n'
       + '• Suport per decisions importants\n\n'
       + 'La primera sessió te l\'enviaré per email aquesta setmana per agendar-la.';
   } else if (pla === 'mapa') {
-    msgPla = '<svg class="ei" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="15.5" rx="2"/><rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><path d="M9 11h6M9 15h4"/></svg> Com funciona el teu pla Mapa:\n\n'
+    msgPla = 'Com funciona el teu pla Mapa:\n\n'
       + '• Missatgeria il·limitada amb mi\n'
       + '• Sessió mensual 1h — la primera aquesta setmana\n'
       + '• Planificació fiscal anual completa\n'
@@ -16359,7 +16362,7 @@ async function crearMissatgeBenvinguda(email, pla) {
       + 'T\'enviaré un email aviat per agendar la primera sessió i començar el teu pla.';
   }
   
-  var msgFinal = '\n\n<svg class="ei" viewBox="0 0 24 24"><path d="M12 3.2c3.2 2.4 4.8 5.6 4.8 9.2l-2.4 3.6H9.6l-2.4-3.6c0-3.6 1.6-6.8 4.8-9.2Z"/><circle cx="12" cy="10" r="1.8"/><path d="M9.6 16 7.2 20l3.2-1.2M14.4 16l2.4 4-3.2-1.2"/></svg> Pròxims passos recomanats:\n\n'
+  var msgFinal = '\n\nPròxims passos recomanats:\n\n'
     + '1. Explora la teva cartera recomanada a "La meva cartera"\n'
     + '2. Configura les teves aportacions al "Pla d\'aportacions"\n'
     + '3. Consulta la Calculadora FIRE per veure la teva projecció\n\n'
@@ -17606,7 +17609,7 @@ async function reenviarAccesClient(emailPreomplert) {
     if (!email) return;
   }
   email = email.toLowerCase().trim();
-  if (!email.includes('@')) { toast('<svg class="ei" viewBox="0 0 24 24"><path d="M12 3.6 21.2 19.6H2.8Z"/><path d="M12 9.6v4.4M12 17.2v.01"/></svg> Email no v\u00e0lid'); return; }
+  if (!email.includes('@')) { toast('Email no v\u00e0lid'); return; }
 
   // Dues vies. L'enllaç màgic el fa entrar directament sense inventar-se cap
   // contrasenya, que és on es queda encallada la majoria de gent.
@@ -17643,7 +17646,7 @@ async function reenviarAccesClient(emailPreomplert) {
         client_email: email,
         from_email: 'guillem@theboringinvestor.com',
         from_role: 'admin',
-        content: '<svg class="ei" viewBox="0 0 24 24"><circle cx="7.6" cy="14.4" r="3.8"/><path d="m10.3 11.7 8-8"/><path d="m15.6 6.4 2.2 2.2M17.8 4.2 20 6.4"/></svg> T\u2019he enviat un email per restablir la contrasenya d\u2019acc\u00e9s a la plataforma.\n\nRevisa la safata d\u2019entrada (i la carpeta de spam). L\u2019enlla\u00e7 \u00e9s v\u00e0lid durant 1 hora.\n\nURL de la plataforma: https://theboringinvestor.es/platform.html\n\nSi tens qualsevol problema, escriu-me.\n\n\u2014 Guillem',
+        content: 'T\u2019he enviat un email per restablir la contrasenya d\u2019acc\u00e9s a la plataforma.\n\nRevisa la safata d\u2019entrada (i la carpeta de spam). L\u2019enlla\u00e7 \u00e9s v\u00e0lid durant 1 hora.\n\nURL de la plataforma: https://theboringinvestor.es/platform.html\n\nSi tens qualsevol problema, escriu-me.\n\n\u2014 Guillem',
         read_by_admin: true,
         read_by_client: false
       });
@@ -17652,7 +17655,7 @@ async function reenviarAccesClient(emailPreomplert) {
   } catch(e) {
     var msg = e.message || e;
     if (msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many')) {
-      toast('<svg class="ei" viewBox="0 0 24 24"><path d="M12 3.6 21.2 19.6H2.8Z"/><path d="M12 9.6v4.4M12 17.2v.01"/></svg> Massa intents. Espera uns minuts i torna a provar.');
+      toast('Massa intents. Espera uns minuts i torna a provar.');
     } else {
       toast('Error: ' + msg);
     }
@@ -17884,7 +17887,7 @@ async function aprovarSollicitud(email) {
     }
 
     // Missatge automàtic al client
-    var msg = '<svg class="ei" viewBox="0 0 24 24"><path d="m12 3.4 1.9 5.3 5.3 1.9-5.3 1.9L12 17.8l-1.9-5.3L4.8 10.6l5.3-1.9Z"/><path d="M18.6 16.4l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z"/></svg> La teva sol·licitud ha estat aprovada!\n\nT\'he assignat el pla **' + getPlaLabel(pla) + '**. Ja tens accés complet al portal.';
+    var msg = 'La teva sol·licitud ha estat aprovada!\n\nT\'he assignat el pla **' + getPlaLabel(pla) + '**. Ja tens accés complet al portal.';
     if (notes) msg += '\n\nNotes:\n' + notes;
     msg += '\n\nQualsevol dubte, escriu-me!\n\n— Guillem';
 
@@ -17927,7 +17930,7 @@ async function rebutjarSollicitud(email) {
       return;
     }
 
-    var msg = '<svg class="ei" viewBox="0 0 24 24"><path d="M12 3.6 21.2 19.6H2.8Z"/><path d="M12 9.6v4.4M12 17.2v.01"/></svg> He revisat el teu qüestionari i caldria refer-lo.\n\n' + (notes || 'Cal revisar algunes respostes per poder activar el teu compte correctament.') + '\n\nQuan vulguis, refes-lo des del portal i jo el reviso de nou.\n\n— Guillem';
+    var msg = 'He revisat el teu qüestionari i caldria refer-lo.\n\n' + (notes || 'Cal revisar algunes respostes per poder activar el teu compte correctament.') + '\n\nQuan vulguis, refes-lo des del portal i jo el reviso de nou.\n\n— Guillem';
 
     await sb.from('messages').insert({
       client_email: email,
@@ -17964,7 +17967,7 @@ async function marcarRevisio(email) {
     }
 
     if (notes) {
-      var msg = '<svg class="ei" viewBox="0 0 24 24"><path d="M4 20h4l11-11a2.6 2.6 0 0 0-3.7-3.7L4.4 16.3Z"/><path d="m14.6 6.4 3.5 3.5"/></svg> He començat a revisar el teu perfil.\n\n' + notes + '\n\n— Guillem';
+      var msg = 'He començat a revisar el teu perfil.\n\n' + notes + '\n\n— Guillem';
       await sb.from('messages').insert({
         client_email: email,
         from_email: 'guillem@theboringinvestor.com',
@@ -18923,7 +18926,7 @@ async function sollicitarPla(plaId) {
         client_email: email.toLowerCase(),
         from_email: email.toLowerCase(),
         from_role: 'client',
-        content: '<svg class="ei" viewBox="0 0 24 24"><rect x="5.5" y="4.5" width="13" height="15.5" rx="2"/><rect x="9" y="2.5" width="6" height="3.6" rx="1.2"/><path d="M9 11h6M9 15h4"/></svg> Sol·licitud de canvi de pla\n\nM\'agradaria contractar el pla ' + p.nom + ' (' + p.preu + '€/mes).\n\nQuedo a l\'espera de la vostra resposta.',
+        content: 'Sol·licitud de canvi de pla\n\nM\'agradaria contractar el pla ' + p.nom + ' (' + p.preu + '€/mes).\n\nQuedo a l\'espera de la vostra resposta.',
         read_by_admin: false,
         read_by_client: true
       });
@@ -19746,17 +19749,17 @@ function diagGenerarTemplate(userMsg) {
 
   var narratiu = nom + ' presenta un perfil ' + riscLabel + ' amb un horitzó de ' + horit + ' anys (objectiu: ' + anyObj + '). '
     + 'El patrimoni net actual de ' + net.toLocaleString('ca-ES') + '\u20ac, combinat amb una capacitat d\u2019estalvi mensual de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac, permet plantejar una estratègia d\u2019acumulació progressiva.'
-    + '\n\nEl perfil ' + (arq ? arq.nom : 'assignat') + ' determina una cartera ' + (arq ? arq.cartRoma : '') + ' centrada en ' + (arq ? arq.cartSub : 'la indexació diversificada') + '. '
+    + '\n\nEl perfil ' + (arq ? arq.nom : 'assignat') + ' determina una cartera ' + (arq ? arq.cartNom : '') + ' centrada en ' + (arq ? arq.cartSub : 'la indexació diversificada') + '. '
     + 'Amb un retorn esperat del ' + (arq ? arq.retorn : '6-8%') + ' anual i un TER estimat de ' + (arq ? arq.ter : '~0,20%') + ', la projecció a ' + horit + ' anys situaria el patrimoni al voltant dels ' + capitalFinal.toLocaleString('ca-ES') + '\u20ac (escenari equilibrat, sense garantia).';
 
-  var estrategia = 'La cartera ' + (arq ? arq.cartRoma : '') + ' del perfil ' + (arq ? arq.nom : '') + ' és la base de partida. '
+  var estrategia = 'La cartera ' + (arq ? arq.cartNom : '') + ' del perfil ' + (arq ? arq.nom : '') + ' és la base de partida. '
     + 'L\u2019estratègia es basa en aportació periòdica (DCA) de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac/mes distribuïda proporcionalment als pesos target, rebalanceig anual automàtic, i minimització de costos (TER ' + (arq ? arq.ter : '~0,20%') + '). '
     + 'Els actius seleccionats segueixen la filosofia fee-only de TBI: cap producte amb comissions ocultes.';
 
   // Fases del full de ruta adaptades al context
   var fases = [
     { fase:1, nom:'Fonaments i liquiditat', durada:'1-2 mesos', descripcio:'Establir el fons d\u2019emergència (3-6 mesos de despeses: ' + Math.round(despeses*4.5).toLocaleString('ca-ES') + '\u20ac objectiu), tancar deutes cars i configurar el compte de broker.', milestones:['Obrir compte broker (Trade Republic o similar)','Verificar fons emergència','Eliminar deutes >5% TAE si n\u2019hi ha'] },
-    { fase:2, nom:'Primera inversió i DCA', durada:'Mes 2-3', descripcio:'Realitzar la primera aportació real seguint els pesos de la cartera ' + (arq ? arq.cartRoma : '') + '. Configurar aportació automàtica mensual de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac.', milestones:['Primera compra d\u2019ETFs segons cartera target','Configurar DCA automàtic ' + estalviMes.toLocaleString('ca-ES') + '\u20ac/mes','Confirmar accés al portal TBI'] },
+    { fase:2, nom:'Primera inversió i DCA', durada:'Mes 2-3', descripcio:'Realitzar la primera aportació real seguint els pesos de la cartera ' + (arq ? arq.cartNom : '') + '. Configurar aportació automàtica mensual de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac.', milestones:['Primera compra d\u2019ETFs segons cartera target','Configurar DCA automàtic ' + estalviMes.toLocaleString('ca-ES') + '\u20ac/mes','Confirmar accés al portal TBI'] },
     { fase:3, nom:'Seguiment trimestral', durada:'Q1-Q4', descripcio:'Revisar desviacions respecte als pesos target. Rebalancejar si alguna posició se\u2019n desvia >5%. No canviar estratègia per volatilitat de mercat.', milestones:['Revisió Q1: desviacoes > 5%?','Rebalanceig si cal (vendre l\u2019excés, comprar el dèficit)','Actualitzar projeccions al portal'] },
     { fase:4, nom:'Optimitzaci\u00f3 fiscal', durada:'Q4 cada any', descripcio:'Revisar l\u2019impacte fiscal de les plusvàlues latents, planificar vendes estratègiques i valorar l\u2019ús de productes fiscalment eficients.', milestones:['Calcular plusvàlues latents','Valorar vendes amb pèrdues per compensar','Planificació IRPF inversions'] },
     { fase:5, nom:'Revisi\u00f3 anual i ajust', durada:'Anual', descripcio:'Sessió anual completa per revisar si els objectius han canviat, si la cartera segueix essent adequada i actualitzar el pla a ' + anyObj + '.', milestones:['Sessió anual 1h amb assessor','Actualitzar cartera si canvia el perfil','Revisar projecció FIRE'] }
@@ -19770,7 +19773,7 @@ function diagGenerarTemplate(userMsg) {
     estrategia: estrategia,
     full_de_ruta: fases,
     propera_accio: primerObj ? 'Primer pas concret: ' + primerObj + '. Aquesta setmana: obrir el compte broker si no el tens, i fer la primera transferència de ' + Math.min(estalviMes, 500).toLocaleString('ca-ES') + '\u20ac.' : 'Obrir compte broker i fer la primera aportació de ' + estalviMes.toLocaleString('ca-ES') + '\u20ac aquesta setmana.',
-    nota_risc: 'Perfil ' + riscLabel + ' (' + risc + '). Drawdown màxim esperat en escenari advers: ' + (risc === 'baix' ? '-10 a -15%' : risc === 'alt' || risc === 'molt_alt' ? '-30 a -45%' : '-20 a -30%') + '. La cartera ' + (arq ? arq.cartRoma : '') + ' est\u00e0 dimensionada per assumir aquesta volatilitat sense necessitat de canviar estratègia.'
+    nota_risc: 'Perfil ' + riscLabel + ' (' + risc + '). Drawdown màxim esperat en escenari advers: ' + (risc === 'baix' ? '-10 a -15%' : risc === 'alt' || risc === 'molt_alt' ? '-30 a -45%' : '-20 a -30%') + '. La cartera ' + (arq ? arq.cartNom : '') + ' est\u00e0 dimensionada per assumir aquesta volatilitat sense necessitat de canviar estratègia.'
   };
 }
 
