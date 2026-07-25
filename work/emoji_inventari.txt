@@ -1,0 +1,293 @@
+👁 U+1F441  x27
+     1219| 👁 Mode previsualització del portal client
+     2922| document.getElementById('preview-banner').innerHTML = '👁 Previsualitzant: <strong>' + APP.clientData.nom + '</strong> · ' + (APP.clientData.cartera||'
+⚠ U+026A0  x27
+     3947| + '⚠ La quota supera el 35% dels teus ingressos nets. Abans de plantejar-te ampliar inversió, val la pena revisar l’estructura del deute.</div>';
+     5864| ? '\n\n⚠ Aquest email ja existia a Auth — s\'ha actualitzat la fila de client però l\'usuari ha de fer servir la contrasenya antiga. Si l\'ha oblidat,
+📋 U+1F4CB  x26
+     3914| [['sim', '🏠 Resum'], ['amort', '✂️ Amortitzar'], ['vs', '⚖️ Amortitzar o invertir'], ['quadre', '📋 Quadre']].forEach(function (t) {
+     4456| {id:'admin-entrevista',  icon:'📋', label:'Entrevista inicial'},
+✅ U+02705  x15
+     4326| { id:'f1', titol:'Constitució del perfil', desc:'Completar el qüestionari inversor, definir l\'arquetip i establir la cartera target personalitzada.',
+     4327| { id:'f2', titol:'Activació del compte', desc:'Validació de la sol·licitud per l\'assessor i activació de l\'accés complet a la plataforma.', estat:'c
+💼 U+1F4BC  x15
+     4469| {id:'portal-cartera',    icon:'💼', label:'La meva cartera'},
+     4490| {id:'portal-cartera', icon:'💼', label:'La meva cartera'},
+🎯 U+1F3AF  x12
+     1598| id:'hedge_funds', grup:'alt', emoji:'🎯',
+     6701| html += '<div class="card"><div class="card-title">🎯 Accions pendents</div>';
+📊 U+1F4CA  x12
+     4465| {id:'portal-perfil',     icon:'📊', label:'Resum'},
+     4491| {id:'portal-perfil', icon:'📊', label:'Resum'},
+📅 U+1F4C5  x12
+     4470| {id:'portal-aportacions',icon:'📅', label:"Pla d'aportacions"},
+     4494| {id:'portal-aportacions', icon:'📅', label:"Pla d'aportacions"},
+🏠 U+1F3E0  x10
+     1364| id:'rv_reits', grup:'rv', emoji:'🏠',
+     3860| + '<div style="font-size:44px;margin-bottom:14px">🏠</div>'
+💬 U+1F4AC  x10
+     4457| {id:'portal-missatges',  icon:'💬', label:'Missatges clients'},
+     4496| {id:'portal-missatges', icon:'💬', label:'Missatges'},
+🗂 U+1F5C2  x9
+     4466| {id:'portal-fitxa',      icon:'🗂️', label:'Fitxa del client'},
+     4474| {id:'portal-carteres',   icon:'🗂', label:'Carteres Model'},
+📈 U+1F4C8  x9
+     4472| {id:'portal-assessoria', icon:'📈', label:'An\u00e0lisi de mercat'},
+     4500| {id:'portal-assessoria', icon:'📈', label:'Anàlisi de mercat'},
+💡 U+1F4A1  x8
+     1576| id:'startups', grup:'alt', emoji:'💡',
+     8816| + '<div style="font-size:10px;font-weight:600;color:#7A4A00;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">💡 Recomanació per a la pr
+🛡 U+1F6E1  x8
+     4477| {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emerg\u00e8ncia"},
+     4505| {id:'portal-emergencia', icon:'🛡️', label:"Fons d'emergència"},
+📝 U+1F4DD  x8
+     4492| {id:'portal-questionnaire', icon:'📝', label:'El meu qüestionari'},
+     5470| + linkCard('📝','Onboarding','client_onboarding_v3.html')
+✏ U+0270F  x7
+     3908| + '<button onclick="obrirModalHipoteca(\'' + sel + '\')" style="padding:8px 13px;border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb)
+     7572| + '<button onclick="editarReunioAdmin(\''+r.client_email+'\',\''+r.id+'\')" style="padding:4px 10px;background:transparent;border:1.5px solid var(--g2
+📣 U+1F4E3  x7
+     4459| {id:'admin-broadcast',   icon:'📣', label:'Comunicat comunitat'},
+     7277| + notifToggle('notif-comunitat', '📣 Comunicats a la comunitat',
+🚀 U+1F680  x6
+     1375| id:'rv_growth', grup:'rv', emoji:'🚀',
+     11345| {id:'turbo',      ico:'🚀', nom:'Turbo Estalvi', desc:'L\u2019impacte d\u2019estalviar una mica m\u00e9s', vista:'portal-turbo',      render:function(e
+🔵 U+1F535  x6
+     4328| { id:'f3', titol:'Construir la base', desc:'Primera aportació, configurar el fons d\'emergència i automatitzar les aportacions mensuals.', estat:'acti
+     12014| excess:   {color:'#1B3A6B',bg:'#EBF0FA',icon:'🔵',label:'Excedent',headline:'Tens diners que podrien treballar per tu'},
+⬜ U+02B1C  x6
+     4329| { id:'f4', titol:'Creixement consistent', desc:'Aportacions regulars i rebalanceig trimestral per mantenir els pesos target de la cartera.', estat:'pe
+     4330| { id:'f5', titol:'Optimització avançada', desc:'Fiscalitat, diversificació d\'alternatius, revisió anual d\'objectius i ajust del pla.', estat:'penden
+📄 U+1F4C4  x6
+     4444| {id:'admin-informe',     icon:'📄', label:'Generar Informe'},
+     5473| + linkCard('📄','Pack Legal','pack_legal_pre_efa.html')
+📆 U+1F4C6  x6
+     4445| {id:'admin-calendari',   icon:'📆', label:'Calendari'},
+     4511| {id:'portal-calendari', icon:'📆', label:'Reunions'},
+🗺 U+1F5FA  x6
+     4468| {id:'portal-roadmap',    icon:'🗺️', label:'Full de Ruta'},
+     4495| {id:'portal-roadmap', icon:'🗺️', label:'Full de Ruta'},
+👋 U+1F44B  x6
+     5398| + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:4px">Bon dia, Guillem 👋</div>'
+     5842| msgBenv = '👋 Hola ' + nom.split(' ')[0] + ', benvingut a The Boring Investor!\n\n'
+🧠 U+1F9E0  x6
+     6903| { id:'comportament', titol:'Comportament i preferències', icon:'🧠', camps:[
+     12153| { id: 6, nom: 'D6 · Comportament',   icon: '🧠', color: '#7A4A00' },
+💵 U+1F4B5  x5
+     1353| id:'rv_dividend', grup:'rv', emoji:'💵',
+     8711| + (kpis.dividends_total > 0 ? '<div>💵 Dividends cobrats: <strong style="font-family:var(--fm)">'+kpis.dividends_total.toLocaleString('ca-ES')+'€</stro
+🏦 U+1F3E6  x5
+     1420| id:'rf_gov_curt', grup:'rf', emoji:'🏦',
+     3228| ['traspas', '🔄 Fons vs ETF'], ['pensions', '🏦 Pla de pensions'],
+⚡ U+026A1  x5
+     1453| id:'rf_hy', grup:'rf', emoji:'⚡',
+     6642| icon: '⚡',
+🎚 U+1F39A  x5
+     1465| id:'fons_8020', grup:'mixt', emoji:'🎚️',
+     1476| id:'fons_6040', grup:'mixt', emoji:'🎚️',
+🧾 U+1F9FE  x5
+     3227| var tabs = [['irpf', '🧾 IRPF de l’estalvi'], ['perdues', '📉 Compensar pèrdues'],
+     4479| {id:'portal-fiscalitat', icon:'🧾', label:'Fiscalitat'},
+🔔 U+1F514  x5
+     4478| {id:'portal-notificacions', icon:'🔔', label:'Notificacions'},
+     4512| {id:'portal-notificacions', icon:'🔔', label:'Notificacions'},
+⚙ U+02699  x5
+     4482| {id:'settings',          icon:'⚙️', label:'Configuraci\u00f3'},
+     5469| + linkCard('⚙️','Dashboard','index.html')
+📚 U+1F4DA  x5
+     4502| {id:'portal-actius', icon:'📚', label:'Guia d\'Actius'},
+     12151| { id: 4, nom: 'D4 · Coneixement',    icon: '📚', color: '#D4943A' },
+📌 U+1F4CC  x5
+     7251| + '<strong>📌 Fase beta:</strong> de moment les preferències es guarden però els correus encara no s\'envien automàticament. T\'avisarem quan estigui a
+     7931| + '<div style="font-size:13px;font-weight:600;color:#7A4A00;margin-bottom:4px">📌 Els teus següents passos pendents ('+_passosPend.length+')</div>'
+🔴 U+1F534  x5
+     9119| + '<option value="venda">🔴 Venda</option>'
+     9617| var emojiTipus = { compra:'🟢', venda:'🔴', dividend:'💵', comissio:'📤' };
+🌍 U+1F30D  x4
+     1342| id:'rv_global', grup:'rv', emoji:'🌍',
+     3229| ['dividends', '🌍 Dividends estrangers']];
+⚖ U+02696  x4
+     1386| id:'rv_value', grup:'rv', emoji:'⚖️',
+     3914| [['sim', '🏠 Resum'], ['amort', '✂️ Amortitzar'], ['vs', '⚖️ Amortitzar o invertir'], ['quadre', '📋 Quadre']].forEach(function (t) {
+🏛 U+1F3DB  x4
+     1431| id:'rf_gov_llarg', grup:'rf', emoji:'🏛️',
+     12286| {id:'rf_gov',emoji:'🏛️',ca:'RF Governamental'},
+📦 U+1F4E6  x4
+     1609| id:'altres', grup:'altres', emoji:'📦',
+     8142| { id:'altres',label:'Altres',          emoji:'📦', desc:'Categoria residual per a actius no classificats.' },
+📉 U+1F4C9  x4
+     3227| var tabs = [['irpf', '🧾 IRPF de l’estalvi'], ['perdues', '📉 Compensar pèrdues'],
+     10119| [['acumular', '📈 Acumular', 'Aportar i comprar'], ['retirar', '📉 Retirar', 'Liquidar i vendre']].forEach(function (t) {
+🔄 U+1F504  x4
+     3228| ['traspas', '🔄 Fons vs ETF'], ['pensions', '🏦 Pla de pensions'],
+     7208| + '<button id="ia-btn" onclick="_iaGenerarAnalisi()" style="padding:10px 18px;background:#1B3A6B;color:#fff;border:none;border-radius:9px;font-size:13
+🎓 U+1F393  x4
+     4454| {id:'admin-educacio',    icon:'🎓', label:'Educaci\u00f3 \u00b7 progr\u00e9s'},
+     4475| {id:'portal-educacio',   icon:'🎓', label:'Educaci\u00f3 financera'},
+🤖 U+1F916  x4
+     4467| {id:'portal-analisi',    icon:'🤖', label:'Anàlisi IA'},
+     7173| if (cont) cont.innerHTML = '<div style="padding:36px;text-align:center;color:var(--g500);font-size:13px">🤖 Generant anàlisi amb Claude… (pot trigar un
+🧮 U+1F9EE  x4
+     4476| {id:'portal-simuladors', icon:'🧮', label:'Simulador'},
+     4504| {id:'portal-simuladors', icon:'🧮', label:'Simulador'},
+⭐ U+02B50  x4
+     6786| {nom:'Articles destacats', txt:'Els marcats amb ⭐ són els que l\'assessor considera especialment rellevants per al moment actual.'},
+     10821| especial:   { lbl:'Especial', emoji:'⭐', bg:'#FEF5E7', tc:'#7A4A00' },
+🟢 U+1F7E2  x4
+     9118| + '<option value="compra">🟢 Compra</option>'
+     9617| var emojiTipus = { compra:'🟢', venda:'🔴', dividend:'💵', comissio:'📤' };
+🏢 U+1F3E2  x3
+     1442| id:'rf_corp', grup:'rf', emoji:'🏢',
+     7401| var REUNIO_LLOC = { videoconferencia:'📹 Videoconferència', presencial:'🏢 Presencial', telefon:'📞 Telèfon' };
+💧 U+1F4A7  x3
+     1532| id:'liquiditat', grup:'cash', emoji:'💧',
+     8141| { id:'cash',  label:'Liquiditat',      emoji:'💧', desc:'Reserva de capital segura i accessible.' },
+🎉 U+1F389  x3
+     2764| toast('🎉 El teu compte ha estat activat!');
+     6342| + '<div style="font-size:24px;margin-bottom:8px">🎉</div>'
+❓ U+02753  x3
+     4458| {id:'admin-preguntes',   icon:'❓', label:'Preguntes'},
+     4513| {id:'portal-ajuda', icon:'❓', label:'Ajuda'},
+🗑 U+1F5D1  x3
+     6031| + '<button onclick="esborrarPagament(\'' + email + '\')" style="padding:11px 14px;background:#fff;color:#C0392B;border:1px solid #F4C0C0;border-radius
+     17510| + '<button onclick="obrirNetejaProves()" style="padding:9px 14px;background:transparent;color:var(--g600);border:1px solid var(--g300);border-radius:8
+👤 U+1F464  x3
+     6873| { id:'personal', titol:'Dades personals i familiars', icon:'👤', camps:[
+     10819| perfil:     { lbl:'Perfil inversor', emoji:'👤', bg:'#EDEAF9', tc:'#534AB7' },
+✦ U+02726  x3
+     8324| + (isMine ? '<div class="cg-mine-badge">✦ La teva cartera</div>' : '')
+     16380| glyph: '✦',
+📤 U+1F4E4  x3
+     8712| + (kpis.comissions_total > 0 ? '<div style="color:var(--g500)">📤 Comissions pagades: <strong style="font-family:var(--fm)">'+kpis.comissions_total.toL
+     9121| + '<option value="comissio">📤 Comissió</option>'
+💰 U+1F4B0  x3
+     9253| + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:12px">💰 Compra inicial</di
+     15889| var catLabels = {automatitzacio:'⚙️ Automatització',despesa_fixa:'🏠 Despesa fixa',despesa_variable:'🛒 Despesa variable',deute:'💳 Deute',ingressos:'💰 I
+📎 U+1F4CE  x3
+     11005| + '<div><label style="font-size:11px;font-weight:500;color:#6B6762;display:block;margin-bottom:4px">📎 URL del fitxer adjunt <span style="color:#AAAAAA
+     21977| + (hasFile ? '<span class="aa-cat-pill" style="background:#EBF0FA;color:#1B3A6B">📎 Adjunt</span>' : '')
+💾 U+1F4BE  x3
+     11494| + '<button onclick="fireGuardar()" style="padding:11px 18px;background:#fff;color:var(--g600);border:1px solid var(--g200);border-radius:9px;font-size
+     12050| + '<button onclick="guardarLiquiditat()" style="padding:10px 20px;background:var(--black);color:#fff;border:none;border-radius:9px;font-size:13px;font
+🟡 U+1F7E1  x3
+     12012| building: {color:'#7A4A00',bg:'#FEF5E7',icon:'🟡',label:'En construcció',headline:'Bona trajectòria — segueix aportant'},
+     15890| var difLabels = {baixa:'🟢 Fàcil',mitjana:'🟡 Mitjana',alta:'🔴 Difícil'};
+🌏 U+1F30F  x2
+     1397| id:'rv_emergent', grup:'rv', emoji:'🌏',
+     12285| {id:'rv_emergent',emoji:'🌏',ca:'Emergents (EM)'},
+🌐 U+1F310  x2
+     1409| id:'rf_global', grup:'rf', emoji:'🌐',
+     5471| + linkCard('🌐','Landing','landing.html')
+🥇 U+1F947  x2
+     1510| id:'or_metalls', grup:'alt', emoji:'🥇',
+     12289| {id:'or_metalls',emoji:'🥇',ca:'Or i Metalls'},
+🤝 U+1F91D  x2
+     1543| id:'crowdlending', grup:'alt', emoji:'🤝',
+     12292| {id:'crowdlending',emoji:'🤝',ca:'Crowdlending / P2P'},
+✉ U+02709  x2
+     2382| + '<div style="width:64px;height:64px;border-radius:50%;background:#EAF5EE;color:#1A5C3A;display:flex;align-items:center;justify-content:center;font-s
+     16561| + '<div class="card-title">✉ Nou comunicat</div>'
+👥 U+1F465  x2
+     4443| {id:'admin-clients',     icon:'👥', label:'Clients'},
+     5432| + '<div class="hub-card-icon">👥</div>'
+📱 U+1F4F1  x2
+     4451| {action:'tbiObrirInstallModal', icon:'📱', label:'App mòbil TBI'},
+     4497| {action:'tbiObrirInstallModal', icon:'📱', label:'App mòbil TBI'},
+📧 U+1F4E7  x2
+     4460| {id:'admin-newsletter',  icon:'📧', label:'Newsletter'},
+     7257| + '<div class="card-title">📧 Correu electrònic per a les alertes</div>'
+📰 U+1F4F0  x2
+     4461| {id:'admin-assessoria',  icon:'📰', label:'Gestionar anàlisis'},
+     21961| + '<div style="font-size:36px;margin-bottom:12px">📰</div>'
+💶 U+1F4B6  x2
+     5444| + '<div class="hub-card-icon">💶</div>'
+     6881| { id:'capacitat', titol:'Capacitat financera', icon:'💶', camps:[
+🧭 U+1F9ED  x2
+     6203| ico: '🧭', nom: 'Descobreix el teu perfil inversor',
+     13859| + '<div style="font-size:22px;flex:none">🧭</div>'
+🔥 U+1F525  x2
+     6385| + '<div style="font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🔥 FIRE</div>'
+     11343| {id:'fire',       ico:'🔥', nom:'FIRE',          desc:'Quan podries viure de les teves inversions', vista:'portal-fire',       render:function(el){ ren
+💱 U+1F4B1  x2
+     6749| {nom:'💱 Actualitzar valors', txt:'Introduir el valor de mercat actual de cada posició. Fes-ho un cop al mes per tenir els KPIs al dia.'},
+     8650| + '<button onclick="obrirModalActualitzarValors()" style="padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:
+✗ U+02717  x2
+     8169| + '.actiu-list.contres li::before{content:"✗";position:absolute;left:0;color:#C0392B;font-weight:600}'
+     8231| + '<div><div class="actiu-section-title">✗ Riscos</div><ul class="actiu-list contres">'
+★ U+02605  x2
+     8189| return '★'.repeat(n) + '☆'.repeat(max-n);
+     14576| ? '★ Personalitzada · sense cartera model'
+🏆 U+1F3C6  x2
+     8736| + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">🏆 Top posicions</div
+     23885| + '<div class="edu-lvl locked"><span class="edu-lvl-icon">🏆</span><div class="edu-lvl-name">Especialista</div><div class="edu-lvl-st">Bloquejat</div><
+📥 U+1F4E5  x2
+     8968| + '📥 Importar posicions actuals →'
+     8989| inner.innerHTML = '<div style="font-family:var(--fd);font-size:24px;font-weight:400;margin-bottom:6px">📥 Importar cartera actual</div>'
+✨ U+02728  x2
+     16801| + '<button id="btn-nl-ia" onclick="generarNewsletterIA(this)" style="padding:11px 22px;background:#1B3A6B;color:#fff;border:none;border-radius:9px;fon
+     21328| + _mcRadioCard('recomanada', '✨ La meva recomanada', 'Cartera assignada al teu arquetip', _MC_STATE.font === 'recomanada')
+🔒 U+1F512  x2
+     18192| + '<div style="font-size:48px;margin-bottom:16px">🔒</div>'
+     22674| { id: 'm7', num: '07', icon: '🔒', titol: 'Els bons: tu fas de banc', lede: 'Si una acció et fa soci, un bo et fa creditor.' },
+☰ U+02630  x1
+     1226| <button class="topbar-btn topbar-mobile-menu" onclick="toggleSidebar()" style="padding:6px 10px">☰</button>
+🛢 U+1F6E2  x1
+     1521| id:'commodities', grup:'alt', emoji:'🛢️',
+🏭 U+1F3ED  x1
+     1565| id:'private_equity', grup:'alt', emoji:'🏭',
+🌉 U+1F309  x1
+     1587| id:'infraestructures', grup:'alt', emoji:'🌉',
+✂ U+02702  x1
+     3914| [['sim', '🏠 Resum'], ['amort', '✂️ Amortitzar'], ['vs', '⚖️ Amortitzar o invertir'], ['quadre', '📋 Quadre']].forEach(function (t) {
+🔍 U+1F50D  x1
+     4446| {id:'admin-diagnostic',  icon:'🔍', label:'Diagn\u00f2stic'},
+🧲 U+1F9F2  x1
+     4453| {id:'admin-leads',       icon:'🧲', label:'Leads \u00b7 Test salut'},
+🎬 U+1F3AC  x1
+     4463| {id:'portal-presentacions', icon:'🎬', label:'Presentacions'},
+💎 U+1F48E  x1
+     4510| {id:'plans', icon:'💎', label:'El meu pla'},
+✍ U+0270D  x1
+     5260| + '<span style="font-size:18px">✍️</span>'
+🎭 U+1F3AD  x1
+     5472| + linkCard('🎭','Arquetips','carteres_arquetips.html')
+⚓ U+02693  x1
+     5944| return { state:'partner', label:'Per rendiment', icon:'⚓', color:'#7A5614', bg:'#FEF7E8', bc:'#E8C988', tooltip:'Pla Partner: fee per rendiment, sense
+📞 U+1F4DE  x1
+     7401| var REUNIO_LLOC = { videoconferencia:'📹 Videoconferència', presencial:'🏢 Presencial', telefon:'📞 Telèfon' };
+📹 U+1F4F9  x1
+     7401| var REUNIO_LLOC = { videoconferencia:'📹 Videoconferència', presencial:'🏢 Presencial', telefon:'📞 Telèfon' };
+🔀 U+1F500  x1
+     8140| { id:'alt',   label:'Alternatius',     emoji:'🔀', desc:'Actius reals i estratègies fora dels mercats cotitzats.' },
+☆ U+02606  x1
+     8189| return '★'.repeat(n) + '☆'.repeat(max-n);
+📸 U+1F4F8  x1
+     8657| + '<span onclick="guardarSnapshotManual()" style="cursor:pointer;color:var(--g500)">📸 Desar snapshot</span>'
+💸 U+1F4B8  x1
+     9731| + '<div style="font-size:10px;font-weight:600;color:var(--g400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">💸 Cost real de la te
+🎲 U+1F3B2  x1
+     11344| {id:'montecarlo', ico:'🎲', nom:'Monte Carlo',   desc:'Milers d\u2019escenaris de futur simulats',  vista:'portal-montecarlo', render:function(el){ ren
+🏁 U+1F3C1  x1
+     12155| { id: 8, nom: 'D8 · Edat i Retir',   icon: '🏁', color: '#1A5C3A' },
+🔬 U+1F52C  x1
+     12284| {id:'rv_tematica',emoji:'🔬',ca:'Temàtica / Sectorial'},
+🏷 U+1F3F7  x1
+     12354| var catLabels = {fonaments:'📚 Fonaments',cartera:'💼 Cartera',psicologia:'🧠 Psicologia inversora',macro:'🌍 Macroeconomia',productes:'🏷 Productes financ
+⬇ U+02B07  x1
+     14720| + '<button class="fr-pdf-btn" onclick="window.print()">⬇ Exportar PDF</button>'
+🛒 U+1F6D2  x1
+     15889| var catLabels = {automatitzacio:'⚙️ Automatització',despesa_fixa:'🏠 Despesa fixa',despesa_variable:'🛒 Despesa variable',deute:'💳 Deute',ingressos:'💰 I
+💳 U+1F4B3  x1
+     15889| var catLabels = {automatitzacio:'⚙️ Automatització',despesa_fixa:'🏠 Despesa fixa',despesa_variable:'🛒 Despesa variable',deute:'💳 Deute',ingressos:'💰 I
+🛠 U+1F6E0  x1
+     17507| + '<div style="font-size:10px;font-weight:500;color:var(--g500);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">🛠 Eines de mantenimen
+🔑 U+1F511  x1
+     17512| + '<button onclick="reenviarAccesClient()" style="padding:9px 14px;background:transparent;color:#1B3A6B;border:1px solid #A3BCE8;border-radius:8px;fon
+🗓 U+1F5D3  x1
+     19044| html += '<div style="padding:12px;background:#F4F3F0;border-radius:8px;font-size:12px;color:var(--g500);text-align:center">Has fet servir les 4 pregun
+🌱 U+1F331  x1
+     23882| + '<div class="edu-lvl active"><span class="edu-lvl-icon">🌱</span><div class="edu-lvl-name">Bàsic</div><div class="edu-lvl-st">En curs</div></div>'
+📲 U+1F4F2  x1
+     24262| <div class="e">📲</div>
+🖥 U+1F5A5  x1
+     24266| <div class="e">🖥️</div>
