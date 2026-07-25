@@ -11,8 +11,9 @@
 // despleguis un canvi gros, perquè la closca antiga s'esborri.
 // ───────────────────────────────────────────────────────────
 
-var CACHE_VERSION = 'tbi-v2';
-var SHELL = ['tbi-app.html', 'manifest.webmanifest'];
+var CACHE_VERSION = 'tbi-v3';
+var SHELL = ['tbi-app.html', 'manifest.webmanifest',
+             'tbi-cartera.js', 'tbi-fiscal.js', 'tbi-fire.js'];
 
 // Instal·lació: cachejar la closca mínima
 self.addEventListener('install', function(e){
