@@ -7311,6 +7311,18 @@ function renderPortalNotificacions(el) {
 
   + '</div>';
 
+  // Notificacions push al dispositiu
+  html += '<div class="card" style="margin-bottom:18px">'
+    + '<div class="card-title">' + TBI_ICO.svg('bell') + ' Avisos al dispositiu'
+      + ' <span style="font-size:10px;font-weight:500;color:#1A5C3A;background:#EAF4EE;border-radius:5px;padding:2px 7px;margin-left:6px;letter-spacing:.03em">ACTIU</span>'
+    + '</div>'
+    + '<div style="font-size:12px;color:var(--g500);line-height:1.6;margin-bottom:14px">'
+      + 'A m\u00e9s del correu, et podem enviar una notificaci\u00f3 directa al dispositiu quan hi hagi un missatge nou o quan toqui actualitzar la cartera. '
+      + 'Es configura per dispositiu: si vols avisos al m\u00f2bil i a l\'ordinador, act\u00edva-ho en tots dos.'
+    + '</div>'
+    + '<div id="push-config-row"><div style="font-size:12px;color:var(--g400)">Comprovant...</div></div>'
+  + '</div>';
+
   // Botons
   html += '<div id="notif-msg" style="margin-bottom:12px;font-size:12px;display:none"></div>';
   html += '<div style="display:flex;gap:10px;justify-content:flex-end">'
@@ -7320,6 +7332,8 @@ function renderPortalNotificacions(el) {
 
   html += '</div>';
   el.innerHTML = html;
+  // L'estat del push es asincron (cal el service worker): l'omplim tot seguit.
+  setTimeout(function(){ try { actualitzarFilaPushPlat(); } catch(e){} }, 50);
 }
 
 // Helper per renderitzar un switch toggle a la pantalla de notificacions
@@ -7387,6 +7401,133 @@ async function guardarNotificacions() {
     msg.textContent = 'Error: ' + (e.message || 'no s\'ha pogut desar');
     btn.disabled = false; btn.textContent = '✓ Desar preferències';
   }
+}
+
+// ==================================================
+// NOTIFICACIONS PUSH (navegador / escriptori)
+// ==================================================
+// Registrem un SW dedicat (sw-push.js) amb scope propi per NO trepitjar el
+// registre de sw.js (la PWA tbi-app.html), que si te handler de fetch+cache.
+// Un push arriba al registre que va crear la subscripcio, no a la pagina,
+// per tant no cal que aquest SW controli platform.html.
+var PLAT_VAPID_PUBLIC = 'BICmsMxXQQ0vda7U6YERAtrDvYajzBa7M5JZZfQ4BGkyUJam7S5uvsB81i7j_f49hsjVwbANiSWhuvHN0PENO5w';
+var PLAT_PUSH_SCOPE = 'sw-push-scope/';
+var _platPushReg = null;
+
+function platB64ToU8(b64){
+  var padding = new Array(((4 - b64.length % 4) % 4) + 1).join('=');
+  var base64 = (b64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+  var raw = atob(base64);
+  var arr = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++){ arr[i] = raw.charCodeAt(i); }
+  return arr;
+}
+function platPushSuportat(){
+  return ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+}
+function platEsIOS(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+async function platPushReg(){
+  if (_platPushReg) return _platPushReg;
+  _platPushReg = await navigator.serviceWorker.register('sw-push.js', { scope: PLAT_PUSH_SCOPE });
+  return _platPushReg;
+}
+
+// Estats: 'no-suportat' | 'nomes-app' | 'denegat' | 'activat' | 'desactivat'
+async function platEstatPush(){
+  if (!platPushSuportat()) return 'no-suportat';
+  // A iOS/iPadOS el push web nomes funciona des de la PWA instal-lada a la
+  // pantalla d'inici; des de Safari no hi ha res a fer.
+  if (platEsIOS()) return 'nomes-app';
+  if (Notification.permission === 'denied') return 'denegat';
+  try {
+    var reg = await platPushReg();
+    var sub = await reg.pushManager.getSubscription();
+    return sub ? 'activat' : 'desactivat';
+  } catch(e){ return 'desactivat'; }
+}
+
+async function platActivarPush(){
+  if (APP.role === 'admin' && APP.isPreview){ toast('Mode previsualitzacio: no es desa'); return false; }
+  var email = APP.user && APP.user.email;
+  if (!email || !sb){ toast('Cal iniciar sessio'); return false; }
+  if (!platPushSuportat()){ toast('El teu navegador no suporta notificacions'); return false; }
+  try {
+    var perm = await Notification.requestPermission();
+    if (perm !== 'granted'){ toast('Permis de notificacions denegat'); return false; }
+
+    var reg = await platPushReg();
+    var sub = await reg.pushManager.getSubscription();
+    if (!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: platB64ToU8(PLAT_VAPID_PUBLIC)
+      });
+    }
+    var raw = sub.toJSON();
+    var keys = raw.keys || {};
+    var res = await sb.from('push_subscriptions').upsert({
+      client_email: email.toLowerCase(),
+      endpoint: raw.endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      user_agent: navigator.userAgent,
+      last_used_at: new Date().toISOString()
+    }, { onConflict: 'endpoint' }).select('id');
+    if (res.error) throw res.error;
+    if (!res.data || res.data.length === 0) throw new Error('la subscripcio no s\'ha desat (RLS)');
+    toast('\u2713 Notificacions activades');
+    return true;
+  } catch(e){
+    toast('No s\'han pogut activar: ' + (e.message || e));
+    return false;
+  }
+}
+
+async function platDesactivarPush(){
+  try {
+    var reg = await platPushReg();
+    var sub = await reg.pushManager.getSubscription();
+    if (sub){
+      var endpoint = sub.endpoint;
+      await sub.unsubscribe();
+      try { await sb.from('push_subscriptions').delete().eq('endpoint', endpoint); } catch(e){}
+    }
+    toast('Notificacions desactivades');
+    return true;
+  } catch(e){ toast('Error: ' + (e.message || e)); return false; }
+}
+
+async function togglePushPlat(){
+  var estat = await platEstatPush();
+  if (estat === 'activat'){ await platDesactivarPush(); }
+  else { await platActivarPush(); }
+  try { await actualitzarFilaPushPlat(); } catch(e){}
+}
+
+async function actualitzarFilaPushPlat(){
+  var cont = document.getElementById('push-config-row');
+  if (!cont) return;
+  var estat = await platEstatPush();
+  var html = '';
+  if (estat === 'no-suportat'){
+    html = '<div style="font-size:12px;color:var(--g400);line-height:1.6">Aquest navegador no suporta notificacions push.</div>';
+  } else if (estat === 'nomes-app'){
+    html = '<div style="font-size:12px;color:var(--g500);line-height:1.6">A l\'iPhone i l\'iPad les notificacions nomes funcionen des de l\'app instal-lada a la pantalla d\'inici. '
+      + 'Obre <a href="tbi-app.html" style="color:var(--navy)">l\'app</a>, afegeix-la a la pantalla d\'inici i activa-les des d\'alla.</div>';
+  } else if (estat === 'denegat'){
+    html = '<div style="font-size:12px;color:#C0392B;line-height:1.6">Has bloquejat les notificacions per a aquesta web. Desbloqueja-les des dels ajustos del navegador (icona del cadenat a la barra d\'adreces) i torna a provar-ho.</div>';
+  } else {
+    var actiu = (estat === 'activat');
+    html = '<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">'
+      + '<div style="font-size:13px;color:var(--g600)">' + (actiu ? 'Notificacions actives en aquest dispositiu' : 'Notificacions desactivades en aquest dispositiu') + '</div>'
+      + '<button onclick="togglePushPlat()" style="padding:10px 18px;border-radius:9px;font-size:12.5px;font-weight:500;cursor:pointer;font-family:var(--fb);'
+        + (actiu ? 'background:#fff;color:var(--g600);border:1px solid var(--g200)' : 'background:#1A5C3A;color:#fff;border:none')
+      + '">' + (actiu ? 'Desactivar' : 'Activar') + '</button>'
+    + '</div>';
+  }
+  cont.innerHTML = html;
 }
 
 function renderPortalAjuda(el) {

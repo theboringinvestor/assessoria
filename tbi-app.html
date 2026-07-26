@@ -686,6 +686,8 @@ async function carregarClient(email){
   go(APP.view || 'cartera');
   // Precarregar comunicats en segon pla per mostrar l'avís de nous
   setTimeout(function(){ try { precarregarComunicats(); } catch(e){} }, 800);
+  // Oferir notificacions push si encara no les te activades (1 cop / 30 dies)
+  setTimeout(function(){ try { oferirPushSiCal(); } catch(e){} }, 2500);
 }
 
 // ════════════════════════════════════════════
@@ -1865,7 +1867,7 @@ function tancarAjuda(){ var m = $('modal-ajuda'); if (m) m.parentNode.removeChil
 // ════════════════════════════════════════════
 // NOTIFICACIONS PUSH (subscripció del client)
 // ════════════════════════════════════════════
-var VAPID_PUBLIC_KEY = 'BE_IX5vXaarMOkrMIvNvWeWllqDJokveWIRJsFoYysWeHnisc4xRSovp0-BFPo1m3j3Eo-0th_-w6ID57UhLRaU';
+var VAPID_PUBLIC_KEY = 'BICmsMxXQQ0vda7U6YERAtrDvYajzBa7M5JZZfQ4BGkyUJam7S5uvsB81i7j_f49hsjVwbANiSWhuvHN0PENO5w';
 
 // Converteix la clau VAPID base64url a Uint8Array (format que demana l'API)
 function urlBase64ToUint8Array(base64String){
@@ -1980,6 +1982,54 @@ async function actualitzarFilaPush(){
     + '</div>';
   }
   cont.innerHTML = html;
+}
+
+// -- Oferiment proactiu de notificacions -------------------------------
+// Sense aixo ningu troba el boto (nomes viu dins del modal d'ajuda) i la taula
+// push_subscriptions es queda buida. Es mostra un sol cop per dispositiu: si el
+// client el descarta, no torna a sortir durant 30 dies.
+var PUSH_ASK_KEY = 'tbi_push_ask_at';
+function _pushAskRecent(){
+  try {
+    var t = parseInt(localStorage.getItem(PUSH_ASK_KEY) || '0', 10);
+    return t > 0 && (Date.now() - t) < 30*24*3600*1000;
+  } catch(e){ return false; }
+}
+function _pushAskMarca(){
+  try { localStorage.setItem(PUSH_ASK_KEY, String(Date.now())); } catch(e){}
+}
+
+async function oferirPushSiCal(){
+  if (_pushAskRecent()) return;
+  var estat;
+  try { estat = await estatPush(); } catch(e){ return; }
+  // Nomes ho oferim si es pot activar de debo:
+  // no-suportat / instal-cal / denegat / activat -> no molestem
+  if (estat !== 'desactivat') return;
+  if (document.getElementById('push-oferta')) return;
+
+  var box = document.createElement('div');
+  box.id = 'push-oferta';
+  box.setAttribute('style', 'position:fixed;left:12px;right:12px;bottom:78px;z-index:900;'
+    + 'background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px;'
+    + 'box-shadow:0 10px 30px rgba(0,0,0,.13);max-width:460px;margin:0 auto');
+  box.innerHTML = '<div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:5px">Vols que t\'avisem?</div>'
+    + '<div style="font-size:12.5px;color:var(--g500);line-height:1.55;margin-bottom:13px">Rebr\u00e0s un av\u00eds quan hi hagi un missatge nou o quan toqui actualitzar la cartera. Res m\u00e9s.</div>'
+    + '<div style="display:flex;gap:9px">'
+      + '<button onclick="acceptarOfertaPush()" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;padding:11px 14px;cursor:pointer;font-family:inherit">Activar</button>'
+      + '<button onclick="descartarOfertaPush()" style="background:var(--g50);color:var(--g700);border:1px solid var(--g200);border-radius:10px;font-size:13px;padding:11px 14px;cursor:pointer;font-family:inherit">Ara no</button>'
+    + '</div>';
+  document.body.appendChild(box);
+}
+function _tancarOfertaPush(){
+  _pushAskMarca();
+  var b = document.getElementById('push-oferta');
+  if (b && b.parentNode) b.parentNode.removeChild(b);
+}
+function descartarOfertaPush(){ _tancarOfertaPush(); }
+async function acceptarOfertaPush(){
+  _tancarOfertaPush();
+  await activarPush();
 }
 
 

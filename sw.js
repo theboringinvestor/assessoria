@@ -11,7 +11,7 @@
 // despleguis un canvi gros, perquè la closca antiga s'esborri.
 // ───────────────────────────────────────────────────────────
 
-var CACHE_VERSION = 'tbi-v4';
+var CACHE_VERSION = 'tbi-v5';
 var SHELL = ['tbi-app.html', 'manifest.webmanifest',
              'tbi-cartera.js', 'tbi-fiscal.js', 'tbi-fire.js'];
 
