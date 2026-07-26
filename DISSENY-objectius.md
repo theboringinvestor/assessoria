@@ -67,9 +67,23 @@ Els sobres donen el 90% del valor amb el 10% de la complexitat operativa.
 
 ## 3. El glidepath: cada sobre amb el risc del seu horitzó
 
+### Creixement contra capital segur
+
+Les tres galledes del motor no són "RV / RF / liquiditat" en sentit literal.
+Són **actius de creixement** (tot allò que pot caure un 30% i necessita anys
+per recuperar-se) i **capital segur** (renda fixa i liquiditat, l'únic que pot
+respondre d'un objectiu proper).
+
+L'or, la crypto, el crowdlending, el private equity i les start-ups compten com
+a creixement. Sembla obvi dit així, però la primera versió del motor mesurava
+el risc com a "pes de renda variable", i amb la cartera real de mostra —un 28%
+en alternatius— sortia que hi havia un 35% de capital segur quan de segur només
+hi havia el 5% de liquiditat. El fons d'emergència quedava "cobert" per la
+crypto.
+
 Cada objectiu té la barreja que li correspon pel temps que li queda:
 
-| Horitzó | RV | RF | Liquiditat |
+| Horitzó | Creixement | RF | Liquiditat |
 |---|---|---|---|
 | < 1 any | 0% | 0–15% | 85–100% |
 | 2 anys | 12% | 33% | 55% |
@@ -81,9 +95,12 @@ Cada objectiu té la barreja que li correspon pel temps que li queda:
 | 30 anys | 95% | 5% | 0% |
 
 Entremig s'interpola. **El sostre de l'arquetip MiFID mana sempre**: si el
-perfil no admet més d'un 40% de RV, l'excés baixa a renda fixa encara que
-l'horitzó en permeti més. Mai més risc del que el perfil aguanta, mai més risc
-del que l'horitzó aguanta.
+perfil no admet més d'un 40% de creixement, l'excés baixa a renda fixa encara
+que l'horitzó en permeti més. Mai més risc del que el perfil aguanta, mai més
+risc del que l'horitzó aguanta.
+
+El sostre es llegeix de la cartera de l'arquetip com **100 menys la renda fixa
+i la liquiditat**. Per a l'arquetip `màxim`, això dona un 95%.
 
 ### La cartera target passa a ser derivada
 
@@ -175,6 +192,7 @@ Funcions pures, ES5, sense DOM ni Supabase. Mateix patró que `tbi-fire.js` i
 | `sense_residual` | mitjana | Hi ha capital que no pertany a cap objectiu |
 | `sense_assignacio` | mitjana | L'objectiu no té ni capital ni aportació: no està configurat |
 | `sense_data` / `sense_import` | mitjana | Objectiu incomplet |
+| `exces_alternatius` | avís de target | Els il·líquids ja superen el creixement volgut |
 | `fire_ranci` | baixa | Fa més de 9 mesos que no es recalcula |
 | `just` | baixa | Cobertura entre el 90% i el 100% |
 
@@ -256,16 +274,45 @@ d'això, RF Corp".
 
 | Fase | Què | Estat |
 |---|---|---|
-| 0 | Motor `tbi-objectius.js` + `test_objectius.js` | **fet** · 103/103 |
-| 1 | Editor d'objectius al Full de Ruta + panell de coherència | pendent |
+| 0 | Motor `tbi-objectius.js` + `test_objectius.js` | **fet** · 105/105 |
+| 1 | Editor d'objectius al Full de Ruta + panell de coherència | **fet** · 71/71 |
 | 2 | FIRE bidireccional amb inputs derivats de la cartera | pendent |
 | 3 | Cartera proposada amb aprovació i diff | pendent |
 | 4 | Pestanya Objectius a l'app | pendent |
 | 5 | Repartiment de l'aportació per objectiu | pendent |
 
-Les fases 1–3 toquen `platform.html` i poden anar en un sol desplegament. Les
-4–5 toquen l'app i en volen un altre, perquè el client no ha de veure objectius
-a mig configurar.
+Les fases 2–3 toquen `platform.html` i poden anar amb la 1 en un sol
+desplegament. Les 4–5 toquen l'app i en volen un altre, perquè el client no ha
+de veure objectius a mig configurar.
+
+### Què s'ha tocat de `platform.html` a la fase 1
+
+Sis substitucions, totes amb asserció de recompte previ (`patch_fase1.py`) i
+sis més de correcció (`patch_fase1b.py`). +395 línies netes sobre 24.867.
+
+- Càrrega de `tbi-objectius.js`
+- `_frAddObjectiu` crea objectius v2 amb data ISO real
+- Bloc nou: `_frObjCtx`, `_frPesCreixement`, `_frPesCreixementReal`,
+  `_frSostreRV`, `_frTargetArquetip`, `_frSetObjCamp`, `_frSetObjResidual`,
+  `_frObjectiusHtml`, `_frObjProjHtml`, `_frObjCtrlHtml`, `_frCoherenciaHtml`
+- Render de la secció 02 delegat al motor, amb el render antic com a
+  fallback si `tbi-objectius.js` no hagués carregat
+- Panell de coherència (només assessor)
+- CSS de les fitxes i del panell
+
+`test_fase1_render.js` extreu el bloc nou del fitxer real, l'executa amb stubs
+i comprova el render amb les dades reals del client: HTML balancejat, cap
+`undefined` ni `NaN`, i que el client no rebi mai controls d'edició.
+
+### Un bug preexistent que va sortir pel camí
+
+`_fireParsePerfilAport()` tracta el punt de milers com a separador decimal:
+amb un perfil que diu `"1.600€"` retorna **1,6**. És el fallback de l'aportació
+mensual de la calculadora FIRE, i explica part dels números estranys que en
+sortien. El context d'objectius fa servir `_frParseEur()`, que sí que entén el
+format europeu, i només cau a l'altre com a últim recurs. La funció original no
+s'ha tocat: la fan servir altres vistes i arreglar-la mereix el seu propi
+repàs.
 
 ---
 

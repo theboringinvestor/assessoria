@@ -171,12 +171,17 @@ eq('la nova target segueix sumant 100', (function () {
   var s = 0; ap.target.forEach(function (t) { s += t.pct; }); return s;
 })(), 100, 0.15);
 eq('els alternatius no es toquen', ap.target.filter(function (t) { return t.id === 'or_metalls'; })[0].pct, 10, 0.01);
-// Aquesta target té un 65% de RV i els objectius (dominats pel FIRE a 20
-// anys) en demanen un 81%: la reescalada ha de PUJAR-LA, no baixar-la.
-// El motor mou la target cap als objectius, en la direcció que toqui.
-ok('la RV es mou fins al que demanen els objectius sobre el capital no alternatiu', (function () {
+// Aquesta target té un 65% de RV i un 10% d'or. Els objectius (dominats pel
+// FIRE a 20 anys) demanen un 81% de creixement. Com que l'or ja n'aporta un
+// 10%, a les línies de RV els toca el 71% restant, no el 81%.
+ok('el creixement total quadra amb el que demanen els objectius', (function () {
+  var creix = 0; ap.target.forEach(function (t) { if (t.grup === 'rv' || t.grup === 'alt') creix += t.pct; });
+  return Math.abs(creix - blend.rv) < 1.5;
+})(), '(creixement total ' + ap.target.filter(function (t) { return t.grup === 'rv' || t.grup === 'alt'; })
+        .reduce(function (s, t) { return s + t.pct; }, 0).toFixed(1) + '% sobre ' + blend.rv.toFixed(1) + '% demanat)');
+ok('i les línies de RV absorbeixen la diferència, no els alternatius', (function () {
   var rv = 0; ap.target.forEach(function (t) { if (t.grup === 'rv') rv += t.pct; });
-  return Math.abs(rv - blend.rv / 100 * 90) < 1;
+  return Math.abs(rv - (blend.rv - 10)) < 1.5;
 })(), '(65% → ' + ap.target.filter(function (t) { return t.grup === 'rv'; })
         .reduce(function (s, t) { return s + t.pct; }, 0).toFixed(1) + '%)');
 ok('es conserva la proporció interna que va triar l\'assessor', (function () {
@@ -205,6 +210,11 @@ var apReal = O.aplicaATarget(TARGET_REAL, O.carteraProposada(
   [{ tipus: 'fire', import: 1000000, dataObjectiu: d(10) }],
   { capital_total: 185750, aportacio_total: 1600, avui: AVUI }));
 ok('avisa que la target no té cap línia de renda fixa', apReal.grups_sense_cabuda.indexOf('rf') >= 0);
+ok('el 28% d\'alternatius compta com a creixement, no com a capital segur', (function () {
+  var creix = 0; apReal.target.forEach(function (t) { if (t.grup === 'rv' || t.grup === 'alt') creix += t.pct; });
+  return Math.abs(creix - apReal.blend.rv) < 2;
+})(), '(creixement ' + apReal.target.filter(function (t) { return t.grup === 'rv' || t.grup === 'alt'; })
+        .reduce(function (s, t) { return s + t.pct; }, 0).toFixed(1) + '%)');
 ok('els alternatius segueixen EXACTAMENT igual', (function () {
   return apReal.target.filter(function (t) { return t.grup === 'alt'; })
     .every(function (t) { return Math.abs(t.pct - t.pct_abans) < 0.001; });

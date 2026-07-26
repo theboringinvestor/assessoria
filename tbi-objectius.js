@@ -59,8 +59,16 @@ var TBI_OBJECTIUS = (function () {
      Punts d'ancoratge. Entremig s'interpola linealment. La lògica és
      senzilla i defensable: els diners que necessites aviat no poden estar
      exposats a una caiguda de la qual no hi hauria temps de recuperar-se.
-     La columna `recuperacio` és orientativa: anys històrics típics per
-     recuperar una caiguda severa d'aquella barreja. */
+
+     IMPORTANT sobre les tres galledes. `rv` no vol dir "renda variable" en
+     sentit estricte: vol dir ACTIUS DE CREIXEMENT, tot allò que pot caure
+     un 30% i necessita anys per recuperar-se. Or, crypto, crowdlending,
+     private equity i start-ups hi compten. `rf` i `cash` són el CAPITAL
+     SEGUR, l'únic que pot respondre d'un objectiu proper.
+
+     Tractar els alternatius com a capital segur només perquè no són borsa
+     és l'error que faria dir a una cartera amb 28% de crypto i or que té
+     el fons d'emergència cobert. */
   var GLIDEPATH = [
     { anys: 0,  rv: 0,  rf: 0,  cash: 100 },
     { anys: 1,  rv: 0,  rf: 15, cash: 85 },
@@ -478,13 +486,29 @@ var TBI_OBJECTIUS = (function () {
     }
     if (total <= 0) return null;
 
-    // Els alternatius es queden com estan; la barreja s'aplica sobre la resta.
+    // Els alternatius es queden com estan, però COMPTEN com a creixement:
+    // si la barreja vol un 72% de creixement i els il·líquids ja n'aporten
+    // un 28%, a les línies de renda variable els toca un 44%, no un 72%.
+    // Comptar-los com a "no creixement" inflaria el risc real de la cartera.
     var disponible = Math.max(0, total - totalAlt);
+    var creixementVolgut = blend.rv / 100 * total;
     var vol = {
-      rv: blend.rv / 100 * disponible,
-      rf: blend.rf / 100 * disponible,
-      cash: blend.cash / 100 * disponible
+      rv: Math.max(0, creixementVolgut - totalAlt),
+      rf: blend.rf / 100 * total,
+      cash: blend.cash / 100 * total
     };
+    // Si els alternatius ja passen del creixement que es vol, el sobrant no
+    // es pot desfer sense tocar-los: es reparteix el que queda de manera
+    // proporcional i s'avisa.
+    var excesAlt = Math.max(0, totalAlt - creixementVolgut);
+    if (excesAlt > 0.5) {
+      var restant = Math.max(0, disponible);
+      var sumaDef = vol.rf + vol.cash;
+      if (sumaDef > 0) {
+        vol.rf = vol.rf / sumaDef * restant;
+        vol.cash = vol.cash / sumaDef * restant;
+      }
+    }
 
     // Grups que la barreja demana i que no tenen cap categoria on caure.
     // Passa de veritat: una target sense cap línia de renda fixa. S'avisa
@@ -512,6 +536,8 @@ var TBI_OBJECTIUS = (function () {
       rf: actual.rf > 0 ? vol.rf / actual.rf : 0,
       cash: actual.cash > 0 ? vol.cash / actual.cash : 0
     };
+
+    if (excesAlt > 0.5) sense.push('exces_alternatius');
 
     var out = [], sumaNoAlt = 0;
     for (i = 0; i < target.length; i++) {
