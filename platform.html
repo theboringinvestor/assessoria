@@ -2478,13 +2478,22 @@ async function doRegister() {
 
     // ── Email que JA té compte ────────────────────────────────────────────
     // Supabase respon 200 sense error encara que l'usuari ja existeixi: ho fa
-    // expressament per no revelar qui està registrat. L'única manera de
-    // detectar-ho és que la llista d'identitats torni buida. Sense aquesta
-    // comprovació dèiem "Compte creat, revisa el teu email" i no s'enviava
-    // cap correu — el client es quedava esperant-lo indefinidament.
-    var jaExisteix = res.data && res.data.user
-      && Array.isArray(res.data.user.identities)
-      && res.data.user.identities.length === 0;
+    // expressament per no revelar qui està registrat.
+    //
+    // Detecció 1 — identities buides: passa quan el compte existent JA està
+    //   confirmat. És el cas documentat per Supabase.
+    // Detecció 2 — created_at antic: si el compte existent encara NO estava
+    //   confirmat, GoTrue tracta el signUp com un re-registre, li canvia la
+    //   contrasenya, reenvia el correu i retorna l'usuari ORIGINAL amb les
+    //   identities plenes. L'única pista és que created_at no és d'ara.
+    //   Sense aquesta segona comprovació, un desconegut podia registrar-se
+    //   amb l'email d'un client i quedar-se'n el compte.
+    var _u = res.data && res.data.user;
+    var jaExisteix = !!(_u && Array.isArray(_u.identities) && _u.identities.length === 0);
+    if (!jaExisteix && _u && _u.created_at) {
+      var _creat = new Date(_u.created_at).getTime();
+      if (!isNaN(_creat) && (Date.now() - _creat) > 60000) jaExisteix = true;
+    }
     if (jaExisteix) {
       msg.className = 'login-msg err';
       msg.innerHTML = 'Aquest email ja té un compte. '
@@ -2496,34 +2505,56 @@ async function doRegister() {
       return;
     }
 
-    // 2. Crear el registre a la taula clients (amb pla Senyal per defecte)
-    // CRÍTIC: status s'especifica explícitament a 'pending'. No confiar només
-    // en el DEFAULT de la columna a la BD — un client auto-registrat NO ha
-    // d'estar mai actiu fins que l'admin l'aprovi explícitament.
-    // .select() és imprescindible per detectar si l'escriptura ha fallat en
-    // silenci (RLS, etc.) i poder avisar l'usuari en lloc de donar fals èxit.
-    var resClient = await sb.from('clients').upsert({
-      email: email,
-      nom: nom,
-      pla: 'senyal',
-      status: 'pending',
-      perfil: { capitalInicial: '—', aportacioMensual: '—', horitzo: '—', objectiu: '—', riscFinancer: '—', riscEmocional: '—' }
-    }, { onConflict: 'email' }).select('id,status');
+    // 2. La fila de clients NOMÉS es crea si Supabase ens ha donat sessió real.
+    //
+    // Abans això era un .upsert({onConflict:'email'}) executat sense sessió,
+    // és a dir com a rol anon. Si el guard de dalt no saltava, l'upsert
+    // sobreescrivia el nom, el pla, el status i el perfil del client que ja
+    // tenia aquell email. Ara:
+    //   · .insert() → si l'email existeix, el UNIQUE de la BD el rebutja (23505)
+    //   · només s'executa autenticat → les RLS comproven que l'email del JWT
+    //     coincideixi amb el de la fila
+    // Si no hi ha sessió (confirmació d'email activada), no toquem res: la fila
+    // es crearà quan l'usuari confirmi, entri i faci el qüestionari.
+    var sessio = res.data && res.data.session;
 
-    if (resClient.error) throw resClient.error;
-    if (!resClient.data || resClient.data.length === 0) {
-      throw new Error('No s\'ha pogut crear la fila de client (possible problema RLS).');
+    if (sessio) {
+      var resClient = await sb.from('clients').insert({
+        email: email,
+        nom: nom,
+        pla: 'senyal',
+        status: 'pending',
+        perfil: { capitalInicial: '—', aportacioMensual: '—', horitzo: '—', objectiu: '—', riscFinancer: '—', riscEmocional: '—' }
+      }).select('id,status');
+
+      if (resClient.error) {
+        // 23505 = unique_violation → ja hi havia fitxa amb aquest email.
+        // No és un error fatal: el compte auth és seu, la fitxa ja existeix.
+        var _c = resClient.error.code || '';
+        if (_c !== '23505') throw resClient.error;
+        console.warn('[doRegister] La fitxa de client ja existia:', email);
+      } else if (!resClient.data || resClient.data.length === 0) {
+        throw new Error('No s\'ha pogut crear la fila de client (possible problema RLS).');
+      }
     }
 
-    msg.className = 'login-msg ok';
-    msg.textContent = '✓ Compte creat! Revisa el teu email per confirmar-lo, o accedeix directament.';
-    btn.textContent = '✓ Compte creat';
-
-    // Intentar login automàtic (si auto-confirm està activat a Supabase)
-    setTimeout(function() {
-      var role = ADMIN_EMAILS.indexOf(email) >= 0 ? 'admin' : 'client';
-      enterApp(role, email, false);
-    }, 1500);
+    // 3. Només entrem a l'app si Supabase ha obert sessió de debò.
+    //    Abans es cridava enterApp() sempre, cosa que carregava el portal amb
+    //    l'email introduït encara que no s'hagués verificat res.
+    if (sessio) {
+      msg.className = 'login-msg ok';
+      msg.textContent = '✓ Compte creat!';
+      btn.textContent = '✓ Compte creat';
+      setTimeout(function() {
+        var role = ADMIN_EMAILS.indexOf(email) >= 0 ? 'admin' : 'client';
+        enterApp(role, email, false);
+      }, 1200);
+    } else {
+      msg.className = 'login-msg ok';
+      msg.innerHTML = '✓ Compte creat. T\'hem enviat un correu a <strong>' + email
+        + '</strong> — confirma\'l per poder accedir. (Mira també la carpeta de spam.)';
+      btn.textContent = '✓ Revisa el teu email';
+    }
 
   } catch(err) {
     msg.className = 'login-msg err';
@@ -5864,8 +5895,29 @@ async function crearNouClient() {
       clientPayload.submitted_at = null;
     }
 
-    var resIns = await sb.from('clients').upsert(clientPayload, { onConflict: 'email' });
-    if (resIns.error) throw resIns.error;
+    // No fem upsert cec: si ja hi ha fitxa amb aquest email, un upsert li
+    // esborraria el perfil i li reescriuria nom/pla/status. Comprovem primer.
+    var jaHiHaFitxa = false;
+    var resPrev = await sb.from('clients').select('id,nom,pla,status,scoring').eq('email', email).limit(1);
+    if (resPrev.error) throw resPrev.error;
+
+    if (resPrev.data && resPrev.data.length > 0) {
+      jaHiHaFitxa = true;
+      // Client existent: NOMÉS actualitzem el pla. Ni perfil, ni scoring, ni
+      // status, ni nom — són dades seves que l'admin no vol perdre per error.
+      var resUpd = await sb.from('clients').update({ pla: pla }).eq('email', email).select('id');
+      if (resUpd.error) throw resUpd.error;
+      if (!resUpd.data || resUpd.data.length === 0) {
+        throw new Error('No s\'ha pogut actualitzar la fitxa existent (RLS?).');
+      }
+      console.warn('[crearNouClient] Ja existia fitxa per', email, '— només s\'ha canviat el pla. Dades preservades.');
+    } else {
+      var resIns = await sb.from('clients').insert(clientPayload).select('id');
+      if (resIns.error) throw resIns.error;
+      if (!resIns.data || resIns.data.length === 0) {
+        throw new Error('No s\'ha pogut crear la fila de client (RLS?).');
+      }
+    }
 
     // 3. Missatge de benvinguda automàtic (no fallar si no es pot)
     try {
@@ -5892,9 +5944,13 @@ async function crearNouClient() {
     } catch(e) { console.warn('No s\'ha pogut crear missatge de benvinguda:', e); }
 
     // 4. Èxit — mostrar credencials per copiar
-    var notaAuthExistent = authAlreadyExists
-      ? '\n\nAquest email ja existia a Auth — s\'ha actualitzat la fila de client però l\'usuari ha de fer servir la contrasenya antiga. Si l\'ha oblidat, demana-li que faci "He oblidat la contrasenya".'
-      : '';
+    var notaAuthExistent = '';
+    if (authAlreadyExists) {
+      notaAuthExistent += 'Aquest email ja existia a Auth — la contrasenya de dalt NO és vàlida, l\'usuari ha de fer servir la seva. Si l\'ha oblidat, demana-li que faci "He oblidat la contrasenya". ';
+    }
+    if (jaHiHaFitxa) {
+      notaAuthExistent += 'Ja hi havia una fitxa de client amb aquest email: s\'han conservat les seves dades (perfil, scoring, status) i només s\'ha actualitzat el pla.';
+    }
 
     showMsg('✓ Client creat. Comunica-li:', false);
     btn.textContent = '✓ Creat';
