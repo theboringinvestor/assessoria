@@ -4677,7 +4677,7 @@ function navigateTo(viewId) {
     'portal-hipoteca': APP.role === 'admin' ? ['Portal Client · Hipoteca', 'Previsualització'] : ['Hipoteca i deute', 'Simulació, amortització i comparativa amb la teva cartera'],
     'portal-turbo': APP.role === 'admin' ? ['Portal Client · Turbo Estalvi', 'Previsualització · Editable'] : ['Turbo Estalvi', 'Optimitza la teva taxa d\'estalvi'],
     'portal-emergencia': APP.role === 'admin' ? ['Portal Client · Emergència', 'Previsualització'] : ["Fons d'emergència", 'Seguiment del teu coixí de seguretat'],
-    'portal-notificacions': APP.role === 'admin' ? ['Portal Client · Notificacions', 'Previsualització'] : ['Notificacions', 'Gestiona les alertes per correu electrònic'],
+    'portal-notificacions': APP.role === 'admin' ? ['Portal Client · Notificacions', 'Previsualització'] : ['Notificacions', 'Gestiona els avisos per correu i al dispositiu'],
     'portal-educacio': APP.role === 'admin' ? ['Portal Client · Educació', 'Previsualització'] : ['Educació financera', 'Aprèn al teu ritme'],
     'portal-presentacions': APP.role === 'admin' ? ['Portal Client · Presentacions', 'Previsualització'] : ['Presentacions', 'Material visual per a explicacions ràpides'],
     'portal-questionnaire': APP.role === 'admin' ? ['Portal Client · Qüestionari', 'Previsualització'] : ['El meu qüestionari', 'Perfil de conveniència i idoneïtat · MIFID II'],
@@ -7272,15 +7272,8 @@ function renderPortalNotificacions(el) {
 
   // Header
   html += '<div style="margin-bottom:28px">'
-    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px">Notificacions per correu</div>'
-    + '<div style="font-size:13px;color:var(--g500);line-height:1.65">Tria quan vols rebre un correu electrònic. Et podem avisar de nous informes, missatges del teu assessor o comunicats per a tota la comunitat.</div>'
-  + '</div>';
-
-  // Avís beta
-  html += '<div style="background:#FEF7E8;border:1px solid #E8C988;border-left:4px solid #C8A44A;border-radius:10px;padding:14px 18px;margin-bottom:24px">'
-    + '<div style="font-size:12px;color:#7A4A00;line-height:1.6">'
-      + '<strong>' + TBI_ICO.svg('pin') + ' Fase beta:</strong> de moment les preferències es guarden però els correus encara no s\'envien automàticament. T\'avisarem quan estigui actiu.'
-    + '</div>'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;letter-spacing:-.3px;margin-bottom:6px">Notificacions</div>'
+    + '<div style="font-size:13px;color:var(--g500);line-height:1.65">Tria de què vols que t\'avisem i per on. Et podem enviar un correu, una notificació al dispositiu, o les dues coses: nous informes, missatges del teu assessor, comunicats i el recordatori mensual de cartera.</div>'
   + '</div>';
 
   // Email de notificacions
@@ -7314,7 +7307,6 @@ function renderPortalNotificacions(el) {
   // Notificacions push al dispositiu
   html += '<div class="card" style="margin-bottom:18px">'
     + '<div class="card-title">' + TBI_ICO.svg('bell') + ' Avisos al dispositiu'
-      + ' <span style="font-size:10px;font-weight:500;color:#1A5C3A;background:#EAF4EE;border-radius:5px;padding:2px 7px;margin-left:6px;letter-spacing:.03em">ACTIU</span>'
     + '</div>'
     + '<div style="font-size:12px;color:var(--g500);line-height:1.6;margin-bottom:14px">'
       + 'A m\u00e9s del correu, et podem enviar una notificaci\u00f3 directa al dispositiu quan hi hagi un missatge nou o quan toqui actualitzar la cartera. '
