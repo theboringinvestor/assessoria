@@ -20,6 +20,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY')!;
 const CRON_TOKEN   = Deno.env.get('TBI_CRON_TOKEN') ?? '';
 
 const ADMIN_EMAIL  = 'guillem.puig@theboringinvestor.es';
@@ -75,7 +76,17 @@ async function baixarPreus(ticker: string, rang: string) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
-  if (CRON_TOKEN && req.headers.get('x-tbi-token') !== CRON_TOKEN) {
+  // Autorització: token intern de cron, o JWT d'admin (botons de l'admin)
+  let autoritzat = CRON_TOKEN.length > 0 && req.headers.get('x-tbi-token') === CRON_TOKEN;
+  if (!autoritzat) {
+    const auth = req.headers.get('Authorization') ?? '';
+    const sbUser = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: auth } },
+    });
+    const { data: adminOk } = await sbUser.rpc('is_tbi_admin');
+    autoritzat = adminOk === true;
+  }
+  if (!autoritzat) {
     return new Response(JSON.stringify({ error: 'no autoritzat' }),
       { status: 401, headers: cors });
   }

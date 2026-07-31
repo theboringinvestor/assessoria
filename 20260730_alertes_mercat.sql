@@ -322,7 +322,8 @@ create policy alertes_enviaments_read on public.alertes_enviaments
 -- L'escriptura de benchmarks/preus/estat/alertes/enviaments va per service role.
 
 -- ─── 12. Vistes per a l'admin ───────────────────────────────────────
-create or replace view public.v_benchmark_drawdown as
+create or replace view public.v_benchmark_drawdown
+with (security_invoker = true) as
 select b.codi, b.nom, b.ticker, b.familia, b.actiu, b.ordre, b.llindars, b.ultim_error,
        e.pic, e.pic_data, e.ultim, e.ultim_data,
        round(e.drawdown * 100, 2) as drawdown_pct,
@@ -331,7 +332,8 @@ from public.benchmarks b
 left join public.benchmark_estat e on e.codi = b.codi
 order by b.ordre;
 
-create or replace view public.v_alertes_resum as
+create or replace view public.v_alertes_resum
+with (security_invoker = true) as
 select a.id, a.codi, b.nom as benchmark, a.llindar,
        round(a.drawdown * 100, 2) as drawdown_pct,
        a.estat, a.bloqueig_motiu, a.titol, a.creada_at, a.enviada_at,
