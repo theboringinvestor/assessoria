@@ -5020,9 +5020,43 @@ function _sigRenderDoc(row){
     for(var i=0;i<cls.length;i++){
       h += '<div class="sigcl"><span class="no">' + (i+1) + '</span>' + _sigEsc(cls[i][0]) + '</div><p class="sigp">' + _sigEsc(cls[i][1]) + '</p>';
     }
+  } else if(row.tipus === 'protocol_caigudes'){
+    var pr = c.protocol || {};
+    var pb = pr.bandes || {}, prs = pr.reserva || {};
+    var _ae = function(n){ return (Math.round(n)||0).toLocaleString('ca-ES') + ' \u20ac'; };
+    h += '<h1>' + _sigEsc(row.titol) + '</h1>';
+    h += '<div class="sub">Regles de conducta acordades abans de la caiguda, per aplicar-les durant.</div>';
+    h += '<div class="sigparts">'
+      + '<div class="sigparty"><div class="lab">Client</div><div class="nm">' + _sigEsc(c.client_nom) + '</div><div class="ln">' + _sigEsc(c.arquetip || 'Perfil financer') + '</div></div>'
+      + '<div class="sigparty"><div class="lab">Assessor</div><div class="nm">' + _sigEsc(_SIG_ASSESSOR.nom) + '</div><div class="ln">' + _sigEsc(_SIG_ASSESSOR.email) + '</div></div>'
+      + '</div>';
+    h += '<div class="sigcl"><span class="no">A</span>Rebalanceig per bandes</div>'
+      + '<p class="sigp">La cartera es rebalanceja quan qualsevol fam\u00edlia d\u2019actius es desvia m\u00e9s de '
+      + _sigNum(pb.abs) + ' punts percentuals absoluts, o m\u00e9s d\u2019un ' + _sigNum(pb.rel)
+      + '% en termes relatius, respecte del seu pes objectiu.</p>';
+    h += '<div class="sigcl"><span class="no">B</span>Aportacions</div>'
+      + '<p class="sigp">' + _sigEsc({ mantenir:'L\u2019aportaci\u00f3 peri\u00f2dica es mant\u00e9 intacta durant tota la caiguda, sense excepcions.', augmentar:'L\u2019aportaci\u00f3 peri\u00f2dica es mant\u00e9 i s\u2019incrementa segons el pla acordat.', pausar:'L\u2019aportaci\u00f3 peri\u00f2dica es pot pausar durant la caiguda.' }[pr.aportacio] || '\u2014') + '</p>';
+    h += '<div class="sigcl"><span class="no">C</span>Vendes</div>'
+      + '<p class="sigp">' + _sigEsc({ no:'No es venen posicions durant la caiguda.', parcial:'Nom\u00e9s es venen posicions si hi ha una necessitat de liquiditat aliena a l\u2019evoluci\u00f3 del mercat.', lliure:'Les vendes queden a criteri del client.' }[pr.venda] || '\u2014') + '</p>';
+    if(prs.actiu && Array.isArray(prs.trams) && prs.trams.length){
+      h += '<div class="sigcl"><span class="no">D</span>Reserva d\u2019oportunitat</div>'
+        + '<p class="sigp">Import designat: <b>' + _sigEsc(_ae(prs.import_total)) + '</b>. Es desplega per trams:</p>'
+        + '<div class="sigfites">';
+      for(var pt=0; pt<prs.trams.length; pt++){
+        var _t = prs.trams[pt] || {};
+        h += '<div class="sigfite"><div><b style="color:#1B3A6B">Caiguda del ' + _sigNum(_t.llindar) + '%</b></div>'
+          + '<div class="r">' + _sigNum(_t.pct) + '% \u00b7 ' + _sigEsc(_ae((prs.import_total||0) * (parseFloat(_t.pct)||0) / 100)) + '</div></div>';
+      }
+      h += '</div>'
+        + '<p class="sigp">Aquesta reserva ha d\u2019existir pr\u00e8viament a la caiguda. No es constitueix aturant aportacions ni venent posicions.</p>';
+    }
+    h += '<div class="sigcl"><span class="no">E</span>Avisos autom\u00e0tics</div>'
+      + '<p class="sigp">El client rebr\u00e0 avisos per correu i notificaci\u00f3 quan un \u00edndex de refer\u00e8ncia de les seves fam\u00edlies d\u2019actius acumuli una caiguda igual o superior al ' + _sigNum(pr.llindar_min) + '% des del seu m\u00e0xim. Aquests avisos recorden les regles d\u2019aquest document i no constitueixen una recomanaci\u00f3 d\u2019inversi\u00f3 nova. El client mant\u00e9 en tot moment la decisi\u00f3 final, i ha de comunicar a l\u2019assessor qualsevol canvi rellevant en la seva situaci\u00f3 personal que aconselli revisar aquestes regles.</p>';
+    h += '<div class="sigcl"><span class="no">F</span>Vig\u00e8ncia</div>'
+      + '<p class="sigp">Aquest protocol es revisa en cada actualitzaci\u00f3 del Full de Ruta i es pot modificar en qualsevol moment de com\u00fa acord. Rendiments passats no garanteixen rendiments futurs; tota inversi\u00f3 comporta risc de p\u00e8rdua de capital.</p>';
   } else {
     h += '<h1>' + _sigEsc(row.titol) + '</h1>';
-    h += '<div class="sub">Objectius, situació de partida i estratègia acordats entre el client i l\'assessor.</div>';
+    h += '<div class="sub">Objectius, situaci\u00f3 de partida i estrat\u00e8gia acordats entre el client i l\'assessor.</div>';
     h += '<div class="sigparts">'
       + '<div class="sigparty"><div class="lab">Client</div><div class="nm">' + _sigEsc(c.client_nom) + '</div><div class="ln">' + _sigEsc(c.arquetip || 'Perfil financer') + '</div></div>'
       + '<div class="sigparty"><div class="lab">Assessor</div><div class="nm">' + _sigEsc(_SIG_ASSESSOR.nom) + '</div><div class="ln">Revisió semestral</div></div>'
@@ -13852,6 +13886,150 @@ function _frVersionsPanelHtml(c){
   return h;
 }
 
+/* ════════════════════════════════════════════════════════════════════════════
+   PROTOCOL DE CAIGUDES · regles acordades ex ante amb el client
+   ────────────────────────────────────────────────────────────────────────────
+   Font única de veritat per al sistema d'alertes de mercat. Les Edge Functions
+   alertes-mercat-* llegeixen fullderuta.protocol; no hi ha còpia paral·lela.
+
+   Marc: un cop signat, una alerta que recorda aquestes regles és seguiment del
+   servei contractat, no una recomanació personalitzada nova (art. 9 Reglament
+   Delegat UE 2017/565). Per això les regles es fixen ABANS de la caiguda.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+var _FR_PROTOCOL_DEFAULT = {
+  actiu: false,
+  bandes: { abs: 5, rel: 25 },
+  llindar_min: 10,
+  aportacio: 'mantenir',
+  venda: 'no',
+  reserva: {
+    actiu: false,
+    import_total: 0,
+    trams: [ { llindar: 15, pct: 25 }, { llindar: 25, pct: 35 }, { llindar: 35, pct: 40 } ]
+  },
+  desplegat: []
+};
+
+// Lectura normalitzada (mai muta res) \u2014 tot amb fallback al default
+function _frProtocol() {
+  var c = getClient() || {};
+  var p = (c.fullderuta && c.fullderuta.protocol) || {};
+  var d = _FR_PROTOCOL_DEFAULT;
+  var b = p.bandes || {};
+  var r = p.reserva || {};
+  var trams = (Array.isArray(r.trams) && r.trams.length) ? r.trams : d.reserva.trams;
+  return {
+    actiu:       p.actiu === true,
+    bandes:      { abs: (b.abs != null ? parseFloat(b.abs) : d.bandes.abs),
+                   rel: (b.rel != null ? parseFloat(b.rel) : d.bandes.rel) },
+    llindar_min: (p.llindar_min != null ? parseInt(p.llindar_min, 10) : d.llindar_min),
+    aportacio:   p.aportacio || d.aportacio,
+    venda:       p.venda || d.venda,
+    reserva:     { actiu: r.actiu === true,
+                   import_total: parseFloat(r.import_total) || 0,
+                   trams: trams },
+    desplegat:   Array.isArray(p.desplegat) ? p.desplegat : []
+  };
+}
+
+// Escriptura \u2014 crea l'estructura si cal i retorna l'objecte viu
+function _frProtocolStore() {
+  var c = getClient();
+  if (!c) return null;
+  if (!c.fullderuta) c.fullderuta = {};
+  if (!c.fullderuta.protocol) {
+    c.fullderuta.protocol = JSON.parse(JSON.stringify(_FR_PROTOCOL_DEFAULT));
+  }
+  var p = c.fullderuta.protocol;
+  if (!p.bandes)  p.bandes  = { abs: 5, rel: 25 };
+  if (!p.reserva) p.reserva = { actiu: false, import_total: 0, trams: [] };
+  if (!Array.isArray(p.reserva.trams)) p.reserva.trams = [];
+  return p;
+}
+
+function _frProtActivar(on) {
+  var p = _frProtocolStore(); if (!p) return;
+  p.actiu = !!on;
+  if (p.actiu && !p.reserva.trams.length) {
+    p.reserva.trams = JSON.parse(JSON.stringify(_FR_PROTOCOL_DEFAULT.reserva.trams));
+  }
+  _frMarkDirty(); _frRerender();
+}
+
+function _frProtNum(cami, el) {
+  var p = _frProtocolStore(); if (!p) return;
+  var v = parseFloat(el.value);
+  if (isNaN(v) || v < 0) v = 0;
+  var parts = cami.split('.');
+  var t = p;
+  for (var i = 0; i < parts.length - 1; i++) {
+    if (!t[parts[i]]) t[parts[i]] = {};
+    t = t[parts[i]];
+  }
+  t[parts[parts.length - 1]] = v;
+  _frMarkDirty(); _frRerender();
+}
+
+function _frProtTria(camp, el) {
+  var p = _frProtocolStore(); if (!p) return;
+  p[camp] = el.value;
+  _frMarkDirty(); _frRerender();
+}
+
+function _frProtReserva(on) {
+  var p = _frProtocolStore(); if (!p) return;
+  p.reserva.actiu = !!on;
+  if (p.reserva.actiu && !p.reserva.trams.length) {
+    p.reserva.trams = JSON.parse(JSON.stringify(_FR_PROTOCOL_DEFAULT.reserva.trams));
+  }
+  _frMarkDirty(); _frRerender();
+}
+
+function _frProtTram(idx, camp, el) {
+  var p = _frProtocolStore(); if (!p) return;
+  var t = p.reserva.trams[idx]; if (!t) return;
+  var v = parseFloat(el.value);
+  if (isNaN(v) || v < 0) v = 0;
+  t[camp] = v;
+  _frMarkDirty(); _frRerender();
+}
+
+function _frProtAddTram() {
+  var p = _frProtocolStore(); if (!p) return;
+  var ultim = p.reserva.trams[p.reserva.trams.length - 1];
+  p.reserva.trams.push({ llindar: ultim ? (parseFloat(ultim.llindar) || 0) + 10 : 15, pct: 0 });
+  _frMarkDirty(); _frRerender();
+}
+
+function _frProtRemoveTram(idx) {
+  var p = _frProtocolStore(); if (!p) return;
+  p.reserva.trams.splice(idx, 1);
+  _frMarkDirty(); _frRerender();
+}
+
+// Genera el document del protocol per enviar a signar (reutilitza el flux
+// existent de signatures: _sigMostrarPreview \u2192 _sigDesarDoc)
+function _frProtSignar() {
+  var c = getClient();
+  if (!c || !c.email) { toast('Aquest client no t\u00e9 correu'); return; }
+  var pr = _frProtocol();
+  if (!pr.actiu) { toast('Activa el protocol abans de generar el document'); return; }
+  if (typeof _sigMostrarPreview !== 'function') { toast('M\u00f2dul de signatures no disponible'); return; }
+
+  var contingut = {
+    client_nom:   c.nom || '',
+    client_email: c.email,
+    arquetip:     (getArquetip(c.arquetipId || 'navegant') || {}).nom || '',
+    protocol:     pr
+  };
+  _sigMostrarPreview(c.email, {
+    tipus: 'protocol_caigudes',
+    titol: 'Protocol de caigudes de mercat',
+    contingut: contingut
+  }, {});
+}
+
 function renderPortalRoadmap(el) {
   // Carregar notes desades abans de res
   _frLoadNotes();
@@ -14366,6 +14544,30 @@ function renderPortalRoadmap(el) {
     + '.fr-admin-panel td{padding:3px 8px 3px 0}'
     + '.fr-admin-panel td:first-child{color:#7A4A00;font-weight:500;width:170px}'
     + '.fr-admin-panel code{background:rgba(212,148,58,.15);padding:1px 5px;border-radius:3px;font-size:10px}'
+
+    // ─── PROTOCOL DE CAIGUDES ───
+    + '.fr-prot-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:20px 0 0}'
+    + '.fr-prot-card{background:#fff;border:1px solid var(--g200);border-radius:12px;padding:18px 20px}'
+    + '.fr-prot-k{font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--g400);margin-bottom:9px}'
+    + '.fr-prot-v{font-family:var(--fm);font-size:20px;font-weight:600;color:#1B3A6B;letter-spacing:-.5px;line-height:1.2}'
+    + '.fr-prot-x{font-size:11.5px;color:var(--g500);line-height:1.6;margin-top:8px}'
+    + '.fr-prot-in{font-family:var(--fm);font-size:15px;font-weight:600;color:#1B3A6B;border:1.5px solid var(--g200);border-radius:7px;padding:5px 8px;width:74px;text-align:right;background:#fff}'
+    + '.fr-prot-in:focus{outline:none;border-color:#1B3A6B}'
+    + '.fr-prot-sel{font-family:var(--fb);font-size:12.5px;color:var(--black);border:1.5px solid var(--g200);border-radius:7px;padding:6px 8px;width:100%;background:#fff}'
+    + '.fr-prot-trams{margin-top:14px;border-top:1px solid var(--g100);padding-top:14px}'
+    + '.fr-prot-tram{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--g100);font-size:12.5px;color:var(--g600)}'
+    + '.fr-prot-tram:last-child{border-bottom:none}'
+    + '.fr-prot-tram-l{font-family:var(--fm);font-size:13px;font-weight:600;color:#8C2F2F;min-width:52px}'
+    + '.fr-prot-tram-e{font-family:var(--fm);font-size:13.5px;font-weight:600;color:#1B3A6B;margin-left:auto}'
+    + '.fr-prot-tram-del{background:transparent;border:none;color:var(--g400);cursor:pointer;font-size:14px;padding:0 2px;line-height:1}'
+    + '.fr-prot-tram-del:hover{color:#C0392B}'
+    + '.fr-prot-add{margin-top:10px;background:transparent;border:1.5px dashed var(--g200);border-radius:8px;padding:7px 14px;font-family:var(--fb);font-size:11.5px;color:var(--g500);cursor:pointer}'
+    + '.fr-prot-add:hover{border-color:#1B3A6B;color:#1B3A6B}'
+    + '.fr-prot-warn{background:#FEF5E7;border:1px solid #E8C285;border-radius:9px;padding:12px 15px;margin-top:14px;font-size:11.5px;color:#7A4A00;line-height:1.6}'
+    + '.fr-prot-off{background:var(--g50);border:1.5px dashed var(--g200);border-radius:12px;padding:26px 24px;text-align:center}'
+    + '.fr-prot-nofer{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}'
+    + '.fr-prot-nofer span{font-family:var(--fm);font-size:11px;color:#8C2F2F;background:#FBEDED;border-radius:99px;padding:5px 12px}'
+    + '.fr-prot-cta{background:#1B3A6B;color:#fff;border:none;border-radius:9px;padding:10px 20px;font-family:var(--fb);font-size:12.5px;font-weight:500;cursor:pointer;margin-top:16px}'
 
     // ─── DADES EDITABLES (capital, aport, horitzó) ───
     + '.fr-dada-val.editable{outline:none;cursor:text;padding:1px 4px;margin:-1px -4px;border-radius:5px;transition:all .15s}'
@@ -15313,6 +15515,181 @@ function renderPortalRoadmap(el) {
     + _plantillaPicker
     + '<div class="fr-tl">' + passosHtml + '</div>'
   + '</div>';
+
+  // ─── 9b. PROTOCOL DE CAIGUDES ──────────────────────────────
+  // Regles acordades ex ante. Les llegeix el sistema d'alertes de mercat.
+  var prot = _frProtocol();
+  var _pNum = function(v) { return (Math.round(v * 100) / 100).toLocaleString('ca-ES'); };
+  var _pEur = function(v) { return Math.round(v).toLocaleString('ca-ES') + ' \u20ac'; };
+
+  html += '<div class="fr-section" id="fr-sec-09">'
+    + '<div class="fr-label">09 \u00b7 Protocol de caigudes</div>'
+    + '<div class="fr-h2">Qu\u00e8 far\u00e0s quan el mercat caigui</div>'
+    + '<div class="fr-lead">Les caigudes del 10% arriben cada un o dos anys; les del 20%, cada quatre o sis. '
+    + 'No es tracta de predir-les sin\u00f3 de decidir <em>ara</em>, amb el cap fred, qu\u00e8 far\u00e0s quan arribin. '
+    + 'Aquestes regles s\u00f3n les que et recordar\u00e0 el sistema d\u2019alertes.</div>';
+
+  if (!prot.actiu) {
+    if (isAdmin) {
+      html += '<div class="fr-prot-off">'
+        + '<div style="font-size:13px;color:var(--g500);line-height:1.7;max-width:460px;margin:0 auto 16px">'
+        +   'Aquest client encara no t\u00e9 protocol de caigudes. Sense ell no rebr\u00e0 alertes de mercat, '
+        +   'perqu\u00e8 no hi hauria cap regla acordada a recordar-li.'
+        + '</div>'
+        + '<button class="fr-prot-cta" onclick="_frProtActivar(true)">Activar el protocol</button>'
+      + '</div>';
+    } else {
+      html += '<div class="fr-prot-off">'
+        + '<div style="font-size:13px;color:var(--g500);line-height:1.7;max-width:460px;margin:0 auto">'
+        +   'Encara no hem fixat el teu protocol de caigudes. \u00c9s una conversa de deu minuts '
+        +   'i val la pena tenir-la abans que faci falta, no durant.'
+        + '</div>'
+      + '</div>';
+    }
+  } else {
+    // ── Targetes de regles ──
+    var apLbl = { mantenir: 'Es mant\u00e9 intacta', augmentar: 'S\u2019augmenta segons pla', pausar: 'Es pausa' }[prot.aportacio] || 'Es mant\u00e9 intacta';
+    var veLbl = { no: 'No es ven', parcial: 'Nom\u00e9s per necessitat de liquiditat', lliure: 'A criteri del client' }[prot.venda] || 'No es ven';
+
+    html += '<div class="fr-prot-grid">';
+
+    // 1. Bandes de rebalanceig
+    html += '<div class="fr-prot-card">'
+      + '<div class="fr-prot-k">Bandes de rebalanceig</div>'
+      + (isAdmin
+          ? '<div style="display:flex;align-items:center;gap:6px">'
+            + '<input class="fr-prot-in" type="number" min="0" step="0.5" value="' + prot.bandes.abs + '" onchange="_frProtNum(\'bandes.abs\',this)">'
+            + '<span class="fr-prot-v">/</span>'
+            + '<input class="fr-prot-in" type="number" min="0" step="1" value="' + prot.bandes.rel + '" onchange="_frProtNum(\'bandes.rel\',this)">'
+            + '</div>'
+          : '<div class="fr-prot-v">' + _pNum(prot.bandes.abs) + ' / ' + _pNum(prot.bandes.rel) + '</div>')
+      + '<div class="fr-prot-x">Es rebalanceja quan una fam\u00edlia es desvia m\u00e9s de <strong>' + _pNum(prot.bandes.abs)
+      +   ' punts absoluts</strong> o m\u00e9s d\u2019un <strong>' + _pNum(prot.bandes.rel) + '% relatiu</strong> del seu pes objectiu. '
+      +   'Rebalancejar en caiguda ja et fa comprar barat sense cap decisi\u00f3 discrecional.</div>'
+    + '</div>';
+
+    // 2. Aportació programada
+    html += '<div class="fr-prot-card">'
+      + '<div class="fr-prot-k">Aportaci\u00f3 programada</div>'
+      + (isAdmin
+          ? '<select class="fr-prot-sel" onchange="_frProtTria(\'aportacio\',this)">'
+            + '<option value="mantenir"' + (prot.aportacio === 'mantenir' ? ' selected' : '') + '>Es mant\u00e9 intacta</option>'
+            + '<option value="augmentar"' + (prot.aportacio === 'augmentar' ? ' selected' : '') + '>S\u2019augmenta segons pla</option>'
+            + '<option value="pausar"' + (prot.aportacio === 'pausar' ? ' selected' : '') + '>Es pausa</option>'
+            + '</select>'
+          : '<div class="fr-prot-v" style="font-size:17px">' + apLbl + '</div>')
+      + '<div class="fr-prot-x">Aportar durant una caiguda no \u00e9s valentia: \u00e9s no fer res. '
+      +   'Guardar liquiditat esperant el terra perd diners de mitjana, perqu\u00e8 el cost d\u2019estar fora supera el descompte.</div>'
+    + '</div>';
+
+    // 3. Venda
+    html += '<div class="fr-prot-card">'
+      + '<div class="fr-prot-k">Venda durant la caiguda</div>'
+      + (isAdmin
+          ? '<select class="fr-prot-sel" onchange="_frProtTria(\'venda\',this)">'
+            + '<option value="no"' + (prot.venda === 'no' ? ' selected' : '') + '>No es ven</option>'
+            + '<option value="parcial"' + (prot.venda === 'parcial' ? ' selected' : '') + '>Nom\u00e9s per necessitat de liquiditat</option>'
+            + '<option value="lliure"' + (prot.venda === 'lliure' ? ' selected' : '') + '>A criteri del client</option>'
+            + '</select>'
+          : '<div class="fr-prot-v" style="font-size:17px">' + veLbl + '</div>')
+      + '<div class="fr-prot-x">El dany real no el fa la caiguda: el fa vendre-hi a dins. '
+      +   'Amb el fons d\u2019emerg\u00e8ncia intacte, cap caiguda de mercat et pot obligar a vendre.</div>'
+    + '</div>';
+
+    // 4. Llindar mínim d'avís
+    html += '<div class="fr-prot-card">'
+      + '<div class="fr-prot-k">A partir de quina caiguda t\u2019avisem</div>'
+      + (isAdmin
+          ? '<div style="display:flex;align-items:center;gap:6px">'
+            + '<span class="fr-prot-v">\u2212</span>'
+            + '<input class="fr-prot-in" type="number" min="5" max="40" step="5" value="' + prot.llindar_min + '" onchange="_frProtNum(\'llindar_min\',this)">'
+            + '<span class="fr-prot-v">%</span></div>'
+          : '<div class="fr-prot-v">\u2212' + prot.llindar_min + '%</div>')
+      + '<div class="fr-prot-x">Per sota d\u2019aquest llindar no rebr\u00e0s cap av\u00eds. '
+      +   'Les caigudes petites passen tres o quatre vegades l\u2019any i no demanen cap acci\u00f3.</div>'
+    + '</div>';
+
+    html += '</div>';   // fi grid
+
+    // ── Reserva d'oportunitat ──
+    var totalPct = 0;
+    for (var ti2 = 0; ti2 < prot.reserva.trams.length; ti2++) {
+      totalPct += parseFloat(prot.reserva.trams[ti2].pct) || 0;
+    }
+
+    html += '<div class="fr-prot-card" style="margin-top:12px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">'
+        + '<div><div class="fr-prot-k" style="margin-bottom:4px">Reserva d\u2019oportunitat</div>'
+        + '<div style="font-size:11.5px;color:var(--g500);line-height:1.6;max-width:420px">Capital ja designat que es desplega per trams a mesura que la caiguda s\u2019aprofundeix. Opcional.</div></div>'
+        + (isAdmin
+            ? '<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--g600);cursor:pointer">'
+              + '<input type="checkbox"' + (prot.reserva.actiu ? ' checked' : '') + ' onchange="_frProtReserva(this.checked)" style="width:16px;height:16px;accent-color:#1B3A6B;cursor:pointer">'
+              + 'Activada</label>'
+            : '')
+      + '</div>';
+
+    if (prot.reserva.actiu) {
+      html += '<div class="fr-prot-trams">'
+        + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
+          + '<span style="font-size:12px;color:var(--g600)">Import total designat</span>'
+          + (isAdmin
+              ? '<input class="fr-prot-in" style="width:110px" type="number" min="0" step="100" value="' + prot.reserva.import_total + '" onchange="_frProtNum(\'reserva.import_total\',this)">'
+              : '<span class="fr-prot-tram-e" style="margin-left:0">' + _pEur(prot.reserva.import_total) + '</span>')
+        + '</div>';
+
+      for (var ti = 0; ti < prot.reserva.trams.length; ti++) {
+        var tr = prot.reserva.trams[ti];
+        var trPct = parseFloat(tr.pct) || 0;
+        var trEur = prot.reserva.import_total * trPct / 100;
+        html += '<div class="fr-prot-tram">'
+          + (isAdmin
+              ? '<span class="fr-prot-tram-l">\u2212<input class="fr-prot-in" style="width:52px;font-size:13px" type="number" min="0" max="90" step="5" value="' + (tr.llindar || 0) + '" onchange="_frProtTram(' + ti + ',\'llindar\',this)">%</span>'
+              : '<span class="fr-prot-tram-l">\u2212' + (tr.llindar || 0) + '%</span>')
+          + '<span>desplega</span>'
+          + (isAdmin
+              ? '<input class="fr-prot-in" style="width:56px;font-size:13px" type="number" min="0" max="100" step="5" value="' + trPct + '" onchange="_frProtTram(' + ti + ',\'pct\',this)"><span>%</span>'
+              : '<span>' + _pNum(trPct) + '%</span>')
+          + '<span class="fr-prot-tram-e">' + _pEur(trEur) + '</span>'
+          + (isAdmin ? '<button class="fr-prot-tram-del" onclick="_frProtRemoveTram(' + ti + ')" title="Eliminar tram">\u00d7</button>' : '')
+        + '</div>';
+      }
+
+      if (isAdmin) {
+        html += '<button class="fr-prot-add" onclick="_frProtAddTram()">\uFF0B Afegir tram</button>';
+      }
+      if (Math.abs(totalPct - 100) > 0.5) {
+        html += '<div class="fr-prot-warn"><strong>Els trams sumen ' + _pNum(totalPct) + '%</strong>, no 100%. '
+          + (totalPct < 100 ? 'Quedaria reserva sense assignar.' : 'Es desplegaria m\u00e9s del que hi ha.') + '</div>';
+      }
+      html += '<div class="fr-prot-warn" style="background:#F4F7FB;border-color:#D7DEEA;color:#1B3A6B">'
+        + 'La reserva ha d\u2019existir <strong>abans</strong> de la caiguda. Si es crea aturant aportacions o venent posicions, '
+        + 'deixa de ser una reserva i passa a ser un intent d\u2019encertar el terra \u2014 que \u00e9s precisament el que aquest protocol evita.'
+      + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // ── Què no fer ──
+    html += '<div style="margin-top:22px">'
+      + '<div class="fr-prot-k">Qu\u00e8 no far\u00e0s, passi el que passi</div>'
+      + '<div class="fr-prot-nofer">'
+        + '<span>Vendre per p\u00e0nic</span>'
+        + '<span>Aturar aportacions</span>'
+        + '<span>Canviar d\u2019estrat\u00e8gia enmig de la caiguda</span>'
+        + '<span>Mirar la cartera cada dia</span>'
+      + '</div>'
+    + '</div>';
+
+    if (isAdmin) {
+      html += '<button class="fr-prot-cta" onclick="_frProtSignar()">Generar document per signar \u2192</button>'
+        + '<div style="font-size:10.5px;color:var(--g400);line-height:1.6;margin-top:8px;max-width:520px">'
+        +   'Fins que el client no signi el protocol, les alertes de mercat s\u00f3n una recomanaci\u00f3 nova. '
+        +   'Un cop signat, s\u00f3n seguiment del pla acordat.'
+        + '</div>';
+    }
+  }
+
+  html += '</div>';
 
   // ─── 10. CLOSING (missatge personal) ───────────────────────
   var closingVal = notes.closing || '';
