@@ -3077,6 +3077,19 @@ function normalizeClient(raw) {
     //   euribor_previst,comissio_amort_pct,segurs_anuals,preu_habitatge,
     //   deduccio_pre2013,amortitzacions:[{id,mes,import,mode,data}]}]
     hipoteques: Array.isArray(raw.hipoteques) ? raw.hipoteques : [],
+
+    // ── Preferències de notificació ──
+    // Es passen tal qual (poden ser undefined en files antigues): les vistes
+    // apliquen el seu propi default amb !== false / === true. Sense això la
+    // pantalla de notificacions mostrava sempre els valors per defecte encara
+    // que el client n'hagués desat d'altres.
+    notification_email:    raw.notification_email || null,
+    notify_informe:        raw.notify_informe,
+    notify_missatge_admin: raw.notify_missatge_admin,
+    notify_comunitat:      raw.notify_comunitat,
+    notify_recordatori:    raw.notify_recordatori,
+    notify_newsletter:     raw.notify_newsletter,
+    notify_alertes_mercat: raw.notify_alertes_mercat,
   };
 }
 
@@ -7360,6 +7373,13 @@ function renderPortalNotificacions(el) {
   var nInforme   = c.notify_informe !== false;            // default true
   var nMissatge  = c.notify_missatge_admin !== false;     // default true
   var nComunitat = c.notify_comunitat === true;           // default false
+  var nAlertes   = c.notify_alertes_mercat !== false;     // default true
+
+  // El protocol de caigudes viu al Full de Ruta i és el que dóna sentit a
+  // aquestes alertes: sense protocol actiu i signat, no se n'envia cap.
+  var _protCli   = (c.fullderuta && c.fullderuta.protocol) || {};
+  var _protActiu = _protCli.actiu === true;
+  var _protLlind = _protCli.llindar_min != null ? parseInt(_protCli.llindar_min, 10) : 10;
 
   var html = '<div class="content-inner fade-in" style="max-width:780px;margin:0 auto">';
 
@@ -7394,6 +7414,21 @@ function renderPortalNotificacions(el) {
     + notifToggle('notif-comunitat', '' + TBI_ICO.svg('megaphone') + ' Comunicats a la comunitat',
         'Notícies, anàlisis destacades i avisos enviats a tots els clients. Desmarcat per defecte per evitar excés de correus.',
         nComunitat)
+
+    + notifToggle('notif-alertes', '' + TBI_ICO.svg('trend-down') + ' Alertes de caiguda de mercat',
+        'Quan un dels \u00edndexs de refer\u00e8ncia de la teva cartera acumuli una caiguda important, '
+        + 't\u2019avisem amb la teva exposici\u00f3 real i el que diu el teu pla. Mai m\u00e9s de dos avisos al mes.',
+        nAlertes)
+
+    + (_protActiu
+        ? '<div style="font-size:11px;color:var(--g500);line-height:1.6;padding:10px 14px;background:var(--g50);border-radius:8px;margin-top:12px">'
+          + 'Ara mateix t\u2019avisem a partir d\u2019una caiguda del <strong>' + _protLlind + '%</strong>, segons el protocol de caigudes del teu Full de Ruta. '
+          + '<a href="#" onclick="navigateTo(\'portal-roadmap\');return false" style="color:#1B3A6B">Revisar-lo \u2192</a>'
+          + '</div>'
+        : '<div style="font-size:11px;color:#7A4A00;line-height:1.6;padding:10px 14px;background:#FEF5E7;border:1px solid #E8C285;border-radius:8px;margin-top:12px">'
+          + 'Encara no tens el protocol de caigudes fixat al Full de Ruta. Fins que no el tinguis, no t\u2019enviarem aquestes alertes: '
+          + 'l\u2019av\u00eds nom\u00e9s t\u00e9 sentit si abans hem acordat qu\u00e8 far\u00e0s quan arribi la caiguda.'
+          + '</div>')
 
   + '</div>';
 
@@ -7451,6 +7486,8 @@ async function guardarNotificacions() {
   var nInforme   = document.getElementById('notif-informe').checked;
   var nMissatge  = document.getElementById('notif-missatge').checked;
   var nComunitat = document.getElementById('notif-comunitat').checked;
+  var _elAl      = document.getElementById('notif-alertes');
+  var nAlertes   = _elAl ? _elAl.checked : true;
   var btn = document.getElementById('notif-btn');
   var msg = document.getElementById('notif-msg');
 
@@ -7463,6 +7500,7 @@ async function guardarNotificacions() {
       notify_informe:         nInforme,
       notify_missatge_admin:  nMissatge,
       notify_comunitat:       nComunitat,
+      notify_alertes_mercat:  nAlertes,
     }).eq('email', email.toLowerCase()).select('id,email');
     if (res.error) throw res.error;
 
@@ -7472,6 +7510,7 @@ async function guardarNotificacions() {
       APP.clientData.notify_informe        = nInforme;
       APP.clientData.notify_missatge_admin = nMissatge;
       APP.clientData.notify_comunitat      = nComunitat;
+      APP.clientData.notify_alertes_mercat = nAlertes;
     }
 
     msg.style.display = 'block';
