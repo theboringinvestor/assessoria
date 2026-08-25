@@ -15,6 +15,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <script src="tbi-icones.js"></script>
 <script src="tbi-cartera.js"></script>
+<script src="tbi-recurrents.js"></script>
 <script src="tbi-perfil.js"></script>
 <script src="tbi-hipoteca.js"></script>
 <script src="tbi-fiscal.js"></script>
@@ -3052,6 +3053,9 @@ function normalizeClient(raw) {
     // tipus pot ser: 'compra', 'venda', 'dividend', 'comissio'
     posicions: Array.isArray(raw.posicions) ? raw.posicions : [],
     moviments_posicions: Array.isArray(raw.moviments_posicions) ? raw.moviments_posicions : [],
+    // aportacions_recurrents: ordres permanents del broker (una regla per posicio).
+    // Motor a tbi-recurrents.js. No generen moviments soles: proposen i es confirmen.
+    aportacions_recurrents: Array.isArray(raw.aportacions_recurrents) ? raw.aportacions_recurrents : [],
     // Alias per compatibilitat: algunes funcions llegeixen cartera_actual_usuari
     cartera_actual_usuari: Array.isArray(raw.posicions) ? raw.posicions : [],
     informes: Array.isArray(raw.informes) ? raw.informes : [],
@@ -3193,6 +3197,471 @@ function getMovimentsV2() {
   var c = getClient();
   if (!c) return [];
   return Array.isArray(c.moviments_posicions) ? c.moviments_posicions : [];
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// APORTACIONS RECORRENTS (F1b)
+// Molts clients tenen una ordre permanent al broker i passen mesos sense
+// registrar-la. Aquí es defineix la regla un cop i l'app proposa les compres
+// vençudes perquè es confirmin d'un clic (o se'n salti alguna).
+// Motor de dates i validació: tbi-recurrents.js (TBI_RECURRENTS).
+// ════════════════════════════════════════════════════════════════════════════
+
+function getRecurrents() {
+  var c = getClient();
+  if (!c) return [];
+  return TBI_RECURRENTS.normalitzaLlista(c.aportacions_recurrents);
+}
+
+// Resum del que hi ha vençut i no confirmat.
+function pendentsRecurrents() {
+  return TBI_RECURRENTS.resumPendents(getRecurrents(), getPosicionsV2());
+}
+
+// Desa regles (+ opcionalment posicions/moviments) a Supabase i al cache local.
+async function _persistirRecurrents(regles, posicions, moviments) {
+  var payload = { aportacions_recurrents: regles };
+  if (posicions) payload.posicions = posicions;
+  if (moviments) payload.moviments_posicions = moviments;
+  if (sb && APP.user && APP.user.email) {
+    var res = await sb.from('clients').update(payload).eq('email', getClientEmail()).select('email');
+    if (res.error) throw res.error;
+  }
+  if (APP.clientData) {
+    APP.clientData.aportacions_recurrents = regles;
+    if (posicions) APP.clientData.posicions = posicions;
+    if (moviments) APP.clientData.moviments_posicions = moviments;
+  }
+}
+
+// Refresca el snapshot del mes en curs (mateixa lògica que l'actualització mensual).
+function _snapMesActual(posicions, moviments) {
+  var data = new Date().toISOString().slice(0,10);
+  var mes = data.slice(0,7);
+  var valorTotal = posicions.reduce(function(s,p){ return s + (parseFloat(p.valor_actual)||0); }, 0);
+  var invertit = 0;
+  moviments.forEach(function(m){ var im = parseFloat(m['import'])||0; if (m.tipus==='compra') invertit += im; if (m.tipus==='venda') invertit -= im; });
+  var snaps = Array.isArray(APP.clientData && APP.clientData.snapshots_cartera) ? APP.clientData.snapshots_cartera.slice() : [];
+  var idx = snaps.findIndex(function(s){ return s.mes === mes; });
+  var nou = { mes:mes, data:data, valor:valorTotal, invertit:invertit };
+  if (idx >= 0) snaps[idx] = nou; else snaps.push(nou);
+  snaps.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+  return snaps;
+}
+
+function _nomPosicio(p) {
+  if (!p) return '—';
+  var taxon = ACTIUS_TAXONOMY.find(function(a){ return a.id === p.cat; });
+  return (taxon ? taxon.emoji + ' ' : '') + (p.nom || (taxon ? taxon.ca : p.cat));
+}
+
+// ── Banner: hi ha aportacions vençudes per confirmar ──────────────────────
+function renderAvisRecurrents() {
+  var res = pendentsRecurrents();
+  if (!res.total_mov) return '';
+  var quantes = res.total_mov === 1 ? '1 aportació recorrent pendent' : res.total_mov + ' aportacions recorrents pendents';
+  var primera = res.files[0].dates[0];
+  return '<div style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:#EBF0FA;border:1px solid #B9C9E6;border-radius:11px;margin-bottom:18px">'
+    + '<div style="font-size:22px;flex-shrink:0">' + TBI_ICO.svg('refresh') + '</div>'
+    + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:12px;font-weight:600;color:#1B3A6B">' + quantes + '</div>'
+      + '<div style="font-size:11px;color:#33528C;line-height:1.5;margin-top:2px">Des del ' + TBI_RECURRENTS.dataCurta(primera)
+        + ', les teves ordres permanents haurien fet ' + res.total_mov + ' compra' + (res.total_mov>1?'es':'')
+        + '. Confirma-les per posar el cost de la cartera al dia.</div>'
+    + '</div>'
+    + '<button onclick="obrirModalConfirmarRecurrents()" style="padding:8px 16px;background:#1B3A6B;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fb);white-space:nowrap;flex-shrink:0">Revisar ' + Math.round(res.total_eur).toLocaleString('ca-ES') + '€</button>'
+  + '</div>';
+}
+
+// Indicador per a l'assessor a la llista de clients: aportacions recorrents
+// vencudes i encara no confirmades per aquell client.
+function _badgeRecurrentsClient(c) {
+  if (!c || typeof TBI_RECURRENTS === 'undefined') return '';
+  var res = TBI_RECURRENTS.resumPendents(c.aportacions_recurrents, c.posicions);
+  if (!res.total_mov) return '';
+  return ' <span title="' + res.total_mov + ' aportacions recorrents pendents de confirmar" style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:#EBF0FA;color:#1B3A6B;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.04em;vertical-align:middle">\u21bb ' + res.total_mov + ' pendents</span>';
+}
+
+// Petit comptador al costat de l'enllac de gestio.
+function _badgeRecurrents() {
+  var res = pendentsRecurrents();
+  if (!res.total_mov) return '';
+  return ' <span style="display:inline-block;min-width:16px;padding:0 5px;border-radius:99px;background:#1B3A6B;color:#fff;font-family:var(--fm);font-size:9px;font-weight:600;text-align:center;line-height:16px">' + res.total_mov + '</span>';
+}
+
+// ── Pas 1 de l'actualitzacio mensual: aportacions recorrents vencudes ─────
+// Es el punt natural per confirmar-les: primer entren els diners aportats,
+// despres s'escriuen els valors de mercat reals. Aixi el rendiment no es
+// distorsiona (el cost puja i el valor tambe, cadascun pel seu costat).
+function _recPasWizard() {
+  var res = pendentsRecurrents();
+  if (!res.total_mov) return '';
+  return '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:6px">1 \u00b7 Aportacions recorrents pendents</div>'
+    + '<div style="font-size:11.5px;color:var(--g500);line-height:1.6;margin-bottom:10px">Les teves ordres permanents haurien fet aquestes compres. Desmarca les que no es van executar.</div>'
+    + '<div style="border:1px solid var(--g100);border-radius:11px;padding:4px 14px;margin-bottom:10px">' + _htmlFilesPendents(res, 'movr') + '</div>'
+    + '<div style="display:flex;justify-content:flex-end;align-items:baseline;gap:8px;margin-bottom:22px;font-size:11px;color:var(--g500)">A registrar: <span id="movr-total" style="font-family:var(--fm);font-size:13px;font-weight:600;color:var(--black)">\u2014</span></div>';
+}
+
+// Numeracio dels passos: si hi ha aportacions pendents, tot corre una posicio.
+function _wizPas(n) {
+  return pendentsRecurrents().total_mov ? (n + 1) : n;
+}
+
+// ── Modal: gestionar les regles ───────────────────────────────────────────
+function obrirModalRecurrents() {
+  var modal = document.createElement('div');
+  modal.id = 'modal-recurrents';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto';
+  var inner = document.createElement('div');
+  inner.id = 'modal-recurrents-inner';
+  inner.style.cssText = 'background:#fff;border-radius:16px;max-width:620px;width:100%;padding:26px 28px;margin:auto';
+  inner.innerHTML = _htmlRecurrents();
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+function _refrescarModalRecurrents() {
+  var el = document.getElementById('modal-recurrents-inner');
+  if (el) el.innerHTML = _htmlRecurrents();
+}
+
+function _htmlRecurrents() {
+  var regles = getRecurrents();
+  var posicions = getPosicionsV2();
+  var anual = TBI_RECURRENTS.importAnualitzat(regles);
+
+  var files;
+  if (!regles.length) {
+    files = '<div style="padding:26px 20px;text-align:center;background:var(--g50);border-radius:11px">'
+      + '<div style="font-size:13px;font-weight:500;color:var(--black);margin-bottom:6px">Encara no tens cap aportació recorrent</div>'
+      + '<div style="font-size:11.5px;color:var(--g500);line-height:1.6;max-width:400px;margin:0 auto">Si tens una ordre permanent al broker (per exemple 160€ el dia 1 de cada mes a un fons), defineix-la aquí una vegada i l’app et proposarà cada compra perquè la confirmis d’un clic.</div>'
+    + '</div>';
+  } else {
+    files = regles.map(function(r){
+      var pos = posicions.find(function(p){ return p.id === r.posicio_id; });
+      var pend = pos ? TBI_RECURRENTS.pendents(r) : [];
+      var propera = TBI_RECURRENTS.properaData(r);
+      var estatBadge = !pos
+        ? '<span style="font-size:9px;padding:2px 7px;border-radius:99px;background:#FDF0F0;color:#8B1A1A;font-weight:600">POSICIÓ ESBORRADA</span>'
+        : (r.actiu
+            ? '<span style="font-size:9px;padding:2px 7px;border-radius:99px;background:#EAF3DE;color:#1A5C3A;font-weight:600">ACTIVA</span>'
+            : '<span style="font-size:9px;padding:2px 7px;border-radius:99px;background:var(--g100);color:var(--g500);font-weight:600">EN PAUSA</span>');
+      var sub = TBI_RECURRENTS.resumRegla(r);
+      if (pos && r.actiu && propera) sub += ' · propera: ' + TBI_RECURRENTS.dataCurta(propera);
+      var pendTxt = pend.length
+        ? '<div style="font-size:10.5px;color:#1B3A6B;margin-top:5px;font-weight:500">' + pend.length + ' pendent' + (pend.length>1?'s':'') + ' de confirmar · ' + Math.round(pend.length * r['import']).toLocaleString('ca-ES') + '€</div>'
+        : '';
+      return '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--g50)">'
+        + '<div style="flex:1;min-width:0">'
+          + '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-size:12.5px;font-weight:500;color:var(--black)">' + _nomPosicio(pos) + '</span>' + estatBadge + '</div>'
+          + '<div style="font-family:var(--fm);font-size:11px;color:var(--g500);margin-top:3px">' + sub + '</div>'
+          + (r.nota ? '<div style="font-size:10.5px;color:var(--g400);margin-top:2px">' + r.nota + '</div>' : '')
+          + pendTxt
+        + '</div>'
+        + '<div style="display:flex;gap:4px;flex-shrink:0">'
+          + (pos ? '<button onclick="toggleRecurrent(\'' + r.id + '\')" title="' + (r.actiu?'Posar en pausa':'Reactivar') + '" style="padding:5px 9px;background:transparent;border:1.5px solid var(--g200);border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">' + (r.actiu?'Pausa':'Activar') + '</button>' : '')
+          + (pos ? '<button onclick="obrirModalEditarRecurrent(\'' + r.id + '\')" title="Editar" style="padding:5px 9px;background:transparent;border:1.5px solid var(--g200);border-radius:7px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Editar</button>' : '')
+          + '<button onclick="esborrarRecurrent(\'' + r.id + '\')" title="Esborrar" style="padding:5px 9px;background:transparent;border:none;color:var(--g400);font-size:15px;cursor:pointer">×</button>'
+        + '</div>'
+      + '</div>';
+    }).join('');
+  }
+
+  var peu = regles.length
+    ? '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:14px;font-size:11px;color:var(--g500)">'
+      + '<span>Total programat: <strong style="font-family:var(--fm);color:var(--black)">' + Math.round(anual).toLocaleString('ca-ES') + '€/any</strong></span>'
+      + '</div>'
+    : '';
+
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px">'
+      + '<div style="font-family:var(--fd);font-size:23px;font-weight:400">' + TBI_ICO.svg('refresh') + ' Aportacions recorrents</div>'
+      + '<button onclick="document.getElementById(\'modal-recurrents\').remove()" style="background:none;border:none;color:var(--g400);font-size:20px;cursor:pointer;line-height:1">×</button>'
+    + '</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.6">Registra aquí les ordres permanents que ja tens al broker. L’app no inventa res: quan una aportació venci, te la proposarà perquè la confirmis (o la saltis si aquell mes no es va executar).</div>'
+    + '<div style="margin-bottom:8px">' + files + '</div>'
+    + peu
+    + '<div style="display:flex;gap:10px;justify-content:space-between;margin-top:18px;border-top:1px solid var(--g100);padding-top:16px;flex-wrap:wrap">'
+      + '<button onclick="obrirModalEditarRecurrent()" ' + (posicions.length ? '' : 'disabled title="Primer crea una posició" ') + 'style="padding:10px 18px;background:transparent;border:1.5px dashed var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)' + (posicions.length ? '' : ';opacity:.5;cursor:not-allowed') + '">+ Nova aportació recorrent</button>'
+      + '<button onclick="document.getElementById(\'modal-recurrents\').remove()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Fet</button>'
+    + '</div>';
+}
+
+// ── Modal: crear / editar una regla ───────────────────────────────────────
+function obrirModalEditarRecurrent(reglaId, posicioIdPre) {
+  var posicions = getPosicionsV2();
+  if (!posicions.length) { toast('Primer crea una posició'); return; }
+  var r = reglaId ? getRecurrents().find(function(x){ return x.id === reglaId; }) : null;
+  var avui = new Date().toISOString().slice(0,10);
+
+  var optsPos = posicions.map(function(p){
+    var sel = (r ? r.posicio_id === p.id : posicioIdPre === p.id) ? ' selected' : '';
+    return '<option value="' + p.id + '"' + sel + '>' + _nomPosicio(p) + '</option>';
+  }).join('');
+  var optsPer = TBI_RECURRENTS.PERIODICITATS.map(function(p){
+    var sel = (r && r.periodicitat === p.id) || (!r && p.id === 'mensual') ? ' selected' : '';
+    return '<option value="' + p.id + '"' + sel + '>' + p.label + '</option>';
+  }).join('');
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-recurrent-edit';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:14px;max-width:480px;width:100%;padding:26px 30px;margin:auto';
+
+  function lbl(txt, opt) {
+    return '<label style="font-size:11px;font-weight:500;color:var(--g500);display:block;margin-bottom:4px">' + txt + (opt ? ' <span style="color:var(--g400);font-weight:400">(opcional)</span>' : '') + '</label>';
+  }
+  var inpCss = 'width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fb)';
+  var numCss = 'width:100%;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:13px;font-family:var(--fm);text-align:right';
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:22px;font-weight:400;margin-bottom:6px">' + (r ? 'Editar aportació recorrent' : 'Nova aportació recorrent') + '</div>'
+    + '<div style="font-size:11.5px;color:var(--g500);margin-bottom:18px;line-height:1.6">La data de la primera aportació marca el dia del mes que es repetirà. Si el mes no té aquest dia, s’usa l’últim.</div>'
+    + '<div style="display:flex;flex-direction:column;gap:14px">'
+      + '<div>' + lbl('Posició') + '<select id="rec-pos" style="' + inpCss + '">' + optsPos + '</select></div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+        + '<div>' + lbl('Import (€)') + '<input id="rec-import" type="number" min="0" step="0.01" value="' + (r ? r['import'] : '') + '" placeholder="0.00" style="' + numCss + '"></div>'
+        + '<div>' + lbl('Freqüència') + '<select id="rec-per" style="' + inpCss + '">' + optsPer + '</select></div>'
+      + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+        + '<div>' + lbl('Primera aportació') + '<input id="rec-inici" type="date" value="' + (r ? r.data_inici : avui) + '" style="' + inpCss + '"></div>'
+        + '<div>' + lbl('Fins a', true) + '<input id="rec-fi" type="date" value="' + (r && r.data_fi ? r.data_fi : '') + '" style="' + inpCss + '"></div>'
+      + '</div>'
+      + '<div>' + lbl('Nota', true) + '<input id="rec-nota" type="text" value="' + (r ? String(r.nota).replace(/"/g,'&quot;') : '') + '" placeholder="Ex: ordre permanent MyInvestor" style="' + inpCss + ';font-size:12px"></div>'
+    + '</div>'
+    + '<div id="rec-preview" style="margin-top:16px;padding:11px 14px;background:#EBF0FA;border-left:3px solid #1B3A6B;border-radius:6px;font-size:11.5px;color:#1B3A6B;line-height:1.6"></div>'
+    + '<div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">'
+      + '<button onclick="document.getElementById(\'modal-recurrent-edit\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Cancel·lar</button>'
+      + '<button onclick="guardarRecurrent(' + (r ? '\'' + r.id + '\'' : '') + ')" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">' + (r ? 'Desar' : 'Crear') + ' →</button>'
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+
+  ['rec-import','rec-per','rec-inici','rec-fi'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) { el.addEventListener('input', _recPreview); el.addEventListener('change', _recPreview); }
+  });
+  _recPreview();
+}
+
+// Previsualització honesta: quantes compres crearia AVUI aquesta regla.
+function _recPreview() {
+  var el = document.getElementById('rec-preview'); if (!el) return;
+  var imp = parseFloat((document.getElementById('rec-import')||{}).value) || 0;
+  var per = (document.getElementById('rec-per')||{}).value || 'mensual';
+  var ini = (document.getElementById('rec-inici')||{}).value || '';
+  var fi  = (document.getElementById('rec-fi')||{}).value || null;
+  if (!(imp > 0) || !ini) { el.innerHTML = 'Omple l’import i la data de la primera aportació per veure què passarà.'; return; }
+  var regla = { id:'preview', posicio_id:'x', 'import':imp, periodicitat:per, data_inici:ini, data_fi:fi };
+  var pend = TBI_RECURRENTS.pendents(regla);
+  var propera = TBI_RECURRENTS.properaData(regla);
+  var anual = imp * (12 / TBI_RECURRENTS.periodicitat(per).mesos);
+  var txt = '<strong>' + Math.round(anual).toLocaleString('ca-ES') + '€ a l’any</strong> a aquesta posició.';
+  if (pend.length) {
+    txt += '<br>Es proposaran <strong>' + pend.length + ' compra' + (pend.length>1?'es':'') + ' ja vençudes</strong> ('
+      + TBI_RECURRENTS.dataCurta(pend[0]) + (pend.length>1 ? ' → ' + TBI_RECURRENTS.dataCurta(pend[pend.length-1]) : '')
+      + ') per un total de ' + Math.round(pend.length*imp).toLocaleString('ca-ES') + '€. Les podràs revisar una a una abans de registrar-les.';
+  } else if (propera) {
+    txt += '<br>Cap compra vençuda ara mateix. La propera serà el ' + TBI_RECURRENTS.dataCurta(propera) + '.';
+  }
+  el.innerHTML = txt;
+}
+
+async function guardarRecurrent(reglaId) {
+  var nova = {
+    id: reglaId || null,
+    posicio_id: document.getElementById('rec-pos').value,
+    'import': parseFloat(document.getElementById('rec-import').value) || 0,
+    periodicitat: document.getElementById('rec-per').value,
+    data_inici: document.getElementById('rec-inici').value,
+    data_fi: document.getElementById('rec-fi').value || null,
+    nota: document.getElementById('rec-nota').value.trim(),
+    actiu: true
+  };
+  var err = TBI_RECURRENTS.valida(nova);
+  if (err) { toast(err); return; }
+
+  var regles = getRecurrents();
+  if (reglaId) {
+    var idx = regles.findIndex(function(x){ return x.id === reglaId; });
+    if (idx >= 0) {
+      // Conservem historial: marca d'aigua i saltades no es toquen en editar.
+      nova.id = reglaId;
+      nova.actiu = regles[idx].actiu;
+      nova.processada_fins = regles[idx].processada_fins;
+      nova.saltades = regles[idx].saltades;
+      regles[idx] = TBI_RECURRENTS.normalitza(nova);
+    }
+  } else {
+    regles.push(TBI_RECURRENTS.normalitza(nova));
+  }
+
+  try {
+    await _persistirRecurrents(regles);
+    var m = document.getElementById('modal-recurrent-edit'); if (m) m.remove();
+    toast('✓ Aportació recorrent desada');
+    if (document.getElementById('modal-recurrents')) _refrescarModalRecurrents();
+    else renderView('portal-cartera');
+  } catch(e) { toast('Error: ' + (e.message||e)); }
+}
+
+async function toggleRecurrent(reglaId) {
+  var regles = getRecurrents();
+  var idx = regles.findIndex(function(x){ return x.id === reglaId; });
+  if (idx < 0) return;
+  regles[idx].actiu = !regles[idx].actiu;
+  try {
+    await _persistirRecurrents(regles);
+    toast(regles[idx].actiu ? '✓ Aportació reactivada' : '✓ Aportació en pausa');
+    if (document.getElementById('modal-recurrents')) _refrescarModalRecurrents();
+    else renderView('portal-cartera');
+  } catch(e) { toast('Error: ' + (e.message||e)); }
+}
+
+async function esborrarRecurrent(reglaId) {
+  if (!confirm('Esborrar aquesta aportació recorrent?\n\nEls moviments ja registrats es mantenen.')) return;
+  var regles = getRecurrents().filter(function(x){ return x.id !== reglaId; });
+  try {
+    await _persistirRecurrents(regles);
+    toast('✓ Aportació recorrent esborrada');
+    if (document.getElementById('modal-recurrents')) _refrescarModalRecurrents();
+    else renderView('portal-cartera');
+  } catch(e) { toast('Error: ' + (e.message||e)); }
+}
+
+// ── Modal: confirmar les aportacions vençudes ─────────────────────────────
+function obrirModalConfirmarRecurrents() {
+  var res = pendentsRecurrents();
+  if (!res.total_mov) { toast('No hi ha aportacions pendents'); return; }
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-rec-confirm';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto';
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:16px;max-width:600px;width:100%;padding:26px 28px;margin:auto';
+
+  inner.innerHTML = '<div style="font-family:var(--fd);font-size:23px;font-weight:400;margin-bottom:5px">' + TBI_ICO.svg('refresh') + ' Aportacions pendents</div>'
+    + '<div style="font-size:12px;color:var(--g500);margin-bottom:18px;line-height:1.6">Aquestes compres les hauria fet la teva ordre permanent. Desmarca les que no es van executar i ajusta l’import si aquell mes va ser diferent.</div>'
+    + '<div id="rec-conf-rows">' + _htmlFilesPendents(res, 'recc') + '</div>'
+    + '<div style="font-size:11px;color:var(--g500);background:var(--g50);border-radius:8px;padding:11px 14px;line-height:1.6;margin-top:14px">'
+      + 'L’import confirmat se suma també al valor de mercat de la posició (assumpció neutra: els diners hi han entrat). Quan actualitzis els valors reals del broker, aquells manaran.'
+    + '</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--g100);padding-top:16px;margin-top:16px;gap:12px;flex-wrap:wrap">'
+      + '<div style="font-size:11px;color:var(--g500)">Total a registrar<br><span id="rec-conf-total" style="font-family:var(--fm);font-size:18px;font-weight:600;color:var(--black)">—</span></div>'
+      + '<div style="display:flex;gap:10px">'
+        + '<button onclick="document.getElementById(\'modal-rec-confirm\').remove()" style="padding:10px 18px;background:transparent;border:1.5px solid var(--g200);border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--fb);color:var(--g600)">Ara no</button>'
+        + '<button onclick="confirmarRecurrents()" style="padding:10px 22px;background:var(--black);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--fb)">Registrar →</button>'
+      + '</div>'
+    + '</div>';
+
+  modal.appendChild(inner);
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+  _recConfRecalc();
+}
+
+// Files de pendents reutilitzables (modal propi i pas 1 de l'actualitzacio mensual).
+function _htmlFilesPendents(res, prefix) {
+  return res.files.map(function(f){
+    var files = f.dates.map(function(d){
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0 7px 4px">'
+        + '<input type="checkbox" class="' + prefix + '-chk" data-regla="' + f.regla.id + '" data-data="' + d + '" checked onchange="_recConfRecalc()" style="width:16px;height:16px;accent-color:#1B3A6B;cursor:pointer;flex-shrink:0">'
+        + '<div style="flex:1;min-width:0;font-size:12px;color:var(--g600)">' + TBI_RECURRENTS.dataCurta(d) + ' <span style="color:var(--g400)">· ' + TBI_RECURRENTS.mesLlarg(d) + '</span></div>'
+        + '<input type="text" inputmode="decimal" class="' + prefix + '-imp" data-regla="' + f.regla.id + '" data-data="' + d + '" value="' + f.regla['import'] + '" oninput="_recConfRecalc()" style="width:96px;padding:6px 9px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:var(--fm);text-align:right">'
+        + '<span style="font-size:11px;color:var(--g400)">€</span>'
+      + '</div>';
+    }).join('');
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--g50)">'
+      + '<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px">'
+        + '<span style="font-size:12.5px;font-weight:500;color:var(--black)">' + _nomPosicio(f.posicio) + '</span>'
+        + '<span style="font-family:var(--fm);font-size:10.5px;color:var(--g400)">' + TBI_RECURRENTS.resumRegla(f.regla) + '</span>'
+      + '</div>'
+      + files
+    + '</div>';
+  }).join('');
+}
+
+function _recConfRecalc() {
+  var chks = document.querySelectorAll('.recc-chk, .movr-chk');
+  var total = 0, n = 0;
+  for (var i = 0; i < chks.length; i++) {
+    if (!chks[i].checked) continue;
+    var cls = chks[i].className.indexOf('recc') >= 0 ? 'recc-imp' : 'movr-imp';
+    var inp = document.querySelector('.' + cls + '[data-regla="' + chks[i].getAttribute('data-regla') + '"][data-data="' + chks[i].getAttribute('data-data') + '"]');
+    var v = inp ? _parseNumCA(inp.value) : NaN;
+    if (!isNaN(v) && v > 0) { total += v; n++; }
+  }
+  ['rec-conf-total','movr-total'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.textContent = Math.round(total).toLocaleString('ca-ES') + '€' + (n ? ' · ' + n + ' compra' + (n>1?'es':'') : '');
+  });
+}
+
+// Llegeix els checkboxes d'un prefix i retorna els lots per a TBI_RECURRENTS.aplicarLot
+function _llegirLotsPendents(prefix) {
+  var chks = document.querySelectorAll('.' + prefix + '-chk');
+  var perRegla = {};
+  for (var i = 0; i < chks.length; i++) {
+    var rid = chks[i].getAttribute('data-regla');
+    var d = chks[i].getAttribute('data-data');
+    if (!perRegla[rid]) perRegla[rid] = { regla_id: rid, confirmades: [], saltades: [] };
+    if (chks[i].checked) {
+      var inp = document.querySelector('.' + prefix + '-imp[data-regla="' + rid + '"][data-data="' + d + '"]');
+      var v = inp ? _parseNumCA(inp.value) : NaN;
+      if (!isNaN(v) && v > 0) perRegla[rid].confirmades.push({ data: d, 'import': v });
+      else perRegla[rid].saltades.push(d);
+    } else {
+      perRegla[rid].saltades.push(d);
+    }
+  }
+  var out = [];
+  for (var k in perRegla) if (perRegla.hasOwnProperty(k)) out.push(perRegla[k]);
+  return out;
+}
+
+async function confirmarRecurrents() {
+  var lots = _llegirLotsPendents('recc');
+  var aplicat = TBI_RECURRENTS.aplicarLot(getRecurrents(), lots, novaIdLocal);
+  if (!aplicat.moviments_nous.length) {
+    // Nomes saltades: igualment cal avancar la marca d'aigua per no repreguntar.
+    if (!lots.length) { toast('No hi ha res per registrar'); return; }
+  }
+  var moviments = getMovimentsV2().concat(aplicat.moviments_nous);
+  var posicions = getPosicionsV2().slice();
+  // Els diners aportats entren a la posicio: sumem al valor de mercat.
+  // No toquem valor_data a proposit, perque l'avis d'actualitzar valors segueixi viu.
+  aplicat.moviments_nous.forEach(function(m){
+    var p = posicions.find(function(x){ return x.id === m.posicio_id; });
+    if (p) p.valor_actual = (parseFloat(p.valor_actual)||0) + (parseFloat(m['import'])||0);
+  });
+  var snapshots = _snapMesActual(posicions, moviments);
+
+  try {
+    if (sb && APP.user && APP.user.email) {
+      var res = await sb.from('clients')
+        .update({ posicions: posicions, moviments_posicions: moviments, aportacions_recurrents: aplicat.regles, snapshots_cartera: snapshots })
+        .eq('email', getClientEmail()).select('email');
+      if (res.error) throw res.error;
+    }
+    if (APP.clientData) {
+      APP.clientData.posicions = posicions;
+      APP.clientData.moviments_posicions = moviments;
+      APP.clientData.aportacions_recurrents = aplicat.regles;
+      APP.clientData.snapshots_cartera = snapshots;
+    }
+    var m = document.getElementById('modal-rec-confirm'); if (m) m.remove();
+    var totalEur = aplicat.moviments_nous.reduce(function(s,x){ return s + (parseFloat(x['import'])||0); }, 0);
+    toast(aplicat.moviments_nous.length
+      ? '✓ ' + aplicat.moviments_nous.length + ' aportaci' + (aplicat.moviments_nous.length>1?'ons':'ó') + ' registrada' + (aplicat.moviments_nous.length>1?'es':'') + ' · ' + Math.round(totalEur).toLocaleString('ca-ES') + '€'
+      : '✓ Aportacions marcades com a no executades');
+    renderView('portal-cartera');
+    // Si encara no s'han actualitzat els valors del mes, encadenem el pas natural.
+    if (!carteraActualitzadaAquestMes() && getPosicionsV2().length) {
+      setTimeout(function(){ obrirModalActualitzarValors(); }, 450);
+    }
+  } catch(e) { toast('Error: ' + (e.message||e)); }
 }
 
 // ── ALERTA DE VALORS DESACTUALITZATS ──────────────────────────────────────
@@ -5677,7 +6146,7 @@ async function refrescarHubStats() {
   // 2. Clients actius reals
   try {
     var resC = await sb.from('clients')
-      .select('id,nom,email,scoring,status,pla,proper_pagament,darrer_pagament,posicions,moviments_posicions,snapshots_cartera,data_creacio,activated_at', { count:'exact' });
+      .select('id,nom,email,scoring,status,pla,proper_pagament,darrer_pagament,posicions,moviments_posicions,aportacions_recurrents,snapshots_cartera,data_creacio,activated_at', { count:'exact' });
     if (!resC.error && resC.data) {
       APP.clientsList = resC.data; // cau per a altres pantalles
       var actius = resC.data.filter(function(c){ return c.status === 'active'; });
@@ -5751,7 +6220,7 @@ function renderClientsList(el) {
       + '<div style="display:flex;align-items:center;gap:14px">'
         + '<div style="width:40px;height:40px;border-radius:10px;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--g500)">' + initials + '</div>'
         + '<div style="flex:1;min-width:0">'
-          + '<div style="font-size:14px;font-weight:500">' + c.nom + '</div>'
+          + '<div style="font-size:14px;font-weight:500">' + c.nom + _badgeRecurrentsClient(c) + '</div>'
           + '<div style="font-size:11px;color:var(--g400)">' + c.email + '</div>'
         + '</div>'
         + '<div class="cl-col-arq" style="width:120px">'
@@ -8950,11 +9419,12 @@ function renderPortalCartera(el) {
   + '</div>'
   + '<div style="display:flex;gap:16px;margin-bottom:20px;font-size:11px;flex-wrap:wrap">'
     + '<span onclick="obrirModalAfegirPosicio()" style="cursor:pointer;color:var(--g500)">+ Afegir posició</span>'
+    + '<span onclick="obrirModalRecurrents()" style="cursor:pointer;color:var(--g500)">' + TBI_ICO.svg('refresh') + ' Aportacions recorrents' + _badgeRecurrents() + '</span>'
     + '<span onclick="guardarSnapshotManual()" style="cursor:pointer;color:var(--g500)">' + TBI_ICO.svg('camera') + ' Desar snapshot</span>'
     + '<span onclick="exportarCarteraCSV()" style="cursor:pointer;color:var(--g500)">' + TBI_ICO.svg('file') + ' Exportar CSV</span>'
   + '</div>';
 
-  var html = tabHtml + renderAlertaValors() + accionsBtns;
+  var html = tabHtml + renderAvisRecurrents() + renderAlertaValors() + accionsBtns;
 
   // ── PESTANYA 1: RESUM ─────────────────────────────────────────────
   if (tabParam === 'resum') {
@@ -9643,13 +10113,16 @@ async function esborrarPosicioV2(posId) {
   if (!confirm(avis)) return;
   var noves_pos = posicions.filter(function(p){return p.id!==posId;});
   var nous_mov = moviments.filter(function(m){return m.posicio_id!==posId;});
+  // Les aportacions recorrents que apuntaven a aquesta posicio queden orfenes.
+  var noves_reg = TBI_RECURRENTS.netejaOrfanes(getRecurrents(), noves_pos);
   try {
     if (sb && APP.user && APP.user.email) {
-      await sb.from('clients').update({ posicions: noves_pos, moviments_posicions: nous_mov }).eq('email', getClientEmail());
+      await sb.from('clients').update({ posicions: noves_pos, moviments_posicions: nous_mov, aportacions_recurrents: noves_reg }).eq('email', getClientEmail());
     }
     if (APP.clientData) {
       APP.clientData.posicions = noves_pos;
       APP.clientData.moviments_posicions = nous_mov;
+      APP.clientData.aportacions_recurrents = noves_reg;
     }
     toast('✓ Posició esborrada');
     renderView('portal-cartera');
@@ -9714,10 +10187,11 @@ function obrirModalActualitzarValors() {
   inner.innerHTML = '<div style="font-family:var(--fd);font-size:23px;font-weight:400;margin-bottom:4px">' + TBI_ICO.svg('exchange') + ' Actualitzaci\u00f3 de ' + nomMes + '</div>'
     + '<div style="font-size:12px;color:var(--g500);margin-bottom:20px;line-height:1.6">Confirma el valor actual de cada posici\u00f3 (deixa\u2019l igual si no ha canviat) i registra les compres o vendes del mes. Es desar\u00e0 un punt al gr\u00e0fic.</div>'
 
-    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:6px">1 \u00b7 Valor de mercat</div>'
+    + _recPasWizard()
+    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:6px">' + _wizPas(1) + ' \u00b7 Valor de mercat</div>'
     + '<div style="margin-bottom:22px">' + cards + '</div>'
 
-    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:8px">2 \u00b7 Moviments del mes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--g400)">(opcional)</span></div>'
+    + '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:8px">' + _wizPas(2) + ' \u00b7 Altres moviments del mes <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--g400)">(opcional)</span></div>'
     + '<div id="movw-rows"></div>'
     + '<button onclick="_afegirFilaMovWizard()" style="margin-bottom:22px;padding:7px 13px;background:var(--g50);border:1px dashed var(--g200);border-radius:8px;font-size:11px;cursor:pointer;font-family:var(--fb);color:var(--g600)">+ Afegir compra / venda / dividend</button>'
 
@@ -9804,6 +10278,17 @@ async function guardarActualitzacioMensual() {
   });
 
   var moviments = getMovimentsV2().slice();
+
+  // Aportacions recorrents confirmades al pas 1 (si n'hi havia de vencudes).
+  // Aqui NO sumem l'import al valor de mercat: els valors que acaba d'escriure
+  // l'usuari ja son els reals del broker i inclouen l'aportacio.
+  var reglesActualitzades = null;
+  if (document.querySelector('.movr-chk')) {
+    var _apl = TBI_RECURRENTS.aplicarLot(getRecurrents(), _llegirLotsPendents('movr'), novaIdLocal);
+    moviments = moviments.concat(_apl.moviments_nous);
+    reglesActualitzades = _apl.regles;
+  }
+
   var rows = document.querySelectorAll('.movw-row');
   for (var r=0;r<rows.length;r++) {
     var row = rows[r];
@@ -9832,13 +10317,16 @@ async function guardarActualitzacioMensual() {
 
   try {
     if (sb && APP.user && APP.user.email) {
-      var res = await sb.from('clients').update({ posicions: posicions, moviments_posicions: moviments, snapshots_cartera: snapshots }).eq('email', getClientEmail());
+      var _payloadAct = { posicions: posicions, moviments_posicions: moviments, snapshots_cartera: snapshots };
+      if (reglesActualitzades) _payloadAct.aportacions_recurrents = reglesActualitzades;
+      var res = await sb.from('clients').update(_payloadAct).eq('email', getClientEmail());
       if (res.error) throw res.error;
     }
     if (APP.clientData) {
       APP.clientData.posicions = posicions;
       APP.clientData.moviments_posicions = moviments;
       APP.clientData.snapshots_cartera = snapshots;
+      if (reglesActualitzades) APP.clientData.aportacions_recurrents = reglesActualitzades;
     }
     try { localStorage.setItem('tbi_recordatori_' + ((APP.user && APP.user.email)||'') + '_' + mes, '1'); } catch(e){}
     var mEl = document.getElementById('modal-valors'); if (mEl) mEl.remove();

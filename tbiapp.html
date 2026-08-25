@@ -1,0 +1,2507 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16233A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TBI">
+<title>The Boring Investor</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   The Boring Investor — sistema visual de l'app mòbil
+   Tokens alineats amb la guia de marca (navy/paper/or, IBM Plex).
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  /* Marca */
+  --navy:#16233A; --navy2:#24395C; --cream:#F7F5F0; --gold:#C8A54A;
+  --ink:#16233A; --ink-2:#24395C; --black:#16233A;
+  --gold-dark:#8A6F28; --gold-soft:#EFE3C4;
+
+  /* Semàntics */
+  --green:#1A5C3A; --red:#8B1A1A;
+  --green-bg:#E8F0EA; --red-bg:#F6EAEA; --gold-bg:#FBF5E7;
+
+  /* Neutres (escala paper) */
+  --g700:#3E4A5C; --g500:#6B7280; --g400:#9AA1AC;
+  --g200:#DCD9D2; --g100:#E9E6DF; --g50:#F2F0EB;
+  --line:#E4E0D8;
+
+  /* Tipografia */
+  --fd:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fb:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --fm:'IBM Plex Mono','SF Mono',Menlo,monospace;
+
+  /* Elevació — ombres curtes i fredes, mai difuses */
+  --sh-1:0 1px 2px rgba(22,35,58,.05);
+  --sh-2:0 4px 14px rgba(22,35,58,.07);
+  --sh-3:0 -10px 40px rgba(22,35,58,.18);
+
+  --r-sm:9px; --r:13px; --r-lg:18px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--fb);background:var(--cream);color:var(--black);
+  font-size:15px;line-height:1.55;overscroll-behavior-y:none;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-feature-settings:'ss01';
+}
+.hidden{display:none !important}
+button{font-family:var(--fb);cursor:pointer;border:none;color:inherit}
+input,textarea{font-family:var(--fb);font-size:16px;color:var(--black)}/* 16px evita zoom a iOS */
+/* Xifres sempre alineades en columna */
+.num,.kpi-big,.kpi-sub,.pos-val,.pos-pnl,.mini-val,.ter-big,.leg-pct,.salut-num,.hero-pnl,.upd-input{
+  font-variant-numeric:tabular-nums;font-feature-settings:'tnum'
+}
+
+/* ══ MARCA ══ */
+.mark{display:block;flex-shrink:0}
+
+/* ══ SPLASH ══ */
+#splash{
+  position:fixed;inset:0;z-index:1000;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:0;
+  background:radial-gradient(120% 90% at 50% 0%,var(--navy2) 0%,var(--navy) 48%,#0B1422 100%);
+}
+#splash .mark{opacity:0;animation:markIn .5s .05s ease forwards}
+#splash .logo{
+  font-family:var(--fd);color:#fff;font-size:19px;font-weight:600;letter-spacing:-.01em;
+  margin-top:20px;opacity:0;animation:markIn .5s .18s ease forwards
+}
+#splash .tag{
+  font-family:var(--fm);color:rgba(255,255,255,.5);font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;margin-top:9px;opacity:0;animation:markIn .5s .3s ease forwards
+}
+#splash .bar{
+  width:104px;height:2px;border-radius:2px;background:rgba(255,255,255,.16);
+  margin-top:36px;overflow:hidden
+}
+#splash .bar i{display:block;width:40%;height:100%;background:var(--gold);border-radius:2px;animation:slide 1.25s ease-in-out infinite}
+@keyframes markIn{to{opacity:1}}
+@keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
+
+/* ══ LOGIN ══ */
+#login{
+  position:fixed;inset:0;background:var(--cream);z-index:900;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:32px 24px;padding-top:calc(32px + var(--safe-top));
+  overflow-y:auto
+}
+#login .login-inner{width:100%;max-width:380px;margin:0 auto}
+#login .login-mark{display:flex;justify-content:center;margin-bottom:18px}
+#login .brand{
+  font-family:var(--fm);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold-dark);text-align:center;margin-bottom:10px
+}
+#login h1{
+  font-family:var(--fd);font-size:27px;font-weight:600;text-align:center;
+  color:var(--navy);margin-bottom:8px;letter-spacing:-.03em
+}
+#login .sub{text-align:center;color:var(--g500);font-size:13.5px;margin-bottom:28px;line-height:1.6}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11px;color:var(--g500);margin-bottom:6px;font-weight:600;letter-spacing:.02em}
+.field input{
+  width:100%;padding:13px 14px;border:1px solid var(--g200);border-radius:var(--r);
+  background:#fff;transition:border-color .15s,box-shadow .15s
+}
+.field input::placeholder{color:var(--g400)}
+.field input:focus{outline:none;border-color:var(--navy)}
+#login-msg{min-height:20px;font-size:12.5px;text-align:center;margin:12px 0;line-height:1.5}
+.link-sm{background:none;color:var(--g500);font-size:12.5px;padding:4px 2px;border-bottom:1px solid var(--g200)}
+.link-sm:active{color:var(--navy)}
+
+/* ══ BOTONS ══ */
+.btn-primary{
+  width:100%;padding:14px;background:var(--navy);color:#fff;border-radius:var(--r);
+  font-size:15px;font-weight:600;letter-spacing:-.01em;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  box-shadow:var(--sh-1);transition:opacity .15s,transform .1s
+}
+.btn-primary:active{opacity:.9}
+.btn-primary:disabled{opacity:.45;box-shadow:none}
+.btn-ghost{
+  width:100%;padding:13px;background:#fff;color:var(--navy);border:1px solid var(--g200);
+  border-radius:var(--r);font-size:14px;font-weight:600;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px
+}
+.btn-ghost:active{border-color:var(--navy)}
+
+/* ══ APP SHELL ══ */
+#app{display:none;flex-direction:column;height:100%}
+#app.show{display:flex}
+.topbar{
+  background:var(--navy);color:#fff;
+  padding:calc(12px + var(--safe-top)) 16px 12px;
+  display:flex;align-items:center;gap:11px;flex-shrink:0;
+  box-shadow:0 1px 0 rgba(255,255,255,.06)
+}
+.topbar .mark{opacity:.95}
+.topbar .ttl{font-family:var(--fd);font-size:16.5px;font-weight:600;letter-spacing:-.02em;flex:1;min-width:0}
+.topbar .icobtn{
+  width:34px;height:34px;border-radius:var(--r-sm);background:rgba(255,255,255,.10);
+  display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0
+}
+.topbar .icobtn:active{background:rgba(255,255,255,.2)}
+
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px;padding-bottom:96px}
+
+/* ══ BOTTOM NAV ══ */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.94);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-top:1px solid var(--line);display:flex;padding-bottom:var(--safe-bottom);z-index:100
+}
+.nav button{
+  flex:1;padding:9px 2px 7px;background:none;position:relative;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  color:var(--g400);font-size:10px;font-weight:600;letter-spacing:.01em;white-space:nowrap
+}
+.nav button.active{color:var(--navy)}
+.nav button.active::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:26px;height:2px;border-radius:0 0 2px 2px;background:var(--gold)
+}
+
+/* ══ TARGETES ══ */
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:17px;margin-bottom:12px;box-shadow:var(--sh-1)
+}
+.card-lbl{
+  font-family:var(--fm);font-size:10px;color:var(--g400);text-transform:uppercase;
+  letter-spacing:.1em;font-weight:500;margin-bottom:7px
+}
+.kpi-big{font-family:var(--fd);font-size:34px;font-weight:600;color:var(--navy);letter-spacing:-.035em;line-height:1.05}
+.kpi-sub{font-size:13px;margin-top:5px}
+.section-h{
+  font-family:var(--fd);font-size:13px;font-weight:600;color:var(--g500);
+  text-transform:uppercase;letter-spacing:.07em;margin:22px 4px 10px
+}
+
+/* ── Files de posició ── */
+.pos-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--g50)}
+.pos-row:last-child{border-bottom:none}
+.pos-nom{font-size:14px;font-weight:600;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-meta{font-size:11px;color:var(--g400);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pos-val{font-family:var(--fm);font-size:14px;font-weight:500;text-align:right;flex-shrink:0}
+.pos-pnl{font-size:10.5px;font-family:var(--fm);text-align:right;margin-top:2px}
+
+/* ══ ICONES ══ */
+/* Mateixa llibreria i mateix contracte que platform.html: 24x24, traç 1.7,
+   currentColor i mida en em, així hereten el context on es posen. */
+.ei{width:1.15em;height:1.15em;display:inline-block;vertical-align:-.19em;
+  fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;
+  stroke-linejoin:round;flex-shrink:0}
+.nav .ei{width:22px;height:22px;vertical-align:0;transition:transform .18s ease}
+.nav button.active .ei{transform:translateY(-1px)}
+.topbar .ei,.btn-primary .ei,.btn-ghost .ei{width:1.1em;height:1.1em}
+/* Icona de categoria: traç navy sobre fons neutre, sense color de fons */
+.chip{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--g50);border:1px solid var(--line);color:var(--navy)
+}
+.chip .ei{width:18px;height:18px;vertical-align:0}
+.chip-sm{width:28px;height:28px;border-radius:8px}
+.chip-sm .ei{width:15px;height:15px}
+
+/* ══ MODAL ══ */
+.modal{position:fixed;inset:0;background:rgba(11,20,34,.5);z-index:500;display:flex;align-items:flex-end;justify-content:center;animation:fade .18s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal-inner{
+  background:var(--cream);border-radius:22px 22px 0 0;width:100%;max-width:520px;max-height:92vh;
+  overflow-y:auto;padding:20px 18px;padding-bottom:calc(22px + var(--safe-bottom));
+  box-shadow:var(--sh-3);animation:up .24s cubic-bezier(.22,.8,.3,1)
+}
+@keyframes up{from{transform:translateY(24px)}to{transform:translateY(0)}}
+.modal-inner::before{content:'';display:block;width:38px;height:4px;border-radius:99px;background:var(--g200);margin:0 auto 16px}
+.modal-h{font-family:var(--fd);font-size:21px;font-weight:600;color:var(--navy);letter-spacing:-.025em;margin-bottom:5px}
+.modal-sub{font-size:13px;color:var(--g500);margin-bottom:18px;line-height:1.6}
+.upd-row{padding:13px 0;border-bottom:1px solid var(--g100)}
+.upd-row:last-of-type{border-bottom:none}
+.upd-top{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.upd-input{
+  width:100%;padding:12px 14px;border:1px solid var(--g200);border-radius:var(--r);
+  font-family:var(--fm);text-align:right;font-size:16px;background:#fff
+}
+.upd-input:focus{outline:none;border-color:var(--navy)}
+
+/* ══ MISSATGES ══ */
+.subtabs{display:flex;gap:3px;background:var(--g50);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:14px;flex-shrink:0}
+.subtabs button{flex:1;padding:9px 6px;background:none;border-radius:9px;font-size:13px;font-weight:600;color:var(--g500);position:relative;transition:background .15s,color .15s}
+.subtabs button.active{background:#fff;color:var(--navy);box-shadow:var(--sh-1)}
+.subtabs .dot{position:absolute;top:6px;right:10px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.com-card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:15px 17px;margin-bottom:11px;cursor:pointer;transition:border-color .15s;box-shadow:var(--sh-1)}
+.com-card:active{border-color:var(--navy)}
+.com-eyebrow{font-family:var(--fm);font-size:9.5px;font-weight:500;color:var(--gold-dark);text-transform:uppercase;letter-spacing:.11em;margin-bottom:5px}
+.com-titol{font-family:var(--fd);font-size:16.5px;font-weight:600;color:var(--navy);letter-spacing:-.02em;line-height:1.3;margin-bottom:4px}
+.com-subtitol{font-size:13px;color:var(--g500);line-height:1.5;margin-bottom:9px}
+.com-meta{font-size:11px;color:var(--g400);display:flex;align-items:center;gap:8px}
+.com-new-badge{background:var(--gold);color:#fff;font-family:var(--fm);font-size:9px;font-weight:600;padding:2px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.06em}
+.com-body{font-size:14.5px;line-height:1.7;color:var(--g700);white-space:pre-line}
+/* El comunicat es veu tal com arriba al correu, dins d'un iframe aïllat
+   perquè els estils de l'email no es barregin amb els de l'app. */
+.com-frame{width:100%;height:60vh;border:1px solid var(--line);border-radius:var(--r);background:#fff;display:block}
+.chat-wrap{display:flex;flex-direction:column;height:100%}
+.chat-thread{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:11px;padding:4px 2px 12px}
+.bubble{max-width:82%;padding:11px 14px;font-size:14.5px;line-height:1.55;white-space:pre-line;border-radius:16px}
+.bubble.mine{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:5px}
+.bubble.theirs{align-self:flex-start;background:#fff;border:1px solid var(--line);color:var(--black);border-bottom-left-radius:5px}
+.bubble-meta{font-family:var(--fm);font-size:9px;color:var(--g400);margin-top:4px;padding:0 5px;letter-spacing:.03em}
+.chat-input-bar{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+.chat-input-bar textarea{flex:1;padding:11px 13px;border:1px solid var(--g200);border-radius:var(--r);resize:none;max-height:90px;line-height:1.45;background:#fff}
+.chat-input-bar textarea:focus{outline:none;border-color:var(--navy)}
+.chat-send{background:var(--navy);color:#fff;border-radius:var(--r);padding:0 17px;font-weight:600;font-size:14px}
+.chat-send:disabled{opacity:.45}
+
+/* ══ ESTATS ══ */
+.empty{text-align:center;color:var(--g400);font-size:13.5px;padding:48px 20px;line-height:1.7}
+.empty-rich{text-align:center;padding:52px 24px}
+.empty-ico{display:flex;justify-content:center;margin-bottom:18px;color:var(--g300,#B4B0A6)}
+.empty-tit{font-family:var(--fd);font-size:19px;font-weight:600;color:var(--navy);letter-spacing:-.025em;margin-bottom:9px}
+.empty-sub{font-size:13.5px;color:var(--g500);line-height:1.7;margin-bottom:22px;max-width:320px;margin-left:auto;margin-right:auto}
+.empty-rich .btn-primary{max-width:280px;margin:0 auto}
+
+.toast{
+  position:fixed;bottom:calc(84px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--navy);color:#fff;font-size:13px;padding:11px 17px;border-radius:11px;z-index:800;
+  opacity:0;transition:opacity .2s,transform .2s;max-width:88%;text-align:center;box-shadow:var(--sh-2);pointer-events:none
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.banner-upd{background:var(--gold-bg);border:1px solid var(--gold-soft);border-radius:var(--r);padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;gap:11px}
+.banner-upd .txt{flex:1;font-size:12.5px;color:var(--gold-dark);line-height:1.5}
+.banner-upd button{background:var(--gold);color:#fff;font-size:12px;font-weight:600;padding:9px 13px;border-radius:var(--r-sm);flex-shrink:0}
+
+/* ══ POLISH ══ */
+::selection{background:var(--navy);color:#fff}
+button{transition:transform .1s ease,opacity .15s ease,background-color .15s ease,color .15s ease}
+button:not(:disabled):active{transform:translateY(1px)}
+:focus-visible{outline:2px solid var(--navy2);outline-offset:2px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--navy)!important;box-shadow:0 0 0 3px rgba(22,35,58,.09)}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* ══ HERO DE CARTERA ══ */
+/* El sparkline viu a la seva pròpia banda al peu de la targeta:
+   mai més se superposa amb el text explicatiu. */
+.hero{padding-bottom:0;overflow:hidden}
+.hero-pnl{font-family:var(--fm);font-size:14px;font-weight:500;margin-top:9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hero-pill{padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600}
+.hero-grid{display:flex;gap:26px;flex-wrap:wrap;margin-top:15px;padding-top:14px;border-top:1px solid var(--g100)}
+.hero-nota{font-size:11.5px;color:var(--g400);margin-top:11px;line-height:1.55;padding-bottom:14px}
+.hero-spark{display:block;margin:0 -17px;height:52px;line-height:0}
+.hero-spark svg{display:block;width:100%;height:52px}
+.mini-lbl{font-family:var(--fm);font-size:9.5px;color:var(--g400);text-transform:uppercase;letter-spacing:.1em;font-weight:500}
+.mini-val{font-family:var(--fm);font-size:15px;font-weight:500;color:var(--g700);margin-top:3px}
+.mini-sub{font-size:10.5px;color:var(--g400);margin-top:2px}
+
+/* ══ SEMÀFOR DE COHERÈNCIA ══ */
+.salut{display:flex;align-items:center;gap:15px;padding:15px 17px;border-radius:var(--r-lg);margin-bottom:12px;border:1px solid transparent}
+.salut-num{font-family:var(--fm);font-size:27px;font-weight:600;line-height:1;flex-shrink:0;letter-spacing:-.03em}
+.salut-num span{font-size:12px;opacity:.5;font-weight:400}
+.salut-txt{font-size:12.5px;color:var(--g700);line-height:1.55}
+.salut-txt strong{color:var(--navy);font-weight:600}
+
+/* ══ COST REAL ══ */
+.ter-row{display:flex;gap:22px;flex-wrap:wrap;margin-top:11px}
+.ter-big{font-family:var(--fm);font-size:19px;font-weight:600;margin-top:4px;letter-spacing:-.02em}
+
+/* ══ LLEGENDA DEL DONUT ══ */
+.leg-row{display:flex;align-items:center;gap:11px;padding:6px 0}
+.leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.leg-nom{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leg-pct{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--g700)}
+
+/* ══ ESQUELETS ══ */
+.skel{background:linear-gradient(90deg,var(--g100) 25%,var(--g50) 37%,var(--g100) 63%);background-size:400% 100%;animation:skel 1.3s ease infinite;border-radius:var(--r)}
+@keyframes skel{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.skel-card{height:132px;margin-bottom:12px}
+.skel-row{height:56px;margin-bottom:9px}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+
+/* ══ BADGES ══ */
+.badge{display:inline-block;padding:1.5px 7px;border-radius:99px;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.badge-ok{background:var(--green-bg);color:var(--green)}
+.badge-infra{background:var(--gold-bg);color:var(--gold-dark)}
+.badge-sobre{background:var(--red-bg);color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <svg class="mark" width="60" height="60" viewBox="0 0 100 100" aria-hidden="true">
+    <rect width="100" height="100" rx="24" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
+    <circle cx="34" cy="42" r="6" fill="#fff"/><circle cx="66" cy="42" r="6" fill="#fff"/>
+    <path d="M31 67 L69 63" stroke="#fff" stroke-width="7.5" stroke-linecap="round"/>
+  </svg>
+  <div class="logo">The Boring Investor</div>
+  <div class="tag">Avorreix-te invertint</div>
+  <div class="bar"><i></i></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="hidden">
+ <div class="login-inner">
+  <div class="login-mark">
+    <svg class="mark" width="52" height="52" viewBox="0 0 100 100" aria-hidden="true">
+      <rect width="100" height="100" rx="24" fill="#16233A"/>
+      <circle cx="34" cy="42" r="6" fill="#F7F5F0"/><circle cx="66" cy="42" r="6" fill="#F7F5F0"/>
+      <path d="M31 67 L69 63" stroke="#F7F5F0" stroke-width="7.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="brand">The Boring Investor</div>
+  <h1>El teu espai</h1>
+  <div class="sub">Entra un cop i l'app et recordarà.<br>Després s'obrirà sense demanar res.</div>
+  <div class="field">
+    <label>Correu electrònic</label>
+    <input type="email" id="in-email" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="el-teu-correu@exemple.com">
+  </div>
+  <div class="field">
+    <label>Contrasenya</label>
+    <input type="password" id="in-pwd" autocomplete="current-password" placeholder="La teva contrasenya">
+  </div>
+  <div id="login-msg"></div>
+  <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar
+    <svg class="ei" viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+  </button>
+  <div style="text-align:center;margin-top:18px;display:flex;gap:20px;justify-content:center">
+    <button class="link-sm" onclick="doReset()">He oblidat la contrasenya</button>
+    <button class="link-sm" onclick="obrirAjuda()">Com funciona?</button>
+  </div>
+  <div id="install-login" style="display:none;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)">
+    <button class="btn-ghost" onclick="instalarApp()">
+      <svg class="ei" viewBox="0 0 24 24"><rect x="6.6" y="2.6" width="10.8" height="18.8" rx="2.6"/><path d="M10.8 18.4h2.4"/></svg>
+      Instal·lar l'app al mòbil
+    </button>
+    <div style="text-align:center;font-size:11.5px;color:var(--g400);margin-top:9px">Entra més ràpid: instal·la-la a la pantalla d'inici.</div>
+  </div>
+ </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <svg class="mark" width="26" height="26" viewBox="0 0 100 100" aria-hidden="true">
+      <rect width="100" height="100" rx="24" fill="rgba(255,255,255,.12)"/>
+      <circle cx="34" cy="42" r="6.5" fill="#fff"/><circle cx="66" cy="42" r="6.5" fill="#fff"/>
+      <path d="M31 67 L69 63" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
+    </svg>
+    <div class="ttl" id="topbar-ttl">La meva cartera</div>
+    <button class="icobtn" onclick="obrirAjuda()" aria-label="Ajuda">
+      <svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.2 9.3a2.9 2.9 0 1 1 3.6 2.8c-.5.2-.8.7-.8 1.2v.6"/><path d="M12 17.2v.01"/></svg>
+    </button>
+    <button class="icobtn" onclick="doLogout()" aria-label="Sortir">
+      <svg class="ei" viewBox="0 0 24 24"><path d="M14.5 4.5H18a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3.5"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/></svg>
+    </button>
+  </div>
+  <div class="scroll" id="view"></div>
+  <div class="nav">
+    <button id="nav-cartera" class="active" onclick="go('cartera')">
+      <svg class="ei" viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="12.5" rx="2.2"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5"/><path d="M3 12.5h18"/></svg>
+      Cartera</button>
+    <button id="nav-evolucio" onclick="go('evolucio')">
+      <svg class="ei" viewBox="0 0 24 24"><path d="M3.5 19.5h17"/><path d="m6 15.5 4.2-4.6 3.2 2.6 4.8-6"/><path d="M14.6 7.5h3.6v3.4"/></svg>
+      Evolució</button>
+    <button id="nav-aportar" onclick="go('aportar')">
+      <svg class="ei" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v7.6M8.2 12h7.6"/></svg>
+      Aportar</button>
+    <button id="nav-missatges" onclick="go('missatges')">
+      <svg class="ei" viewBox="0 0 24 24"><path d="M20.5 11.6c0 4-3.8 7.2-8.5 7.2-1 0-2-.15-2.9-.42L4 20l1.3-3.4C4.1 15.3 3.5 13.5 3.5 11.6c0-4 3.8-7.2 8.5-7.2s8.5 3.2 8.5 7.2Z"/></svg>
+      Missatges</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="tbi-icones.js"></script>
+<script src="tbi-cartera.js"></script>
+<script src="tbi-recurrents.js"></script>
+<script src="tbi-fiscal.js"></script>
+<script src="tbi-fire.js"></script>
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════════
+// The Boring Investor — PWA mòbil (tbi-app.html)
+// Fitxer únic, ES5/vanilla, mateix backend Supabase que platform.html.
+// Abast: cartera, actualitzar valors, evolució, missatges amb l'assessor.
+// Sessió persistent: login un cop, després obre sol.
+// ═══════════════════════════════════════════════════════════════════
+
+var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
+
+// Client Supabase amb sessió persistent (defaults: persistSession=true, autoRefreshToken=true)
+var sb = null;
+try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.error('Supabase KO', e); }
+
+// Plans amb límit de missatges (coherent amb platform.html)
+var SENYAL_MSG_LIMIT = 2;
+
+var APP = {
+  email: '',
+  client: null,   // fila normalitzada de clients
+  view: 'cartera'
+};
+
+// ── Taxonomia mínima: nom llegible per categoria (alineat amb platform.html) ──
+var CAT_NOM = {
+  rv_global:'RV Global Indexada', rv_dividend:'RV Dividends / Renda', rv_reits:'REITs / Immobiliaris cotitzats',
+  rv_emergents:'RV Mercats Emergents', rv_sectorial:'RV Sectorial', rv_growth:'RV Growth / Tecnològic',
+  rf_global:'Renda Fixa Global', rf_corporativa:'RF Corporativa', rf_govern:'RF Govern', rf_curt:'RF Curt Termini',
+  rf_emergent:'RF Emergent', or:'Or i Metalls preciosos', or_metalls:'Or i Metalls preciosos',
+  materies:'Matèries Primeres', materies_primeres:'Matèries Primeres', cripto:'Crypto / Actius Digitals',
+  crypto:'Crypto / Actius Digitals', liquiditat:'Liquiditat / Monetari / Dipòsits', alternatius:'Actius Alternatius',
+  crowdlending:'Crowdlending / P2P Lending', private_equity:'Private Equity / Capital Risc',
+  startups:'Start-ups / Venture Capital', immobiliari:'Immobiliari'
+};
+// ── Pastilles de categoria ─────────────────────────────────────────────
+// Icona de traç sobre fons neutre, igual que a la plataforma. El color
+// identificatiu de la categoria ja el dona el donut de distribució.
+function chipCat(catId, mida){
+  var cls = (mida === 'sm') ? 'chip chip-sm' : 'chip';
+  return '<span class="' + cls + '" aria-hidden="true">' + icoCat(catId) + '</span>';
+}
+
+// ── Icones ────────────────────────────────────────────────────────────
+// La llibreria viu a tbi-icones.js, compartida amb platform.html.
+// `ico()` es manté com a àlies curt perquè les crides d'aquest fitxer
+// no hagin de canviar.
+function ico(nom, cls){ return TBI_ICO.svg(nom, cls); }
+
+// Categoria d'actiu -> icona (abans eren emojis)
+var CAT_ICO = {rv_global:'globe', rv_dividend:'banknote', rv_reits:'home', rv_emergents:'seedling', rv_sectorial:'factory', rv_growth:'rocket', rf_global:'bank', rf_corporativa:'file', rf_govern:'bank', rf_curt:'clock', rf_emergent:'globe', or:'medal', or_metalls:'medal', materies:'tools', materies_primeres:'tools', cripto:'crypto', crypto:'crypto', liquiditat:'coins', alternatius:'shuffle', crowdlending:'handshake', private_equity:'building', startups:'seedling', immobiliari:'home'};
+function icoCat(cat){ return ico(CAT_ICO[cat] || 'box'); }
+
+// ── Helpers ──
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function eur(n){ return (Math.round((n||0)*100)/100).toLocaleString('ca-ES') + '€'; }
+function eurRound(n){ return Math.round(n||0).toLocaleString('ca-ES') + '€'; }
+function pct(n){ return (n>=0?'+':'') + (n||0).toFixed(1) + '%'; }
+function mesActual(){ return new Date().toISOString().slice(0,10).slice(0,7); }
+function avui(){ return new Date().toISOString().slice(0,10); }
+function nomMesCA(yyyymm){
+  var noms = ['gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'];
+  var m = parseInt((yyyymm||'').slice(5,7),10);
+  return (m>=1 && m<=12) ? noms[m-1] : '';
+}
+function mesAbrevCA(yyyymm){
+  var noms = ['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'];
+  var m = parseInt((yyyymm||'').slice(5,7),10);
+  return (m>=1 && m<=12) ? noms[m-1] : '';
+}
+// Data ISO (YYYY-MM-DD) -> format humà curt: "15 jun" o "fa X dies"
+function dataHumana(iso){
+  if (!iso) return 'sense data';
+  var d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  var dies = Math.floor((new Date() - d) / 86400000);
+  if (dies <= 0) return 'avui';
+  if (dies === 1) return 'ahir';
+  if (dies < 30) return 'fa ' + dies + ' dies';
+  var mesos = ['gen','feb','mar','abr','mai','jun','jul','ago','set','oct','nov','des'];
+  return d.getDate() + ' ' + mesos[d.getMonth()] + ' ' + d.getFullYear();
+}
+// Paleta de fallback per a categories sense color al target
+var CAT_PALETTE = ['#16233A','#24395C','#3B5A8C','#C8A54A','#1A5C3A','#6B5B95','#A8622F','#4A7A66','#8B3A52','#2F6B7A','#8A8578','#5C5A54'];
+// Retorna {nom, color} d'una categoria, fent servir el target del client si hi és
+// Nom i color d'una categoria. Prioritat: el target del client (que pot
+// portar colors personalitzats per l'assessor) i, si no, la taxonomia
+// canonica compartida — la mateixa que fa servir la plataforma.
+function catInfo(catId){
+  var target = getTarget();
+  for (var i=0;i<target.length;i++){
+    var t = target[i];
+    if ((t.id || t.nom) === catId && t.color) return { nom: t.nom || catId, color: t.color };
+  }
+  var c = TBI_CARTERA.cat(catId);
+  return { nom: c.nom, color: c.color, emoji: c.emoji, grup: c.grup };
+}
+
+function parseNumCA(s){
+  if (s == null) return NaN;
+  s = String(s).trim().replace(/\s|€/g,'').replace(/\./g,'').replace(/,/g,'.');
+  return parseFloat(s);
+}
+function novaId(prefix){
+  return (prefix||'id') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+var _toastTimer = null;
+function toast(msg){
+  var t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+
+// ── Lectura de posicions ──
+function getPosicions(){
+  var c = APP.client;
+  return (c && Array.isArray(c.posicions)) ? c.posicions : [];
+}
+function getMoviments(){
+  var c = APP.client;
+  return (c && Array.isArray(c.moviments_posicions)) ? c.moviments_posicions : [];
+}
+// KPIs complets (inclou TIR i ratio de plusvalua) del motor compartit
+function kpisCartera(){
+  return TBI_CARTERA.kpis(getPosicions(), getMoviments());
+}
+function terCartera(){
+  return TBI_CARTERA.ter(getPosicions(), getMoviments(), getTarget());
+}
+function twrCartera(){
+  return TBI_CARTERA.twr(getSnapshots(), getPosicions(), getMoviments());
+}
+
+function getSnapshots(){
+  var c = APP.client;
+  return (c && Array.isArray(c.snapshots_cartera)) ? c.snapshots_cartera : [];
+}
+
+// Dies des de l'última actualització de valors. null=sense cartera, Infinity=mai.
+function diesDesActualitzacio(){
+  var pos = getPosicions();
+  if (!pos.length) return null;
+  var dates = pos.map(function(p){ return p.valor_data; }).filter(Boolean);
+  if (!dates.length) return Infinity;
+  dates.sort();
+  var u = new Date(dates[dates.length-1]);
+  if (isNaN(u.getTime())) return Infinity;
+  return Math.floor((new Date() - u) / 86400000);
+}
+function carteraActualitzadaAquestMes(){
+  var pos = getPosicions();
+  var mes = mesActual();
+  for (var i=0;i<pos.length;i++){
+    if (pos[i].valor_data && String(pos[i].valor_data).slice(0,7) === mes) return true;
+  }
+  return false;
+}
+
+// Calcula valor, cost i P&L d'una posició a partir dels moviments
+// Agregats d'una posicio. Delega al motor compartit perque l'app i la
+// plataforma no puguin tornar a donar numeros diferents.
+function aggPosicio(p){
+  var a = TBI_CARTERA.agregats([p], getMoviments())[0] || {};
+  return {
+    valor: parseFloat(p.valor_actual)||0,
+    cost: a.cost_base || 0,
+    unitats: a.unitats_total || 0,
+    pnl: a.pnl_eur || 0,
+    pnlPct: a.pnl_pct || 0,
+    ratioGuany: a.ratio_guany || 0
+  };
+}
+
+function showSplash(on){ $('splash').classList.toggle('hidden', !on); }
+function showLogin(on){ $('login').classList.toggle('hidden', !on); }
+function showApp(on){ $('app').classList.toggle('show', !!on); }
+
+async function doLogin(){
+  var email = ($('in-email').value||'').trim().toLowerCase();
+  var pwd = $('in-pwd').value || '';
+  var msg = $('login-msg');
+  var btn = $('btn-login');
+  msg.style.color = 'var(--red)';
+  if (!email || email.indexOf('@') === -1){ msg.textContent = 'Introdueix un correu vàlid.'; return; }
+  if (!pwd){ msg.textContent = 'Introdueix la contrasenya.'; return; }
+  if (!sb){ msg.textContent = 'Sense connexió amb el servidor.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Entrant...'; msg.textContent = '';
+  try {
+    var res = await sb.auth.signInWithPassword({ email: email, password: pwd });
+    if (res.error) throw res.error;
+    // onAuthStateChange s'encarregarà de carregar i mostrar l'app
+  } catch(e){
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'No s\'ha pogut entrar. Comprova el correu i la contrasenya.';
+    btn.disabled = false; btn.textContent = 'Entrar →';
+  }
+}
+
+async function doReset(){
+  var email = ($('in-email').value||'').trim().toLowerCase();
+  var msg = $('login-msg');
+  if (!email || email.indexOf('@') === -1){
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Escriu primer el teu correu a dalt.';
+    return;
+  }
+  try {
+    await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://theboringinvestor.es/platform.html' });
+    msg.style.color = 'var(--green)';
+    msg.textContent = 'Si el correu existeix, rebràs un enllaç per canviar la contrasenya.';
+  } catch(e){
+    msg.style.color = 'var(--green)';
+    msg.textContent = 'Si el correu existeix, rebràs un enllaç per canviar la contrasenya.';
+  }
+}
+
+async function doLogout(){
+  if (!confirm('Vols tancar la sessió? Hauràs de tornar a entrar amb el correu i la contrasenya.')) return;
+  try { await sb.auth.signOut(); } catch(e){}
+  APP.email = ''; APP.client = null;
+  showApp(false);
+  showLogin(true);
+}
+
+// Carrega la fila del client i mostra l'app
+async function carregarClient(email){
+  APP.email = email;
+  var res = await sb.from('clients').select('*').eq('email', email).maybeSingle();
+  if (res.error) throw res.error;
+  if (!res.data){
+    // L'usuari està autenticat però no té fila de client
+    showSplash(false);
+    showLogin(false);
+    showApp(true);
+    $('view').innerHTML = '<div class="empty">El teu compte encara no està vinculat a cap cartera.<br><br>Contacta amb el teu assessor a guillem.puig@theboringinvestor.es</div>';
+    return;
+  }
+  APP.client = res.data;
+  showSplash(false);
+  showLogin(false);
+  showApp(true);
+  go(APP.view || 'cartera');
+  // Precarregar comunicats en segon pla per mostrar l'avís de nous
+  setTimeout(function(){ try { precarregarComunicats(); } catch(e){} }, 800);
+  // Oferir notificacions push si encara no les te activades (1 cop / 30 dies)
+  setTimeout(function(){ try { oferirPushSiCal(); } catch(e){} }, 2500);
+}
+
+// ════════════════════════════════════════════
+// NAVEGACIÓ
+// ════════════════════════════════════════════
+// Esquelet de carrega: millor que una pantalla en blanc mentre arriba Supabase
+function skeleton(){
+  var el = $('view');
+  if (el) el.innerHTML = '<div class="skel skel-card"></div>'
+    + '<div class="skel skel-row"></div><div class="skel skel-row"></div><div class="skel skel-row"></div>';
+}
+
+function go(view){
+  APP.view = view;
+  ['cartera','evolucio','aportar','missatges'].forEach(function(v){
+    var b = $('nav-'+v);
+    if (b) b.classList.toggle('active', v === view);
+  });
+  var titols = { cartera:'La meva cartera', evolucio:'Evolució', aportar:'Aportar', missatges:'Missatges' };
+  $('topbar-ttl').textContent = titols[view] || 'The Boring Investor';
+  if (view === 'cartera') renderCartera();
+  else if (view === 'evolucio') renderEvolucio();
+  else if (view === 'aportar') renderAportar();
+  else if (view === 'missatges') renderMissatges();
+}
+
+// ════════════════════════════════════════════
+// VISTA: CARTERA
+// ════════════════════════════════════════════
+// Genera un donut SVG a partir de segments [{nom,color,valor}]. Retorna {svg, total}
+function donutSVG(segments){
+  var total = segments.reduce(function(s,x){ return s + (x.valor||0); }, 0);
+  if (total <= 0) return { svg:'', total:0 };
+  var size = 180, cx = size/2, cy = size/2, r = 64, sw = 19;
+  var circ = 2 * Math.PI * r;
+  var offset = 0;
+  var arcs = '';
+  segments.forEach(function(seg){
+    var frac = seg.valor / total;
+    if (frac <= 0) return;
+    var len = frac * circ;
+    // dasharray: tram pintat + buit; rotem amb dashoffset acumulat
+    arcs += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" '
+      + 'stroke="'+seg.color+'" stroke-width="'+sw+'" stroke-linecap="butt" '
+      + 'stroke-dasharray="'+len.toFixed(2)+' '+(circ-len).toFixed(2)+'" '
+      + 'stroke-dashoffset="'+(-offset).toFixed(2)+'" '
+      + 'transform="rotate(-90 '+cx+' '+cy+')"/>';
+    offset += len;
+  });
+  var svg = '<svg viewBox="0 0 '+size+' '+size+'" style="width:170px;height:170px;display:block;margin:0 auto">'
+    + arcs
+    + '<text x="'+cx+'" y="'+(cy-5)+'" text-anchor="middle" font-size="9.5" fill="#9AA1AC" letter-spacing="1.2" font-family="IBM Plex Mono,monospace">TOTAL</text>'
+    + '<text x="'+cx+'" y="'+(cy+15)+'" text-anchor="middle" font-size="17" fill="#16233A" font-weight="600" font-family="IBM Plex Sans,sans-serif">'+eurRound(total)+'</text>'
+    + '</svg>';
+  return { svg:svg, total:total };
+}
+
+// Agrupa el valor de les posicions per categoria -> [{cat,nom,color,valor}] ordenat desc
+function segmentsPerCategoria(){
+  var per = {};
+  getPosicions().forEach(function(p){
+    var cat = p.cat || 'altres';
+    per[cat] = (per[cat]||0) + (parseFloat(p.valor_actual)||0);
+  });
+  var segs = Object.keys(per).map(function(cat){
+    var info = catInfo(cat);
+    return { cat:cat, nom:info.nom, color:info.color, valor:per[cat] };
+  });
+  segs.sort(function(a,b){ return b.valor - a.valor; });
+  return segs;
+}
+
+// ── Sparkline del valor de la cartera ───────────────────────────────────
+// Fa servir els snapshots mensuals reals. Sense prou història no dibuixa
+// res: una línia inventada de dos punts no informa de res.
+function sparklineSVG(){
+  var snaps = getSnapshots().slice().sort(function(a,b){ return String(a.mes).localeCompare(String(b.mes)); });
+  var k = kpisCartera();
+  var mesAra = mesActual();
+  var serie = snaps.map(function(s){ return { mes:String(s.mes), valor:parseFloat(s.valor)||0 }; });
+  var idx = -1;
+  for (var i=0;i<serie.length;i++) if (serie[i].mes === mesAra) idx = i;
+  if (k.valor_total > 0){
+    if (idx >= 0) serie[idx] = { mes:mesAra, valor:k.valor_total };
+    else serie.push({ mes:mesAra, valor:k.valor_total });
+  }
+  if (serie.length < 3) return '';
+
+  var vals = serie.map(function(s){ return s.valor; });
+  var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+  if (max <= min) return '';
+  var W = 300, H = 48;
+  var pts = vals.map(function(v,i){
+    var x = (i/(vals.length-1))*W;
+    var y = H - ((v-min)/(max-min))*(H-6) - 3;
+    return x.toFixed(1)+','+y.toFixed(1);
+  });
+  var puja = vals[vals.length-1] >= vals[0];
+  var col = puja ? '#1A5C3A' : '#8B1A1A';
+  var area = 'M0,'+H+' L' + pts.join(' L') + ' L'+W+','+H+' Z';
+  // El sparkline viu a la seva propia banda al peu de la targeta (.hero-spark),
+  // no en absolut sobre el contingut: abans es dibuixava per sobre del text.
+  return '<div class="hero-spark"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'
+    + '<defs><linearGradient id="sparkg" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="'+col+'" stop-opacity=".16"/>'
+      + '<stop offset="100%" stop-color="'+col+'" stop-opacity="0"/>'
+    + '</linearGradient></defs>'
+    + '<path d="'+area+'" fill="url(#sparkg)"/>'
+    + '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="1.6" '
+      + 'stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
+    + '</svg></div>';
+}
+
+// ── Semàfor de bandes ───────────────────────────────────────────────────
+function bandesHTML(){
+  var calc = calcAportacio(0);
+  if (!calc || !calc.resum || calc.resum.coherencia === null) return '';
+  var r = calc.resum;
+  var col = r.coherencia >= 90 ? 'var(--green)' : (r.coherencia >= 75 ? 'var(--gold-dark)' : 'var(--red)');
+  var bg  = r.coherencia >= 90 ? 'var(--green-bg)' : (r.coherencia >= 75 ? 'var(--gold-bg)' : 'var(--red-bg)');
+  var fora = calc.rows.filter(function(x){ return x.foraBanda; });
+  var txt = r.cal_rebalanceig
+    ? (fora.length === 1
+        ? esc(fora[0].nom) + ' està fora de banda. La propera aportació hi anirà.'
+        : fora.length + ' categories fora de banda. Les properes aportacions les corregiran.')
+    : 'Tot dins de banda. No cal tocar res: aporta i prou.';
+  return '<div class="salut" style="background:'+bg+'">'
+    + '<div class="salut-num" style="color:'+col+'">'+r.coherencia+'<span>/100</span></div>'
+    + '<div class="salut-txt"><strong>Coherència amb el teu pla</strong><br>'+txt+'</div>'
+  + '</div>';
+}
+
+function renderCartera(){
+  var pos = getPosicions();
+  var el = $('view');
+
+  if (!pos.length){
+    el.innerHTML = '<div class="empty-rich">'
+      + '<div class="empty-ico"><svg width="46" height="46" viewBox="0 0 100 100" aria-hidden="true"><rect x="1.5" y="1.5" width="97" height="97" rx="23" fill="none" stroke="currentColor" stroke-width="3" opacity=".35"/><circle cx="34" cy="42" r="6" fill="currentColor"/><circle cx="66" cy="42" r="6" fill="currentColor"/><path d="M31 67 L69 63" stroke="currentColor" stroke-width="7.5" stroke-linecap="round"/></svg></div>'
+      + '<div class="empty-tit">Encara no tens posicions</div>'
+      + '<div class="empty-sub">Quan el teu assessor configuri la teva cartera, aquí veuràs el valor, el rendiment real i si estàs alineat amb el teu pla.</div>'
+      + '<button class="btn-primary" onclick="go(\'missatges\')">Escriure a l\'assessor</button>'
+      + '</div>';
+    return;
+  }
+
+  var k = kpisCartera();
+  var html = '';
+
+  // ── HERO ──
+  var colG = k.pnl_eur >= 0 ? 'var(--green)' : 'var(--red)';
+  var fletxa = k.pnl_eur >= 0 ? '▲' : '▼';
+  html += '<div class="card hero">'
+    + '<div class="card-lbl">Valor total de la cartera</div>'
+    + '<div class="kpi-big">'+eurRound(k.valor_total)+'</div>'
+    + '<div class="hero-pnl" style="color:'+colG+'">'+fletxa+' '+(k.pnl_eur>=0?'+':'')+eurRound(k.pnl_eur)
+      + ' <span class="hero-pill" style="background:'+(k.pnl_eur>=0?'var(--green-bg)':'var(--red-bg)')+'">'+pct(k.pnl_pct)+'</span></div>'
+    + '<div class="hero-grid">';
+
+  // Rendiment anualitzat: TIR si l'històric dona, acumulat si no
+  var rendLbl, rendVal, rendCol;
+  if (k.xirr !== null && k.xirr_fiable){
+    rendLbl = 'Rendiment anual'; rendVal = pct(k.xirr);
+    rendCol = k.xirr >= 0 ? 'var(--green)' : 'var(--red)';
+  } else {
+    rendLbl = 'Rendiment acumulat'; rendVal = pct(k.pnl_pct);
+    rendCol = k.pnl_pct >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+  html += '<div><div class="mini-lbl">Has aportat</div><div class="mini-val">'+eurRound(k.cost_total)+'</div></div>'
+    + '<div><div class="mini-lbl">'+rendLbl+'</div><div class="mini-val" style="color:'+rendCol+'">'+rendVal+'</div></div>';
+  var tw = twrCartera();
+  if (tw && tw.fiable){
+    html += '<div><div class="mini-lbl">TWR anual</div><div class="mini-val">'+pct(tw.anual)+'</div></div>';
+  }
+  html += '</div>';
+  if (k.xirr !== null && k.xirr_fiable){
+    html += '<div class="hero-nota">El rendiment anual és la TIR: té en compte quan vas posar cada euro, no només quant.</div>';
+  } else {
+    html += '<div class="hero-nota">Amb menys de 6 mesos d\'històric, anualitzar el rendiment enganya. T\'ensenyem l\'acumulat.</div>';
+  }
+  html += sparklineSVG();
+  html += '</div>';
+
+  // ── Aportacions recorrents vençudes ──
+  html += bannerRecurrentsHTML();
+
+  // ── Acció principal ──
+  var dies = diesDesActualitzacio();
+  var necessitaUpd = !carteraActualitzadaAquestMes() && dies !== null;
+  var btnTxt = necessitaUpd
+    ? (dies === Infinity ? 'Posa els valors al dia' : 'Actualitzar (fa '+dies+' dies)')
+    : 'Actualitzar valors';
+  html += '<button class="btn-primary" style="margin-bottom:12px" onclick="obrirActualitzar()">'
+    + TBI_ICO.svg('refresh') + btnTxt + '</button>';
+
+  // ── Semàfor de bandes ──
+  html += bandesHTML();
+
+  // ── Cost real ──
+  var t = terCartera();
+  if (t){
+    html += '<div class="card">'
+      + '<div class="card-lbl">Cost real de la teva cartera</div>'
+      + '<div class="ter-row">'
+        + '<div><div class="mini-lbl">TER ponderat</div><div class="ter-big">'+t.ter_real.toFixed(2).replace('.',',')+'%</div>'
+          + '<div class="mini-sub">'+eurRound(t.cost_anual_eur)+'/any</div></div>'
+        + '<div><div class="mini-lbl">Banca tradicional</div><div class="ter-big" style="color:var(--g400)">'+t.ter_banc.toFixed(2).replace('.',',')+'%</div>'
+          + '<div class="mini-sub">'+eurRound(t.cost_banc_eur)+'/any</div></div>'
+        + '<div><div class="mini-lbl">T\'estalvies</div><div class="ter-big" style="color:var(--green)">'+eurRound(t.estalvi_anual_eur)+'</div>'
+          + '<div class="mini-sub">cada any</div></div>'
+      + '</div></div>';
+  }
+
+  // ── Donut ──
+  var segs = segmentsPerCategoria();
+  var donut = donutSVG(segs);
+  if (donut.svg){
+    html += '<div class="card">'
+      + '<div class="card-lbl" style="margin-bottom:10px">Distribució per família d\'actius</div>'
+      + donut.svg + '<div style="margin-top:14px">';
+    segs.forEach(function(seg){
+      var p = donut.total > 0 ? (seg.valor/donut.total*100) : 0;
+      html += '<div class="leg-row">'
+        + '<span class="leg-dot" style="background:'+seg.color+'"></span>'
+        + '<div class="leg-nom">'+esc(seg.nom)+'</div>'
+        + '<div class="leg-pct">'+p.toFixed(0)+'%</div>'
+      + '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  // ── Posicions ──
+  html += '<div class="card"><div class="card-lbl" style="margin-bottom:8px">Posicions</div>';
+  TBI_CARTERA.agregats(pos, getMoviments()).forEach(function(p){
+    var valor = parseFloat(p.valor_actual)||0;
+    var colP = p.pnl_eur >= 0 ? 'var(--green)' : 'var(--red)';
+    var catNom = catInfo(p.cat).nom;
+    var sub = [];
+    if (p.nom && p.nom !== catNom) sub.push(esc(p.nom));
+    if (p.broker) sub.push(esc(p.broker));
+    sub.push(p.valor_data ? ('Actualitzat ' + dataHumana(p.valor_data)) : 'Sense valor');
+    html += '<div class="pos-row">'
+      + chipCat(p.cat)
+      + '<div style="flex:1;min-width:0">'
+        + '<div class="pos-nom">'+esc(catNom)+'</div>'
+        + '<div class="pos-meta">'+sub.join(' · ')+'</div>'
+      + '</div>'
+      + '<div><div class="pos-val">'+eurRound(valor)+'</div>'
+        + '<div class="pos-pnl" style="color:'+colP+'">'+pct(p.pnl_pct)+'</div></div>'
+    + '</div>';
+  });
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+// ── Modal actualitzar valors ──
+function obrirActualitzar(){
+  var pos = getPosicions();
+  if (!pos.length){ toast('Encara no hi ha posicions'); return; }
+
+  var rows = pos.map(function(p){
+    var oldv = parseFloat(p.valor_actual)||0;
+    var dataTxt = p.valor_data ? ('anterior: '+eurRound(oldv)+' · '+dataHumana(p.valor_data)) : 'sense valor previ';
+    var catNom = catInfo(p.cat).nom;
+    var subNom = (p.nom && p.nom !== catNom) ? (esc(p.nom)+' · ') : '';
+    return '<div class="upd-row">'
+      + '<div class="upd-top">'
+        + chipCat(p.cat, 'sm')
+        + '<div style="flex:1;min-width:0">'
+          + '<div class="pos-nom">'+esc(catNom)+'</div>'
+          + '<div class="pos-meta">'+subNom+dataTxt+'</div>'
+        + '</div>'
+      + '</div>'
+      + '<input class="upd-input" inputmode="decimal" data-pos-id="'+esc(p.id)+'" data-old="'+oldv+'" '
+        + 'value="'+(oldv>0?oldv.toLocaleString('ca-ES'):'')+'" placeholder="Valor actual €">'
+    + '</div>';
+  }).join('');
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-upd';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Actualitzar valors</div>'
+    + '<div class="modal-sub">Posa el valor de mercat actual de cada posició. El trobaràs al teu bróker. Mes: '+nomMesCA(mesActual())+'.</div>'
+    + rows
+    + '<div style="display:flex;gap:10px;margin-top:18px">'
+      + '<button onclick="tancarModal()" style="flex:1;padding:13px;background:var(--g50);color:var(--g700);border-radius:11px;font-weight:500">Cancel·lar</button>'
+      + '<button class="btn-primary" style="flex:2" id="btn-upd-save" onclick="guardarActualitzacio()">Desar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModal(); });
+}
+function tancarModal(){
+  var m = $('modal-upd'); if (m) m.parentNode.removeChild(m);
+}
+
+async function guardarActualitzacio(){
+  var data = avui();
+  var mes = data.slice(0,7);
+  var pos = getPosicions().slice();
+  var btn = $('btn-upd-save');
+
+  var suspects = [];
+  var pendents = [];
+  var inputs = document.querySelectorAll('.upd-input');
+  for (var i=0;i<inputs.length;i++){
+    var inp = inputs[i];
+    var id = inp.getAttribute('data-pos-id');
+    var oldv = parseFloat(inp.getAttribute('data-old'))||0;
+    var v = parseNumCA(inp.value);
+    if (isNaN(v) || v < 0) v = oldv;
+    if (oldv > 0 && Math.abs(v-oldv)/oldv > 0.4){
+      var pp = pos.find(function(x){ return x.id === id; });
+      suspects.push((pp&&pp.nom?pp.nom:'Posició')+': '+eurRound(oldv)+' → '+eurRound(v));
+    }
+    pendents.push({ id:id, v:v });
+  }
+  if (suspects.length){
+    if (!confirm('Alguns valors canvien molt:\n\n'+suspects.join('\n')+'\n\nVols desar-los igualment?')) return;
+  }
+  pendents.forEach(function(x){
+    var p = pos.find(function(y){ return y.id === x.id; });
+    if (p){ p.valor_actual = x.v; p.valor_data = data; }
+  });
+
+  // Snapshot mensual
+  var valorTotal = pos.reduce(function(s,p){ return s + (parseFloat(p.valor_actual)||0); }, 0);
+  var movs = getMoviments();
+  var invertit = 0;
+  movs.forEach(function(m){ var im=parseFloat(m.import)||0; if(m.tipus==='compra')invertit+=im; if(m.tipus==='venda')invertit-=im; });
+
+  var snaps = getSnapshots().slice();
+  var idx = snaps.findIndex(function(s){ return s.mes === mes; });
+  var nou = { mes:mes, data:data, valor:valorTotal, invertit:invertit };
+  if (idx >= 0) snaps[idx] = nou; else snaps.push(nou);
+  snaps.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
+  if (btn){ btn.disabled = true; btn.textContent = 'Desant...'; }
+  try {
+    var res = await sb.from('clients')
+      .update({ posicions: pos, snapshots_cartera: snaps })
+      .eq('email', APP.email);
+    if (res.error) throw res.error;
+    APP.client.posicions = pos;
+    APP.client.snapshots_cartera = snaps;
+    tancarModal();
+    toast('✓ Cartera actualitzada · '+eurRound(valorTotal));
+    renderCartera();
+  } catch(e){
+    if (btn){ btn.disabled = false; btn.textContent = 'Desar'; }
+    toast('Error: '+(e.message||e));
+  }
+}
+
+// ════════════════════════════════════════════
+// VISTA: EVOLUCIÓ
+// ════════════════════════════════════════════
+function renderEvolucio(){
+  var el = $('view');
+  var snaps = getSnapshots().slice().sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
+  if (snaps.length < 2){
+    el.innerHTML = '<div class="empty">Encara no hi ha prou històric per dibuixar l\'evolució.<br><br>Actualitza la cartera i registra les aportacions cada mes; aquí veuràs com creix.</div>';
+    return;
+  }
+
+  var valors = snaps.map(function(s){ return parseFloat(s.valor)||0; });
+  var aports = snaps.map(function(s){ return parseFloat(s.invertit)||0; });
+
+  // Escala comuna per a les dues sèries
+  var allv = valors.concat(aports);
+  var minV = Math.min.apply(null, allv);
+  var maxV = Math.max.apply(null, allv);
+  var range = (maxV - minV) || 1;
+  var pad = range * 0.12;
+  var lo = Math.max(0, minV - pad);
+  var hi = maxV + pad;
+  var rng = (hi - lo) || 1;
+
+  var W = 320, H = 190, padL = 8, padR = 8, padT = 14, padB = 26;
+  var plotW = W - padL - padR;
+  var plotH = H - padT - padB;
+  var n = snaps.length;
+
+  function ptsFor(arr){
+    return arr.map(function(v, i){
+      var x = padL + (n === 1 ? plotW/2 : (i/(n-1))*plotW);
+      var y = padT + plotH - ((v - lo)/rng)*plotH;
+      return { x:x, y:y, v:v };
+    });
+  }
+  var ptsVal = ptsFor(valors);
+  var ptsApt = ptsFor(aports);
+
+  function pathOf(pts){ return pts.map(function(p,i){ return (i===0?'M':'L')+p.x.toFixed(1)+' '+p.y.toFixed(1); }).join(' '); }
+  var lineVal = pathOf(ptsVal);
+  var lineApt = pathOf(ptsApt);
+  var areaVal = lineVal + ' L'+ptsVal[n-1].x.toFixed(1)+' '+(padT+plotH)+' L'+ptsVal[0].x.toFixed(1)+' '+(padT+plotH)+' Z';
+
+  var lastVal = valors[n-1], firstVal = valors[0];
+  var lastApt = aports[n-1];
+  var delta = lastVal - firstVal;
+  var deltaPct = firstVal > 0 ? (delta/firstVal*100) : 0;
+  var guanyAbs = lastVal - lastApt; // valor menys aportat = revaloració acumulada
+  var colD = delta >= 0 ? 'var(--green)' : 'var(--red)';
+
+  var svg = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'
+    + '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="#16233A" stop-opacity="0.14"/>'
+      + '<stop offset="100%" stop-color="#16233A" stop-opacity="0"/>'
+    + '</linearGradient></defs>'
+    + '<path d="'+areaVal+'" fill="url(#grad)"/>'
+    // línia aportat (puntejada, daurada)
+    + '<path d="'+lineApt+'" fill="none" stroke="#C8A54A" stroke-width="1.8" stroke-dasharray="4 3" stroke-linejoin="round" stroke-linecap="round"/>'
+    // línia valor (sòlida, navy)
+    + '<path d="'+lineVal+'" fill="none" stroke="#16233A" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+  ptsVal.forEach(function(p,i){
+    var ultim = (i === ptsVal.length-1);
+    svg += '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+(ultim?3.6:2.4)+'" fill="#16233A"'+(ultim?' stroke="#fff" stroke-width="1.6"':'')+'/>';
+  });
+  svg += '<text x="'+ptsVal[0].x.toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#9AA1AC" text-anchor="start">'+mesAbrevCA(snaps[0].mes)+'</text>';
+  svg += '<text x="'+ptsVal[n-1].x.toFixed(1)+'" y="'+(H-8)+'" font-size="9" fill="#9AA1AC" text-anchor="end">'+mesAbrevCA(snaps[n-1].mes)+'</text>';
+  svg += '</svg>';
+
+  var html = '<div class="card">'
+    + '<div class="card-lbl">Evolució de la cartera</div>'
+    + '<div class="kpi-big" style="font-size:26px">'+eurRound(lastVal)+'</div>'
+    + '<div class="kpi-sub" style="color:'+colD+'">'+(delta>=0?'+':'')+eurRound(delta)+' · '+pct(deltaPct)+' des de '+mesAbrevCA(snaps[0].mes)+'</div>'
+    + '<div style="margin-top:14px">'+svg+'</div>'
+    // Llegenda
+    + '<div style="display:flex;gap:18px;justify-content:center;margin-top:6px">'
+      + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g500)"><span style="width:16px;height:2.5px;background:#16233A;border-radius:2px"></span>Valor cartera</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--g500)"><span style="width:16px;height:0;border-top:2px dashed #C8A54A"></span>Total aportat</div>'
+    + '</div>'
+    + '</div>';
+
+  // Resum numèric: aportat vs valor vs guany
+  var colG = guanyAbs >= 0 ? 'var(--green)' : 'var(--red)';
+  html += '<div class="card"><div style="display:flex;gap:14px">'
+    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Total aportat</div>'
+      + '<div style="font-family:var(--fm);font-size:16px;color:var(--gold);margin-top:3px">'+eurRound(lastApt)+'</div></div>'
+    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Valor actual</div>'
+      + '<div style="font-family:var(--fm);font-size:16px;color:var(--navy);margin-top:3px">'+eurRound(lastVal)+'</div></div>'
+    + '<div style="flex:1"><div style="font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Guany</div>'
+      + '<div style="font-family:var(--fm);font-size:16px;color:'+colG+';margin-top:3px">'+(guanyAbs>=0?'+':'')+eurRound(guanyAbs)+'</div></div>'
+    + '</div></div>';
+
+  // Taula històric: mes · aportat · valor
+  html += '<div class="card"><div class="card-lbl" style="margin-bottom:8px">Històric mensual</div>';
+  html += '<div style="display:flex;font-size:10px;color:var(--g400);text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding-bottom:6px;border-bottom:1px solid var(--g100)">'
+    + '<div style="flex:1">Mes</div><div style="width:90px;text-align:right">Aportat</div><div style="width:90px;text-align:right">Valor</div></div>';
+  snaps.slice().reverse().forEach(function(s){
+    html += '<div class="pos-row" style="padding:11px 0">'
+      + '<div style="flex:1"><div class="pos-nom" style="font-size:13px">'+nomMesCA(s.mes)+' '+(s.mes||'').slice(0,4)+'</div></div>'
+      + '<div style="width:90px;text-align:right;font-family:var(--fm);font-size:13px;color:var(--g500)">'+eurRound(parseFloat(s.invertit)||0)+'</div>'
+      + '<div style="width:90px;text-align:right;font-family:var(--fm);font-size:13px;color:var(--navy)">'+eurRound(parseFloat(s.valor)||0)+'</div>'
+    + '</div>';
+  });
+  html += '</div>';
+
+  el.innerHTML = html;
+}
+
+// ════════════════════════════════════════════
+// VISTA: MISSATGES
+// ════════════════════════════════════════════
+var _msgLoading = false;
+var _comunicats = null;   // cache de newsletters carregades
+
+// Sub-tab actiu dins Missatges: 'xat' o 'comunicats'
+if (!APP.msgTab) APP.msgTab = 'xat';
+
+// ── Helpers comunicats ──
+// Extreu text net d'un HTML d'email (sense renderitzar HTML cru: més segur al mòbil)
+function htmlAText(html){
+  if (!html) return '';
+  var s = String(html);
+  // eliminar blocs no visibles
+  s = s.replace(/<style[\s\S]*?<\/style>/gi, ' ');
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, ' ');
+  s = s.replace(/<head[\s\S]*?<\/head>/gi, ' ');
+  // salts de línia per a blocs i <br>
+  s = s.replace(/<\s*br\s*\/?>/gi, '\n');
+  s = s.replace(/<\/\s*(p|div|tr|h[1-6]|li)\s*>/gi, '\n');
+  s = s.replace(/<\s*li[^>]*>/gi, '• ');
+  // treure la resta d'etiquetes
+  s = s.replace(/<[^>]+>/g, ' ');
+  // decodificar entitats bàsiques
+  s = s.replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/&lt;/gi,'<')
+       .replace(/&gt;/gi,'>').replace(/&quot;/gi,'"').replace(/&#39;/gi,"'").replace(/&euro;/gi,'€');
+  // normalitzar espais i salts
+  s = s.replace(/[ \t]+/g, ' ');
+  s = s.replace(/\n[ \t]+/g, '\n').replace(/[ \t]+\n/g, '\n');
+  s = s.replace(/\n{3,}/g, '\n\n');
+  return s.trim();
+}
+
+// localStorage: id de l'últim comunicat llegit (per marcar nous)
+function comunicatsLlegitsKey(){ return 'tbi_com_llegits_' + (APP.email||''); }
+function getComunicatsLlegits(){
+  try { return JSON.parse(localStorage.getItem(comunicatsLlegitsKey()) || '[]'); } catch(e){ return []; }
+}
+function marcarComunicatLlegit(id){
+  try {
+    var l = getComunicatsLlegits();
+    if (l.indexOf(id) === -1){ l.push(id); localStorage.setItem(comunicatsLlegitsKey(), JSON.stringify(l)); }
+  } catch(e){}
+}
+// Compta comunicats no llegits (a partir de la cache _comunicats)
+function comptarComunicatsNous(){
+  if (!_comunicats) return 0;
+  var llegits = getComunicatsLlegits();
+  var n = 0;
+  _comunicats.forEach(function(c){ if (llegits.indexOf(c.id) === -1) n++; });
+  return n;
+}
+
+function renderMissatges(){
+  var el = $('view');
+  var nous = comptarComunicatsNous();
+  var tabXat = APP.msgTab === 'xat';
+  el.innerHTML = '<div class="chat-wrap">'
+    + '<div class="subtabs">'
+      + '<button id="subtab-xat" class="'+(tabXat?'active':'')+'" onclick="canviarMsgTab(\'xat\')">Xat</button>'
+      + '<button id="subtab-com" class="'+(!tabXat?'active':'')+'" onclick="canviarMsgTab(\'comunicats\')">Comunicats'
+        + (nous>0 ? '<span class="dot"></span>' : '') + '</button>'
+    + '</div>'
+    + '<div id="msg-content" style="flex:1;display:flex;flex-direction:column;min-height:0"></div>'
+  + '</div>';
+  if (tabXat) renderXat();
+  else renderComunicats();
+}
+
+function canviarMsgTab(tab){
+  APP.msgTab = tab;
+  renderMissatges();
+}
+
+// ── SUB-TAB: XAT (la conversa de sempre) ──
+function renderXat(){
+  var c = $('msg-content');
+  if (!c) return;
+  c.innerHTML = '<div class="chat-thread" id="chat-thread"><div class="empty">Carregant...</div></div>'
+    + '<div class="chat-input-bar">'
+      + '<textarea id="msg-input" rows="1" placeholder="Escriu al teu assessor..." oninput="autoGrow(this)"></textarea>'
+      + '<button class="chat-send" id="msg-send" onclick="enviarMissatge()">Enviar</button>'
+    + '</div>';
+  carregarThread();
+}
+
+// ── SUB-TAB: COMUNICATS (newsletters enviades) ──
+async function renderComunicats(){
+  var c = $('msg-content');
+  if (!c) return;
+  c.innerHTML = '<div class="chat-thread" id="com-list" style="padding-top:0"><div class="empty">Carregant comunicats...</div></div>';
+  var list = $('com-list');
+  try {
+    // Només les realment enviades (sent_at no nul), més recents primer
+    var res = await sb.from('newsletters').select('*')
+      .not('sent_at', 'is', null)
+      .order('sent_at', { ascending: false });
+    if (res.error) throw res.error;
+    _comunicats = res.data || [];
+    if (!_comunicats.length){
+      list.innerHTML = '<div class="empty">Encara no hi ha comunicats.<br>Aquí veuràs les novetats que t\'enviï el teu assessor.</div>';
+      return;
+    }
+    var llegits = getComunicatsLlegits();
+    var html = '';
+    _comunicats.forEach(function(n){
+      var nou = llegits.indexOf(n.id) === -1;
+      var dataTxt = n.sent_at ? dataHumana(String(n.sent_at).slice(0,10)) : '';
+      html += '<div class="com-card" onclick="obrirComunicat(\''+n.id+'\')">'
+        + (n.eyebrow ? '<div class="com-eyebrow">'+esc(n.eyebrow)+'</div>' : '')
+        + '<div class="com-titol">'+esc(n.titol||'Comunicat')+'</div>'
+        + (n.subtitol ? '<div class="com-subtitol">'+esc(n.subtitol)+'</div>' : '')
+        + '<div class="com-meta">'+(nou?'<span class="com-new-badge">Nou</span>':'')+'<span>'+dataTxt+'</span></div>'
+      + '</div>';
+    });
+    list.innerHTML = html;
+  } catch(e){
+    list.innerHTML = '<div class="empty">No s\'han pogut carregar els comunicats.</div>';
+  }
+}
+
+// Prepara l'HTML del comunicat per veure'l dins de l'app:
+//  - resol el marcador de baixa (dins de l'app no hi ha enllaç de baixa)
+//  - obre els enllaços fora de l'iframe, no dins
+//  - hi encaixa l'amplada: els emails porten taules de 600px fixos
+function comunicatHTML(raw){
+  var s = String(raw || '').split('{{unsubscribe_url}}').join('#');
+  // Els emails de TBI ja porten el seu propi @media (max-width:600px) i es
+  // maqueten sols al mòbil. Aquí NOMÉS s'hi posa una xarxa de seguretat:
+  //  - <base href> perquè les rutes relatives resolguin (dins d'un srcdoc
+  //    no hi ha URL de document on ancorar-les)
+  //  - el contenidor exterior, que és l'únic amb amplada fixa de 600px
+  //  - imatges i paraules llargues, que són l'altra font de desbordament
+  // No es toquen les taules niuades: als emails fan de graella i forçar-les
+  // al 100% és precisament el que trencava la maquetació.
+  var extra = '<base href="https://theboringinvestor.es/" target="_blank">'
+    + '<style>'
+    + 'html,body{margin:0!important;padding:0!important;overflow-x:hidden!important}'
+    + 'img{max-width:100%!important;height:auto!important}'
+    + 'table.container,table[width="600"]{width:100%!important;max-width:100%!important}'
+    + 'td,p,div,h1,h2,h3,a{word-break:break-word;overflow-wrap:anywhere}'
+    + '</style>';
+  // Al FINAL del <head>: ha de guanyar als estils del propi correu.
+  if (/<\/head>/i.test(s)) return s.replace(/<\/head>/i, extra + '</head>');
+  if (/<body[^>]*>/i.test(s)) return s.replace(/<body[^>]*>/i, function(m){ return m + extra; });
+  return extra + s;
+}
+
+function obrirComunicat(id){
+  var n = (_comunicats||[]).find(function(x){ return x.id === id; });
+  if (!n) return;
+  marcarComunicatLlegit(id);
+  var dataTxt = n.sent_at ? dataHumana(String(n.sent_at).slice(0,10)) : '';
+  var teHTML = !!(n.html && String(n.html).trim());
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-com';
+  modal.innerHTML = '<div class="modal-inner">'
+    + (n.eyebrow ? '<div class="com-eyebrow">'+esc(n.eyebrow)+'</div>' : '')
+    + '<div class="modal-h" style="margin-bottom:4px">'+esc(n.titol||'Comunicat')+'</div>'
+    + (n.subtitol ? '<div class="modal-sub" style="margin-bottom:6px">'+esc(n.subtitol)+'</div>' : '')
+    + '<div style="font-size:11px;color:var(--g400);margin-bottom:14px">'+dataTxt+'</div>'
+    // Amb HTML: iframe aïllat, que és com es veu al correu.
+    // Sense HTML: text pla, com abans.
+    + (teHTML
+        ? '<iframe id="com-frame" class="com-frame" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" title="Comunicat"></iframe>'
+        : '<div class="com-body">'+esc(htmlAText(n.html))+'</div>')
+    + '<button class="btn-primary" style="margin-top:16px" onclick="tancarComunicat()">Tancar</button>'
+  + '</div>';
+  document.body.appendChild(modal);
+  if (teHTML){
+    var fr = document.getElementById('com-frame');
+    if (fr){
+      // srcdoc per propietat, no per atribut: així no cal escapar res
+      fr.srcdoc = comunicatHTML(n.html);
+      // A iOS els iframes d'alçada fixa no fan scroll intern: s'ajusta
+      // l'iframe al seu contingut i qui fa scroll és el modal.
+      fr.addEventListener('load', function(){
+        ajustarAlcadaComunicat(fr);
+        // en girar el mòbil canvia l'amplada: cal refer el càlcul
+        window.addEventListener('resize', function(){ ajustarAlcadaComunicat(fr); });
+      });
+    }
+  }
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarComunicat(); });
+}
+// Encaixa el comunicat: alçada igual a la del contingut (a iOS els iframes
+// d'alçada fixa no fan scroll intern) i, si tot i el CSS encara sobresurt
+// d'amplada, s'escala perquè hi càpiga. Escalar és l'últim recurs: fa la
+// lletra més petita, però és millor que haver de fer scroll horitzontal.
+function ajustarAlcadaComunicat(fr){
+  try {
+    var d = fr.contentDocument;
+    if (!d || !d.body) return;
+    var ampleVisible = fr.clientWidth || fr.offsetWidth;
+    var ampleReal = Math.max(d.body.scrollWidth, d.documentElement.scrollWidth);
+    var escala = 1;
+    if (ampleVisible > 0 && ampleReal > ampleVisible + 2){
+      escala = ampleVisible / ampleReal;
+      d.body.style.transformOrigin = 'top left';
+      d.body.style.transform = 'scale(' + escala.toFixed(4) + ')';
+      d.body.style.width = ampleReal + 'px';
+    }
+    var alt = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight);
+    if (alt > 0) fr.style.height = Math.min(Math.ceil(alt * escala) + 24, 20000) + 'px';
+  } catch(e){ /* sense accés al document: es manté l'alçada del CSS */ }
+}
+
+function tancarComunicat(){
+  var m = $('modal-com'); if (m) m.parentNode.removeChild(m);
+  // refrescar la llista perquè desaparegui el badge "Nou" i el punt del sub-tab
+  if (APP.view === 'missatges' && APP.msgTab === 'comunicats') renderMissatges();
+  actualitzarAvisComunicats();
+}
+
+// Avís de comunicats nous al nav inferior (puntet sobre Missatges)
+function actualitzarAvisComunicats(){
+  var b = $('nav-missatges');
+  if (!b) return;
+  var nous = comptarComunicatsNous();
+  var ja = b.querySelector('.nav-dot');
+  if (nous > 0 && !ja){
+    var d = document.createElement('span');
+    d.className = 'nav-dot';
+    d.style.cssText = 'position:absolute;top:6px;right:50%;margin-right:-16px;width:7px;height:7px;border-radius:50%;background:var(--gold)';
+    b.style.position = 'relative';
+    b.appendChild(d);
+  } else if (nous === 0 && ja){
+    ja.parentNode.removeChild(ja);
+  }
+}
+
+// Precarrega comunicats en segon pla (per mostrar el puntet sense obrir la pestanya)
+async function precarregarComunicats(){
+  try {
+    var res = await sb.from('newsletters').select('id,titol,sent_at')
+      .not('sent_at', 'is', null).order('sent_at', { ascending:false });
+    if (!res.error){ _comunicats = res.data || []; actualitzarAvisComunicats(); }
+  } catch(e){}
+}
+
+function autoGrow(t){
+  t.style.height = 'auto';
+  t.style.height = Math.min(t.scrollHeight, 90) + 'px';
+}
+
+async function carregarThread(){
+  var thread = $('chat-thread');
+  if (!thread) return;
+  try {
+    var res = await sb.from('messages').select('*').eq('client_email', APP.email).order('created_at', {ascending:true});
+    if (res.error) throw res.error;
+    var msgs = res.data || [];
+    if (!msgs.length){
+      thread.innerHTML = '<div class="empty">Encara no hi ha missatges.<br>Escriu el primer al teu assessor.</div>';
+      return;
+    }
+    var html = '';
+    msgs.forEach(function(m){
+      var mine = m.from_role === 'client';
+      var d = new Date(m.created_at);
+      var ds = d.toLocaleString('ca-ES', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      html += '<div style="display:flex;flex-direction:column;align-items:'+(mine?'flex-end':'flex-start')+'">'
+        + '<div class="bubble '+(mine?'mine':'theirs')+'">'+esc(m.content)+'</div>'
+        + '<div class="bubble-meta">'+(mine?'Tu':'Guillem')+' · '+ds+'</div>'
+      + '</div>';
+    });
+    thread.innerHTML = html;
+    thread.scrollTop = thread.scrollHeight;
+    // marcar com a llegits els de l'admin
+    try { await sb.from('messages').update({read_by_client:true}).eq('client_email', APP.email).eq('read_by_client', false); } catch(e){}
+  } catch(e){
+    thread.innerHTML = '<div class="empty">Error carregant missatges.</div>';
+  }
+}
+
+async function comptarMissatgesMes(){
+  try {
+    var first = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+    var res = await sb.from('messages').select('id',{count:'exact',head:true})
+      .eq('client_email', APP.email).eq('from_role','client').gte('created_at', first);
+    if (res.error) return 0;
+    return res.count || 0;
+  } catch(e){ return 0; }
+}
+function esPlaSenyal(){
+  var pla = (APP.client && APP.client.pla) || 'senyal';
+  if (pla === 'essencial') pla = 'senyal';
+  return pla === 'senyal';
+}
+
+async function enviarMissatge(){
+  var input = $('msg-input');
+  var btn = $('msg-send');
+  if (!input || !input.value.trim()) return;
+  var txt = input.value.trim();
+
+  if (esPlaSenyal()){
+    var used = await comptarMissatgesMes();
+    if (used >= SENYAL_MSG_LIMIT){
+      toast('Has arribat al límit de '+SENYAL_MSG_LIMIT+' missatges aquest mes (pla Senyal).');
+      return;
+    }
+  }
+
+  input.disabled = true; if (btn) btn.disabled = true;
+  try {
+    var res = await sb.from('messages').insert({
+      client_email: APP.email,
+      from_email: APP.email,
+      from_role: 'client',
+      content: txt,
+      read_by_admin: false,
+      read_by_client: true
+    });
+    if (res.error) throw res.error;
+    input.value = ''; autoGrow(input);
+    input.disabled = false; if (btn) btn.disabled = false;
+    input.focus();
+    await carregarThread();
+  } catch(e){
+    input.disabled = false; if (btn) btn.disabled = false;
+    input.value = txt;
+    toast('Error enviant: '+(e.message||e));
+  }
+}
+
+
+// ════════════════════════════════════════════
+// APORTACIONS RECORRENTS (ordres permanents)
+// Mateix motor que la plataforma: tbi-recurrents.js.
+// La regla no crea res sola — proposa les compres vençudes i tu les confirmes.
+// ════════════════════════════════════════════
+
+function getRecurrents(){
+  var c = APP.client;
+  return TBI_RECURRENTS.normalitzaLlista(c && c.aportacions_recurrents);
+}
+
+function pendentsRec(){
+  return TBI_RECURRENTS.resumPendents(getRecurrents(), getPosicions());
+}
+
+function nomPosicioApp(p){
+  if (!p) return '—';
+  return p.nom || CAT_NOM[p.cat] || p.cat || 'Posició';
+}
+
+// ── Banner: hi ha compres recorrents per confirmar ──
+function bannerRecurrentsHTML(){
+  var res = pendentsRec();
+  if (!res.total_mov) return '';
+  return '<div class="banner-upd" style="background:#EBF0FA;border-color:#B9C9E6">'
+    + '<div class="txt" style="color:#1B3A6B">'
+      + '<strong>' + res.total_mov + ' aportaci' + (res.total_mov>1?'ons':'ó') + ' recorrent' + (res.total_mov>1?'s':'') + ' per confirmar</strong><br>'
+      + 'Des del ' + TBI_RECURRENTS.dataCurta(res.files[0].dates[0]) + ' · ' + eurRound(res.total_eur)
+    + '</div>'
+    + '<button style="background:#1B3A6B" onclick="obrirConfirmarRec()">Revisar</button>'
+  + '</div>';
+}
+
+// ── Secció de gestió (vista Aportar) ──
+function seccioRecurrentsHTML(){
+  var regles = getRecurrents();
+  var posicions = getPosicions();
+  var html = '<div class="section-h">Aportacions automàtiques</div><div class="card">';
+
+  if (!regles.length){
+    html += '<div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:14px">'
+      + 'Si tens una ordre permanent al broker (per exemple 160€ el dia 1 de cada mes), registra-la aquí una sola vegada. '
+      + 'Cada mes l’app et proposarà la compra perquè la confirmis d’un toc, en comptes d’haver-la d’escriure.'
+    + '</div>';
+  } else {
+    var anual = TBI_RECURRENTS.importAnualitzat(regles);
+    regles.forEach(function(r){
+      var pos = posicions.find(function(p){ return p.id === r.posicio_id; });
+      var pend = pos ? TBI_RECURRENTS.pendents(r) : [];
+      var propera = TBI_RECURRENTS.properaData(r);
+      var meta;
+      if (!pos) meta = 'La posició ja no existeix';
+      else if (!r.actiu) meta = 'En pausa';
+      else if (pend.length) meta = pend.length + ' pendent' + (pend.length>1?'s':'') + ' · ' + eurRound(pend.length * r['import']);
+      else if (propera) meta = 'Propera: ' + TBI_RECURRENTS.dataCurta(propera);
+      else meta = 'Sense properes aportacions';
+      html += '<div class="pos-row" onclick="obrirEditarRec(\'' + r.id + '\')" style="cursor:pointer">'
+        + (pos ? chipCat(pos.cat, 'sm') : '<span style="width:28px;height:28px;border-radius:8px;background:var(--g100);flex-shrink:0"></span>')
+        + '<div style="flex:1;min-width:0">'
+          + '<div class="pos-nom">' + esc(nomPosicioApp(pos)) + (r.actiu ? '' : ' <span style="font-size:10px;color:var(--g400)">· pausa</span>') + '</div>'
+          + '<div class="pos-meta">' + esc(TBI_RECURRENTS.resumRegla(r)) + ' · ' + esc(meta) + '</div>'
+        + '</div>'
+        + '<div class="pos-val" style="color:var(--g400);font-size:16px">›</div>'
+      + '</div>';
+    });
+    html += '<div style="font-size:11.5px;color:var(--g400);margin-top:10px;line-height:1.5">Total programat: <strong style="font-family:var(--fm);color:var(--g700)">' + eurRound(anual) + '/any</strong>. Toca una fila per editar-la o posar-la en pausa.</div>';
+  }
+
+  html += '<button class="btn-primary" style="margin-top:12px" ' + (posicions.length ? 'onclick="obrirEditarRec()"' : 'disabled style="margin-top:12px;opacity:.5"') + '>'
+    + TBI_ICO.svg('plus-circle') + 'Nova aportació automàtica</button>';
+  html += '</div>';
+  return html;
+}
+
+// ── Modal: confirmar les pendents ──
+function obrirConfirmarRec(){
+  var res = pendentsRec();
+  if (!res.total_mov){ toast('No hi ha aportacions pendents'); return; }
+
+  var blocs = res.files.map(function(f){
+    var files = f.dates.map(function(d){
+      return '<div style="display:flex;align-items:center;gap:11px;padding:9px 0">'
+        + '<input type="checkbox" class="rec-chk" data-regla="' + f.regla.id + '" data-data="' + d + '" checked onchange="_recRecalcApp()" style="width:20px;height:20px;accent-color:#1B3A6B;flex-shrink:0">'
+        + '<div style="flex:1;min-width:0;font-size:13px;color:var(--g700)">' + TBI_RECURRENTS.dataCurta(d) + '</div>'
+        + '<input class="upd-input rec-imp" inputmode="decimal" data-regla="' + f.regla.id + '" data-data="' + d + '" value="' + f.regla['import'] + '" oninput="_recRecalcApp()" style="width:110px;font-size:15px;padding:9px 11px">'
+      + '</div>';
+    }).join('');
+    return '<div class="upd-row">'
+      + '<div class="upd-top" style="margin-bottom:2px">'
+        + chipCat(f.posicio.cat, 'sm')
+        + '<div style="flex:1;min-width:0"><div class="pos-nom">' + esc(nomPosicioApp(f.posicio)) + '</div>'
+        + '<div class="pos-meta">' + esc(TBI_RECURRENTS.resumRegla(f.regla)) + '</div></div>'
+      + '</div>'
+      + files
+    + '</div>';
+  }).join('');
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-rec';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Aportacions pendents</div>'
+    + '<div class="modal-sub">Aquestes compres les hauria fet la teva ordre permanent. Desmarca les que no es van executar i ajusta l’import si algun mes va ser diferent.</div>'
+    + blocs
+    + '<div id="rec-total" style="text-align:right;font-family:var(--fm);font-size:15px;font-weight:600;color:var(--navy);margin-top:12px"></div>'
+    + '<div style="font-size:11.5px;color:var(--g500);line-height:1.6;margin-top:10px;background:var(--g50);border-radius:11px;padding:11px 13px">L’import confirmat se suma també al valor de la posició: els diners hi han entrat. Quan actualitzis els valors reals del broker, aquells manaran.</div>'
+    + '<div style="display:flex;gap:10px;margin-top:16px">'
+      + '<button onclick="tancarModalRec()" style="flex:1;padding:13px;background:var(--g50);color:var(--g700);border-radius:11px;font-weight:500">Ara no</button>'
+      + '<button class="btn-primary" style="flex:2" id="btn-rec-save" onclick="confirmarRecApp()">Registrar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModalRec(); });
+  _recRecalcApp();
+}
+
+function tancarModalRec(){
+  ['modal-rec','modal-rec-edit'].forEach(function(id){
+    var m = document.getElementById(id); if (m && m.parentNode) m.parentNode.removeChild(m);
+  });
+}
+
+function _recRecalcApp(){
+  var chks = document.querySelectorAll('.rec-chk');
+  var total = 0, n = 0;
+  for (var i=0;i<chks.length;i++){
+    if (!chks[i].checked) continue;
+    var inp = document.querySelector('.rec-imp[data-regla="'+chks[i].getAttribute('data-regla')+'"][data-data="'+chks[i].getAttribute('data-data')+'"]');
+    var v = inp ? parseNumCA(inp.value) : NaN;
+    if (!isNaN(v) && v > 0){ total += v; n++; }
+  }
+  var el = $('rec-total');
+  if (el) el.textContent = 'Total: ' + eurRound(total) + (n ? ' · ' + n + ' compra' + (n>1?'es':'') : '');
+}
+
+async function confirmarRecApp(){
+  var chks = document.querySelectorAll('.rec-chk');
+  var perRegla = {};
+  for (var i=0;i<chks.length;i++){
+    var rid = chks[i].getAttribute('data-regla'), d = chks[i].getAttribute('data-data');
+    if (!perRegla[rid]) perRegla[rid] = { regla_id: rid, confirmades: [], saltades: [] };
+    if (chks[i].checked){
+      var inp = document.querySelector('.rec-imp[data-regla="'+rid+'"][data-data="'+d+'"]');
+      var v = inp ? parseNumCA(inp.value) : NaN;
+      if (!isNaN(v) && v > 0) perRegla[rid].confirmades.push({ data: d, 'import': v });
+      else perRegla[rid].saltades.push(d);
+    } else perRegla[rid].saltades.push(d);
+  }
+  var lots = [];
+  for (var k in perRegla) if (perRegla.hasOwnProperty(k)) lots.push(perRegla[k]);
+
+  var apl = TBI_RECURRENTS.aplicarLot(getRecurrents(), lots, novaId);
+  var movs = getMoviments().concat(apl.moviments_nous);
+  var pos = getPosicions().slice();
+  apl.moviments_nous.forEach(function(m){
+    var p = pos.find(function(x){ return x.id === m.posicio_id; });
+    if (p) p.valor_actual = (parseFloat(p.valor_actual)||0) + (parseFloat(m['import'])||0);
+  });
+
+  // Snapshot del mes en curs (mateixa lògica que la resta de l'app)
+  var mes = mesActual();
+  var valorTotal = pos.reduce(function(s,p){ return s+(parseFloat(p.valor_actual)||0); }, 0);
+  var invertit = 0;
+  movs.forEach(function(m){ var im=parseFloat(m['import'])||0; if(m.tipus==='compra')invertit+=im; if(m.tipus==='venda')invertit-=im; });
+  var snaps = getSnapshots().slice();
+  var idx = snaps.findIndex(function(s){ return s.mes === mes; });
+  var nou = { mes:mes, data:avui(), valor:valorTotal, invertit:invertit };
+  if (idx >= 0) snaps[idx] = nou; else snaps.push(nou);
+  snaps.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
+  var btn = $('btn-rec-save');
+  if (btn){ btn.disabled = true; btn.textContent = 'Registrant...'; }
+  try {
+    var res = await sb.from('clients')
+      .update({ posicions: pos, moviments_posicions: movs, aportacions_recurrents: apl.regles, snapshots_cartera: snaps })
+      .eq('email', APP.email);
+    if (res.error) throw res.error;
+    APP.client.posicions = pos;
+    APP.client.moviments_posicions = movs;
+    APP.client.aportacions_recurrents = apl.regles;
+    APP.client.snapshots_cartera = snaps;
+    tancarModalRec();
+    var tot = apl.moviments_nous.reduce(function(s,x){ return s+(parseFloat(x['import'])||0); }, 0);
+    toast(apl.moviments_nous.length ? '✓ ' + apl.moviments_nous.length + ' aportacions · ' + eurRound(tot) : '✓ Marcades com a no executades');
+    go(APP.view || 'cartera');
+  } catch(e){
+    if (btn){ btn.disabled = false; btn.textContent = 'Registrar'; }
+    toast('Error: '+(e.message||e));
+  }
+}
+
+// ── Modal: crear / editar regla ──
+function obrirEditarRec(reglaId){
+  var posicions = getPosicions();
+  if (!posicions.length){ toast('Encara no tens posicions'); return; }
+  var r = reglaId ? getRecurrents().find(function(x){ return x.id === reglaId; }) : null;
+
+  var optsPos = posicions.map(function(p){
+    var sel = (r && r.posicio_id === p.id) ? ' selected' : '';
+    return '<option value="'+p.id+'"'+sel+'>'+esc(nomPosicioApp(p))+'</option>';
+  }).join('');
+  var optsPer = TBI_RECURRENTS.PERIODICITATS.map(function(p){
+    var sel = (r ? r.periodicitat === p.id : p.id === 'mensual') ? ' selected' : '';
+    return '<option value="'+p.id+'"'+sel+'>'+p.label+'</option>';
+  }).join('');
+
+  var selCss = 'width:100%;padding:12px 14px;border:1px solid var(--g200);border-radius:var(--r);font-size:15px;font-family:var(--fb);background:#fff';
+  function camp(lbl, inner){
+    return '<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--g500);margin-bottom:6px">'+lbl+'</div>'+inner+'</div>';
+  }
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-rec-edit';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">' + (r ? 'Editar aportació' : 'Nova aportació automàtica') + '</div>'
+    + '<div class="modal-sub">La data de la primera aportació marca el dia que es repetirà cada període.</div>'
+    + camp('Posició', '<select id="rc-pos" style="'+selCss+'">'+optsPos+'</select>')
+    + camp('Import (€)', '<input class="upd-input" id="rc-import" inputmode="decimal" value="'+(r ? r['import'] : '')+'" placeholder="Ex: 160">')
+    + camp('Freqüència', '<select id="rc-per" style="'+selCss+'">'+optsPer+'</select>')
+    + camp('Primera aportació', '<input type="date" id="rc-inici" value="'+(r ? r.data_inici : avui())+'" style="'+selCss+'">')
+    + camp('Fins a <span style="font-weight:400;color:var(--g400)">(opcional)</span>', '<input type="date" id="rc-fi" value="'+(r && r.data_fi ? r.data_fi : '')+'" style="'+selCss+'">')
+    + camp('Nota <span style="font-weight:400;color:var(--g400)">(opcional)</span>', '<input id="rc-nota" value="'+(r ? esc(r.nota) : '')+'" placeholder="Ex: ordre permanent MyInvestor" style="'+selCss+';text-align:left;font-family:var(--fb)">')
+    + '<div id="rc-preview" style="font-size:12px;color:#1B3A6B;background:#EBF0FA;border-radius:11px;padding:11px 13px;line-height:1.6"></div>'
+    + (r ? '<button onclick="toggleRecApp(\''+r.id+'\')" style="width:100%;margin-top:12px;padding:12px;background:var(--g50);color:var(--g700);border-radius:11px;font-weight:500;font-size:14px">'+(r.actiu?'Posar en pausa':'Reactivar')+'</button>' : '')
+    + '<div style="display:flex;gap:10px;margin-top:12px">'
+      + '<button onclick="tancarModalRec()" style="flex:1;padding:13px;background:var(--g50);color:var(--g700);border-radius:11px;font-weight:500">Cancel·lar</button>'
+      + '<button class="btn-primary" style="flex:2" onclick="guardarRecApp('+(r ? "'"+r.id+"'" : '')+')">'+(r?'Desar':'Crear')+'</button>'
+    + '</div>'
+    + (r ? '<button onclick="esborrarRecApp(\''+r.id+'\')" style="width:100%;margin-top:10px;padding:11px;background:none;color:var(--red);font-size:13px;font-weight:500">Esborrar aportació</button>' : '')
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModalRec(); });
+
+  ['rc-import','rc-per','rc-inici','rc-fi'].forEach(function(id){
+    var el = $(id);
+    if (el){ el.addEventListener('input', _rcPreviewApp); el.addEventListener('change', _rcPreviewApp); }
+  });
+  _rcPreviewApp();
+}
+
+function _rcPreviewApp(){
+  var el = $('rc-preview'); if (!el) return;
+  var imp = parseNumCA(($('rc-import')||{}).value || '');
+  var per = ($('rc-per')||{}).value || 'mensual';
+  var ini = ($('rc-inici')||{}).value || '';
+  var fi  = ($('rc-fi')||{}).value || null;
+  if (isNaN(imp) || !(imp > 0) || !ini){ el.textContent = 'Omple l’import i la data per veure què passarà.'; return; }
+  var regla = { id:'prev', posicio_id:'x', 'import':imp, periodicitat:per, data_inici:ini, data_fi:fi };
+  var pend = TBI_RECURRENTS.pendents(regla);
+  var propera = TBI_RECURRENTS.properaData(regla);
+  var anual = imp * (12 / TBI_RECURRENTS.periodicitat(per).mesos);
+  var txt = '<strong>' + eurRound(anual) + ' a l’any</strong> a aquesta posició.';
+  if (pend.length){
+    txt += '<br>Es proposaran <strong>' + pend.length + ' compra' + (pend.length>1?'es':'') + ' ja vençudes</strong> ('
+      + eurRound(pend.length*imp) + '). Les revisaràs una a una abans de registrar-les.';
+  } else if (propera){
+    txt += '<br>La propera serà el ' + TBI_RECURRENTS.dataCurta(propera) + '.';
+  }
+  el.innerHTML = txt;
+}
+
+async function _persistRecApp(regles, msg){
+  try {
+    var res = await sb.from('clients').update({ aportacions_recurrents: regles }).eq('email', APP.email);
+    if (res.error) throw res.error;
+    APP.client.aportacions_recurrents = regles;
+    tancarModalRec();
+    toast(msg);
+    go(APP.view || 'aportar');
+  } catch(e){ toast('Error: '+(e.message||e)); }
+}
+
+async function guardarRecApp(reglaId){
+  var imp = parseNumCA(($('rc-import')||{}).value || '');
+  var nova = {
+    id: reglaId || null,
+    posicio_id: $('rc-pos').value,
+    'import': isNaN(imp) ? 0 : imp,
+    periodicitat: $('rc-per').value,
+    data_inici: $('rc-inici').value,
+    data_fi: $('rc-fi').value || null,
+    nota: ($('rc-nota').value || '').trim(),
+    actiu: true
+  };
+  var err = TBI_RECURRENTS.valida(nova);
+  if (err){ toast(err); return; }
+
+  var regles = getRecurrents();
+  if (reglaId){
+    var idx = regles.findIndex(function(x){ return x.id === reglaId; });
+    if (idx >= 0){
+      nova.id = reglaId;
+      nova.actiu = regles[idx].actiu;
+      nova.processada_fins = regles[idx].processada_fins;
+      nova.saltades = regles[idx].saltades;
+      regles[idx] = TBI_RECURRENTS.normalitza(nova);
+    }
+  } else regles.push(TBI_RECURRENTS.normalitza(nova));
+
+  await _persistRecApp(regles, '✓ Aportació automàtica desada');
+}
+
+async function toggleRecApp(reglaId){
+  var regles = getRecurrents();
+  var idx = regles.findIndex(function(x){ return x.id === reglaId; });
+  if (idx < 0) return;
+  regles[idx].actiu = !regles[idx].actiu;
+  await _persistRecApp(regles, regles[idx].actiu ? '✓ Reactivada' : '✓ En pausa');
+}
+
+async function esborrarRecApp(reglaId){
+  if (!confirm('Esborrar aquesta aportació automàtica?\n\nEls moviments ja registrats es mantenen.')) return;
+  await _persistRecApp(getRecurrents().filter(function(x){ return x.id !== reglaId; }), '✓ Esborrada');
+}
+
+// ════════════════════════════════════════════
+// VISTA: APORTAR
+// Mostra quant i on toca aportar aquest mes (segons cartera target i
+// desviació real, com fa platform.html) i permet REGISTRAR l'aportació
+// feta com a moviments de tipus 'compra' (queda historial i compta al P&L).
+// ════════════════════════════════════════════
+
+// Cartera target del client (array {id,nom,pct,color}); buida si no n'hi ha.
+function getTarget(){
+  var c = APP.client;
+  return (c && Array.isArray(c.cartera_target_custom)) ? c.cartera_target_custom : [];
+}
+
+// Aportació mensual configurada (de perfil.aportacioMensual). 0 si no n'hi ha.
+function getAportacioMensual(){
+  var c = APP.client;
+  if (c && c.perfil && c.perfil.aportacioMensual != null){
+    var v = parseFloat(String(c.perfil.aportacioMensual).replace(/[^0-9.,]/g,'').replace(',','.'));
+    return isNaN(v) ? 0 : v;
+  }
+  return 0;
+}
+
+// Distribució real per categoria: {cat: valor_sumat}
+function distribucioRealPerCat(){
+  var per = {};
+  getPosicions().forEach(function(p){
+    var cat = p.cat || 'altres';
+    var v = parseFloat(p.valor_actual)||0;
+    per[cat] = (per[cat]||0) + v;
+  });
+  return per;
+}
+
+// Algoritme idèntic a calcMatchingITactic de platform.html, però usant
+// cartera_target_custom (que ja porta nom i color per categoria).
+// Retorna { rows:[...], recomanacio:[{cat,nom,color,import,motiu}], valorActual, valorPost, aport }
+// El calcul d'aportacio viu a TBI_CARTERA. Abans l'app en tenia una copia
+// amb l'algoritme antic (top-2, sense bandes ni minim per ordre): amb la
+// mateixa cartera i 500 euros, l'app deia "RF Corp 499 + Or 1" i la
+// plataforma "RF Corp 500". Ara nomes hi ha una implementacio.
+function ctxCartera(){
+  return { posicions: getPosicions(), moviments: getMoviments(), target: getTarget() };
+}
+function calcAportacio(aport){
+  var target = getTarget();
+  if (!target.length) return null;
+  var m = TBI_CARTERA.matching(ctxCartera(), aport);
+  if (!m) return null;
+  // Forma que espera el render de l'app
+  return {
+    rows: m.rows.map(function(r){
+      return { cat:r.id, nom:r.nom, color:r.color, targetPct:r.target_pct,
+               realEur:r.real_eur, realPct:r.real_pct, gapEur:r.gap_eur,
+               gapPct:r.gap_pct, banda:r.banda_pp, foraBanda:r.fora_banda,
+               estat:r.estat, foraPla:r.fora_pla };
+    }),
+    recomanacio: m.recomanacio.map(function(l){
+      return { cat:l.cat, nom:l.nom, color:l.color, import:l.import, motiu:l.motiu, prioritat:l.prioritat };
+    }),
+    resum: m.resum,
+    valorActual: m.valor_actual, valorPost: m.valor_post, aport: m.aportacio
+  };
+}
+
+// Quantes aportacions s'han registrat aquest mes (per avisar si ja s'ha fet)
+function aportacionsAquestMes(){
+  var mes = mesActual();
+  return getMoviments().filter(function(m){
+    return m.tipus === 'compra' && m.data && String(m.data).slice(0,7) === mes && m.nota && m.nota.indexOf('Aportació') === 0;
+  });
+}
+
+function renderAportar(){
+  var el = $('view');
+  var target = getTarget();
+  var pos = getPosicions();
+
+  if (!pos.length || !target.length){
+    var buit = '<div class="empty-rich">'
+      + '<div class="empty-ico"><svg width="46" height="46" viewBox="0 0 100 100" aria-hidden="true"><rect x="1.5" y="1.5" width="97" height="97" rx="23" fill="none" stroke="currentColor" stroke-width="3" opacity=".35"/><circle cx="34" cy="42" r="6" fill="currentColor"/><circle cx="66" cy="42" r="6" fill="currentColor"/><path d="M31 67 L69 63" stroke="currentColor" stroke-width="7.5" stroke-linecap="round"/></svg></div>'
+      + '<div class="empty-tit">Encara no tens cartera objectiu</div>'
+      + '<div class="empty-sub">Quan el teu assessor defineixi la teva cartera, aquí veuràs cada mes quant aportar i a quina categoria exactament.</div>'
+      + '<button class="btn-primary" onclick="go(\'missatges\')">Escriure a l\'assessor</button>'
+      + '</div>';
+    // Les ordres permanents no depenen de la cartera objectiu: si ja hi ha
+    // posicions, es poden registrar i confirmar igualment.
+    el.innerHTML = pos.length ? (bannerRecurrentsHTML() + buit + seccioRecurrentsHTML()) : buit;
+    return;
+  }
+
+  var aport = getAportacioMensual();
+  var html = '';
+
+  // Cas: sense aportació configurada -> permetre definir-la
+  if (aport <= 0){
+    html += '<div class="card" style="text-align:center">'
+      + '<div class="empty-ico" style="margin-bottom:14px"><svg width="46" height="46" viewBox="0 0 100 100" aria-hidden="true"><rect x="1.5" y="1.5" width="97" height="97" rx="23" fill="none" stroke="currentColor" stroke-width="3" opacity=".35"/><circle cx="34" cy="42" r="6" fill="currentColor"/><circle cx="66" cy="42" r="6" fill="currentColor"/><path d="M31 67 L69 63" stroke="currentColor" stroke-width="7.5" stroke-linecap="round"/></svg></div>'
+      + '<div class="modal-h" style="margin:0 0 8px">Quant vols aportar cada mes?</div>'
+      + '<div style="font-size:13px;color:var(--g500);line-height:1.6;margin-bottom:16px">Defineix la teva aportació mensual i et direm a quines categories posar-la per acostar-te a la teva cartera objectiu.</div>'
+      + '<input class="upd-input" id="inp-aport-mens" inputmode="decimal" placeholder="Ex: 300" style="text-align:center;margin-bottom:12px">'
+      + '<button class="btn-primary" onclick="desarAportacioMensual()">Desar aportació mensual</button>'
+      + '</div>';
+    el.innerHTML = bannerRecurrentsHTML() + html + seccioRecurrentsHTML();
+    return;
+  }
+
+  var calc = calcAportacio(aport);
+  var jaFet = aportacionsAquestMes();
+
+  // Aportacions recorrents vençudes: primer de tot, abans de recomanar res.
+  html += bannerRecurrentsHTML();
+
+  // Capçalera: import mensual
+  html += '<div class="card">'
+    + '<div class="card-lbl">Aportació d\'aquest mes</div>'
+    + '<div class="kpi-big">'+eurRound(aport)+'</div>'
+    + '<div class="kpi-sub" style="color:var(--g500)">Mes de '+nomMesCA(mesActual())+'</div>'
+    + '<button onclick="editarAportMensual()" style="margin-top:10px;background:none;color:var(--navy);font-size:12px;text-decoration:underline">Canviar import</button>'
+    + '</div>';
+
+  // Banner si ja s'ha registrat aquest mes
+  if (jaFet.length){
+    var totalFet = jaFet.reduce(function(s,m){ return s + (parseFloat(m.import)||0); }, 0);
+    html += '<div class="banner-upd" style="background:var(--green-bg);border-color:#BFD6C6">'
+      + '<div class="txt" style="color:var(--green)">Aquest mes ja has registrat '+eurRound(totalFet)+' en aportacions.</div></div>';
+  }
+
+  // On toca aportar (recomanació per categoria)
+  html += '<div class="section-h">On aportar aquest mes</div>';
+  html += '<div class="card">';
+  if (calc && calc.recomanacio.length){
+    calc.recomanacio.forEach(function(r){
+      html += '<div class="pos-row">'
+        + chipCat(r.cat, 'sm')
+        + '<div style="flex:1;min-width:0">'
+          + '<div class="pos-nom">'+esc(r.nom)+'</div>'
+          + '<div class="pos-meta">'+esc(r.motiu)+'</div>'
+        + '</div>'
+        + '<div class="pos-val">'+eurRound(r.import)+'</div>'
+      + '</div>';
+    });
+    html += '<div style="font-size:11px;color:var(--g400);margin-top:10px;line-height:1.5">'
+      + 'Calculat amb bandes 5/25: primer el que està fora de banda, mai més enllà del seu forat i amb un mínim de '
+      + TBI_CARTERA.PARAMS.import_min_ordre + '€ per ordre. És exactament el mateix càlcul que veu el teu assessor.</div>';
+  } else {
+    html += '<div class="empty" style="padding:20px">La teva cartera ja està equilibrada. Pots aportar repartint segons la teva distribució objectiu.</div>';
+  }
+  html += '</div>';
+
+  // Botó registrar
+  html += '<button class="btn-primary" style="margin-bottom:12px" onclick="obrirRegistrarAportacio()">'
+    + TBI_ICO.svg('plus-circle') + 'Registrar aportació feta</button>';
+
+  // Distribució objectiu vs real (context)
+  html += '<div class="section-h">La teva cartera objectiu</div><div class="card">';
+  calc.rows.forEach(function(r){
+    // La referencia ja no es un llindar arbitrari sino la banda 5/25 real
+    var diff = r.gapPct;
+    var dins = !r.foraBanda;
+    var diffTxt = dins ? 'dins de banda' : ((diff>0?'+':'')+diff.toFixed(1)+'pp per '+(diff>0?'sota':'sobre'));
+    var diffCol = dins ? 'var(--g400)' : (diff>0 ? 'var(--gold-dark)' : 'var(--red)');
+    var badge = '<span class="badge '+(dins?'badge-ok':(diff>0?'badge-infra':'badge-sobre'))+'">'
+      + (dins?'ok':(diff>0?'infra':'sobre'))+'</span>';
+    html += '<div class="pos-row">'
+      + '<span style="width:10px;height:10px;border-radius:3px;flex-shrink:0;background:'+r.color+'"></span>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div class="pos-nom">'+esc(r.nom)+'</div>'
+        + '<div class="pos-meta">Actual '+r.realPct.toFixed(1)+'% · objectiu '+r.targetPct.toFixed(0)+'% · banda ±'+r.banda.toFixed(1)+'pp '+badge+'</div>'
+      + '</div>'
+      + '<div class="pos-pnl" style="color:'+diffCol+'">'+diffTxt+'</div>'
+    + '</div>';
+  });
+  html += '</div>';
+
+  html += seccioRecurrentsHTML();
+
+  el.innerHTML = html;
+}
+
+// ── Desar / editar aportació mensual configurada ──
+async function desarAportacioMensual(){
+  var inp = $('inp-aport-mens');
+  if (!inp) return;
+  var v = parseNumCA(inp.value);
+  if (isNaN(v) || v < 0){ toast('Posa un import vàlid'); return; }
+  await _persistAportMensual(v);
+}
+function editarAportMensual(){
+  var actual = getAportacioMensual();
+  var nou = prompt('Quant vols aportar cada mes? (€)', actual || '');
+  if (nou === null) return;
+  var v = parseNumCA(nou);
+  if (isNaN(v) || v < 0){ toast('Import no vàlid'); return; }
+  _persistAportMensual(v);
+}
+async function _persistAportMensual(v){
+  var nouPerfil = {};
+  var p = APP.client.perfil;
+  if (p && typeof p === 'object'){ for (var k in p){ if (p.hasOwnProperty(k)) nouPerfil[k] = p[k]; } }
+  nouPerfil.aportacioMensual = v;
+  try {
+    var res = await sb.from('clients').update({ perfil: nouPerfil }).eq('email', APP.email);
+    if (res.error) throw res.error;
+    APP.client.perfil = nouPerfil;
+    toast('✓ Aportació mensual: '+eurRound(v));
+    renderAportar();
+  } catch(e){ toast('Error: '+(e.message||e)); }
+}
+
+// ── Modal: registrar aportació feta (per categoria) ──
+function obrirRegistrarAportacio(){
+  var target = getTarget();
+  var calc = calcAportacio(getAportacioMensual());
+  // Pre-omplir amb la recomanació
+  var pre = {};
+  if (calc && calc.recomanacio){
+    calc.recomanacio.forEach(function(r){ pre[r.cat] = r.import; });
+  }
+
+  var rows = target.map(function(t){
+    var cat = t.id || t.nom;
+    var val = pre[cat] || '';
+    return '<div class="upd-row">'
+      + '<div class="upd-top">'
+        + '<span style="width:12px;height:12px;border-radius:3px;flex-shrink:0;background:'+(t.color||'#888')+'"></span>'
+        + '<div style="flex:1;min-width:0"><div class="pos-nom">'+esc(t.nom||cat)+'</div></div>'
+      + '</div>'
+      + '<input class="upd-input" inputmode="decimal" data-cat="'+esc(cat)+'" data-nom="'+esc(t.nom||cat)+'" '
+        + 'value="'+val+'" placeholder="0 €">'
+    + '</div>';
+  }).join('');
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-aport';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Registrar aportació</div>'
+    + '<div class="modal-sub">Posa quant has aportat a cada categoria aquest mes. Ho hem pre-omplert amb la recomanació; ajusta el que calgui.</div>'
+    + rows
+    + '<div id="aport-total" style="text-align:right;font-family:var(--fm);font-size:14px;font-weight:500;color:var(--navy);margin-top:10px"></div>'
+    + '<div style="display:flex;gap:10px;margin-top:14px">'
+      + '<button onclick="tancarModalAport()" style="flex:1;padding:13px;background:var(--g50);color:var(--g700);border-radius:11px;font-weight:500">Cancel·lar</button>'
+      + '<button class="btn-primary" style="flex:2" id="btn-aport-save" onclick="guardarRegistreAportacio()">Registrar</button>'
+    + '</div>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModalAport(); });
+  // total dinàmic
+  var inps = modal.querySelectorAll('.upd-input');
+  function recalc(){
+    var t = 0;
+    for (var i=0;i<inps.length;i++){ var v = parseNumCA(inps[i].value); if(!isNaN(v)) t += v; }
+    $('aport-total').textContent = 'Total: ' + eurRound(t);
+  }
+  for (var i=0;i<inps.length;i++){ inps[i].addEventListener('input', recalc); }
+  recalc();
+}
+function tancarModalAport(){
+  var m = $('modal-aport'); if (m) m.parentNode.removeChild(m);
+}
+
+async function guardarRegistreAportacio(){
+  var data = avui();
+  var mes = mesActual();
+  var btn = $('btn-aport-save');
+  var pos = getPosicions();
+  var movs = getMoviments().slice();
+
+  var inputs = document.querySelectorAll('#modal-aport .upd-input');
+  var nous = [];
+  var totalAport = 0;
+  for (var i=0;i<inputs.length;i++){
+    var inp = inputs[i];
+    var cat = inp.getAttribute('data-cat');
+    var v = parseNumCA(inp.value);
+    if (isNaN(v) || v <= 0) continue;
+    // Buscar una posició d'aquesta categoria per vincular el moviment
+    var posCat = pos.find(function(p){ return (p.cat||'') === cat; });
+    if (!posCat){
+      // No hi ha posició d'aquesta categoria encara: registrem igualment
+      // vinculant a la primera posició (l'import compta al cost global).
+      posCat = pos[0];
+    }
+    if (!posCat) continue;
+    totalAport += v;
+    nous.push({
+      id: novaId('mov'),
+      posicio_id: posCat.id,
+      data: data,
+      tipus: 'compra',
+      import: v,
+      unitats: null,
+      preu_unitat: null,
+      nota: 'Aportació ' + nomMesCA(mes) + ' · ' + (inp.getAttribute('data-nom')||cat)
+    });
+  }
+
+  if (!nous.length){ toast('Posa almenys un import'); return; }
+
+  // Afegir el valor aportat al valor_actual de la posició corresponent
+  // (l'aportació augmenta tant el cost com el valor de mercat de partida).
+  var posAct = pos.slice();
+  nous.forEach(function(m){
+    var p = posAct.find(function(x){ return x.id === m.posicio_id; });
+    if (p){ p.valor_actual = (parseFloat(p.valor_actual)||0) + (parseFloat(m.import)||0); p.valor_data = data; }
+  });
+
+  var allMovs = movs.concat(nous);
+
+  // Actualitzar snapshot del mes
+  var valorTotal = posAct.reduce(function(s,p){ return s+(parseFloat(p.valor_actual)||0); }, 0);
+  var invertit = 0;
+  allMovs.forEach(function(m){ var im=parseFloat(m.import)||0; if(m.tipus==='compra')invertit+=im; if(m.tipus==='venda')invertit-=im; });
+  var snaps = getSnapshots().slice();
+  var idx = snaps.findIndex(function(s){ return s.mes === mes; });
+  var nou = { mes:mes, data:data, valor:valorTotal, invertit:invertit };
+  if (idx >= 0) snaps[idx] = nou; else snaps.push(nou);
+  snaps.sort(function(a,b){ return a.mes.localeCompare(b.mes); });
+
+  if (btn){ btn.disabled = true; btn.textContent = 'Registrant...'; }
+  try {
+    var res = await sb.from('clients')
+      .update({ posicions: posAct, moviments_posicions: allMovs, snapshots_cartera: snaps })
+      .eq('email', APP.email);
+    if (res.error) throw res.error;
+    APP.client.posicions = posAct;
+    APP.client.moviments_posicions = allMovs;
+    APP.client.snapshots_cartera = snaps;
+    tancarModalAport();
+    toast('✓ Aportació registrada · '+eurRound(totalAport));
+    renderAportar();
+  } catch(e){
+    if (btn){ btn.disabled = false; btn.textContent = 'Registrar'; }
+    toast('Error: '+(e.message||e));
+  }
+}
+
+
+// ════════════════════════════════════════════
+// MANIFEST embegut + arrencada
+// ── Modal d'ajuda / "Com funciona?" (opcional, accessible des de login i topbar) ──
+function obrirAjuda(){
+  var iOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent) && !window.MSStream;
+  var instalLn = appEstaInstalada()
+    ? '<div style="font-size:12px;color:var(--green)">✓ Ja tens l\'app instal·lada al mòbil.</div>'
+    : (iOS
+        ? 'Toca <b>Compartir</b> i després <b>"Afegir a pantalla d\'inici"</b>.'
+        : 'Obre el menú del navegador i tria <b>"Instal·lar app"</b>.');
+
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-ajuda';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Com funciona l\'app</div>'
+    + '<div class="modal-sub">El teu espai d\'inversió, al mòbil. Aquí tens què pots fer:</div>'
+    + ajudaItem('cartera', 'Cartera', 'Veus el valor total, quant has aportat, el teu guany real i com es reparteix entre famílies d\'actius.')
+    + ajudaItem('valors', 'Actualitzar valors', 'Un cop al mes, poses el valor de mercat de cada posició (el trobes al teu bróker). Així el rendiment és real.')
+    + ajudaItem('aportar', 'Aportar', 'Et diem quant i on aportar segons el teu pla, i registres el que has aportat perquè quedi historial.')
+    + ajudaItem('evolucio', 'Evolució', 'El gràfic mostra com creix la teva cartera mes a mes, comparada amb el total que has aportat.')
+    + ajudaItem('missatges', 'Missatges', 'Parla directament amb el teu assessor.')
+    + '<div style="background:var(--g50);border-radius:11px;padding:14px;margin-top:6px">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:7px">Instal·lar al mòbil</div>'
+      + '<div style="font-size:12px;color:var(--g500);line-height:1.6">'+instalLn+'</div>'
+      + '<div style="font-size:11px;color:var(--g400);line-height:1.5;margin-top:8px">Un cop instal·lada, entra una vegada i després s\'obrirà sense demanar el correu ni la contrasenya.</div>'
+    + '</div>'
+    + '<div style="background:var(--g50);border-radius:11px;padding:14px;margin-top:10px">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:9px">Notificacions</div>'
+      + '<div id="push-config-row"><div style="font-size:12px;color:var(--g400)">Comprovant...</div></div>'
+    + '</div>'
+    + '<button class="btn-primary" style="margin-top:16px" onclick="tancarAjuda()">Entesos</button>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarAjuda(); });
+  // Actualitzar l'estat del botó de notificacions
+  setTimeout(function(){ try { actualitzarFilaPush(); } catch(e){} }, 50);
+}
+// Icones de l'ajuda: el mateix joc que la barra de navegacio.
+var AJUDA_ICONES = { cartera:'briefcase', valors:'refresh', aportar:'plus-circle',
+                     evolucio:'trend-up', missatges:'message' };
+function ajudaItem(clau, titol, desc){
+  var nom = AJUDA_ICONES[clau] || AJUDA_ICONES.cartera;
+  return '<div style="display:flex;gap:13px;align-items:flex-start;margin-bottom:15px">'
+    + '<div style="width:34px;height:34px;border-radius:10px;background:var(--g50);border:1px solid var(--line);'
+      + 'display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--navy)">'
+      + ico(nom) + '</div>'
+    + '<div><div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:3px">'+titol+'</div>'
+      + '<div style="font-size:12.5px;color:var(--g500);line-height:1.6">'+desc+'</div></div>'
+  + '</div>';
+}
+function tancarAjuda(){ var m = $('modal-ajuda'); if (m) m.parentNode.removeChild(m); }
+
+
+// ════════════════════════════════════════════
+// NOTIFICACIONS PUSH (subscripció del client)
+// ════════════════════════════════════════════
+var VAPID_PUBLIC_KEY = 'BICmsMxXQQ0vda7U6YERAtrDvYajzBa7M5JZZfQ4BGkyUJam7S5uvsB81i7j_f49hsjVwbANiSWhuvHN0PENO5w';
+
+// Converteix la clau VAPID base64url a Uint8Array (format que demana l'API)
+function urlBase64ToUint8Array(base64String){
+  var padding = '='.repeat((4 - base64String.length % 4) % 4);
+  var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  var raw = atob(base64);
+  var arr = new Uint8Array(raw.length);
+  for (var i=0;i<raw.length;i++){ arr[i] = raw.charCodeAt(i); }
+  return arr;
+}
+
+function pushSuportat(){
+  return ('serviceWorker' in navigator) && ('PushManager' in window) && ('Notification' in window);
+}
+function esIOSpush(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+
+// Estat actual: 'no-suportat' | 'instal-cal' | 'desactivat' | 'activat' | 'denegat'
+async function estatPush(){
+  if (!pushSuportat()) return 'no-suportat';
+  // iOS només permet push si l'app està instal·lada (standalone)
+  if (esIOSpush() && !appEstaInstalada()) return 'instal-cal';
+  if (Notification.permission === 'denied') return 'denegat';
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    return sub ? 'activat' : 'desactivat';
+  } catch(e){ return 'desactivat'; }
+}
+
+// Activa les notificacions: demana permís, subscriu i desa a Supabase
+async function activarPush(){
+  if (!pushSuportat()){ toast('El teu navegador no suporta notificacions'); return false; }
+  if (esIOSpush() && !appEstaInstalada()){
+    mostrarInstruccionsIOS();
+    return false;
+  }
+  try {
+    var perm = await Notification.requestPermission();
+    if (perm !== 'granted'){ toast('Permís de notificacions denegat'); return false; }
+
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if (!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    var raw = sub.toJSON();
+    var keys = raw.keys || {};
+    // Desar/actualitzar a Supabase (upsert per endpoint)
+    var res = await sb.from('push_subscriptions').upsert({
+      client_email: APP.email,
+      endpoint: raw.endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      user_agent: navigator.userAgent,
+      last_used_at: new Date().toISOString()
+    }, { onConflict: 'endpoint' });
+    if (res.error) throw res.error;
+    toast('✓ Notificacions activades');
+    return true;
+  } catch(e){
+    toast('No s\'han pogut activar: ' + (e.message||e));
+    return false;
+  }
+}
+
+// Desactiva: cancel·la la subscripció i l'esborra de Supabase
+async function desactivarPush(){
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if (sub){
+      var endpoint = sub.endpoint;
+      await sub.unsubscribe();
+      try { await sb.from('push_subscriptions').delete().eq('endpoint', endpoint); } catch(e){}
+    }
+    toast('Notificacions desactivades');
+    return true;
+  } catch(e){ toast('Error: '+(e.message||e)); return false; }
+}
+
+// Toggle des de la UI d'ajuda/configuració
+async function togglePush(){
+  var estat = await estatPush();
+  if (estat === 'activat'){ await desactivarPush(); }
+  else { await activarPush(); }
+  // refrescar la fila de configuració si està oberta
+  try { actualitzarFilaPush(); } catch(e){}
+}
+
+// Actualitza el text del botó de push allà on es mostri
+async function actualitzarFilaPush(){
+  var cont = document.getElementById('push-config-row');
+  if (!cont) return;
+  var estat = await estatPush();
+  var html = '';
+  if (estat === 'no-suportat'){
+    html = '<div style="font-size:12px;color:var(--g400)">El teu dispositiu no suporta notificacions push.</div>';
+  } else if (estat === 'instal-cal'){
+    html = '<div style="font-size:12px;color:var(--g500);line-height:1.5">Per rebre notificacions a l\'iPhone, primer instal\·la l\'app a la pantalla d\'inici.</div>';
+  } else if (estat === 'denegat'){
+    html = '<div style="font-size:12px;color:var(--red);line-height:1.5">Has bloquejat les notificacions. Activa-les des dels ajustos del navegador per a aquesta web.</div>';
+  } else {
+    var actiu = (estat === 'activat');
+    html = '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'
+      + '<div style="font-size:13px;color:var(--g700)">' + (actiu ? 'Notificacions activades' : 'Notificacions desactivades') + '</div>'
+      + '<button onclick="togglePush()" style="background:'+(actiu?'var(--g50)':'var(--navy)')+';color:'+(actiu?'var(--g700)':'#fff')+';border:'+(actiu?'1px solid var(--g200)':'none')+';border-radius:9px;font-size:12px;font-weight:600;padding:9px 14px;cursor:pointer;font-family:inherit">'+(actiu?'Desactivar':'Activar')+'</button>'
+    + '</div>';
+  }
+  cont.innerHTML = html;
+}
+
+// -- Oferiment proactiu de notificacions -------------------------------
+// Sense aixo ningu troba el boto (nomes viu dins del modal d'ajuda) i la taula
+// push_subscriptions es queda buida. Es mostra un sol cop per dispositiu: si el
+// client el descarta, no torna a sortir durant 30 dies.
+var PUSH_ASK_KEY = 'tbi_push_ask_at';
+function _pushAskRecent(){
+  try {
+    var t = parseInt(localStorage.getItem(PUSH_ASK_KEY) || '0', 10);
+    return t > 0 && (Date.now() - t) < 30*24*3600*1000;
+  } catch(e){ return false; }
+}
+function _pushAskMarca(){
+  try { localStorage.setItem(PUSH_ASK_KEY, String(Date.now())); } catch(e){}
+}
+
+async function oferirPushSiCal(){
+  if (_pushAskRecent()) return;
+  var estat;
+  try { estat = await estatPush(); } catch(e){ return; }
+  // Nomes ho oferim si es pot activar de debo:
+  // no-suportat / instal-cal / denegat / activat -> no molestem
+  if (estat !== 'desactivat') return;
+  if (document.getElementById('push-oferta')) return;
+
+  var box = document.createElement('div');
+  box.id = 'push-oferta';
+  box.setAttribute('style', 'position:fixed;left:12px;right:12px;bottom:78px;z-index:900;'
+    + 'background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px;'
+    + 'box-shadow:0 10px 30px rgba(0,0,0,.13);max-width:460px;margin:0 auto');
+  box.innerHTML = '<div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:5px">Vols que t\'avisem?</div>'
+    + '<div style="font-size:12.5px;color:var(--g500);line-height:1.55;margin-bottom:13px">Rebr\u00e0s un av\u00eds quan hi hagi un missatge nou o quan toqui actualitzar la cartera. Res m\u00e9s.</div>'
+    + '<div style="display:flex;gap:9px">'
+      + '<button onclick="acceptarOfertaPush()" style="flex:1;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;padding:11px 14px;cursor:pointer;font-family:inherit">Activar</button>'
+      + '<button onclick="descartarOfertaPush()" style="background:var(--g50);color:var(--g700);border:1px solid var(--g200);border-radius:10px;font-size:13px;padding:11px 14px;cursor:pointer;font-family:inherit">Ara no</button>'
+    + '</div>';
+  document.body.appendChild(box);
+}
+function _tancarOfertaPush(){
+  _pushAskMarca();
+  var b = document.getElementById('push-oferta');
+  if (b && b.parentNode) b.parentNode.removeChild(b);
+}
+function descartarOfertaPush(){ _tancarOfertaPush(); }
+async function acceptarOfertaPush(){
+  _tancarOfertaPush();
+  await activarPush();
+}
+
+
+// ════════════════════════════════════════════
+// INSTAL·LACIÓ DE L'APP (PWA)
+// Botó/banner per instal·lar a la pantalla d'inici.
+//  - Android/Chrome: captura beforeinstallprompt i dispara el diàleg natiu.
+//  - iPhone/Safari: mostra instruccions (no hi ha API d'instal·lació a iOS).
+//  - Si ja s'executa instal·lada (standalone): no mostra res.
+// ════════════════════════════════════════════
+var _deferredPrompt = null;
+
+function appEstaInstalada(){
+  // standalone display-mode (Android/desktop) o navigator.standalone (iOS)
+  var mq = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+  return !!(mq || window.navigator.standalone === true);
+}
+function esIOS(){
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent) && !window.MSStream;
+}
+
+// Capturar l'esdeveniment d'instal·lació (Android)
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  _deferredPrompt = e;
+  mostrarBotonsInstall();
+});
+
+// Quan s'instal·la, amaguem tot
+window.addEventListener('appinstalled', function(){
+  _deferredPrompt = null;
+  var b = document.getElementById('install-login');
+  if (b) b.style.display = 'none';
+});
+
+// Mostra els botons d'instal·lació si escau
+function mostrarBotonsInstall(){
+  if (appEstaInstalada()) return;
+  var b = document.getElementById('install-login');
+  // Mostrem el botó si tenim prompt (Android) o si és iOS (instruccions)
+  if (b && (_deferredPrompt || esIOS())) b.style.display = 'block';
+}
+
+// Acció del botó "Instal·lar app"
+async function instalarApp(){
+  if (appEstaInstalada()) { toast('L\'app ja està instal·lada'); return; }
+  if (_deferredPrompt){
+    _deferredPrompt.prompt();
+    try {
+      var choice = await _deferredPrompt.userChoice;
+      _deferredPrompt = null;
+      if (choice && choice.outcome === 'accepted'){ toast('✓ Instal·lant l\'app...'); }
+    } catch(e){}
+    return;
+  }
+  if (esIOS()){ mostrarInstruccionsIOS(); return; }
+  // Fallback (alguns Android que no han disparat l'esdeveniment encara)
+  mostrarInstruccionsGeneriques();
+}
+
+function mostrarInstruccionsIOS(){
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-ios';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Instal·lar a l\'iPhone</div>'
+    + '<div class="modal-sub">Safari no instal·la les apps automàticament, però es fa en dos passos:</div>'
+    + '<div style="display:flex;flex-direction:column;gap:16px;margin-bottom:8px">'
+      + '<div style="display:flex;gap:12px;align-items:flex-start">'
+        + '<div style="font-size:22px">1️⃣</div>'
+        + '<div style="font-size:14px;line-height:1.5">Toca el botó <b>Compartir</b> (el quadrat amb la fletxa cap amunt, a baix al centre).</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:12px;align-items:flex-start">'
+        + '<div style="font-size:22px">2️⃣</div>'
+        + '<div style="font-size:14px;line-height:1.5">Baixa i tria <b>"Afegir a la pantalla d\'inici"</b>, i confirma.</div>'
+      + '</div>'
+    + '</div>'
+    + '<button class="btn-primary" style="margin-top:14px" onclick="tancarModalIOS()">Entesos</button>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModalIOS(); });
+}
+function tancarModalIOS(){ var m = document.getElementById('modal-ios'); if (m) m.parentNode.removeChild(m); }
+
+function mostrarInstruccionsGeneriques(){
+  var modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'modal-ios';
+  modal.innerHTML = '<div class="modal-inner">'
+    + '<div class="modal-h">Instal·lar l\'app</div>'
+    + '<div class="modal-sub">Obre el menú del navegador (els tres punts ⋮ a dalt a la dreta) i tria <b>"Instal·lar app"</b> o <b>"Afegir a la pantalla d\'inici"</b>.</div>'
+    + '<button class="btn-primary" style="margin-top:8px" onclick="tancarModalIOS()">Entesos</button>'
+  + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) tancarModalIOS(); });
+}
+
+
+// ════════════════════════════════════════════
+// Registre del service worker (fa la PWA instal·lable a Android i dóna
+// suport offline mínim). El SW és network-first: amb connexió sempre
+// es veu l'última versió desplegada.
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(e){
+      console.warn('SW no registrat:', e);
+    });
+  });
+}
+
+// onAuthStateChange: gestiona login/logout/refresh de sessió
+if (sb){
+  sb.auth.onAuthStateChange(function(event, session){
+    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session && session.user && session.user.email){
+      carregarClient(session.user.email.toLowerCase()).catch(function(e){
+        console.error(e);
+        showSplash(false); showLogin(true);
+      });
+    } else if (event === 'SIGNED_OUT'){
+      showApp(false); showLogin(true);
+    }
+  });
+}
+
+// Arrencada: comprovar si ja hi ha sessió persistent
+(async function init(){
+  if (!sb){ showSplash(false); showLogin(true); return; }
+  try {
+    var res = await sb.auth.getSession();
+    var session = res && res.data && res.data.session;
+    if (session && session.user && session.user.email){
+      await carregarClient(session.user.email.toLowerCase());
+    } else {
+      showSplash(false); showLogin(true);
+    }
+  } catch(e){
+    showSplash(false); showLogin(true);
+  }
+})();
+
+// Comprovar si cal mostrar el botó d'instal·lació (cobreix iOS, que no
+// dispara beforeinstallprompt). Petit retard perquè el login ja sigui visible.
+setTimeout(function(){ try { mostrarBotonsInstall(); } catch(e){} }, 600);
+</script>
+</body>
+</html>
