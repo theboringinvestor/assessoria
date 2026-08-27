@@ -5369,7 +5369,7 @@ function toast(msg) {
 // Autocontingut: només depèn de sb, APP, toast, escapeHtml.
 // ═══════════════════════════════════════════════════════════════
 
-var _SIG_ASSESSOR = { nom: 'Guillem Puig', empresa: 'The Boring Investor', email: 'guillem.puig@theboringinvestor.es', cert: 'EFA (EFPA España)' };
+var _SIG_ASSESSOR = { nom: 'Guillem Puig', empresa: 'The Boring Investor', email: 'guillem.puig@theboringinvestor.es', cert: 'Examen EFA superat (EFPA España)' };
 
 function _sigEsc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _sigNum(v){ var n = parseFloat(String(v).replace(',','.')); return isNaN(n) ? 0 : n; }
@@ -7165,7 +7165,7 @@ function _renderPortalPerfilImpl(el) {
   // Disclaimer
   html += '<div class="disc">Guillem Puig · The Boring Investor · Assessoria Financera Independent · Fee-only. '
     + "Eina d'educació financera independent. No constitueix assessorament d'inversió regulat MiFID II. "
-    + 'Candidat a la certificació EFA (juny 2026). Document confidencial generat el ' + dataAvui + '.</div>';
+    + 'Examen EFA superat (EFPA España), juny 2026. Document confidencial generat el ' + dataAvui + '.</div>';
 
   html += '</div>';
   el.innerHTML = html;
@@ -15218,7 +15218,7 @@ function renderPortalRoadmap(el) {
     + '<div class="fr-hero-meta">'
       + '<div><div class="fr-hero-meta-lbl">Client</div><div class="fr-hero-meta-val">' + (c.nom || 'Client') + '</div></div>'
       + '<div><div class="fr-hero-meta-lbl">Data</div><div class="fr-hero-meta-val">' + dataAvui + '</div></div>'
-      + '<div><div class="fr-hero-meta-lbl">Assessor</div><div class="fr-hero-meta-val">Guillem Puig · EFA</div></div>'
+      + '<div><div class="fr-hero-meta-lbl">Assessor</div><div class="fr-hero-meta-val">Guillem Puig</div></div>'
       + '<div><div class="fr-hero-meta-lbl">Versi\u00f3</div><div class="fr-hero-meta-val">' + _frEdField(notes.versio_doc, { key:'versio_doc', autoVal:_versioAuto, tag:'span', showBadge:false }) + '</div></div>'
     + '</div>'
   + '</div>';
@@ -18530,7 +18530,7 @@ function _nlPlantillaBase(numero, eyebrow, titol, subtitol) {
   L.push('<p style="margin:0 auto;max-width:430px;font-family:\'IBM Plex Sans\',Arial,sans-serif;font-size:14px;line-height:1.65;color:#6B6660;text-align:center">Explica què significa aquesta xifra i per què importa.</p>');
   L.push('<table role="presentation" width="100%" style="margin:32px 0 4px 0"><tr><td align="center"><table role="presentation"><tr><td bgcolor="#16233A" style="border-radius:9px"><a href="https://theboringinvestor.es/platform.html" style="display:inline-block;padding:15px 30px;font-family:\'IBM Plex Sans\',Arial,sans-serif;font-size:14px;font-weight:500;color:#fff;text-decoration:none;border-radius:9px">Aprofundeix a la plataforma&nbsp;&rarr;</a></td></tr></table></td></tr></table>');
   L.push('</td></tr></table></td></tr>');
-  L.push('<tr><td style="padding:14px 32px 4px 32px"><p style="margin:0;font-family:\'IBM Plex Sans\',Arial,sans-serif;font-size:14px;line-height:1.7;color:#4A463F">Una idea, cada setmana. Sense soroll.<br><span style="font-family:\'IBM Plex Sans\',Georgia,sans-serif;font-size:17px;color:#16233A">Guillem Puig</span>&nbsp;·&nbsp;<span style="color:#8A867F">The Boring Investor · Candidat EFA</span></p>');
+  L.push('<tr><td style="padding:14px 32px 4px 32px"><p style="margin:0;font-family:\'IBM Plex Sans\',Arial,sans-serif;font-size:14px;line-height:1.7;color:#4A463F">Una idea, cada setmana. Sense soroll.<br><span style="font-family:\'IBM Plex Sans\',Georgia,sans-serif;font-size:17px;color:#16233A">Guillem Puig</span>&nbsp;·&nbsp;<span style="color:#8A867F">The Boring Investor · Examen EFA superat (EFPA España)</span></p>');
   L.push('<p style="margin:8px 0 0 0;font-family:\'IBM Plex Mono\',monospace;font-size:11px;color:#8A867F">WhatsApp 629&nbsp;340&nbsp;892&nbsp;·&nbsp;guillem.puig@theboringinvestor.es</p></td></tr>');
   L.push('<tr><td style="padding:18px 32px 30px 32px"><div style="height:1px;font-size:1px;line-height:1px;background:#DEDAD3;margin-bottom:16px">&nbsp;</div>');
   L.push('<p style="margin:0;font-family:\'IBM Plex Sans\',Arial,sans-serif;font-size:11px;line-height:1.65;color:#9A958E">Aquest contingut té finalitat exclusivament educativa i d&rsquo;anàlisi financera. No constitueix assessorament d&rsquo;inversió personalitzat ni una recomanació de compra o venda. Les xifres i exemples són il&middot;lustratius i no representen rendiments garantits ni projectats.</p>');
@@ -21160,7 +21160,7 @@ async function diagGenerar() {
     +'\nNOTES ASSESSOR: '+dV('diag-notes')
     +'\nOBJECTIUS:\n'+objs.map(function(o,i){ return '  '+(i+1)+'. '+o.categoria+' \u2014 '+o.descripcio+(o.import?' ('+dFmt(o.import)+'\u20ac)':'')+(o.data?' \u00b7 '+o.data:'')+'  ['+o.prioritat+']'; }).join('\n');
 
-  var sys = 'Ets un assessor financer independent certificat EFA a Espanya treballant per The Boring Investor.\nParles en catal\u00e0 professional per\u00f2 accessible.\nRespon EXCLUSIVAMENT amb un objecte JSON v\u00e0lid (sense cap text addicional ni markdown ni ```json):\n{'
+  var sys = 'Ets un assessor financer independent a Espanya, amb examen EFA (EFPA Espanya) superat, treballant per The Boring Investor.\nParles en catal\u00e0 professional per\u00f2 accessible.\nRespon EXCLUSIVAMENT amb un objecte JSON v\u00e0lid (sense cap text addicional ni markdown ni ```json):\n{'
     +'"resum_executiu":"2-3 frases sobre la situaci\u00f3 i les oportunitats clau",'
     +'"punts_forts":["punt 1","punt 2","punt 3"],'
     +'"punts_millora":["millora 1","millora 2"],'
@@ -21316,7 +21316,7 @@ function diagBuildDoc() {
   // Capçalera
   h += '<div class="diag-doc-hdr">'
     + '<div class="diag-doc-hdr-top"><div class="diag-doc-logo">The Boring Investor</div>'
-    + '<div class="diag-doc-meta">'+dataFmt+'<br>Assessoria fee-only \u00b7 EFA</div></div>'
+    + '<div class="diag-doc-meta">'+dataFmt+'<br>Assessoria fee-only \u00b7 Examen EFA superat</div></div>'
     + '<div class="diag-doc-title">Diagn\u00f2stic Financer<br>Personalitzat</div>'
     + '<div class="diag-doc-client">'+dHesc(nom)+' \u00b7 '+dV('diag-edat')+' anys \u00b7 '+dHesc(dV('diag-arquetip'))+'</div>'
     + '</div>';
