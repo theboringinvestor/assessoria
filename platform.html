@@ -1276,7 +1276,7 @@ var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
 // Data i hora de creació d'aquest arxiu platform.html per Claude.
 // Format: YYYY-MM-DD · HH:MMh (Barcelona). S'actualitza a cada build.
-var TBI_VERSION = '2026-05-29 · 11:52h';
+var TBI_VERSION = '2026-08-27 · 22:50h';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
@@ -20327,20 +20327,103 @@ function handleQuestionnaireReturn() {
 }
 
 // ── GESTIÓ RESET CONTRASENYA ──
-// Supabase gestiona el token automàticament via onAuthStateChange
-// Quan detecta event PASSWORD_RECOVERY, mostra el modal
+// Camí feliç: Supabase processa el hash de la URL, crea la sessió i emet
+// l'event PASSWORD_RECOVERY — llavors obrim el modal de nova contrasenya.
+//
+// Camí trencat (el que deixava la gent penjada): si l'enllaç ha caducat o ja
+// s'ha fet servir, Supabase NO emet cap event; redirigeix amb
+// #error=access_denied&error_code=otp_expired. Sense codi que ho llegeixi,
+// el client aterra a la pantalla de login sense cap explicació i conclou que
+// "no funciona". Aquí ho detectem i li diem què ha passat.
 function handlePasswordReset() {
   if (!sb) return;
-  
+
+  // Capturem hash i query ARA, síncronament: supabase-js neteja el hash de la
+  // URL de manera asíncrona un cop l'ha processat.
+  var hashInicial  = window.location.hash   || '';
+  var queryInicial = window.location.search || '';
+
   // Escoltar l'event de Supabase quan processa el hash de la URL
   sb.auth.onAuthStateChange(function(event, session) {
     if (event === 'PASSWORD_RECOVERY') {
+      window._tbiRecoveryHandled = true;
       // Netejar URL
       history.replaceState({}, '', window.location.pathname);
       // Mostrar modal — la sessió ja està activa automàticament
       setTimeout(showResetPasswordModal, 300);
     }
   });
+
+  detectarErrorEnllacAuth(hashInicial, queryInicial);
+  xarxaSeguretatRecovery(hashInicial);
+}
+
+// Llegeix l'error que Supabase adjunta a l'enllaç rebutjat i l'explica en
+// clar, obrint el formulari de "he oblidat la contrasenya" ja preparat.
+function detectarErrorEnllacAuth(hash, query) {
+  var h = (hash  || '').replace(/^#/, '');
+  var q = (query || '').replace(/^\?/, '');
+  var raw = h.indexOf('error') >= 0 ? h : (q.indexOf('error') >= 0 ? q : '');
+  if (!raw) return;
+
+  var p;
+  try { p = new URLSearchParams(raw); } catch(e) { return; }
+
+  var code = p.get('error_code') || p.get('error') || '';
+  if (!code) return;
+
+  var desc = (p.get('error_description') || '').replace(/\+/g, ' ');
+
+  // Netejar la URL perquè el missatge no reaparegui en recarregar
+  try { history.replaceState({}, '', window.location.pathname); } catch(e) {}
+
+  var text;
+  if (code === 'otp_expired' || /expired/i.test(desc)) {
+    text = 'L\u2019enlla\u00e7 ha caducat o ja s\u2019havia fet servir. Demana\u2019n un de nou aqu\u00ed sota.';
+  } else if (code === 'access_denied') {
+    text = 'L\u2019enlla\u00e7 no \u00e9s v\u00e0lid. Demana\u2019n un de nou aqu\u00ed sota.';
+  } else {
+    text = 'No s\u2019ha pogut validar l\u2019enlla\u00e7' + (desc ? ' (' + desc + ')' : '')
+         + '. Demana\u2019n un de nou aqu\u00ed sota.';
+  }
+
+  console.warn('[auth] enlla\u00e7 rebutjat:', code, desc);
+
+  // Esperem que el DOM del login estigui muntat abans d'escriure-hi.
+  setTimeout(function() {
+    try {
+      showAuthTab('forgot');
+      var msg = document.getElementById('forgot-msg');
+      if (msg) { msg.className = 'login-msg err'; msg.textContent = text; }
+      var inp = document.getElementById('forgot-email');
+      if (inp) inp.focus();
+    } catch(e) {
+      console.warn('[auth] no s\u2019ha pogut mostrar el missatge:', e);
+    }
+  }, 400);
+}
+
+// Xarxa de seguretat: si l'enllaç era de recovery però l'event
+// PASSWORD_RECOVERY s'ha emes abans que el listener fos actiu, el modal no
+// s'obriria mai i l'usuari es quedaria dins l'app sense poder canviar la
+// contrasenya. Ho comprovem un cop, passat el temps d'arrencada.
+function xarxaSeguretatRecovery(hash) {
+  var h = hash || '';
+  if (h.indexOf('type=recovery') < 0 || h.indexOf('access_token') < 0) return;
+
+  setTimeout(function() {
+    if (window._tbiRecoveryHandled) return;
+    if (document.getElementById('modal-reset-pwd')) return;
+    try {
+      sb.auth.getSession().then(function(res) {
+        var s = res && res.data && res.data.session;
+        if (!s) return;
+        window._tbiRecoveryHandled = true;
+        try { history.replaceState({}, '', window.location.pathname); } catch(e) {}
+        showResetPasswordModal();
+      }).catch(function(e) { console.warn('[auth] xarxa seguretat recovery:', e); });
+    } catch(e) { console.warn('[auth] xarxa seguretat recovery:', e); }
+  }, 1500);
 }
 
 function showResetPasswordModal() {
