@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catàleg d'actius · TBI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --tinta:#16233A; --tinta-2:#24395C; --paper:#F7F5F0; --blanc:#FFFFFF;
+  --or:#C8A54A; --or-fosc:#8F7024; --verd:#1A5C3A; --vermell:#8B1A1A;
+  --g100:#E9E6DF; --g300:#B4B0A6; --g500:#6B685F;
+  --fb:"IBM Plex Sans",system-ui,sans-serif; --fm:"IBM Plex Mono",monospace;
+  --radi:12px; --sh:0 1px 3px rgba(22,35,58,.06); --sh2:0 6px 18px rgba(22,35,58,.09);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--tinta);font-family:var(--fb);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
+header{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;padding:22px 0;border-bottom:2px solid var(--tinta);margin-bottom:26px}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-t{font-size:14px;font-weight:600;line-height:1.2}
+.brand-s{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500)}
+h1{font-size:24px;font-weight:600;letter-spacing:-.02em;margin:0 0 4px}
+.sub{font-size:13.5px;color:var(--g500);margin:0}
+h2{font-size:17px;font-weight:600;letter-spacing:-.015em;margin:0 0 4px}
+section{margin-bottom:34px}
+.sec-h{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:baseline;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)}
+.sec-h .hint{font-size:13px;color:var(--g500);max-width:60ch}
+.card{background:var(--blanc);border:1px solid var(--g100);border-radius:var(--radi);box-shadow:var(--sh);overflow:hidden}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--g100);vertical-align:middle}
+thead th{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);font-weight:500;background:#FBFAF7;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#FBFAF7}
+.num{text-align:right;font-family:var(--fm);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font-family:var(--fm);font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:1px solid var(--g300);color:var(--g500);white-space:nowrap}
+.pill.ok{border-color:var(--verd);color:var(--verd);background:rgba(26,92,58,.07)}
+.pill.warn{border-color:var(--or-fosc);color:var(--or-fosc);background:rgba(200,165,74,.12)}
+.pill.bad{border-color:var(--vermell);color:var(--vermell);background:rgba(139,26,26,.06)}
+.kpis{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px}
+.kpi{background:var(--blanc);border:1px solid var(--g100);border-radius:var(--radi);padding:14px 16px;box-shadow:var(--sh)}
+.kpi-l{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);margin-bottom:5px}
+.kpi-v{font-family:var(--fm);font-size:24px;font-weight:600;line-height:1.1}
+.kpi-v.bad{color:var(--vermell)} .kpi-v.ok{color:var(--verd)} .kpi-v.warn{color:var(--or-fosc)}
+.kpi-d{font-size:11.5px;color:var(--g500);margin-top:4px;line-height:1.4}
+button{font-family:var(--fb);font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;border:1px solid var(--tinta);background:var(--tinta);color:var(--paper);cursor:pointer}
+button:hover{background:var(--tinta-2);border-color:var(--tinta-2)}
+button.ghost{background:transparent;color:var(--tinta);border-color:var(--g300)}
+button.ghost:hover{background:var(--g100);color:var(--tinta)}
+button.gold{background:var(--or);border-color:var(--or);color:var(--tinta)}
+button.gold:hover{filter:brightness(1.06)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.sm{font-size:12px;padding:5px 10px}
+input,select{font-family:var(--fb);font-size:13.5px;padding:7px 10px;border:1px solid var(--g300);border-radius:8px;background:var(--blanc);color:var(--tinta);width:100%}
+input:focus,select:focus{outline:2px solid var(--or);outline-offset:1px;border-color:var(--or)}
+label{display:block;font-family:var(--fm);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--g500);margin-bottom:4px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.form{padding:18px;background:#FBFAF7;border-top:1px solid var(--g100)}
+.form-a{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.msg{padding:11px 15px;border-radius:9px;font-size:13.5px;margin:12px 0}
+.msg.err{background:rgba(139,26,26,.07);color:var(--vermell);border:1px solid rgba(139,26,26,.2)}
+.msg.ok{background:rgba(26,92,58,.07);color:var(--verd);border:1px solid rgba(26,92,58,.2)}
+.msg.info{background:rgba(200,165,74,.12);color:var(--or-fosc);border:1px solid rgba(200,165,74,.3)}
+.login{max-width:400px;margin:70px auto;background:var(--blanc);border:1px solid var(--g100);border-radius:var(--radi);padding:28px;box-shadow:var(--sh2)}
+.empty{padding:34px 20px;text-align:center;color:var(--g500);font-size:13.5px}
+.mono{font-family:var(--fm);font-size:12.5px}
+.hide{display:none!important}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--g100);font-family:var(--fm);font-size:11px;color:var(--g300)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="61" height="61" rx="15" fill="none" stroke="#16233A" stroke-width="3"/>
+      <circle cx="22" cy="24" r="4.6" fill="#16233A"/><circle cx="42" cy="24" r="4.6" fill="#16233A"/>
+      <line x1="19" y1="44.6" x2="45" y2="41.9" stroke="#16233A" stroke-width="3.4" stroke-linecap="round"/>
+    </svg>
+    <div><div class="brand-t">The Boring Investor</div><div class="brand-s">Administració</div></div>
+  </div>
+  <div id="userBox" class="hide" style="display:flex;gap:10px;align-items:center">
+    <span class="mono" id="userEmail" style="color:#6B685F"></span>
+    <button class="ghost sm" onclick="sortir()">Sortir</button>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<div id="login" class="login hide">
+  <h1>Catàleg d'actius</h1>
+  <p class="sub" style="margin-bottom:20px">Accés restringit a l'assessor.</p>
+  <label for="em">Correu</label>
+  <input id="em" type="email" placeholder="guillem@..." autocomplete="email">
+  <div class="form-a"><button onclick="entrar()" id="btnLogin">Enviar enllaç d'accés</button></div>
+  <div id="loginMsg"></div>
+</div>
+
+<!-- APP -->
+<main id="app" class="hide">
+
+  <div style="margin-bottom:22px">
+    <h1>Catàleg d'actius</h1>
+    <p class="sub">Cada posició de client ha d'apuntar a un actiu del catàleg. Sense això no hi ha valoració automàtica, ni KPIs fiables, ni informe generat sol.</p>
+  </div>
+
+  <div id="globalMsg"></div>
+
+  <!-- KPIs -->
+  <div class="kpis" id="kpis"></div>
+
+  <!-- 1. PENDENTS -->
+  <section>
+    <div class="sec-h">
+      <div>
+        <h2>1 · Actius pendents de catalogar</h2>
+        <p class="hint">Agrupats per nom i categoria: catalogar-ne un arregla totes les posicions iguals de tots els clients alhora.</p>
+      </div>
+      <button class="ghost sm" onclick="carregarTot()">Actualitzar</button>
+    </div>
+    <div class="card"><div class="tw"><table>
+      <thead><tr>
+        <th>Nom a la posició</th><th>Categoria</th><th class="num">Posicions</th><th class="num">Clients</th>
+        <th class="num">Valor declarat</th><th>ISIN actual</th><th></th>
+      </tr></thead>
+      <tbody id="tbPendents"><tr><td colspan="7" class="empty">Carregant…</td></tr></tbody>
+    </table></div>
+    <div id="formZone"></div>
+    </div>
+  </section>
+
+  <!-- 2. CATÀLEG -->
+  <section>
+    <div class="sec-h">
+      <div>
+        <h2>2 · Catàleg</h2>
+        <p class="hint">Un actiu no es fa servir per valorar fins que està marcat com a verificat: ISIN i ticker comprovats a mà.</p>
+      </div>
+      <button class="gold sm" onclick="nouActiu()">Afegir actiu</button>
+    </div>
+    <div class="card"><div class="tw"><table>
+      <thead><tr>
+        <th>Id</th><th>Nom</th><th>ISIN</th><th>Ticker</th><th>Família</th><th class="num">TER %</th><th class="num">Rend. teòric</th><th>Estat</th><th></th>
+      </tr></thead>
+      <tbody id="tbCatalog"><tr><td colspan="9" class="empty">Carregant…</td></tr></tbody>
+    </table></div>
+    <div id="formNou"></div>
+    </div>
+  </section>
+
+  <!-- 3. QUALITAT -->
+  <section>
+    <div class="sec-h">
+      <div>
+        <h2>3 · Estat de dades per client</h2>
+        <p class="hint">Aquesta taula és la llista de feina real: cap client passa a informe automàtic mentre no arribi al 100 %.</p>
+      </div>
+    </div>
+    <div class="card"><div class="tw"><table>
+      <thead><tr>
+        <th>Client</th><th class="num">Posicions</th><th class="num">Catalogades</th><th class="num">% auto</th>
+        <th class="num">Dies sense valorar</th><th class="num">Valor</th><th>Qüestionari</th><th>Estat</th>
+      </tr></thead>
+      <tbody id="tbQualitat"><tr><td colspan="8" class="empty">Carregant…</td></tr></tbody>
+    </table></div></div>
+  </section>
+
+  <footer>TBI · Catàleg d'actius · les escriptures requereixen sessió d'administrador (RLS)</footer>
+</main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================
+   TBI · Catàleg d'actius
+   Enllaça les posicions dels clients (JSONB) amb el catàleg
+   normalitzat public.actius. ES5, sense dependències extra.
+   ============================================================ */
+var SB_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+var SB_KEY = 'sb_publishable_Fy-iwa-lUQOSI4QTkj9EPw_wlSiymVY';
+if (!window.supabase || !window.supabase.createClient) {
+  document.addEventListener('DOMContentLoaded', function(){
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div class="msg err" style="margin:20px">No s\'ha pogut carregar la llibreria de Supabase. '
+      + 'Comprova la connexió o que el CDN no estigui bloquejat.</div>');
+  });
+  throw new Error('supabase-js no carregat');
+}
+var sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+var FAMILIES = ['rv','rf','or','crypto','cash','alt'];
+var TIPUS = ['etf','fons_indexat','fons_actiu','accio','deposit','compte','crypto','altre'];
+
+var state = { pendents: [], catalog: [], qualitat: [], posicions: [] };
+
+/* Comptes remunerats: es carrega de tbi_config (clau comptes_remunerats).
+   Aquest objecte és només el pla B si la taula no respon. */
+var CFG = {
+  verificat_el: '2026-08-28',
+  irpf_trams: [{fins:6000,tipus:19},{fins:50000,tipus:21},{fins:200000,tipus:23},
+               {fins:300000,tipus:27},{fins:null,tipus:30}],
+  comptes: [
+    {id:'tr',nom:'Trade Republic',tae:3.04,max:50000,tipus:'permanent',cond:'Sense condicions'},
+    {id:'raisin',nom:'Raisin Benvinguda',tae:3.10,max:60000,tipus:'promocional',cond:'Només 3 mesos'},
+    {id:'bunq',nom:'bunq',tae:3.01,max:null,tipus:'permanent',cond:'Segons pla'},
+    {id:'ing',nom:'ING Compte Naranja',tae:3.00,max:50000,tipus:'promocional',cond:'Benvinguda 3 mesos'},
+    {id:'openbank',nom:'Openbank',tae:2.75,max:null,tipus:'promocional',cond:'12 mesos, nous clients'},
+    {id:'bankinter',nom:'Bankinter Digital',tae:2.50,max:100000,tipus:'promocional',cond:'Verificar data final'},
+    {id:'corrent',nom:'Compte corrent sense remunerar',tae:0,max:null,tipus:'permanent',cond:''}
+  ]
+};
+
+/* Tipus marginal de la base de l'estalvi segons els interessos anuals estimats */
+function tramIRPF(interessos){
+  var t = CFG.irpf_trams || [];
+  for (var i=0;i<t.length;i++){ if (t[i].fins == null || interessos <= t[i].fins) return t[i].tipus; }
+  return 19;
+}
+/* TAE bruta efectiva quan el saldo supera el màxim remunerat del compte */
+function taeEfectiva(tae, max, valor){
+  if (!max || !valor || valor <= max) return tae;
+  return tae * max / valor;
+}
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function eur(n){ if (n == null) return '—';
+  return Number(n).toLocaleString('ca-ES',{maximumFractionDigits:0}) + ' €'; }
+function msg(el, text, kind){ $(el).innerHTML = text ? '<div class="msg ' + kind + '">' + esc(text) + '</div>' : ''; }
+function slug(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40); }
+
+/* ---------- Sessió ---------- */
+function mostrarLogin(){ $('login').classList.remove('hide'); $('app').classList.add('hide'); $('userBox').classList.add('hide'); }
+function mostrarApp(email){
+  $('login').classList.add('hide'); $('app').classList.remove('hide');
+  $('userBox').classList.remove('hide'); $('userEmail').textContent = email;
+  carregarTot();
+}
+function entrar(){
+  var email = ($('em').value || '').trim().toLowerCase();
+  if (!email) { msg('loginMsg','Escriu el teu correu.','err'); return; }
+  $('btnLogin').disabled = true;
+  sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } })
+    .then(function(r){
+      $('btnLogin').disabled = false;
+      if (r.error) msg('loginMsg', r.error.message, 'err');
+      else msg('loginMsg','Enllaç enviat. Revisa el correu i torna aquí.','ok');
+    });
+}
+function sortir(){ sb.auth.signOut().then(function(){ mostrarLogin(); }); }
+
+sb.auth.getSession().then(function(r){
+  var s = r.data && r.data.session;
+  if (s && s.user) mostrarApp(s.user.email); else mostrarLogin();
+});
+sb.auth.onAuthStateChange(function(ev, s){
+  if (s && s.user) mostrarApp(s.user.email); else mostrarLogin();
+});
+
+/* ---------- Càrrega ---------- */
+function carregarTot(){
+  msg('globalMsg','','');
+  sb.from('tbi_config').select('value').eq('key','comptes_remunerats').maybeSingle()
+    .then(function(r){ if (r && r.data && r.data.value) CFG = r.data.value; })
+    .catch(function(){});
+  Promise.all([
+    sb.from('v_posicions').select('*'),
+    sb.from('actius').select('*').order('familia').order('nom'),
+    sb.from('v_qualitat_dades').select('*').order('pct_automatitzable')
+  ]).then(function(res){
+    var err = res.filter(function(r){ return r.error; })[0];
+    if (err) { msg('globalMsg','No s\'han pogut llegir les dades: ' + err.error.message +
+      '. Comprova que aquest usuari és administrador.','err'); return; }
+    state.posicions = res[0].data || [];
+    state.catalog   = res[1].data || [];
+    state.qualitat  = res[2].data || [];
+    agruparPendents();
+    pintarKpis(); pintarPendents(); pintarCatalog(); pintarQualitat();
+  });
+}
+
+function agruparPendents(){
+  var map = {};
+  state.posicions.forEach(function(p){
+    if (p.actiu_id) return;                       // ja catalogada
+    var clau = (p.nom || '(sense nom)') + '||' + (p.categoria || '');
+    if (!map[clau]) map[clau] = { nom: p.nom || '(sense nom)', categoria: p.categoria || '',
+      n: 0, clients: {}, valor: 0, maxVal: 0, isin: p.isin || '' };
+    var g = map[clau];
+    g.n++; g.clients[p.client_id] = 1; g.valor += Number(p.valor_declarat || 0);
+    g.maxVal = Math.max(g.maxVal, Number(p.valor_declarat || 0));
+    if (!g.isin && p.isin) g.isin = p.isin;
+  });
+  state.pendents = Object.keys(map).map(function(k){
+    var g = map[k]; g.clau = k; g.nClients = Object.keys(g.clients).length; return g;
+  }).sort(function(a,b){ return b.valor - a.valor || b.n - a.n; });
+}
+
+/* ---------- Pintat ---------- */
+function pintarKpis(){
+  var total = state.posicions.length;
+  var cat = state.posicions.filter(function(p){ return p.actiu_id; }).length;
+  var pct = total ? Math.round(cat / total * 100) : 0;
+  var caduc = state.posicions.filter(function(p){ return p.dies_sense_valorar > 60; }).length;
+  var verif = state.catalog.filter(function(a){ return a.verificat; }).length;
+  $('kpis').innerHTML =
+    kpi('Posicions', total, 'A totes les carteres de clients', '') +
+    kpi('Catalogades', cat + ' / ' + total, pct + ' % del total', pct >= 90 ? 'ok' : pct > 0 ? 'warn' : 'bad') +
+    kpi('Actius al catàleg', state.catalog.length, verif + ' verificats', verif ? '' : 'warn') +
+    kpi('Valoracions caducades', caduc, 'Més de 60 dies sense actualitzar', caduc ? 'bad' : 'ok') +
+    kpi('Clients', state.qualitat.length, 'Amb almenys una posició', '');
+}
+function kpi(l, v, d, cls){
+  return '<div class="kpi"><div class="kpi-l">' + esc(l) + '</div>' +
+    '<div class="kpi-v ' + cls + '">' + esc(v) + '</div>' +
+    '<div class="kpi-d">' + esc(d) + '</div></div>';
+}
+
+function pintarPendents(){
+  var tb = $('tbPendents');
+  if (!state.pendents.length) {
+    tb.innerHTML = '<tr><td colspan="7" class="empty">Cap posició pendent. Totes apunten al catàleg.</td></tr>';
+    return;
+  }
+  tb.innerHTML = state.pendents.map(function(g, i){
+    return '<tr>' +
+      '<td><strong>' + esc(g.nom) + '</strong></td>' +
+      '<td><span class="pill">' + esc(g.categoria || '—') + '</span></td>' +
+      '<td class="num">' + g.n + '</td>' +
+      '<td class="num">' + g.nClients + '</td>' +
+      '<td class="num">' + eur(g.valor) + '</td>' +
+      '<td class="mono">' + esc(g.isin || '—') + '</td>' +
+      '<td class="num"><button class="sm" onclick="obrirForm(' + i + ')">Catalogar</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function pintarCatalog(){
+  var tb = $('tbCatalog');
+  if (!state.catalog.length) {
+    tb.innerHTML = '<tr><td colspan="9" class="empty">Catàleg buit.</td></tr>'; return;
+  }
+  tb.innerHTML = state.catalog.map(function(a){
+    var estat = a.verificat
+      ? '<span class="pill ok">Verificat</span>'
+      : '<span class="pill warn">Sense verificar</span>';
+    return '<tr>' +
+      '<td class="mono">' + esc(a.id) + '</td>' +
+      '<td>' + esc(a.nom) + '</td>' +
+      '<td class="mono">' + esc(a.isin || '—') + '</td>' +
+      '<td class="mono">' + esc(a.ticker || '—') + '</td>' +
+      '<td><span class="pill">' + esc(a.familia) + '</span></td>' +
+      '<td class="num">' + (a.ter == null ? '—' : Number(a.ter).toFixed(2)) + '</td>' +
+      '<td class="num">' + (a.rendiment_teoric == null ? '—' : Number(a.rendiment_teoric).toFixed(2) + ' %') + '</td>' +
+      '<td>' + estat + '</td>' +
+      '<td class="num">' + (a.verificat
+        ? '<button class="ghost sm" onclick="verificar(\'' + esc(a.id) + '\',false)">Desmarcar</button>'
+        : '<button class="gold sm" onclick="verificar(\'' + esc(a.id) + '\',true)">Verificar</button>') + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function pintarQualitat(){
+  var tb = $('tbQualitat');
+  if (!state.qualitat.length) {
+    tb.innerHTML = '<tr><td colspan="8" class="empty">Cap client amb posicions.</td></tr>'; return;
+  }
+  tb.innerHTML = state.qualitat.map(function(q){
+    var pct = Number(q.pct_automatitzable || 0);
+    var cls = pct >= 100 ? 'ok' : pct > 0 ? 'warn' : 'bad';
+    var dies = q.dies_max_sense_valorar;
+    return '<tr>' +
+      '<td><strong>' + esc(q.client_nom || q.email) + '</strong></td>' +
+      '<td class="num">' + q.n_posicions + '</td>' +
+      '<td class="num">' + q.n_catalogades + '</td>' +
+      '<td class="num"><span class="pill ' + cls + '">' + pct + ' %</span></td>' +
+      '<td class="num">' + (dies == null ? '—' : dies) + '</td>' +
+      '<td class="num">' + eur(q.valor_total) + '</td>' +
+      '<td>' + (q.te_questionari ? '<span class="pill ok">Sí</span>' : '<span class="pill bad">No</span>') + '</td>' +
+      '<td>' + esc(q.estat_dades) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+/* ---------- Formulari de catalogació ---------- */
+function camp(l, id, val, ph, type){
+  return '<div><label for="' + id + '">' + esc(l) + '</label>' +
+    '<input id="' + id + '" type="' + (type || 'text') + '" value="' + esc(val || '') + '" placeholder="' + esc(ph || '') + '"></div>';
+}
+function tria(l, id, opts, val){
+  return '<div><label for="' + id + '">' + esc(l) + '</label><select id="' + id + '">' +
+    opts.map(function(o){ return '<option value="' + esc(o) + '"' + (o === val ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') +
+    '</select></div>';
+}
+
+function obrirForm(i){
+  var g = state.pendents[i];
+  var fam = /rf|bond|renda_fixa/.test(g.categoria) ? 'rf'
+          : /crypto|bitcoin/i.test(g.categoria + g.nom) ? 'crypto'
+          : /or|gold|metall/i.test(g.categoria + g.nom) ? 'or'
+          : /liquiditat|cash|compte/i.test(g.categoria) ? 'cash'
+          : /crowd|private|startup/i.test(g.categoria) ? 'alt' : 'rv';
+  var existents = state.catalog.map(function(a){ return a.id; });
+  $('formZone').innerHTML =
+    '<div class="form">' +
+      '<div style="font-family:var(--fm);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--or-fosc);margin-bottom:10px">' +
+        'Catalogar · ' + esc(g.nom) + ' · ' + g.n + ' posicions de ' + g.nClients + ' clients</div>' +
+      '<div class="grid g2">' +
+        camp('Nom oficial del producte', 'f_nom', g.nom, 'iShares Core MSCI World UCITS ETF') +
+        camp('ISIN', 'f_isin', g.isin, 'IE00B4L5Y983') +
+      '</div>' +
+      '<div class="grid g3" style="margin-top:12px">' +
+        camp('Ticker (format Yahoo)', 'f_ticker', '', 'EUNL.DE') +
+        camp('Emissor', 'f_emissor', '', 'iShares') +
+        camp('TER anual %', 'f_ter', '', '0.20', 'number') +
+      '</div>' +
+      '<div class="grid g3" style="margin-top:12px">' +
+        tria('Família', 'f_familia', FAMILIES, fam) +
+        tria('Tipus', 'f_tipus', TIPUS, fam === 'crypto' ? 'crypto' : 'etf') +
+        tria('Seguiment', 'f_seg', ['auto','manual'], fam === 'cash' || fam === 'alt' ? 'manual' : 'auto') +
+      '</div>' +
+      blocRendiment('f', g.maxVal) +
+      '<div style="margin-top:12px">' +
+        '<label for="f_existent">…o enllaçar a un actiu que ja existeix</label>' +
+        '<select id="f_existent"><option value="">— crear-ne un de nou —</option>' +
+          existents.map(function(id){ return '<option value="' + esc(id) + '">' + esc(id) + '</option>'; }).join('') +
+        '</select>' +
+      '</div>' +
+      '<div class="form-a">' +
+        '<button class="gold" onclick="desarCatalogacio(' + i + ')" id="btnDesar">Catalogar i enllaçar ' + g.n + ' posicions</button>' +
+        '<button class="ghost" onclick="tancarForm()">Cancel·lar</button>' +
+        '<span style="font-size:12.5px;color:var(--g500)">S\'escriu <span class="mono">actiu_id</span> a cada posició afectada.</span>' +
+      '</div>' +
+      '<div id="formMsg"></div>' +
+    '</div>';
+  $('formZone').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function tancarForm(){ $('formZone').innerHTML = ''; }
+
+function desarCatalogacio(i){
+  var g = state.pendents[i];
+  var existent = $('f_existent').value;
+  $('btnDesar').disabled = true;
+
+  var p;
+  if (existent) {
+    p = Promise.resolve({ id: existent });
+  } else {
+    var nom = ($('f_nom').value || '').trim();
+    if (!nom) { msg('formMsg','El nom és obligatori.','err'); $('btnDesar').disabled = false; return; }
+    var id = slug(nom);
+    if (!id) { msg('formMsg','No s\'ha pogut derivar un identificador del nom.','err'); $('btnDesar').disabled = false; return; }
+    var terRaw = ($('f_ter').value || '').trim();
+    var row = {
+      id: id,
+      nom: nom,
+      isin: ($('f_isin').value || '').trim().toUpperCase() || null,
+      ticker: ($('f_ticker').value || '').trim() || null,
+      emissor: ($('f_emissor').value || '').trim() || null,
+      ter: terRaw === '' ? null : Number(terRaw),
+      familia: $('f_familia').value,
+      tipus: $('f_tipus').value,
+      seguiment: $('f_seg').value,
+      categoria: g.categoria || null,
+      verificat: false
+    };
+    var rend = llegirRendiment('f');
+    if (rend) { for (var kk in rend) row[kk] = rend[kk]; }
+    p = sb.from('actius').upsert(row, { onConflict:'id' }).select().single()
+      .then(function(r){ if (r.error) throw r.error; return r.data; });
+  }
+
+  p.then(function(actiu){ return enllacarPosicions(g, actiu.id); })
+   .then(function(n){
+      msg('formMsg','Enllaçades ' + n + ' posicions.','ok');
+      setTimeout(function(){ tancarForm(); carregarTot(); }, 900);
+   })
+   .catch(function(e){
+      msg('formMsg', (e && e.message) || 'Error desant.', 'err');
+      $('btnDesar').disabled = false;
+   });
+}
+
+/* Escriu actiu_id dins del JSONB de posicions de cada client afectat */
+function enllacarPosicions(g, actiuId){
+  var ids = {};
+  state.posicions.forEach(function(p){
+    if (p.actiu_id) return;
+    var clau = (p.nom || '(sense nom)') + '||' + (p.categoria || '');
+    if (clau === g.clau) { if (!ids[p.client_id]) ids[p.client_id] = {}; ids[p.client_id][p.posicio_id] = 1; }
+  });
+  var clientIds = Object.keys(ids);
+  if (!clientIds.length) return Promise.resolve(0);
+
+  return sb.from('clients').select('id,posicions').in('id', clientIds).then(function(r){
+    if (r.error) throw r.error;
+    var total = 0;
+    var updates = (r.data || []).map(function(c){
+      var arr = (c.posicions || []).map(function(pos){
+        if (ids[c.id][pos.id] && !pos.actiu_id) { total++; pos.actiu_id = actiuId; }
+        return pos;
+      });
+      return sb.from('clients').update({ posicions: arr }).eq('id', c.id);
+    });
+    return Promise.all(updates).then(function(res){
+      var e = res.filter(function(x){ return x.error; })[0];
+      if (e) throw e.error;
+      return total;
+    });
+  });
+}
+
+function verificar(id, val){
+  sb.from('actius').update({ verificat: val, actualitzat_at: new Date().toISOString() }).eq('id', id)
+    .then(function(r){
+      if (r.error) msg('globalMsg', r.error.message, 'err');
+      else carregarTot();
+    });
+}
+
+/* ---------- Bloc de rendiment teòric ----------
+   La TAE SEMPRE s'escriu a mà: depèn del contracte de cada client,
+   de les condicions i dels topalls. La llista d'entitats només serveix
+   com a suggeriment de nom i com a referència de mercat informativa. */
+function blocRendiment(px, valorPos){
+  var dl = (CFG.comptes||[]).map(function(c){
+    return '<option value="'+esc(c.nom)+'"></option>'; }).join('');
+  return '<div style="margin-top:14px;padding:14px;background:var(--blanc);border:1px solid var(--g100);border-radius:10px">'
+    + '<div style="font-family:var(--fm);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--or-fosc);margin-bottom:4px">'
+      + 'Rendiment teòric · només per a actius que no cotitzen</div>'
+    + '<div style="font-size:12.5px;color:var(--g500);margin-bottom:11px;line-height:1.45">'
+      + 'La TAE s\'escriu a mà, del contracte del client. Si és una promoció temporal, posa-hi la mitjana '
+      + 'que esperes de debò per als propers 12 mesos, no el reclam.</div>'
+    + '<div class="grid g2">'
+      + '<div><label for="'+px+'_ent">Entitat o producte</label>'
+        + '<input id="'+px+'_ent" list="'+px+'_dl" placeholder="Trade Republic, Raisin, Mintos…" '
+        + 'oninput="pistaCompte(\''+px+'\','+(valorPos||0)+')">'
+        + '<datalist id="'+px+'_dl">'+dl+'</datalist></div>'
+      + '<div><label for="'+px+'_taeb">TAE bruta % anual <span style="color:var(--or-fosc)">· del contracte</span></label>'
+        + '<input id="'+px+'_taeb" type="number" step="0.01" placeholder="2.75" '
+        + 'oninput="recalcNet(\''+px+'\','+(valorPos||0)+')"></div>'
+    + '</div>'
+    + '<div class="grid g2" style="margin-top:10px">'
+      + '<div><label for="'+px+'_irpf">Tipus IRPF de l\'estalvi</label>'
+        + '<select id="'+px+'_irpf" onchange="this.dataset.tocat=1;recalcNet(\''+px+'\','+(valorPos||0)+')">'
+        + (CFG.irpf_trams||[]).map(function(t){
+            return '<option value="'+t.tipus+'"'+(t.tipus===19?' selected':'')+'>'+t.tipus+' %</option>'; }).join('')
+        + '</select></div>'
+      + '<div><label for="'+px+'_rendf">Nota justificativa</label>'
+        + '<input id="'+px+'_rendf" placeholder="TAE del contracte, extracte de juliol"></div>'
+    + '</div>'
+    + '<div id="'+px+'_pista" style="margin-top:9px"></div>'
+    + '<div id="'+px+'_netbox" style="margin-top:9px;font-size:13px;color:var(--g500)">Escriu la TAE bruta del contracte.</div>'
+    + '<input type="hidden" id="'+px+'_rend">'
+  + '</div>';
+}
+
+/* Referència de mercat, purament informativa: no toca cap valor */
+function pistaCompte(px, valorPos){
+  var nom = ($(px+'_ent').value || '').trim().toLowerCase();
+  var c = (CFG.comptes||[]).filter(function(x){
+    return nom && (x.nom.toLowerCase() === nom || x.nom.toLowerCase().indexOf(nom) === 0); })[0];
+  var box = $(px+'_pista');
+  if (!c) { box.innerHTML = ''; return; }
+  var txt = 'Referència de mercat ' + (CFG.verificat_el||'') + ': <strong>'
+    + String(c.tae).replace('.',',') + ' % TAE bruta</strong>'
+    + (c.max ? ' fins a ' + c.max.toLocaleString('ca-ES') + ' €' : '')
+    + (c.cond ? ' · ' + esc(c.cond) : '') + '.';
+  if (c.max && valorPos > c.max) {
+    txt += '<br><strong>Atenció:</strong> aquesta posició són ' + Math.round(valorPos).toLocaleString('ca-ES')
+      + ' €, per sobre del topall. Si el client hi té tot això, la TAE efectiva sobre el total és més baixa — '
+      + 'calcula-la tu i escriu-la al camp de dalt.';
+  }
+  box.innerHTML = '<div style="padding:9px 12px;background:rgba(200,165,74,.12);border-radius:7px;'
+    + 'color:var(--or-fosc);font-size:12.5px;line-height:1.5">' + txt + ' No s\'aplica sola: la xifra bona és la del contracte.</div>';
+}
+
+function recalcNet(px, valorPos){
+  var brut = parseFloat($(px+'_taeb').value);
+  var box = $(px+'_netbox');
+  if (isNaN(brut)) { box.innerHTML = 'Escriu la TAE bruta del contracte.'; $(px+'_rend').value = ''; return; }
+  if (!$(px+'_irpf').dataset.tocat) $(px+'_irpf').value = tramIRPF(valorPos * brut / 100);
+  var t = parseFloat($(px+'_irpf').value) || 19;
+  var net = brut * (1 - t/100);
+  $(px+'_rend').value = net.toFixed(3);
+  box.innerHTML = '<strong style="color:var(--tinta);font-family:var(--fm);font-size:15px">'
+    + net.toFixed(2).replace('.',',') + ' % net</strong> anual · '
+    + brut.toFixed(2).replace('.',',') + ' % brut − ' + t + ' % IRPF de l\'estalvi'
+    + (valorPos ? ' · ≈ ' + Math.round(valorPos*net/100).toLocaleString('ca-ES') + ' € l\'any sobre aquesta posició' : '');
+}
+
+function llegirRendiment(px){
+  var el = $(px+'_rend'); if (!el || el.value === '') return null;
+  var ent = ($(px+'_ent').value || '').trim();
+  var nota = ($(px+'_rendf').value || '').trim();
+  return {
+    rendiment_teoric: Number(el.value),
+    rendiment_brut: parseFloat($(px+'_taeb').value) || null,
+    irpf_estalvi: parseFloat($(px+'_irpf').value) || null,
+    rendiment_font: [ent, nota].filter(Boolean).join(' · ') || null,
+    rendiment_des_de: new Date().toISOString().slice(0,10)
+  };
+}
+
+function nouActiu(){
+  $('formNou').innerHTML =
+    '<div class="form">' +
+      '<div class="grid g2">' +
+        camp('Identificador (slug)', 'n_id', '', 'ishares_core_msci_world') +
+        camp('Nom oficial', 'n_nom', '', 'iShares Core MSCI World UCITS ETF') +
+      '</div>' +
+      '<div class="grid g3" style="margin-top:12px">' +
+        camp('ISIN', 'n_isin', '', 'IE00B4L5Y983') +
+        camp('Ticker (Yahoo)', 'n_ticker', '', 'EUNL.DE') +
+        camp('TER anual %', 'n_ter', '', '0.20', 'number') +
+      '</div>' +
+      '<div class="grid g3" style="margin-top:12px">' +
+        tria('Família', 'n_familia', FAMILIES, 'rv') +
+        tria('Tipus', 'n_tipus', TIPUS, 'etf') +
+        camp('Emissor', 'n_emissor', '', 'iShares') +
+      '</div>' +
+      blocRendiment('n', 0) +
+      '<div class="form-a">' +
+        '<button class="gold" onclick="desarNou()">Afegir al catàleg</button>' +
+        '<button class="ghost" onclick="document.getElementById(\'formNou\').innerHTML=\'\'">Cancel·lar</button>' +
+      '</div><div id="nouMsg"></div>' +
+    '</div>';
+}
+function desarNou(){
+  var nom = ($('n_nom').value || '').trim();
+  var rendN = llegirRendiment('n');
+  var id = ($('n_id').value || '').trim() || slug(nom);
+  if (!nom || !id) { msg('nouMsg','Cal com a mínim un nom.','err'); return; }
+  var terRaw = ($('n_ter').value || '').trim();
+  var rowN = {
+    id: id, nom: nom,
+    isin: ($('n_isin').value || '').trim().toUpperCase() || null,
+    ticker: ($('n_ticker').value || '').trim() || null,
+    emissor: ($('n_emissor').value || '').trim() || null,
+    ter: terRaw === '' ? null : Number(terRaw),
+    familia: $('n_familia').value, tipus: $('n_tipus').value, verificat: false
+  };
+  if (rendN) { for (var kn in rendN) rowN[kn] = rendN[kn]; }
+  sb.from('actius').upsert(rowN, { onConflict:'id' }).then(function(r){
+    if (r.error) msg('nouMsg', r.error.message, 'err');
+    else { $('formNou').innerHTML = ''; carregarTot(); }
+  });
+}
+</script>
+</body>
+</html>
