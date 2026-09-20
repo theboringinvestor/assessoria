@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proposta de cartera · TBI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --tinta:#16233A; --tinta-2:#24395C; --paper:#F7F5F0; --blanc:#FFFFFF;
+  --or:#C8A54A; --or-fosc:#8F7024; --verd:#1A5C3A; --vermell:#8B1A1A;
+  --g100:#E9E6DF; --g300:#B4B0A6; --g500:#6B685F;
+  --fb:"IBM Plex Sans",system-ui,sans-serif; --fm:"IBM Plex Mono",monospace;
+  --radi:12px; --sh:0 1px 3px rgba(22,35,58,.06); --sh2:0 6px 18px rgba(22,35,58,.09);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--g100);color:var(--tinta);font-family:var(--fb);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* ---- Barra d'eines (no s'imprimeix) ---- */
+.bar{position:sticky;top:0;z-index:20;background:var(--tinta);color:var(--paper);padding:12px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.bar-l{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bar select,.bar input{font-family:var(--fb);font-size:13.5px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--paper);min-width:180px}
+.bar select option{color:var(--tinta)}
+.bar label{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:rgba(247,245,240,.55);display:block;margin-bottom:3px}
+button{font-family:var(--fb);font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;border:1px solid var(--or);background:var(--or);color:var(--tinta);cursor:pointer}
+button:hover{filter:brightness(1.07)}
+button.ghost{background:transparent;color:var(--paper);border-color:rgba(255,255,255,.28)}
+button.ghost:hover{background:rgba(255,255,255,.1);filter:none}
+button:disabled{opacity:.45;cursor:not-allowed}
+.warn{background:rgba(200,165,74,.16);color:var(--paper);border:1px solid rgba(200,165,74,.4);padding:9px 14px;border-radius:8px;font-size:13px;margin:10px 20px}
+.hide{display:none!important}
+
+/* ---- Full ---- */
+.sheet{background:var(--blanc);max-width:820px;margin:26px auto;padding:52px 58px;box-shadow:var(--sh2);border-radius:4px}
+.doc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:22px;border-bottom:2px solid var(--tinta);margin-bottom:32px}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-t{font-size:14px;font-weight:600;line-height:1.2}
+.brand-s{font-family:var(--fm);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500)}
+.ref{text-align:right;font-family:var(--fm);font-size:10.5px;color:var(--g500);line-height:1.7}
+.ref b{color:var(--tinta);font-weight:500}
+h1{font-size:34px;font-weight:600;letter-spacing:-.025em;line-height:1.1;margin:0 0 8px}
+.sub{font-size:16px;color:var(--g500);margin:0 0 30px}
+h2{font-size:19px;font-weight:600;letter-spacing:-.018em;margin:34px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--g100);display:flex;align-items:baseline;gap:11px}
+h2 .n{font-family:var(--fm);font-size:11px;color:var(--or-fosc)}
+h3{font-size:15px;font-weight:600;margin:20px 0 7px}
+p{margin:0 0 13px;max-width:62ch}
+ul{margin:0 0 13px;padding-left:0;list-style:none;max-width:62ch}
+ul li{position:relative;padding-left:22px;margin-bottom:7px}
+ul li::before{content:"";position:absolute;left:5px;top:11px;width:5px;height:1.5px;background:var(--or)}
+.mono{font-family:var(--fm)}
+.lead{font-size:16.5px;line-height:1.55;max-width:38em}
+
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}
+.g4{grid-template-columns:repeat(4,1fr)}
+.box{background:#FBFAF7;border:1px solid var(--g100);border-radius:10px;padding:14px 16px}
+.box-l{font-family:var(--fm);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--g500);margin-bottom:5px}
+.box-v{font-family:var(--fm);font-size:21px;font-weight:600;line-height:1.15}
+.box-v.neg{color:var(--vermell)} .box-v.pos{color:var(--verd)}
+.box-d{font-size:11px;color:var(--g500);line-height:1.4;margin-top:4px}
+
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:14px 0}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--g100)}
+thead th{font-family:var(--fm);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);font-weight:500;background:#FBFAF7}
+.num{text-align:right;font-family:var(--fm);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.tot td{background:#FBFAF7;font-weight:600;border-top:1px solid var(--g300)}
+.bar-cell{height:6px;background:var(--g100);border-radius:99px;overflow:hidden;min-width:60px}
+.bar-fill{height:100%;border-radius:99px}
+
+.callout{border-left:3px solid var(--or);background:#FBFAF7;border-radius:0 10px 10px 0;padding:15px 19px;margin:16px 0}
+.callout.red{border-left-color:var(--vermell);background:rgba(139,26,26,.04)}
+.callout-l{font-family:var(--fm);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--or-fosc);margin-bottom:6px}
+.callout.red .callout-l{color:var(--vermell)}
+.callout p{margin:0 0 8px;font-size:14px}.callout p:last-child{margin-bottom:0}
+
+.legal{margin-top:34px;padding-top:16px;border-top:1px solid var(--g100);font-size:11.5px;color:var(--g500);line-height:1.55}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:26px}
+.sign-b{border-top:1px solid var(--g300);padding-top:8px;font-size:12px;color:var(--g500)}
+.sign-b b{display:block;color:var(--tinta);font-size:13px;font-weight:500;margin-bottom:2px}
+
+@media print{
+  body{background:#fff}
+  .bar,.noprint{display:none!important}
+  .sheet{box-shadow:none;margin:0;max-width:none;padding:0;border-radius:0}
+  h2{page-break-after:avoid} table{page-break-inside:avoid}
+  .pb{page-break-before:always}
+  @page{size:A4;margin:16mm 14mm}
+}
+</style>
+</head>
+<body>
+
+<div class="bar noprint">
+  <div class="bar-l">
+    <div>
+      <label for="selClient">Client</label>
+      <select id="selClient" onchange="triarClient()"><option>Carregant…</option></select>
+    </div>
+    <div>
+      <label for="inCapital">Capital inicial €</label>
+      <input id="inCapital" type="number" min="0" step="500" oninput="render()">
+    </div>
+    <div>
+      <label for="inAport">Aportació mensual €</label>
+      <input id="inAport" type="number" min="0" step="25" oninput="render()">
+    </div>
+    <div>
+      <label for="inAnys">Horitzó (anys)</label>
+      <input id="inAnys" type="number" min="1" max="50" step="1" style="min-width:90px" oninput="render()">
+    </div>
+  </div>
+  <div style="display:flex;gap:9px">
+    <button class="ghost" onclick="location.reload()">Recarregar</button>
+    <button onclick="window.print()">Imprimir / PDF</button>
+  </div>
+</div>
+<div id="avis"></div>
+
+<div class="sheet" id="doc"><p style="color:#6B685F">Carregant…</p></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================
+   TBI · Generador de proposta de cartera (fases 2 i 3)
+   Llegeix el perfil del client i produeix el document
+   imprimible que s'entrega a la segona reunió.
+   ============================================================ */
+var SB_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+var SB_KEY = 'sb_publishable_Fy-iwa-lUQOSI4QTkj9EPw_wlSiymVY';
+var sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+/* Taxonomia: si tbi-perfil.js està carregat, mana ell (font única). */
+var TAX = (window.TBI_PERFIL && window.TBI_PERFIL.ACTIUS) || {
+  rv_global:   { nom:'RV Global Indexada',      mu:7.5,  sigma:15.0, grup:'rv',    color:'#1B3A6B' },
+  rv_growth:   { nom:'RV Growth / Tecnològic',  mu:9.0,  sigma:20.0, grup:'rv',    color:'#4CAF82' },
+  rv_emergent: { nom:'RV Mercats Emergents',    mu:8.0,  sigma:22.0, grup:'rv',    color:'#FF6F00' },
+  rv_dividend: { nom:'RV Dividends / Renda',    mu:6.5,  sigma:13.0, grup:'rv',    color:'#2E5FA3' },
+  rv_reits:    { nom:'REITs / Immobiliaris',    mu:6.0,  sigma:17.0, grup:'rv',    color:'#0F6E56' },
+  rf_gov_curt: { nom:'RF Gov. Curt termini',    mu:2.8,  sigma:3.0,  grup:'rf',    color:'#78909C' },
+  rf_gov_llarg:{ nom:'RF Gov. Llarg termini',   mu:3.5,  sigma:7.0,  grup:'rf',    color:'#546E7A' },
+  rf_corp:     { nom:'RF Corporativa IG',       mu:4.0,  sigma:6.0,  grup:'rf',    color:'#8D6E63' },
+  or_metalls:  { nom:'Or i metalls preciosos',  mu:4.0,  sigma:15.0, grup:'or',    color:'#C0392B' },
+  crypto:      { nom:'Actius digitals',         mu:15.0, sigma:60.0, grup:'crypto',color:'#534AB7' },
+  crowd_pe:    { nom:'Crowdlending / Private Eq.',mu:8.0,sigma:12.0, grup:'alt',   color:'#D4943A' },
+  cash:        { nom:'Liquiditat',              mu:2.5,  sigma:0.4,  grup:'cash',  color:'#90A4AE' }
+};
+
+/* Caiguda en escenari sever, per família. No és estadística: és un
+   escenari explicable (2008 / març 2020) i per això es pot defensar
+   davant del client. */
+var STRESS = { rv:-45, rf:-10, or:-25, crypto:-75, alt:-35, cash:0 };
+
+/* Correlacions simplificades entre famílies, per estimar la volatilitat
+   de la cartera. Hipòtesi de treball, no dada de mercat. */
+var CORR = {
+  rv:{rv:1,rf:0.15,or:0.10,crypto:0.45,alt:0.35,cash:0},
+  rf:{rv:0.15,rf:1,or:0.20,crypto:0.05,alt:0.20,cash:0},
+  or:{rv:0.10,rf:0.20,or:1,crypto:0.20,alt:0.10,cash:0},
+  crypto:{rv:0.45,rf:0.05,or:0.20,crypto:1,alt:0.25,cash:0},
+  alt:{rv:0.35,rf:0.20,or:0.10,crypto:0.25,alt:1,cash:0},
+  cash:{rv:0,rf:0,or:0,crypto:0,alt:0,cash:1}
+};
+
+var clients = [], actual = null;
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function eur(n,d){ if(n==null||isNaN(n)) return '—';
+  return Number(n).toLocaleString('ca-ES',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}) + ' €'; }
+function pct(n,d){ if(n==null||isNaN(n)) return '—';
+  return Number(n).toLocaleString('ca-ES',{minimumFractionDigits:d==null?1:d,maximumFractionDigits:d==null?1:d}) + ' %'; }
+function numOf(v){ if(v==null) return null;
+  var m = String(v).replace(/[^0-9,.\-]/g,'').replace(',','.'); var n = parseFloat(m);
+  return isNaN(n) ? null : n; }
+function avis(t,k){ $('avis').innerHTML = t ? '<div class="warn">'+esc(t)+'</div>' : ''; }
+
+/* ---------- Càrrega ---------- */
+sb.auth.getSession().then(function(r){
+  if (!(r.data && r.data.session)) {
+    $('doc').innerHTML = '<h1>Sessió requerida</h1><p class="sub">Entra primer des del panell d\'administració i torna a obrir aquesta pàgina.</p>';
+    return;
+  }
+  return sb.from('clients')
+    .select('id,nom,email,arquetip,arquetip_id,cartera,perfil,cartera_composicio,cartera_target_custom,scoring,dim_objectius,dim_situacio,dim_horitzo,dim_coneixement,dim_risc_fin,dim_risc_em,dim_preferencies,edat')
+    .order('nom')
+    .then(function(res){
+      if (res.error) { avis('No s\'han pogut llegir els clients: ' + res.error.message); return; }
+      clients = res.data || [];
+      $('selClient').innerHTML = '<option value="">— tria un client —</option>' +
+        clients.map(function(c,i){ return '<option value="'+i+'">'+esc(c.nom||c.email)+'</option>'; }).join('');
+      $('doc').innerHTML = '<h1>Proposta de cartera</h1><p class="sub">Tria un client a la barra de dalt.</p>';
+    });
+});
+
+function triarClient(){
+  var i = $('selClient').value;
+  if (i === '') { actual = null; return; }
+  actual = clients[Number(i)];
+  var p = actual.perfil || {};
+  $('inCapital').value = numOf(p.capitalInicial) || 0;
+  $('inAport').value   = numOf(p.aportacioMensual) || 0;
+  $('inAnys').value    = numOf(p.horitzo) || 15;
+  render();
+}
+
+/* ---------- Motor ---------- */
+function allocDe(c){
+  var src = c.cartera_target_custom || c.cartera_composicio || [];
+  var out = [];
+  src.forEach(function(a){
+    var id = a.id || null, nom = a.nom || a.n || '', p = Number(a.pct != null ? a.pct : (a.target != null ? a.target : a.p)) || 0;
+    if (p <= 0) return;
+    if (!id) { for (var k in TAX) { if (TAX[k].nom === nom) { id = k; break; } } }
+    var t = TAX[id] || { nom: nom || 'Actiu', mu: 5, sigma: 12, grup: 'rv', color: '#6B685F' };
+    out.push({ id: id, nom: t.nom || nom, pct: p, mu: t.mu, sigma: t.sigma, grup: t.grup, color: t.color });
+  });
+  var tot = out.reduce(function(s,a){ return s + a.pct; }, 0);
+  if (tot > 0 && Math.abs(tot - 100) > 0.5) out.forEach(function(a){ a.pct = a.pct / tot * 100; });
+  return out;
+}
+
+function metriques(alloc){
+  var mu = 0, pes = {};
+  alloc.forEach(function(a){
+    mu += a.pct/100 * a.mu;
+    pes[a.grup] = (pes[a.grup] || 0) + a.pct/100;
+  });
+  // sigma per famílies amb matriu de correlació simplificada
+  var sg = {};
+  alloc.forEach(function(a){ sg[a.grup] = Math.max(sg[a.grup]||0, a.sigma); });
+  var v = 0, fams = Object.keys(pes);
+  fams.forEach(function(i){ fams.forEach(function(j){
+    var rho = (CORR[i] && CORR[i][j] != null) ? CORR[i][j] : 0.3;
+    v += pes[i]*pes[j]*(sg[i]||0)*(sg[j]||0)*rho;
+  }); });
+  var sigma = Math.sqrt(Math.max(v,0));
+  // caiguda en escenari sever, ponderada per família
+  var dd = 0;
+  fams.forEach(function(f){ dd += pes[f] * (STRESS[f] != null ? STRESS[f] : -30); });
+  var rec = (mu > 0.5 && dd < 0)
+    ? Math.log(1/(1+dd/100)) / Math.log(1+mu/100) : null;
+  return { mu: mu, sigma: sigma, dd: dd, rec: rec, pes: pes };
+}
+
+function projeccio(cap, aport, anys, mu){
+  var r = mu/100, m = Math.pow(1+r, 1/12) - 1, v = cap, aportat = cap;
+  for (var i=0;i<anys*12;i++){ v = v*(1+m) + aport; aportat += aport; }
+  return { valor: v, aportat: aportat, guany: v - aportat };
+}
+
+/* ---------- Render ---------- */
+function render(){
+  if (!actual) return;
+  var c = actual;
+  var alloc = allocDe(c);
+  if (!alloc.length) {
+    $('doc').innerHTML = '<h1>'+esc(c.nom||'')+'</h1><p class="sub">Aquest client no té cap cartera definida. Assigna-li un arquetip o una cartera target al panell d\'administració abans de generar la proposta.</p>';
+    return;
+  }
+  var m = metriques(alloc);
+  var cap = Number($('inCapital').value)||0, aport = Number($('inAport').value)||0, anys = Number($('inAnys').value)||15;
+  var proj = projeccio(cap, aport, anys, m.mu);
+  var projMal = projeccio(cap, aport, anys, Math.max(m.mu-3,0.5));
+  var caiguda = cap>0 ? cap * m.dd/100 : 0;
+  var avui = new Date().toLocaleDateString('ca-ES',{day:'numeric',month:'long',year:'numeric'});
+  var rvPct = Math.round((m.pes.rv||0)*100);
+
+  var files = alloc.slice().sort(function(a,b){ return b.pct-a.pct; }).map(function(a){
+    return '<tr><td><strong>'+esc(a.nom)+'</strong></td>'
+      + '<td style="width:120px"><div class="bar-cell"><div class="bar-fill" style="width:'+a.pct.toFixed(0)+'%;background:'+a.color+'"></div></div></td>'
+      + '<td class="num">'+pct(a.pct,1)+'</td>'
+      + '<td class="num">'+(cap>0?eur(cap*a.pct/100):'—')+'</td>'
+      + '<td class="num">'+pct(a.mu,1)+'</td></tr>';
+  }).join('');
+
+  $('doc').innerHTML =
+  '<div class="doc-h">'
+    + '<div class="brand"><svg width="30" height="30" viewBox="0 0 64 64"><rect x="1.5" y="1.5" width="61" height="61" rx="15" fill="none" stroke="#16233A" stroke-width="3"/><circle cx="22" cy="24" r="4.6" fill="#16233A"/><circle cx="42" cy="24" r="4.6" fill="#16233A"/><line x1="19" y1="44.6" x2="45" y2="41.9" stroke="#16233A" stroke-width="3.4" stroke-linecap="round"/></svg>'
+      + '<div><div class="brand-t">The Boring Investor</div><div class="brand-s">Assessorament independent</div></div></div>'
+    + '<div class="ref">Proposta de cartera<br><b>'+esc(c.nom||c.email)+'</b><br>'+esc(avui)+'</div>'
+  + '</div>'
+
+  + '<h1>La teva cartera</h1>'
+  + '<p class="sub">'+esc(c.arquetip || 'Perfil per definir')+'</p>'
+
+  + '<p class="lead">Aquest document recull el que hem parlat, la cartera que et proposo i — sobretot — <strong>què passarà quan les coses vagin malament</strong>. Aquesta última part és la que has de llegir dues vegades.</p>'
+
+  + '<h2><span class="n">01</span>El teu punt de partida</h2>'
+  + '<div class="grid g4">'
+    + box('Capital inicial', eur(cap), 'El que poses avui')
+    + box('Aportació mensual', eur(aport), 'Automàtica, cada mes')
+    + box('Horitzó', anys + ' anys', 'El temps que no necessites aquests diners')
+    + box('Renda variable', rvPct + ' %', 'La part que es mou de veritat')
+  + '</div>'
+
+  + (c.dim_risc_fin != null || c.dim_risc_em != null
+    ? '<p style="margin-top:16px">El qüestionari et situa amb una <strong>capacitat financera de risc</strong> de '
+      + (c.dim_risc_fin != null ? c.dim_risc_fin : '—') + ' i una <strong>tolerància emocional</strong> de '
+      + (c.dim_risc_em != null ? c.dim_risc_em : '—') + '. La cartera es dissenya sobre la més baixa de les dues, '
+      + 'no sobre la mitjana: de res no serveix una cartera que et pots permetre si després no la pots dormir.</p>'
+    : '')
+
+  + '<h2><span class="n">02</span>La cartera proposada</h2>'
+  + '<table><thead><tr><th>Bloc</th><th></th><th class="num">Pes</th><th class="num">Import</th><th class="num">Retorn esperat</th></tr></thead>'
+    + '<tbody>' + files
+    + '<tr class="tot"><td>Total</td><td></td><td class="num">100,0 %</td><td class="num">'+(cap>0?eur(cap):'—')+'</td><td class="num">'+pct(m.mu,1)+'</td></tr>'
+    + '</tbody></table>'
+  + '<p>Cada bloc hi és per una raó, no per completar una graella. La renda variable és el motor de creixement a llarg termini; la renda fixa i la liquiditat són el coixí que et permet no vendre en el pitjor moment; la resta són diversificadors que es comporten diferent quan la borsa cau.</p>'
+
+  + '<h2><span class="n">03</span>Què pots esperar</h2>'
+  + '<div class="grid g4">'
+    + box('Retorn esperat', pct(m.mu,1)+' / any', 'Mitjana a llarg termini. Cap any concret s\'hi assemblarà')
+    + box('Volatilitat', pct(m.sigma,1), 'Dos de cada tres anys quedaran dins d\'aquest marge')
+    + box('Caiguda severa', pct(m.dd,0), 'En una crisi com el 2008', 'neg')
+    + box('Recuperació', m.rec ? m.rec.toFixed(1)+' anys' : '—', 'Temps estimat per tornar al punt anterior')
+  + '</div>'
+  + '<div class="callout"><div class="callout-l">Com llegir aquests números</div>'
+    + '<p>El retorn esperat <strong>no és una promesa ni una previsió</strong>. És la mitjana raonable a llarg termini d\'una cartera com aquesta, calculada sobre hipòtesis que tens al peu del document. Hi haurà anys de doble dígit positiu i anys clarament negatius, i el resultat final dependrà molt més de si mantens el pla que de si el retorn real és un 6 % o un 7 %.</p></div>'
+
+  + '<h2 class="pb"><span class="n">04</span>L\'escenari dolent</h2>'
+  + '<p class="lead">Aquesta és la pàgina important. Llegeix-la ara, en fred, perquè el dia que passi ja no la llegiràs igual.</p>'
+  + '<div class="callout red"><div class="callout-l">El que veuràs algun dia</div>'
+    + (cap>0
+      ? '<p>En una crisi severa —com el 2008 o el març del 2020— una cartera com aquesta pot arribar a caure al voltant d\'un <strong>'+pct(Math.abs(m.dd),0)+'</strong>. Amb els teus '+eur(cap)+' d\'avui, això vol dir veure el saldo a prop de <strong>'+eur(cap+caiguda)+'</strong>, és a dir <strong>'+eur(Math.abs(caiguda))+' menys</strong>.</p>'
+      : '<p>En una crisi severa una cartera com aquesta pot caure al voltant d\'un <strong>'+pct(Math.abs(m.dd),0)+'</strong>.</p>')
+    + '<p>No és un risc remot: és un escenari que passa cada deu o quinze anys, i durant l\'horitzó de '+anys+' anys que has marcat el veuràs probablement més d\'una vegada.</p></div>'
+  + '<h3>Què faràs aquell dia</h3>'
+  + '<ul>'
+    + '<li><strong>No vendràs.</strong> És l\'única decisió que converteix una caiguda temporal en una pèrdua definitiva.</li>'
+    + '<li><strong>Mantindràs l\'aportació automàtica.</strong> Aquells mesos compres més barat, i són els que més pesen en el resultat final.</li>'
+    + '<li><strong>Em trucaràs abans de tocar res.</strong> Aquest és literalment el servei que pagues.</li>'
+    + '<li><strong>No miraràs la cartera cada dia.</strong> Rebràs l\'informe trimestral i, la majoria de trimestres, dirà que no cal fer res.</li>'
+  + '</ul>'
+  + '<p>Si en llegir la xifra de més amunt has pensat «això no ho aguanto», <strong>digue-m\'ho ara</strong>. Canviar la cartera avui és gratis; canviar-la enmig d\'una caiguda costa molts diners.</p>'
+
+  + '<h2><span class="n">05</span>El pla d\'aportacions</h2>'
+  + '<table><thead><tr><th>Concepte</th><th class="num">A '+anys+' anys</th></tr></thead><tbody>'
+    + '<tr><td>Capital inicial</td><td class="num">'+eur(cap)+'</td></tr>'
+    + '<tr><td>Aportacions acumulades ('+eur(aport)+'/mes)</td><td class="num">'+eur(proj.aportat-cap)+'</td></tr>'
+    + '<tr><td>Total aportat de la teva butxaca</td><td class="num">'+eur(proj.aportat)+'</td></tr>'
+    + '<tr><td>Creixement estimat al '+pct(m.mu,1)+'</td><td class="num">'+eur(proj.guany)+'</td></tr>'
+    + '<tr class="tot"><td>Valor projectat</td><td class="num">'+eur(proj.valor)+'</td></tr>'
+    + '<tr><td style="color:#6B685F">Escenari conservador (retorn '+pct(Math.max(m.mu-3,0.5),1)+')</td><td class="num" style="color:#6B685F">'+eur(projMal.valor)+'</td></tr>'
+  + '</tbody></table>'
+  + '<p class="mono" style="font-size:11.5px;color:#6B685F">Projecció determinista amb capitalització mensual i retorn constant. La realitat no és constant: serveix per dimensionar, no per planificar al detall.</p>'
+
+  + '<h2><span class="n">06</span>Com ho posem en marxa</h2>'
+  + '<ul>'
+    + '<li><strong>Setmana 1</strong> · Obertura o revisió del compte a la plataforma acordada, i verificació que hi pots operar.</li>'
+    + '<li><strong>Setmana 2</strong> · Primeres ordres segons la taula de l\'apartat 2, amb l\'ordre d\'execució que et passo per escrit.</li>'
+    + '<li><strong>Setmana 3</strong> · Configuració de l\'aportació automàtica de '+eur(aport)+' al mes, perquè no depengui que te\'n recordis.</li>'
+    + '<li><strong>Setmana 4</strong> · Revisió que tot ha quedat com toca i tancament del procés.</li>'
+    + '<li><strong>Cada trimestre</strong> · Informe breu amb rendiment, desviació i, si cal, què moure.</li>'
+    + '<li><strong>Cada any</strong> · Revisió llarga: objectius, capacitat d\'estalvi, situació i fiscalitat.</li>'
+  + '</ul>'
+
+  + '<h2><span class="n">07</span>Els meus compromisos</h2>'
+  + '<div class="grid g2">'
+    + '<div class="box"><div class="box-l">El que faré</div><ul style="margin:0">'
+      + '<li>Cobrar-te només a tu, una quota fixa en euros</li>'
+      + '<li>Explicar-te cada actiu fins que l\'entenguis</li>'
+      + '<li>Ensenyar-te el cost total, sempre</li>'
+      + '<li>Estar-hi el dia que caigui</li></ul></div>'
+    + '<div class="box"><div class="box-l">El que no faré mai</div><ul style="margin:0">'
+      + '<li>Dir-te on va el mercat</li>'
+      + '<li>Cobrar comissions de cap gestora ni plataforma</li>'
+      + '<li>Tocar els teus diners: la custòdia és teva</li>'
+      + '<li>Prometre\'t cap rendibilitat</li></ul></div>'
+  + '</div>'
+
+  + '<div class="legal">'
+    + '<strong>Hipòtesis i límits.</strong> Els retorns i volatilitats esperats són estimacions de llarg termini per tipus d\'actiu, no previsions. '
+    + 'La caiguda severa és un escenari d\'estrès per família d\'actius (renda variable −45 %, renda fixa −10 %, or −25 %, actius digitals −75 %, alternatius −35 %), no un càlcul estadístic. '
+    + 'La volatilitat de la cartera s\'estima amb una matriu de correlacions simplificada entre famílies. '
+    + 'Els rendiments passats no garanteixen rendiments futurs i qualsevol projecció és orientativa. '
+    + 'Aquest document és una anàlisi elaborada a partir de la informació que has facilitat i no constitueix una recomanació personalitzada d\'inversió en el sentit de la normativa MiFID II. '
+    + 'Les decisions d\'inversió i la seva execució són teves.'
+  + '</div>'
+
+  + '<div class="sign">'
+    + '<div class="sign-b"><b>Guillem Puig</b>The Boring Investor · '+esc(avui)+'</div>'
+    + '<div class="sign-b"><b>'+esc(c.nom||'')+'</b>Llegit i entès · Data: ____________</div>'
+  + '</div>';
+}
+
+function box(l,v,d,cls){
+  return '<div class="box"><div class="box-l">'+esc(l)+'</div>'
+    + '<div class="box-v '+(cls||'')+'">'+esc(v)+'</div>'
+    + '<div class="box-d">'+esc(d)+'</div></div>';
+}
+</script>
+</body>
+</html>
