@@ -99,275 +99,514 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root{
-  --tinta:#16233A; --tinta-2:#24395C;
-  --paper:#F7F5F0; --blanc:#FFFFFF; --paper-2:#F1EEE6;
-  --or:#C8A54A; --or-fosc:#8F7024; --or-wash:rgba(200,165,74,.11);
+  --tinta:#16233A; --tinta-2:#24395C; --tinta-3:#0E1728;
+  --paper:#F7F5F0; --blanc:#FFFFFF; --paper-2:#F2EFE8;
+  --or:#C8A54A; --or-fosc:#8A6D22; --or-clar:#E0C478;
   --verd:#1A5C3A; --vermell:#8B1A1A;
-  --g100:#E6E2D9; --g300:#B4B0A6; --g500:#6E6B62;
-  --fb:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
-  --fm:"IBM Plex Mono",ui-monospace,monospace;
-  --sh:0 1px 2px rgba(22,35,58,.04),0 10px 32px rgba(22,35,58,.07);
+  --line:#E3DFD6; --line-2:#D2CDC1; --g500:#6B6860; --g400:#737065;
+  --line-d:rgba(247,245,240,.16); --line-d2:rgba(247,245,240,.30); --mut-d:rgba(247,245,240,.62);
+  --fb:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --fm:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;
+  --maxw:1180px; --prose:66ch; --gut:28px;
+  --pad-s:clamp(76px,9vw,140px); --navh:64px;
+  --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--paper);color:var(--tinta);font-family:var(--fb);font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;font-feature-settings:"kern" 1}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:calc(var(--navh) + 12px)}
+body{margin:0;background:var(--paper);color:var(--tinta);font-family:var(--fb);font-size:17px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:"kern" 1;overflow-x:hidden}
 ::selection{background:var(--or);color:var(--tinta)}
-.wrap{max-width:760px;margin:0 auto;padding:0 24px}
-h1,h2,h3{letter-spacing:-.025em;text-wrap:balance;margin:0}
-h1{font-size:clamp(32px,5.2vw,50px);font-weight:600;line-height:1.06}
-h2{font-size:clamp(24px,3.4vw,32px);font-weight:600;line-height:1.15;margin-bottom:14px}
-h3{font-size:18px;font-weight:600;letter-spacing:-.015em;margin:0 0 6px}
-p{margin:0 0 17px;max-width:60ch}
-.lead{font-size:clamp(18px,2.2vw,21px);line-height:1.5;max-width:33em}
-.lead em{font-style:normal;box-shadow:inset 0 -.4em 0 var(--or-wash)}
-.dim{color:var(--g500)}
-strong{font-weight:600}
-a{color:var(--or-fosc)}
-section{padding:58px 0;border-top:1px solid var(--g100)}
-:focus-visible{outline:2px solid var(--or);outline-offset:3px;border-radius:3px}
-.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--or-fosc);margin-bottom:16px}
+img{max-width:100%;display:block}
+:focus-visible{outline:2px solid var(--or);outline-offset:3px;border-radius:2px}
 
-nav{position:sticky;top:0;z-index:30;background:rgba(247,245,240,.93);backdrop-filter:blur(10px);border-bottom:1px solid var(--g100)}
-.nav-in{max-width:760px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--tinta)}
-.brand-t{font-size:14px;font-weight:600;letter-spacing:-.01em;line-height:1.15}
-.brand-s{font-family:var(--fm);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500)}
+/* ---------- graella ---------- */
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 var(--gut);width:100%}
+.prose{max-width:var(--prose)}
+section{padding:var(--pad-s) 0}
+.band-d{background:var(--tinta);color:var(--paper)}
+.band-w{background:var(--blanc)}
+.hr{height:1px;background:var(--line);border:0;margin:0}
 
-.btn{display:inline-block;font-size:15px;font-weight:500;padding:12px 24px;border-radius:9px;border:1px solid var(--tinta);background:var(--tinta);color:var(--paper);text-decoration:none;cursor:pointer;transition:background .15s}
-.btn:hover{background:var(--tinta-2)}
-.btn.or{background:var(--or);border-color:var(--or);color:var(--tinta)}
-.btn.or:hover{filter:brightness(1.07)}
-.btn.ghost{background:transparent;color:var(--tinta);border-color:var(--g300)}
-.btn.ghost:hover{background:var(--paper-2)}
-.btn.sm{font-size:13.5px;padding:8px 16px}
-.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:26px}
-.cta-note{font-size:13.5px;color:var(--g500);margin-top:13px}
+/* split: titular esquerra (sticky) + contingut dreta */
+.split{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,11fr);gap:clamp(36px,6vw,92px);align-items:start}
+.split-t{position:sticky;top:96px}
+@media(max-width:900px){.split{grid-template-columns:1fr;gap:26px}.split-t{position:static}}
 
-.hero{padding:58px 0 56px}
-.hero .lead{margin-top:20px}
-.quatre{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
-.tag{font-family:var(--fm);font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:5px 13px;border:1px solid var(--g300);border-radius:99px;color:var(--tinta);background:var(--blanc)}
-.xifres{display:grid;gap:1px;background:var(--g100);border:1px solid var(--g100);border-radius:13px;overflow:hidden;margin:28px 0 0}
-@media(min-width:620px){.xifres{grid-template-columns:repeat(3,1fr)}}
-.xifra{background:var(--blanc);padding:19px 22px}
-.xifra-v{font-family:var(--fm);font-size:26px;font-weight:600;line-height:1.05;letter-spacing:-.02em}
-.xifra-l{font-size:13.5px;color:var(--g500);margin-top:6px;line-height:1.45}
+/* ---------- tipografia ---------- */
+.eyebrow{font-family:var(--fm);font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--or-fosc);margin:0 0 20px;display:block}
+.band-d .eyebrow{color:var(--or)}
+h1{font-size:clamp(38px,6.6vw,78px);font-weight:600;letter-spacing:-.037em;line-height:1.015;margin:0 0 26px;text-wrap:balance}
+h2{font-size:clamp(28px,4vw,48px);font-weight:600;letter-spacing:-.032em;line-height:1.07;margin:0 0 20px;text-wrap:balance}
+h3{font-size:clamp(18px,1.6vw,21px);font-weight:600;letter-spacing:-.016em;line-height:1.28;margin:0 0 9px}
+p{margin:0 0 17px;max-width:var(--prose)}
+p:last-child{margin-bottom:0}
+.lead{font-size:clamp(18px,2vw,22px);line-height:1.48;color:var(--g500);letter-spacing:-.012em;max-width:58ch}
+.band-d .lead{color:var(--mut-d)}
+strong,b{font-weight:600}
+em{font-style:normal;color:var(--or-fosc);font-weight:500}
+.band-d em{color:var(--or)}
+a{color:inherit}
+.num,.mono{font-family:var(--fm);font-variant-numeric:tabular-nums}
 
-/* metodologia */
-.principis{display:grid;gap:16px;margin:26px 0}
-.principi{background:var(--blanc);border:1px solid var(--g100);border-radius:13px;padding:22px 24px;box-shadow:var(--sh);min-width:0}
-.principi .tw{margin:14px 0}
-.principi table{min-width:360px;font-size:13.5px}
-.principi th,.principi td{padding:10px 13px}
-.principi-n{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--or-fosc);margin-bottom:8px}
-.principi p{margin:0 0 10px;font-size:15.5px;max-width:none}
-.principi p:last-child{margin-bottom:0}
-.dada{display:flex;gap:14px;align-items:baseline;margin-top:13px;padding-top:13px;border-top:1px solid var(--g100)}
-.dada-v{font-family:var(--fm);font-size:22px;font-weight:600;color:var(--tinta);white-space:nowrap;line-height:1.1}
-.dada-t{font-size:13px;color:var(--g500);line-height:1.45}
+ul.dots{margin:0 0 17px;padding:0;list-style:none;max-width:var(--prose)}
+ul.dots li{position:relative;padding-left:26px;margin-bottom:11px}
+ul.dots li::before{content:"";position:absolute;left:3px;top:12px;width:9px;height:1.5px;background:var(--or)}
 
-/* passos */
-.passos{margin:26px 0}
-.pas{display:grid;grid-template-columns:104px 1fr;gap:22px;padding:20px 0;border-top:1px solid var(--g100)}
-.pas:last-child{border-bottom:1px solid var(--g100)}
-@media(max-width:600px){.pas{grid-template-columns:1fr;gap:5px}}
-.pas-q{font-family:var(--fm);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--or-fosc);padding-top:3px}
-.pas-b p{margin:0;font-size:15.5px;color:var(--g500);max-width:52ch}
+/* ---------- nav ---------- */
+.nav{position:fixed;top:0;left:0;right:0;z-index:60;background:transparent;color:var(--paper);
+  border-bottom:1px solid transparent;transition:border-color .3s,background .3s,color .3s}
+.nav.solid{border-bottom-color:var(--line);background:rgba(247,245,240,.93);color:var(--tinta);
+  backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px)}
+.nav .brand{color:inherit}
+.nav .brand-s{color:rgba(247,245,240,.55)}
+.nav.solid .brand-s{color:var(--g400)}
+.nav .nav-l{color:rgba(247,245,240,.8)}
+.nav .nav-l:hover{color:var(--paper)}
+.nav.solid .nav-l{color:var(--g500)}
+.nav.solid .nav-l:hover{color:var(--tinta)}
+.nav-in{max-width:var(--maxw);margin:0 auto;padding:14px var(--gut);display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--tinta)}
+.brand-t{font-size:14.5px;font-weight:600;line-height:1.1;letter-spacing:-.015em;display:block;white-space:nowrap}
+.brand-s{font-family:var(--fm);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--g400);display:block;margin-top:2px}
+.nav-r{display:flex;align-items:center;gap:22px}
+.nav-l{font-size:14px;color:var(--g500);text-decoration:none;transition:color .15s}
+.nav-l:hover{color:var(--tinta)}
+.nav-l{white-space:nowrap}
+@media(max-width:1000px){.nav-l.hide-s{display:none}.nav-r{gap:16px}}
+@media(max-width:560px){.brand-s{display:none}.brand-t{font-size:13.5px}.nav-r{gap:12px}
+  .nav-l{font-size:13px}.nav-in{padding:11px var(--gut)}:root{--navh:58px}}
+@media(max-width:400px){.nav-l{display:none}}
 
-/* preu */
-.preu{background:var(--tinta);color:var(--paper);border-radius:15px;padding:32px;margin:26px 0;box-shadow:var(--sh)}
-.preu-top{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:baseline}
-.preu-nom{font-size:20px;font-weight:600;letter-spacing:-.018em}
-.preu-sub{font-size:13.5px;color:rgba(247,245,240,.6);margin-top:4px}
-.preu-v{font-family:var(--fm);font-size:46px;font-weight:600;line-height:1;letter-spacing:-.03em;color:var(--or)}
-.preu-v span{display:block;font-size:11px;font-weight:400;letter-spacing:.11em;text-transform:uppercase;color:rgba(247,245,240,.5);margin-top:7px;text-align:right}
-.preu-peu{display:flex;flex-wrap:wrap;gap:12px 30px;margin-top:24px;padding-top:20px;border-top:1px solid rgba(247,245,240,.16);font-family:var(--fm);font-size:12.5px;color:rgba(247,245,240,.62)}
-.preu-peu b{color:var(--paper);font-weight:500;display:block}
+/* ---------- botons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:var(--fb);font-size:15.5px;font-weight:500;
+  padding:14px 28px;border-radius:999px;border:1px solid var(--tinta);background:var(--tinta);color:var(--paper);
+  text-decoration:none;cursor:pointer;transition:transform .16s var(--ease),background .16s,border-color .16s,color .16s;white-space:nowrap}
+.btn:hover{background:var(--tinta-2);border-color:var(--tinta-2);transform:translateY(-1px)}
+.btn.or{background:var(--or);border-color:var(--or);color:var(--tinta-3);font-weight:600}
+.btn.or:hover{background:var(--or-clar);border-color:var(--or-clar)}
+.btn.line{background:transparent;color:var(--tinta);border-color:var(--line-2)}
+.btn.line:hover{background:var(--tinta);border-color:var(--tinta);color:var(--paper)}
+.band-d .btn.line{color:var(--paper);border-color:var(--line-d2)}
+.band-d .btn.line:hover{background:var(--paper);color:var(--tinta);border-color:var(--paper)}
+.btn.sm{font-size:14px;padding:9px 19px}
+.btn .ar{transition:transform .2s var(--ease)}
+.btn:hover .ar{transform:translateX(3px)}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin:34px 0 0}
+@media(max-width:560px){.cta-row{gap:10px}.cta-row .btn{flex:1 1 100%;padding:15px 24px}.final .cta-row .btn{flex:1 1 100%}}
+.cta-note{font-size:14px;color:var(--g500);margin:16px 0 0;max-width:52ch}
+.band-d .cta-note{color:var(--mut-d)}
+.band-d .cta-note a{color:var(--or);text-decoration:none;border-bottom:1px solid rgba(200,165,74,.4)}
 
-.tw{overflow-x:auto;margin:22px 0;border:1px solid var(--g100);border-radius:13px;background:var(--blanc);box-shadow:var(--sh)}
-table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:460px}
-th,td{padding:13px 17px;text-align:left;border-bottom:1px solid var(--g100)}
-thead th{font-family:var(--fm);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--g500);font-weight:500;background:var(--paper-2);white-space:nowrap}
+/* ---------- hero ---------- */
+.hero{background:var(--tinta);color:var(--paper);position:relative;overflow:hidden;
+  padding:calc(var(--navh) + clamp(48px,7vw,104px)) 0 0}
+.hero::after{content:"";position:absolute;inset:auto -10% -55% 40%;height:70%;
+  background:radial-gradient(ellipse at 50% 50%,rgba(200,165,74,.14),transparent 62%);pointer-events:none}
+.hero-in{position:relative;z-index:1}
+.hero h1{max-width:15ch;font-size:clamp(38px,5.6vw,64px)}
+@media(min-width:1040px){.hero h1{max-width:13ch}}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px}
+.tag{font-family:var(--fm);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--paper);
+  border:1px solid var(--line-d2);border-radius:999px;padding:6px 14px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:clamp(44px,5.5vw,68px) 0 0;
+  border-top:1px solid var(--line-d)}
+.kpi{padding:26px 30px 0 0;border-right:1px solid var(--line-d)}
+.kpi:last-child{border-right:0}
+.kpi+.kpi{padding-left:30px}
+.kpi-v{font-family:var(--fm);font-size:clamp(26px,3.3vw,38px);font-weight:500;letter-spacing:-.03em;line-height:1;color:var(--or)}
+.kpi-l{font-size:14px;color:var(--mut-d);margin-top:11px;line-height:1.42}
+@media(max-width:760px){.kpis{grid-template-columns:1fr}.kpi{border-right:0;border-bottom:1px solid var(--line-d);padding:20px 0}
+  .kpi+.kpi{padding-left:0}.kpi:last-child{border-bottom:0}}
+.hero-foot{margin-top:clamp(44px,5vw,70px);border-top:1px solid var(--line-d);padding:22px 0 26px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(40px,5vw,64px);align-items:center}
+@media(min-width:1040px){.hero-grid{grid-template-columns:minmax(0,1fr) 390px;gap:72px}}
+
+/* targeta d'estructura d'exemple */
+.card{border:1px solid var(--line-d2);border-radius:16px;background:rgba(247,245,240,.045);
+  padding:26px 26px 22px;backdrop-filter:blur(2px)}
+.card-h{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  padding-bottom:16px;border-bottom:1px solid var(--line-d);margin-bottom:18px}
+.card-h .t{font-size:15px;font-weight:600;letter-spacing:-.015em}
+.card-h .e{font-family:var(--fm);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--or)}
+.alloc{display:grid;gap:13px}
+.al{display:grid;grid-template-columns:1fr auto;gap:5px 12px;align-items:baseline}
+.al-n{font-size:13.5px;color:var(--paper)}
+.al-p{font-family:var(--fm);font-size:13px;color:var(--or);font-variant-numeric:tabular-nums}
+.al-b{grid-column:1/-1;height:4px;border-radius:2px;background:rgba(247,245,240,.12);overflow:hidden}
+.al-b i{display:block;height:100%;border-radius:2px;background:var(--or);
+  transform-origin:left;transform:scaleX(0);animation:grow 1.1s var(--ease) forwards}
+@keyframes grow{to{transform:scaleX(1)}}
+.card-f{margin-top:20px;padding-top:16px;border-top:1px solid var(--line-d);display:grid;gap:9px}
+.cf{display:flex;justify-content:space-between;gap:14px;font-size:12.5px;color:var(--mut-d)}
+.cf b{font-family:var(--fm);font-weight:500;color:var(--paper);font-size:12.5px}
+.card-n{margin-top:16px;font-size:11.5px;line-height:1.48;color:rgba(247,245,240,.58)}
+@media(prefers-reduced-motion:reduce){.al-b i{animation:none;transform:scaleX(1)}}
+
+/* barra de confiança */
+.trust{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.trust div{font-size:13.5px;color:var(--mut-d);line-height:1.4;position:relative;padding-left:20px}
+.trust div::before{content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:50%;
+  border:1.5px solid var(--or)}
+@media(max-width:900px){.trust{grid-template-columns:1fr 1fr;gap:16px 20px}}
+@media(max-width:520px){.trust{grid-template-columns:1fr}}
+
+/* ---------- llistes de files amb hairline ---------- */
+.rows{border-top:1px solid var(--line)}
+.row{border-bottom:1px solid var(--line);padding:22px 0}
+.band-d .rows{border-top-color:var(--line-d)}
+.band-d .row{border-bottom-color:var(--line-d)}
+
+/* acordió de barreres */
+.acc{border-top:1px solid var(--line)}
+.acc details{border-bottom:1px solid var(--line)}
+.acc summary{list-style:none;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;
+  padding:22px 0;font-size:clamp(17px,1.7vw,20px);font-weight:500;letter-spacing:-.018em;transition:color .15s}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary:hover{color:var(--or-fosc)}
+.acc .sgn{flex:none;width:22px;height:22px;position:relative;margin-top:4px}
+.acc .sgn::before,.acc .sgn::after{content:"";position:absolute;background:var(--or-fosc);transition:transform .25s var(--ease),opacity .2s}
+.acc .sgn::before{left:0;top:10px;width:22px;height:1.6px}
+.acc .sgn::after{left:10px;top:0;width:1.6px;height:22px}
+.acc details[open] .sgn::after{transform:scaleY(0);opacity:0}
+.acc details[open] summary{color:var(--or-fosc)}
+.acc .ans{padding:0 56px 26px 0;font-size:16px;color:var(--g500);max-width:70ch;animation:fadein .3s var(--ease)}
+.acc .ans strong{color:var(--tinta)}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* ---------- palanques ---------- */
+.lev{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.lev>div{background:var(--blanc);padding:clamp(26px,2.6vw,38px);display:flex;flex-direction:column}
+@media(max-width:940px){.lev{grid-template-columns:1fr}}
+.lev-n{font-family:var(--fm);font-size:11px;letter-spacing:.17em;text-transform:uppercase;color:var(--or-fosc);margin-bottom:16px}
+.lev p{font-size:15.5px;color:var(--g500);max-width:none}
+.lev p strong{color:var(--tinta)}
+.lev h3{margin-bottom:12px}
+
+/* dada gran */
+.stat{margin:26px 0 0;padding-top:20px;border-top:1px solid var(--line)}
+.lev .stat{margin-top:auto}
+.stat-v{font-family:var(--fm);font-size:clamp(32px,3.4vw,42px);font-weight:500;letter-spacing:-.035em;line-height:1;color:var(--tinta)}
+.stat-v i{font-style:normal;font-size:.52em;letter-spacing:0;margin-left:.1em;vertical-align:.28em;color:var(--g400)}
+.stat-t{font-size:13.5px;color:var(--g500);margin-top:10px;line-height:1.5}
+
+/* nota / callout */
+.note{border-left:2px solid var(--or);padding:4px 0 4px 26px;margin:34px 0;max-width:72ch}
+.note-l{font-family:var(--fm);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--or-fosc);margin-bottom:11px}
+.band-d .note{border-left-color:var(--or)}
+.band-d .note-l{color:var(--or)}
+.note p{font-size:16px;color:var(--g500);max-width:none}
+.note p strong{color:var(--tinta)}
+.band-d .note p{color:var(--mut-d)}.band-d .note p strong{color:var(--paper)}
+
+/* ---------- procés (fosc) ---------- */
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:clamp(34px,4vw,56px);border-top:1px solid var(--line-d2)}
+.step{padding:26px 26px 0 0;border-right:1px solid var(--line-d);position:relative}
+.step:last-child{border-right:0}
+.step+.step{padding-left:26px}
+.step::before{content:"";position:absolute;top:-4.5px;left:0;width:8px;height:8px;border-radius:50%;background:var(--or)}
+.step+.step::before{left:26px}
+.step-q{font-family:var(--fm);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--or);margin-bottom:14px}
+.step h3{font-size:17px;margin-bottom:8px}
+.step p{font-size:14.5px;color:var(--mut-d);max-width:none;line-height:1.5}
+@media(max-width:1040px){.steps{grid-template-columns:1fr 1fr 1fr}.step:nth-child(3n){border-right:0}
+  .step{border-bottom:1px solid var(--line-d);padding-bottom:26px}}
+@media(max-width:740px){.steps{grid-template-columns:1fr}.step,.step+.step{border-right:0;padding:24px 0 24px 26px}
+  .step::before,.step+.step::before{left:0;top:30px}
+  .step:last-child{border-bottom:0}}
+
+/* ---------- preu ---------- */
+.price{border:1px solid var(--line-2);border-radius:16px;background:var(--blanc);overflow:hidden;margin:0 0 40px}
+.price-top{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;flex-wrap:wrap;
+  padding:clamp(28px,3vw,42px);border-bottom:1px solid var(--line)}
+.price-nom{font-size:clamp(21px,2.2vw,27px);font-weight:600;letter-spacing:-.025em;line-height:1.2}
+.price-sub{font-size:15px;color:var(--g500);margin-top:8px;max-width:38ch}
+.price-v{font-family:var(--fm);font-size:clamp(46px,6vw,74px);font-weight:500;letter-spacing:-.045em;line-height:.92;text-align:right}
+.price-v span{display:block;font-family:var(--fb);font-size:12.5px;font-weight:400;letter-spacing:.11em;text-transform:uppercase;color:var(--g400);margin-top:12px}
+@media(max-width:620px){.price-top{flex-direction:column;align-items:flex-start}.price-v{text-align:left}}
+.price-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+.price-grid>div{background:var(--blanc);padding:20px clamp(18px,2.2vw,28px)}
+.price-grid .k{font-size:13px;color:var(--g500);margin-bottom:7px}
+.price-grid .v{font-size:16px;font-weight:600;letter-spacing:-.015em;font-variant-numeric:tabular-nums}
+@media(max-width:820px){.price-grid{grid-template-columns:1fr 1fr}}
+
+/* figures / gràfics */
+.fig{margin:44px 0;border:1px solid var(--line);border-radius:14px;background:var(--blanc);padding:clamp(22px,2.4vw,32px)}
+.fig-t{font-size:17px;font-weight:600;letter-spacing:-.018em;margin-bottom:7px}
+.fig-s{font-size:14px;color:var(--g500);margin-bottom:22px;max-width:70ch}
+.fig-svg{margin:0 -6px}
+.fig figcaption{font-size:12.5px;color:var(--g500);line-height:1.55;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);max-width:none}
+.dades{margin-top:14px}
+.dades summary{font-family:var(--fm);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--or-fosc);cursor:pointer}
+.dades[open] summary{margin-bottom:12px}
+
+/* taules */
+.tw{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:12px;background:var(--blanc)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:460px}
+th,td{padding:13px 18px;text-align:left;border-bottom:1px solid var(--line)}
+thead th{font-family:var(--fm);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--g400);font-weight:500;background:var(--paper-2)}
+td.num,th.num{text-align:right;font-family:var(--fm);font-variant-numeric:tabular-nums}
 tbody tr:last-child td{border-bottom:0}
-tr.tbi td{background:var(--or-wash);font-weight:600}
-.num{text-align:right;font-family:var(--fm);font-variant-numeric:tabular-nums;white-space:nowrap}
-caption{caption-side:bottom;text-align:left;padding:13px 17px;font-size:12.5px;color:var(--g500);line-height:1.55;border-top:1px solid var(--g100)}
+tr.tbi td{background:rgba(200,165,74,.09);font-weight:600}
 
-ul{margin:0 0 17px;padding-left:0;list-style:none;max-width:60ch}
-ul li{position:relative;padding-left:26px;margin-bottom:9px}
-ul li::before{content:"";position:absolute;left:6px;top:12px;width:6px;height:1.5px;background:var(--or)}
-ul.no li::before{background:var(--vermell)}
-ul.si li::before{background:var(--verd)}
-.dues{display:grid;gap:16px;margin:22px 0}
-@media(min-width:640px){.dues{grid-template-columns:1fr 1fr}}
-.col{background:var(--blanc);border:1px solid var(--g100);border-radius:13px;padding:21px 23px;box-shadow:var(--sh)}
-.col-h{font-family:var(--fm);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:13px;padding-bottom:10px;border-bottom:1px solid var(--g100)}
-.col.si .col-h{color:var(--verd)} .col.no .col-h{color:var(--vermell)}
-.col ul{margin:0;max-width:none} .col li{font-size:14.5px;margin-bottom:9px;line-height:1.5}
+/* ---------- bio ---------- */
+.bio{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,380px);gap:clamp(34px,5vw,72px);align-items:start}
+@media(max-width:940px){.bio{grid-template-columns:1fr}}
+.portrait{width:132px;height:132px;border-radius:50%;object-fit:cover;filter:grayscale(1) contrast(1.04);margin:0 0 26px;border:1px solid var(--line)}
+.bio p{font-size:16px;color:var(--g500)}
+.bio p strong{color:var(--tinta)}
+.cv{border-top:1px solid var(--line)}
+.cv-i{border-bottom:1px solid var(--line);padding:16px 0;display:grid;grid-template-columns:1fr auto;gap:8px 18px;align-items:baseline}
+.cv-t{font-size:15px;font-weight:500;letter-spacing:-.012em;line-height:1.35}
+.cv-c{font-size:13.5px;color:var(--g500);grid-column:1;margin-top:3px}
+.cv-a{font-family:var(--fm);font-size:12px;color:var(--g400);grid-row:1;grid-column:2}
 
-.callout{background:var(--blanc);border:1px solid var(--g100);border-left:3px solid var(--or);border-radius:0 13px 13px 0;padding:21px 25px;margin:24px 0;box-shadow:var(--sh)}
-.callout p{margin:0 0 11px;font-size:16px}.callout p:last-child{margin-bottom:0}
-.callout-l{font-family:var(--fm);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--or-fosc);margin-bottom:9px}
+/* ---------- si / no ---------- */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pair>div{background:var(--blanc);padding:clamp(24px,2.6vw,34px)}
+@media(max-width:760px){.pair{grid-template-columns:1fr}}
+.pair-h{font-family:var(--fm);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px}
+.pair .si .pair-h{color:var(--verd)}
+.pair .no .pair-h{color:var(--vermell)}
+.pair ul{margin:0;padding:0;list-style:none}
+.pair li{position:relative;padding-left:30px;margin-bottom:13px;font-size:15.5px;line-height:1.45}
+.pair li:last-child{margin-bottom:0}
+.pair li::before{position:absolute;left:0;top:1px;font-family:var(--fm);font-size:15px;font-weight:600}
+.pair .si li::before{content:"✓";color:var(--verd)}
+.pair .no li::before{content:"✕";color:var(--vermell)}
 
-.final{background:var(--tinta);color:var(--paper);padding:60px 0;border-top:0}
-.final h2{color:var(--paper)}
-.final p{color:rgba(247,245,240,.72)}
-.final .cta-note{color:rgba(247,245,240,.5)}
-footer{padding:34px 0 54px;font-size:12.5px;color:var(--g500);line-height:1.6}
-footer .legal{border-top:1px solid var(--g100);padding-top:18px}
-.peu-nav{display:flex;flex-wrap:wrap;gap:10px 22px;margin-bottom:20px;font-size:13.5px}
-.peu-nav a{color:var(--tinta);text-decoration:none;border-bottom:1px solid var(--g100)}
+/* ---------- final ---------- */
+.final{background:var(--tinta);color:var(--paper);text-align:center;position:relative;overflow:hidden}
+.final::before{content:"";position:absolute;inset:-40% 20% auto 20%;height:80%;
+  background:radial-gradient(ellipse at 50% 50%,rgba(200,165,74,.15),transparent 63%);pointer-events:none}
+.final .wrap{position:relative;z-index:1}
+.final h2{max-width:20ch;margin-left:auto;margin-right:auto}
+.final p{margin-left:auto;margin-right:auto}
+.final .cta-row{justify-content:center}
+
+/* ---------- peu ---------- */
+footer{background:var(--paper);border-top:1px solid var(--line);padding:46px 0 64px;font-size:13px;color:var(--g500)}
+.peu-nav{display:flex;flex-wrap:wrap;gap:10px 26px;margin-bottom:26px;font-size:14px}
+.peu-nav a{color:var(--tinta);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:1px}
 .peu-nav a:hover{border-bottom-color:var(--or)}
+footer .small{font-size:12.5px;line-height:1.6;max-width:92ch}
 
-/* gràfics */
-.fig{background:var(--blanc);border:1px solid var(--g100);border-radius:13px;padding:22px 20px 16px;margin:24px 0;box-shadow:var(--sh)}
-.fig-t{font-size:16px;font-weight:600;letter-spacing:-.015em;margin-bottom:3px}
-.fig-s{font-size:13.5px;color:var(--g500);margin-bottom:18px;line-height:1.45;max-width:58ch}
-.fig figcaption{font-size:12.5px;color:var(--g500);line-height:1.55;margin-top:14px;padding-top:13px;border-top:1px solid var(--g100)}
-.fig-svg{overflow-x:auto}
-details.dades{margin-top:10px}
-details.dades summary{cursor:pointer;font-family:var(--fm);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--or-fosc)}
-details.dades table{margin:12px 0 0;min-width:0}
+/* ---------- barra fixa mòbil ---------- */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:70;background:rgba(247,245,240,.95);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  padding:11px var(--gut) calc(11px + env(safe-area-inset-bottom));display:none;align-items:center;justify-content:space-between;gap:14px;
+  transform:translateY(105%);transition:transform .3s var(--ease)}
+.dock.on{transform:none}
+.dock-p{font-size:13px;color:var(--g500);line-height:1.3}
+.dock-p b{display:block;font-family:var(--fm);font-size:16px;color:var(--tinta);font-weight:500}
+@media(max-width:760px){.dock{display:flex}footer{padding-bottom:104px}}
 
-/* barreres */
-.barreres{display:grid;gap:14px;margin:26px 0}
-@media(min-width:680px){.barreres{grid-template-columns:1fr 1fr}}
-.barrera{background:var(--blanc);border:1px solid var(--g100);border-radius:13px;padding:19px 22px;box-shadow:var(--sh)}
-.barrera-q{font-size:15.5px;font-weight:600;letter-spacing:-.012em;color:var(--g500);margin-bottom:9px}
-.barrera-q::before{content:"«"} .barrera-q::after{content:"»"}
-.barrera-a{font-size:14.5px;line-height:1.55;margin:0}
-.barrera-a strong{color:var(--tinta)}
-
-/* qui soc */
-.retrat{width:152px;height:152px;border-radius:50%;object-fit:cover;display:block;margin:0 0 20px;
-  border:1px solid var(--g100);box-shadow:0 2px 6px rgba(22,35,58,.08)}
-.bio{display:grid;gap:22px;margin:24px 0}
-@media(min-width:660px){.bio{grid-template-columns:1fr 1.25fr}}
-.estudis{background:var(--blanc);border:1px solid var(--g100);border-radius:13px;padding:8px 22px;box-shadow:var(--sh)}
-.estudi{padding:15px 0;border-bottom:1px solid var(--g100)}
-.estudi:last-child{border-bottom:0}
-.estudi-t{font-size:14.5px;font-weight:600;line-height:1.35}
-.estudi-c{font-size:13px;color:var(--g500);margin-top:2px}
-.estudi-a{font-family:var(--fm);font-size:11px;color:var(--or-fosc);letter-spacing:.05em;margin-top:3px}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+/* ---------- revelat (només si hi ha JS) ---------- */
+.js .rv{opacity:0;transform:translateY(14px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.js .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .js .rv{opacity:1;transform:none;transition:none}
+  .btn{transition:none}
+  .acc .ans{animation:none}
+}
 </style>
+<script>document.documentElement.className+=' js';</script>
 </head>
 <body>
 
-<nav>
+<a class="btn sm" href="#contingut" style="position:absolute;left:-9999px;top:0" onfocus="this.style.left='12px';this.style.top='12px';this.style.zIndex=99" onblur="this.style.left='-9999px'">Anar al contingut</a>
+
+<nav class="nav" id="nav">
   <div class="nav-in">
-    <a class="brand" href="/">
-      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
-        <rect x="1.5" y="1.5" width="61" height="61" rx="15" fill="none" stroke="#16233A" stroke-width="3"/>
-        <circle cx="22" cy="24" r="4.6" fill="#16233A"/><circle cx="42" cy="24" r="4.6" fill="#16233A"/>
-        <line x1="19" y1="44.6" x2="45" y2="41.9" stroke="#16233A" stroke-width="3.4" stroke-linecap="round"/>
+    <a class="brand" href="/" aria-label="The Boring Investor, inici">
+      <svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="1.5" y="1.5" width="61" height="61" rx="15" fill="none" stroke="currentColor" stroke-width="3"/>
+        <circle cx="22" cy="24" r="4.6" fill="currentColor"/><circle cx="42" cy="24" r="4.6" fill="currentColor"/>
+        <line x1="19" y1="44.6" x2="45" y2="41.9" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
       </svg>
-      <span><span class="brand-t">The Boring Investor</span><br><span class="brand-s">Assessorament independent</span></span>
+      <span><span class="brand-t">The Boring Investor</span><span class="brand-s">Assessorament independent</span></span>
     </a>
-    <div style="display:flex;gap:10px;align-items:center"><a href="platform.html" style="font-size:13.5px;color:var(--g500);text-decoration:none">Accés clients</a><a class="btn or sm" href="#comencar">Comença</a></div>
+    <div class="nav-r">
+      <a class="nav-l hide-s" href="#metode">Mètode</a>
+      <a class="nav-l hide-s" href="#preu">Preu</a>
+      <a class="nav-l hide-s" href="#qui-soc">Qui sóc</a>
+      <a class="nav-l" href="platform.html">Accés clients</a>
+      <a class="btn or sm" href="#comencar">Comença</a>
+    </div>
   </div>
 </nav>
 
-<div class="wrap">
+<main id="contingut">
 
-<header class="hero">
-  <div class="eyebrow">Assessorament financer independent</div>
-  <h1>Invertir bé no és complicat. El difícil és començar.</h1>
-  <p class="lead">La teva cartera d'inversió <em>claus en mà</em>: personalitzada, simple, automatitzada i de cost baix. En dues sessions la tens funcionant i entesa. Després va sola.</p>
+<!-- ============ HERO ============ -->
+<header class="hero band-d">
+  <div class="wrap hero-in">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow">Assessorament financer independent</span>
+        <h1>Invertir bé no és complicat. El difícil és començar.</h1>
+        <p class="lead">La teva cartera d'inversió <em>claus en mà</em>: personalitzada, simple, automatitzada i de cost baix. En dues sessions la tens funcionant i entesa. Després va sola.</p>
 
-  <div class="quatre">
-    <span class="tag">Personalitzada</span><span class="tag">Automatitzada</span>
-    <span class="tag">Simple</span><span class="tag">De cost baix</span>
+        <div class="tags" style="margin-top:28px">
+          <span class="tag">Personalitzada</span><span class="tag">Automatitzada</span>
+          <span class="tag">Simple</span><span class="tag">De cost baix</span>
+        </div>
+
+        <div class="cta-row">
+          <a class="btn or" href="#comencar">Comença pel qüestionari <span class="ar" aria-hidden="true">→</span></a>
+          <a class="btn line" href="#metode">Com funciona</a>
+        </div>
+        <p class="cta-note">Vint minuts en línia. Gratuït i no et compromet a res.</p>
+      </div>
+
+      <aside class="card" aria-label="Exemple d'estructura de cartera">
+        <div class="card-h">
+          <span class="t">La teva cartera</span>
+          <span class="e">Exemple</span>
+        </div>
+        <div class="alloc">
+          <div class="al"><span class="al-n">Renda variable global</span><span class="al-p">55 %</span><span class="al-b"><i style="width:55%;animation-delay:.05s"></i></span></div>
+          <div class="al"><span class="al-n">Renda fixa governamental</span><span class="al-p">20 %</span><span class="al-b"><i style="width:20%;animation-delay:.14s"></i></span></div>
+          <div class="al"><span class="al-n">Renda variable emergent</span><span class="al-p">10 %</span><span class="al-b"><i style="width:10%;animation-delay:.23s"></i></span></div>
+          <div class="al"><span class="al-n">Or</span><span class="al-p">8 %</span><span class="al-b"><i style="width:8%;animation-delay:.32s"></i></span></div>
+          <div class="al"><span class="al-n">Liquiditat</span><span class="al-p">7 %</span><span class="al-b"><i style="width:7%;animation-delay:.41s"></i></span></div>
+        </div>
+        <div class="card-f">
+          <div class="cf"><span>Aportació automàtica</span><b>200 €/mes · dia 1</b></div>
+          <div class="cf"><span>Revisió de desviacions</span><b>Trimestral</b></div>
+          <div class="cf"><span>Custòdia</span><b>Al teu compte</b></div>
+        </div>
+        <p class="card-n">Estructura d'exemple per ensenyar la forma del resultat. La teva surt del qüestionari i de la primera sessió, i no s'assemblarà necessàriament a aquesta.</p>
+      </aside>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-v">2 sessions</div><div class="kpi-l">Una per entendre't, una per posar-la en marxa</div></div>
+      <div class="kpi"><div class="kpi-v">129 €</div><div class="kpi-l">Un sol pagament. Sense percentatges sobre els teus diners</div></div>
+      <div class="kpi"><div class="kpi-v">0 €</div><div class="kpi-l">El que cobro de gestores, bancs i plataformes</div></div>
+    </div>
+
+    <div class="hero-foot">
+      <div class="trust">
+        <div>Certificat <strong>EFA</strong> per EFPA España</div>
+        <div>Honoraris fixos en euros, <strong>zero retrocessions</strong></div>
+        <div>Els diners <strong>no surten mai</strong> del teu compte</div>
+        <div>Màxim <strong>tres clients nous</strong> al mes</div>
+      </div>
+    </div>
   </div>
-
-  <div class="xifres">
-    <div class="xifra"><div class="xifra-v">2 sessions</div><div class="xifra-l">Una per entendre't, una per posar-la en marxa</div></div>
-    <div class="xifra"><div class="xifra-v">129 €</div><div class="xifra-l">Un sol pagament. Sense percentatges sobre els teus diners</div></div>
-    <div class="xifra"><div class="xifra-v">0 €</div><div class="xifra-l">El que cobro de gestores, bancs i plataformes</div></div>
-  </div>
-
-  <div class="cta-row">
-    <a class="btn or" href="#comencar">Comença pel qüestionari</a>
-    <a class="btn ghost" href="#qui-soc">Qui hi ha al darrere</a>
-  </div>
-  <p class="cta-note">Vint minuts en línia. Gratuït i no et compromet a res.</p>
 </header>
 
+<!-- ============ EL PRIMER PAS ============ -->
 <section>
-  <div class="eyebrow">Si mai has invertit</div>
-  <h2>El pas difícil és el primer, i el fem junts</h2>
-  <p>La majoria de la gent que ve fa anys que sap que hauria de fer alguna cosa amb els seus estalvis i no l'ha feta. No per mandra: perquè obrir un compte, triar productes i fer la primera ordre amb diners de veritat imposa, i sempre hi ha una setmana millor.</p>
-  <p><strong>Aquí no has de decidir tu sol res.</strong> Al cap d'un mes tindràs:</p>
-  <ul>
-    <li><strong>Una cartera muntada i funcionant</strong>, amb les primeres ordres fetes i l'aportació mensual automatitzada.</li>
-    <li><strong>Un full de ruta escrit</strong>: quant hi poses cada mes, quan es revisa i què fas si les coses van malament.</li>
-    <li><strong>Saber per què hi és cada cosa.</strong> No una llista de productes: una explicació que pots repetir a casa.</li>
-    <li><strong>Autonomia.</strong> El compte és teu i el mètode l'entens. Si un dia vols seguir sol, pots.</li>
-  </ul>
-  <p>No hi ha mínim d'entrada. Es pot començar amb 5.000 € o amb 200.000: el que canvia és la complexitat, no el mètode.</p>
-</section>
-
-<section id="barreres">
-  <div class="eyebrow">El que et frena</div>
-  <h2>Cap d'aquests motius és bo, i tots són normals</h2>
-  <p>Aquestes vuit frases són les que sento més sovint. Si t'has dit alguna, no és que siguis dubtós: és que ningú t'ha explicat la part que falta.</p>
-
-  <div class="barreres">
-    <div class="barrera">
-      <div class="barrera-q">No en sé prou per començar</div>
-      <p class="barrera-a">No cal que en sàpigues per començar. <strong>Cal que ho entenguis un cop fet</strong>, i aquesta és la meva feina: sortir de la segona sessió sabent explicar la teva cartera a casa.</p>
+  <div class="wrap split">
+    <div class="split-t rv">
+      <span class="eyebrow">Si mai has invertit</span>
+      <h2>El pas difícil és el primer, i el fem junts</h2>
     </div>
-    <div class="barrera">
-      <div class="barrera-q">Tinc massa poc perquè valgui la pena</div>
-      <p class="barrera-a">No hi ha mínim: <strong>amb 50 € al mes ja es comença</strong>. Qui hagués posat 50 € cada mes en un fons global des del setembre del 2021 hauria aportat 2.950 € i en tindria <strong>4.255 €</strong> al juliol del 2026. Cinc anys de mercat real, amb el 2022 inclòs.</p>
-    </div>
-    <div class="barrera">
-      <div class="barrera-q">Em fa por perdre'ls</div>
-      <p class="barrera-a">Amb raó, i no t'ho discutiré. El que fem és <strong>marcar el risc que pots assumir</strong>: posem sobre la taula els escenaris —una caiguda del 10, del 20, del 35 %—, què vol dir cadascun en euros teus i quant han trigat a recuperar-se caigudes semblants. Tries el límit i la cartera es dissenya a partir d'aquí, no al revés.</p>
-    </div>
-    <div class="barrera">
-      <div class="barrera-q">No sé on obrir el compte ni com es compra</div>
-      <p class="barrera-a">Ho fem <strong>junts a la segona sessió</strong>, pas a pas i en directe. No te'n vas amb una llista de deures: te'n vas amb les ordres fetes.</p>
-    </div>
-    <div class="barrera">
-      <div class="barrera-q">No tinc temps per estar-hi al damunt</div>
-      <p class="barrera-a">Dues hores de reunió i vint minuts de qüestionari, repartits en un mes. Després les aportacions són automàtiques i la majoria de trimestres no cal fer res. <strong>És l'única feina que fas un cop i et segueix funcionant durant anys</strong>: aquestes dues hores i aquests 129 € es reparteixen entre tot el temps que la cartera anirà sola.</p>
-    </div>
-    <div class="barrera">
-      <div class="barrera-q">I si vull deixar-ho</div>
-      <p class="barrera-a">Ho deixes. El compte és teu, els diners no han sortit mai d'allà i el mètode l'entens. El seguiment és opcional i sense permanència, així que <strong>pots continuar sol quan vulguis</strong>. Està pensat exactament per això.</p>
-    </div>
-    <div class="barrera">
-      <div class="barrera-q">Ja ho tinc invertit, però fet de qualsevol manera</div>
-      <p class="barrera-a">És el segon cas més freqüent. Es mira què tens, què costa i què sobra, i <strong>s'ordena sense vendre-ho tot de cop</strong> ni pagar peatges fiscals innecessaris.</p>
-    </div>
-    <div class="barrera">
-      <div class="barrera-q">Ja és tard, hauria d'haver començat abans</div>
-      <p class="barrera-a">És veritat que abans hauria estat millor. També és veritat que <strong>esperar cinc anys més val uns 28.700 €</strong>. El segon millor moment és avui.</p>
+    <div class="rv">
+      <p>La majoria de la gent que ve fa anys que sap que hauria de fer alguna cosa amb els seus estalvis i no l'ha feta. No per mandra: perquè obrir un compte, triar productes i fer la primera ordre amb diners de veritat imposa, i sempre hi ha una setmana millor.</p>
+      <p><strong>Aquí no has de decidir tu sol res.</strong> Al cap d'un mes tindràs:</p>
+      <ul class="dots">
+        <li><strong>Una cartera muntada i funcionant</strong>, amb les primeres ordres fetes i l'aportació mensual automatitzada.</li>
+        <li><strong>Un full de ruta escrit</strong>: quant hi poses cada mes, quan es revisa i què fas si les coses van malament.</li>
+        <li><strong>Saber per què hi és cada cosa.</strong> No una llista de productes: una explicació que pots repetir a casa.</li>
+        <li><strong>Autonomia.</strong> El compte és teu i el mètode l'entens. Si un dia vols seguir sol, pots.</li>
+      </ul>
+      <p>No hi ha mínim d'entrada. Es pot començar amb 5.000 € o amb 200.000: el que canvia és la complexitat, no el mètode.</p>
     </div>
   </div>
 </section>
 
-<section id="metode">
-  <div class="eyebrow">La metodologia</div>
-  <h2>Per què aquesta cartera i no una altra</h2>
-  <p>L'objectiu és concret: <strong>construir la cartera òptima per als teus objectius i per al risc que pots assumir</strong>. Dit d'una altra manera, buscar el màxim rendiment esperat per al risc que aguantes — o, si ho mires al revés, el mínim risc necessari per arribar on vols arribar.</p>
-  <p>«Òptima» no vol dir que endevini el futur, perquè ningú el sap. Vol dir que està feta amb les <strong>tres palanques que l'evidència diu que funcionen i que a més pots controlar</strong>, en comptes de la que no controla ningú.</p>
+<hr class="hr">
 
-  <div class="principis">
-    <div class="principi">
-      <div class="principi-n">Palanca 1</div>
-      <h3>Diversificar de veritat</h3>
-      <p>Combinar coses que no es mouen alhora és l'única manera coneguda de reduir el risc sense reduir el que esperes guanyar. No és una opinió ni una moda: és aritmètica, i fa setanta anys que és la base de la teoria de carteres.</p>
-      <p>La teva cartera es construeix amb blocs que tenen una funció clara — creixement, coixí, descorrelació — i no amb una llista de productes que sonen bé.</p>
+<!-- ============ BARRERES ============ -->
+<section id="barreres">
+  <div class="wrap split">
+    <div class="split-t rv">
+      <span class="eyebrow">El que et frena</span>
+      <h2>Cap d'aquests motius és bo, i tots són normals</h2>
+      <p style="font-size:16px;color:var(--g500)">Aquestes vuit frases són les que sento més sovint. Si t'has dit alguna, no és que siguis dubtós: és que ningú t'ha explicat la part que falta.</p>
+    </div>
+    <div class="acc rv">
+      <details open>
+        <summary>No en sé prou per començar<span class="sgn" aria-hidden="true"></span></summary>
+        <div class="ans">No cal que en sàpigues per començar. <strong>Cal que ho entenguis un cop fet</strong>, i aquesta és la meva feina: sortir de la segona sessió sabent explicar la teva cartera a casa.</div>
+      </details>
+      <details>
+        <summary>Tinc massa poc perquè valgui la pena<span class="sgn" aria-hidden="true"></span></summary>
+        <div class="ans">No hi ha mínim: <strong>amb 50 € al mes ja es comença</strong>. Qui hagués posat 50 € cada mes en un fons global des del setembre del 2021 hauria aportat 2.950 € i en tindria <strong>4.255 €</strong> al juliol del 2026. Cinc anys de mercat real, amb el 2022 inclòs.</div>
+      </details>
+      <details>
+        <summary>Em fa por perdre'ls<span class="sgn" aria-hidden="true"></span></summary>
+        <div class="ans">Amb raó, i no t'ho discutiré. El que fem és <strong>marcar el risc que pots assumir</strong>: posem sobre la taula els escenaris —una caiguda del 10, del 20, del 35 %—, què vol dir cadascun en euros teus i quant han trigat a recuperar-se caigudes semblants. Tries el límit i la cartera es dissenya a partir d'aquí, no al revés.</div>
+      </details>
+      <details>
+        <summary>No sé on obrir el compte ni com es compra<span class="sgn" aria-hidden="true"></span></summary>
+        <div class="ans">Ho fem <strong>junts a la segona sessió</strong>, pas a pas i en directe. No te'n vas amb una llista de deures: te'n vas amb les ordres fetes.</div>
+      </details>
+      <details>
+        <summary>No tinc temps per estar-hi al damunt<span class="sgn" aria-hidden="true"></span></summary>
+        <div class="ans">Dues hores de reunió i vint minuts de qüestionari, repartits en un mes. Després les aportacions són automàtiques i la majoria de trimestres no cal fer res. <strong>És l'única feina que fas un cop i et segueix funcionant durant anys</strong>: aquestes dues hores i aquests 129 € es reparteixen entre tot el temps que la cartera anirà sola.</div>
+      </details>
+      <details>
+        <summary>I si vull deixar-ho<span class="sgn" aria-hidden="true"></span></summary>
+        <div class="ans">Ho deixes. El compte és teu, els diners no han sortit mai d'allà i el mètode l'entens. El seguiment és opcional i sense permanència, així que <strong>pots continuar sol quan vulguis</strong>. Està pensat exactament per això.</div>
+      </details>
+      <details>
+        <summary>Ja ho tinc invertit, però fet de qualsevol manera<span class="sgn" aria-hidden="true"></span></summary>
+        <div class="ans">És el segon cas més freqüent. Es mira què tens, què costa i què sobra, i <strong>s'ordena sense vendre-ho tot de cop</strong> ni pagar peatges fiscals innecessaris.</div>
+      </details>
+      <details>
+        <summary>Ja és tard, hauria d'haver començat abans<span class="sgn" aria-hidden="true"></span></summary>
+        <div class="ans">És veritat que abans hauria estat millor. També és veritat que <strong>esperar cinc anys més val uns 28.700 €</strong>. El segon millor moment és avui.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ METODOLOGIA ============ -->
+<section id="metode" class="band-w">
+  <div class="wrap">
+    <div class="rv" style="max-width:820px">
+      <span class="eyebrow">La metodologia</span>
+      <h2>Per què aquesta cartera i no una altra</h2>
+      <p class="lead" style="max-width:66ch">L'objectiu és concret: construir la cartera òptima per als teus objectius i per al risc que pots assumir. El màxim rendiment esperat per al risc que aguantes — o, mirat al revés, el mínim risc necessari per arribar on vols arribar.</p>
+      <p style="margin-top:20px">«Òptima» no vol dir que endevini el futur, perquè ningú el sap. Vol dir que està feta amb les <strong>tres palanques que l'evidència diu que funcionen i que a més pots controlar</strong>, en comptes de la que no controla ningú.</p>
     </div>
 
-    <div class="principi">
-      <div class="principi-n">Palanca 2</div>
-      <h3>Pagar poc</h3>
-      <p>El cost és l'única variable que coneixes per endavant i l'única que et resten cada any passi el que passi. Un 1,5 % sona a no res; en vint anys no ho és.</p>
-      <p><strong>Un exemple amb números.</strong> Posa 20.000 € i 200 € al mes durant vint anys, amb els mateixos mercats i el mateix risc en tots els casos. L'únic que canvia és qui es queda quina part:</p>
-      <div class="tw" style="margin:14px 0">
+    <div class="lev rv" style="margin-top:clamp(36px,4vw,60px)">
+      <div>
+        <div class="lev-n">Palanca 01</div>
+        <h3>Diversificar de veritat</h3>
+        <p>Combinar coses que no es mouen alhora és l'única manera coneguda de reduir el risc sense reduir el que esperes guanyar. No és una opinió ni una moda: és aritmètica, i fa setanta anys que és la base de la teoria de carteres.</p>
+        <p>La teva cartera es construeix amb blocs que tenen una funció clara — creixement, coixí, descorrelació — i no amb una llista de productes que sonen bé.</p>
+      </div>
+      <div>
+        <div class="lev-n">Palanca 02</div>
+        <h3>Pagar poc</h3>
+        <p>El cost és l'única variable que coneixes per endavant i l'única que et resten cada any passi el que passi. Un 1,5 % sona a no res; en vint anys no ho és.</p>
+        <div class="stat">
+          <div class="stat-v">98<i>%</i></div>
+          <div class="stat-t">dels fons de renda variable global en euros de gestió activa van quedar per sota del seu índex de referència a deu anys, segons SPIVA Europe (2025). No perquè els gestors siguin dolents: perquè el cost s'acumula.</div>
+        </div>
+      </div>
+      <div>
+        <div class="lev-n">Palanca 03</div>
+        <h3>Que la puguis mantenir</h3>
+        <p>La millor cartera del món no serveix de res si la vens el pitjor dia. Per això el disseny parteix de quant pots veure caure sense perdre la son, i no de quant t'agradaria guanyar.</p>
+        <div class="stat">
+          <div class="stat-v">1,2<i>%</i></div>
+          <div class="stat-t">anual és el que els inversors deixen pel camí respecte del que rendeixen els seus propis fons, només per quan hi entren i en surten, segons Morningstar. A vint anys és prop d'un 20 % menys de capital final.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rv" style="margin-top:clamp(40px,4.5vw,64px);max-width:860px">
+      <h3>El cost, en euros i no en percentatges</h3>
+      <p>Posa 20.000 € i 200 € al mes durant vint anys, amb els mateixos mercats i el mateix risc en tots els casos. L'únic que canvia és qui es queda quina part:</p>
+      <div class="tw">
         <table>
           <thead><tr><th>Estructura</th><th class="num">Acabes amb</th><th class="num">S'ho han quedat</th></tr></thead>
           <tbody>
@@ -378,212 +617,211 @@ details.dades table{margin:12px 0 0;min-width:0}
         </table>
       </div>
       <p>Hi has posat 68.000 € de la teva butxaca. Amb el banc, les comissions se n'han endut <strong>30.601 €</strong> — gairebé la meitat del que has aportat, en pagaments que mai has vist sortir del compte.</p>
-      <div class="dada">
-        <div class="dada-v">98 %</div>
-        <div class="dada-t">dels fons de renda variable global en euros de gestió activa van quedar per sota del seu índex de referència a deu anys, segons SPIVA Europe (2025). No perquè els gestors siguin dolents: perquè el cost s'acumula.</div>
+
+      <div class="note">
+        <div class="note-l">I la que no farem</div>
+        <p>La quarta seria endevinar el mercat. Aquesta <strong>no la controla ningú</strong>, jo tampoc, i per això no forma part del mètode ni te la cobraré mai.</p>
+        <p style="margin-top:12px">El que sí que fem és <strong>adaptar-nos-hi sense predir-lo</strong>. La cartera té uns pesos objectiu, i cada trimestre es mira com han quedat: el que ha pujat molt pesa més del previst i es retalla, el que ha baixat pesa menys i s'hi aporta. No cal saber què farà el mercat per reaccionar-hi bé — només cal tenir el pla escrit abans i mirar la desviació.</p>
       </div>
-    </div>
-
-    <div class="principi">
-      <div class="principi-n">Palanca 3</div>
-      <h3>Que la puguis mantenir</h3>
-      <p>La millor cartera del món no serveix de res si la vens el pitjor dia. Per això el disseny parteix de quant pots veure caure sense perdre la son, i no de quant t'agradaria guanyar.</p>
-      <div class="dada">
-        <div class="dada-v">1,2 %</div>
-        <div class="dada-t">anual és el que els inversors deixen pel camí respecte del que rendeixen els seus propis fons, només per quan hi entren i en surten, segons Morningstar. A vint anys és prop d'un 20 % menys de capital final.</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="callout">
-    <div class="callout-l">I la que no farem</div>
-    <p>La quarta seria endevinar el mercat. Aquesta <strong>no la controla ningú</strong>, jo tampoc, i per això no forma part del mètode ni te la cobraré mai.</p>
-    <p>El que sí que fem és <strong>adaptar-nos-hi sense predir-lo</strong>. La cartera té uns pesos objectiu, i cada trimestre es mira com han quedat: el que ha pujat molt pesa més del previst i es retalla, el que ha baixat pesa menys i s'hi aporta. No cal saber què farà el mercat per reaccionar-hi bé — només cal tenir el pla escrit abans i mirar la desviació.</p>
-  </div>
-</section>
-
-<section>
-  <div class="eyebrow">El procés</div>
-  <h2>Dues sessions, explicat pas a pas</h2>
-  <p>Res de tot això passa sense que ho entenguis. Si en algun punt et perds, ens hi aturem: aquesta és la feina, no un extra.</p>
-
-  <div class="passos">
-    <div class="pas">
-      <div class="pas-q">Abans · 20 min</div>
-      <div class="pas-b"><h3>Qüestionari en línia</h3><p>Objectius, situació, horitzó i com reacciones quan les coses van malament. El fas des del sofà i te'l quedes encara que després no seguim.</p></div>
-    </div>
-    <div class="pas">
-      <div class="pas-q">Sessió 1 · 1 h</div>
-      <div class="pas-b"><h3>Ens coneixem i posem números</h3><p>Repassem el qüestionari, on ets ara i on vols arribar. Sortim amb una xifra acordada: quant pots veure caure sense vendre. Tot el disseny penja d'aquest número.</p></div>
-    </div>
-    <div class="pas">
-      <div class="pas-q">Entremig · 1–2 setmanes</div>
-      <div class="pas-b"><h3>Preparo la teva cartera</h3><p>Blocs, pesos, què s'hi posa i per què. Amb l'expectativa realista escrita i l'escenari dolent calculat en euros teus, no en percentatges abstractes.</p></div>
-    </div>
-    <div class="pas">
-      <div class="pas-q">Sessió 2 · 1 h</div>
-      <div class="pas-b"><h3>T'ho explico i la posem en marxa</h3><p>Anem bloc per bloc fins que ho entenguis. Després, en la mateixa sessió, fem les ordres i deixem configurada l'aportació automàtica. Surts amb la cartera funcionant, no amb deures.</p></div>
-    </div>
-    <div class="pas">
-      <div class="pas-q">Després · cada 3 mesos</div>
-      <div class="pas-b"><h3>Informe i, si vols, trucada</h3><p>T'arriba sol: com va, què s'ha desviat i si cal moure alguna cosa. Si el vols comentar, trucada de fins a una hora. Un cop l'any, revisió llarga.</p></div>
     </div>
   </div>
 </section>
 
+<!-- ============ PROCÉS ============ -->
+<section class="band-d">
+  <div class="wrap">
+    <div class="rv" style="max-width:780px">
+      <span class="eyebrow">El procés</span>
+      <h2>Dues sessions, explicat pas a pas</h2>
+      <p class="lead">Res de tot això passa sense que ho entenguis. Si en algun punt et perds, ens hi aturem: aquesta és la feina, no un extra.</p>
+    </div>
+    <div class="steps rv">
+      <div class="step">
+        <div class="step-q">Abans · 20 min</div>
+        <h3>Qüestionari en línia</h3>
+        <p>Objectius, situació, horitzó i com reacciones quan les coses van malament. El fas des del sofà i te'l quedes encara que després no seguim.</p>
+      </div>
+      <div class="step">
+        <div class="step-q">Sessió 1 · 1 h</div>
+        <h3>Ens coneixem i posem números</h3>
+        <p>Repassem el qüestionari, on ets ara i on vols arribar. Sortim amb una xifra acordada: quant pots veure caure sense vendre. Tot el disseny penja d'aquest número.</p>
+      </div>
+      <div class="step">
+        <div class="step-q">Entremig · 1–2 setm.</div>
+        <h3>Preparo la teva cartera</h3>
+        <p>Blocs, pesos, què s'hi posa i per què. Amb l'expectativa realista escrita i l'escenari dolent calculat en euros teus, no en percentatges abstractes.</p>
+      </div>
+      <div class="step">
+        <div class="step-q">Sessió 2 · 1 h</div>
+        <h3>T'ho explico i la posem en marxa</h3>
+        <p>Anem bloc per bloc fins que ho entenguis. Després, en la mateixa sessió, fem les ordres i deixem configurada l'aportació automàtica. Surts amb la cartera funcionant, no amb deures.</p>
+      </div>
+      <div class="step">
+        <div class="step-q">Després · cada 3 mesos</div>
+        <h3>Informe i, si vols, trucada</h3>
+        <p>T'arriba sol: com va, què s'ha desviat i si cal moure alguna cosa. Si el vols comentar, trucada de fins a una hora. Un cop l'any, revisió llarga.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PREU ============ -->
 <section id="preu">
   <span id="pricing" aria-hidden="true"></span>
-  <div class="eyebrow">El preu</div>
-  <h2>Una quota fixa en euros, mai un percentatge</h2>
-
-  <div class="preu">
-    <div class="preu-top">
-      <div>
-        <div class="preu-nom">Cartera claus en mà</div>
-        <div class="preu-sub">Del qüestionari a la primera aportació automàtica</div>
-      </div>
-      <div class="preu-v">129 €<span>Pagament únic</span></div>
-    </div>
-    <div class="preu-peu">
-      <div>Seguiment trimestral<b>29 € · opcional</b></div>
-      <div>Revisió anual<b>39 €</b></div>
-      <div>Permanència<b>Cap</b></div>
-      <div>Custòdia dels diners<b>Sempre teva</b></div>
-    </div>
-  </div>
-
-  <p>Els percentatges semblen petits fins que els converteixes en euros. Aquests gràfics fan servir <strong>20.000 €</strong>, que és per on comença molta gent.</p>
-
-  <figure class="fig">
-    <div class="fig-t">Què has pagat al cap de deu anys, amb 20.000 €</div>
-    <div class="fig-s">Cost acumulat de cada estructura. La meva puja de cop el primer any i després gairebé s'atura: la posada en marxa es paga una vegada.</div>
-    <div class="fig-svg"><svg viewBox="0 0 720 300" role="img" aria-label="Cost acumulat en deu anys amb 20.000 euros" style="width:100%;height:auto;display:block"><g font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#6E6B62"><line x1="56" y1="264.0" x2="570" y2="264.0" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="268.0" text-anchor="end">0</text><line x1="56" y1="191.6" x2="570" y2="191.6" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="195.6" text-anchor="end">1.000</text><line x1="56" y1="119.3" x2="570" y2="119.3" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="123.3" text-anchor="end">2.000</text><line x1="56" y1="46.9" x2="570" y2="46.9" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="50.9" text-anchor="end">3.000</text><text x="56.0" y="284" text-anchor="middle">any 0</text><text x="158.8" y="284" text-anchor="middle">any 2</text><text x="261.6" y="284" text-anchor="middle">any 4</text><text x="364.4" y="284" text-anchor="middle">any 6</text><text x="467.2" y="284" text-anchor="middle">any 8</text><text x="570.0" y="284" text-anchor="middle">any 10</text></g><path d="M 56.0 264.0 L 107.4 240.8 L 158.8 217.7 L 210.2 194.5 L 261.6 171.4 L 313.0 148.2 L 364.4 125.1 L 415.8 101.9 L 467.2 78.8 L 518.6 55.6 L 570.0 32.5" fill="none" stroke="#A82C2C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="570.0" cy="32.5" r="4.5" fill="#A82C2C" stroke="#FFF" stroke-width="2"><title>Fons del banc: 3.200 € en 10 anys</title></circle><text x="581.0" y="32.5" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#A82C2C">Fons del banc</text><text x="581.0" y="47.5" font-family="IBM Plex Mono.monospace" font-size="12" fill="#6E6B62">3.200 €</text><path d="M 56.0 264.0 L 107.4 256.3 L 158.8 248.7 L 210.2 241.0 L 261.6 233.3 L 313.0 225.7 L 364.4 218.0 L 415.8 210.3 L 467.2 202.6 L 518.6 195.0 L 570.0 187.3" fill="none" stroke="#2E5FA3" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="570.0" cy="187.3" r="4.5" fill="#2E5FA3" stroke="#FFF" stroke-width="2"><title>Roboadvisor: 1.060 € en 10 anys</title></circle><text x="581.0" y="187.3" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#2E5FA3">Roboadvisor</text><text x="581.0" y="202.3" font-family="IBM Plex Mono.monospace" font-size="12" fill="#6E6B62">1.060 €</text><path d="M 56.0 264.0 L 107.4 252.5 L 158.8 250.3 L 210.2 248.2 L 261.6 246.0 L 313.0 243.8 L 364.4 241.6 L 415.8 239.5 L 467.2 237.3 L 518.6 235.1 L 570.0 233.0" fill="none" stroke="#A8842E" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="570.0" cy="233.0" r="4.5" fill="#A8842E" stroke="#FFF" stroke-width="2"><title>Amb TBI: 429 € en 10 anys</title></circle><text x="581.0" y="233.0" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#A8842E">Amb TBI</text><text x="581.0" y="248.0" font-family="IBM Plex Mono.monospace" font-size="12" fill="#6E6B62">429 €</text><line x1="158.8" y1="18" x2="158.8" y2="264" stroke="#B4B0A6" stroke-width="1" stroke-dasharray="3 4"/><text x="165.8" y="31" font-family="IBM Plex Mono,monospace" font-size="10" fill="#6E6B62">des d'aquí, TBI és el més barat</text></svg></div>
-    <figcaption><strong>Hipòtesis.</strong> Fons del banc 1,60 % anual, dins del rang habitual d'1,2–1,9 % de la banca minorista espanyola. Roboadvisor 0,53 %, cost mitjà publicat per Indexa Capital. TBI: 129 € de posada en marxa una sola vegada més 0,15 % anual de cost dels productes, sense comptar el seguiment trimestral, que és opcional. Capital constant per comparar només estructures de cost.</figcaption>
-  </figure>
-
-  <p>Amb 20.000 € un roboadvisor et surt més barat <strong>el primer any</strong>, i és just dir-ho. A partir del segon ja no, perquè la meva part es paga un cop i la seva es paga cada any. Als deu anys la diferència és de <strong>429 € contra 1.060 €</strong> — i contra els 3.200 € del banc.</p>
-
-  <h3 style="margin-top:38px">I ara el que gairebé ningú et posa al gràfic: la inflació</h3>
-  <p>Comparar comissions està bé, però amaga el més important. <strong>No fer res també té un preu, i és l'únic que està garantit.</strong> Els diners aturats no baixen de número, però cada any compren menys coses. Per això aquest gràfic no està en euros nominals sinó en <strong>poder adquisitiu real</strong>: euros d'avui.</p>
-
-  <figure class="fig">
-    <div class="fig-t">20.000 € més 200 € al mes, a vint anys, en euros d'avui</div>
-    <div class="fig-s">Descomptada la inflació. Aportes 68.000 € de la teva butxaca; el que canvia és on acaben.</div>
-    <div class="fig-svg"><svg viewBox="0 0 720 330" role="img" aria-label="Poder adquisitiu real a vint anys amb aportacions" style="width:100%;height:auto;display:block"><g font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#6E6B62"><line x1="56" y1="276.8" x2="578" y2="276.8" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="280.8" text-anchor="end">20k</text><line x1="56" y1="207.8" x2="578" y2="207.8" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="211.8" text-anchor="end">40k</text><line x1="56" y1="138.8" x2="578" y2="138.8" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="142.8" text-anchor="end">60k</text><line x1="56" y1="69.8" x2="578" y2="69.8" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="73.8" text-anchor="end">80k</text><text x="56.0" y="314" text-anchor="middle">any 0</text><text x="186.5" y="314" text-anchor="middle">any 5</text><text x="317.0" y="314" text-anchor="middle">any 10</text><text x="447.5" y="314" text-anchor="middle">any 15</text><text x="578.0" y="314" text-anchor="middle">any 20</text></g><path d="M 56.0 276.8 L 82.1 270.4 L 108.2 264.3 L 134.3 258.6 L 160.4 253.2 L 186.5 248.2 L 212.6 243.4 L 238.7 238.9 L 264.8 234.8 L 290.9 230.8 L 317.0 227.2 L 343.1 223.7 L 369.2 220.6 L 395.3 217.6 L 421.4 214.9 L 447.5 212.4 L 473.6 210.0 L 499.7 207.9 L 525.8 206.0 L 551.9 204.2 L 578.0 202.6" fill="none" stroke="#6E6B62" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><circle cx="578.0" cy="202.6" r="4.5" fill="#6E6B62" stroke="#FFF" stroke-width="2"><title>Diners parats. any 20: 41.498 € d'avui</title></circle><text x="589.0" y="202.6" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#6E6B62">Diners parats</text><text x="589.0" y="217.6" font-family="IBM Plex Mono.monospace" font-size="12" fill="#6E6B62">41.498 €</text><path d="M 56.0 276.8 L 82.1 267.4 L 108.2 258.1 L 134.3 248.7 L 160.4 239.4 L 186.5 230.2 L 212.6 220.9 L 238.7 211.6 L 264.8 202.3 L 290.9 193.0 L 317.0 183.7 L 343.1 174.4 L 369.2 165.1 L 395.3 155.7 L 421.4 146.3 L 447.5 136.9 L 473.6 127.5 L 499.7 118.0 L 525.8 108.5 L 551.9 98.9 L 578.0 89.3" fill="none" stroke="#A82C2C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="578.0" cy="89.3" r="4.5" fill="#A82C2C" stroke="#FFF" stroke-width="2"><title>Fons del banc. any 20: 74.348 € d'avui</title></circle><text x="589.0" y="89.3" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#A82C2C">Fons del banc</text><text x="589.0" y="104.3" font-family="IBM Plex Mono.monospace" font-size="12" fill="#6E6B62">74.348 €</text><path d="M 56.0 276.8 L 82.1 266.8 L 108.2 256.8 L 134.3 246.6 L 160.4 236.3 L 186.5 225.7 L 212.6 215.1 L 238.7 204.2 L 264.8 193.1 L 290.9 181.8 L 317.0 170.4 L 343.1 158.6 L 369.2 146.7 L 395.3 134.5 L 421.4 122.0 L 447.5 109.3 L 473.6 96.3 L 499.7 83.0 L 525.8 69.4 L 551.9 55.4 L 578.0 41.2" fill="none" stroke="#A8842E" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="578.0" cy="41.2" r="4.5" fill="#A8842E" stroke="#FFF" stroke-width="2"><title>Amb TBI. any 20: 88.285 € d'avui</title></circle><text x="589.0" y="41.2" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#A8842E">Amb TBI</text><text x="589.0" y="56.2" font-family="IBM Plex Mono.monospace" font-size="12" fill="#6E6B62">88.285 €</text><text x="62" y="105.2" font-family="IBM Plex Mono,monospace" font-size="10" fill="#6E6B62">línia de punts = els diners quiets al compte</text></svg></div>
-    <figcaption><strong>Hipòtesis.</strong> Inflació del 2,5 % anual — entre l'objectiu del BCE (2 %) i la inflació de la zona euro de l'agost del 2026 (3,2 %). Rendiment brut dels mercats del 6 % anual, constant, del qual es resta el cost de cada estructura. Els diners parats no renden res. És una il·lustració del <em>mecanisme</em>, no una previsió: cap any real s'assemblarà a aquesta línia.</figcaption>
-    <details class="dades"><summary>Veure les xifres</summary>
-      <table><thead><tr><th>En euros d'avui</th><th class="num">Any 0</th><th class="num">Any 10</th><th class="num">Any 20</th></tr></thead>
-      <tbody>
-        <tr><td>Diners parats al compte</td><td class="num">20.000 €</td><td class="num">34.373 €</td><td class="num">41.498 €</td></tr>
-        <tr><td>Fons del banc</td><td class="num">20.000 €</td><td class="num">46.964 €</td><td class="num">74.348 €</td></tr>
-        <tr class="tbi"><td>Amb TBI</td><td class="num">20.000 €</td><td class="num">50.837 €</td><td class="num">88.285 €</td></tr>
-      </tbody></table>
-    </details>
-  </figure>
-
-  <ul>
-    <li><strong>Tenir-ho parat costa 46.800 €</strong> de poder de compra en vint anys respecte de posar-ho a treballar bé. No es veu enlloc perquè el número del banc no baixa mai.</li>
-    <li><strong>Un compte remunerat tampoc no ho arregla.</strong> Al 2 % net també vas perdent contra la inflació, només que més a poc a poc.</li>
-    <li><strong>Entre fer-ho i fer-ho barat hi ha 14.000 € reals.</strong> Mateixos mercats, mateix risc, mateixa feina. Només el cost.</li>
-  </ul>
-
-  <div class="callout">
-    <div class="callout-l">El número que hauries de mirar si fa anys que ho vas deixant</div>
-    <p>Amb aquestes mateixes hipòtesis, <strong>començar avui en comptes d'esperar cinc anys val uns 28.700 € d'avui</strong> al cap de vint anys. No per encertar res: només pels cinc anys que els diners no han estat treballant.</p>
-    <p>Aquesta és la raó de fons per invertir, i no és guanyar diners: és <strong>deixar de perdre'n en silenci</strong>.</p>
-  </div>
-
-</section>
-
-<section id="qui-soc">
-  <div class="eyebrow">Qui hi ha al darrere</div>
-  <h2>Guillem Puig</h2>
-  <p class="lead" style="margin-bottom:22px">Certificat EFA per EFPA España, enginyer de telecomunicacions, MBA i postgrau en gestió patrimonial. Em dedico professionalment a millorar processos industrials, i fa anys que apliquo el mateix criteri a les carteres d'inversió: mesurar, simplificar i treure el que no aporta.</p>
-
-  <div class="bio">
-    <div>
-      <img class="retrat" src="data:image/jpeg;base64,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" alt="Guillem Puig" width="400" height="400">
-      <h3>Per què aquesta barreja importa</h3>
-      <p style="font-size:15.5px">L'enginyeria hi posa el <strong>procés</strong>: un mètode que es pot repetir, mesurar i explicar, en comptes d'intuïcions. L'MBA hi posa entendre <strong>els incentius</strong> de qui et ven productes financers. I el postgrau hi posa la <strong>tècnica</strong>: planificació patrimonial, fiscalitat i instruments.</p>
-      <p style="font-size:15.5px">Vinc del món dels <strong>semiconductors</strong> —màster en micronanoelectrònica i uns quants anys treballant-hi— i allà vaig aprendre una cosa que fa servei aquí: la tecnologia avança més de pressa del que sembla, i qui no s'hi adapta es queda enrere sense adonar-se'n. Per això el procés que faig servir està automatitzat i em recolzo en eines d'intel·ligència artificial per a la part repetitiva: <strong>el temps que estalvio es converteix en preu més baix per a tu</strong>, no en més marge per a mi.</p>
-      <p style="font-size:15.5px">Avui treballo com a supervisor d'enginyeria industrial al sector de l'automoció, i per això accepto un nombre limitat de clients. És una limitació real i prefereixo dir-la que amagar-la: fer-ne pocs és el que em permet fer-los bé.</p>
-    </div>
-    <div class="estudis">
-      <div class="estudi">
-        <div class="estudi-t">Certificació EFA — European Financial Advisor</div>
-        <div class="estudi-c">EFPA España</div>
-        <div class="estudi-a">2026</div>
-      </div>
-      <div class="estudi">
-        <div class="estudi-t">Postgrau en Gestió Patrimonial i Assessorament Financer</div>
-        <div class="estudi-c">Inversions i títols valors · UNED</div>
-        <div class="estudi-a">2025</div>
-      </div>
-      <div class="estudi">
-        <div class="estudi-t">Màster en Administració d'Empreses (MBA)</div>
-        <div class="estudi-c">EAE Business School</div>
-        <div class="estudi-a">2020 – 2021</div>
-      </div>
-      <div class="estudi">
-        <div class="estudi-t">Màster en Enginyeria (MEng), Micronanoelectrònica</div>
-        <div class="estudi-c">Universitat Autònoma de Barcelona</div>
-        <div class="estudi-a">2010 – 2012</div>
-      </div>
-      <div class="estudi">
-        <div class="estudi-t">Enginyeria de Telecomunicacions</div>
-        <div class="estudi-c">Universitat Politècnica de Catalunya</div>
-        <div class="estudi-a">2002 – 2005</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="eyebrow">Els límits</div>
-  <h2>El que faré i el que no faré mai</h2>
-  <div class="dues">
-    <div class="col si">
-      <div class="col-h">El que faré</div>
-      <ul class="si">
-        <li>Cobrar-te només a tu, una quota fixa i pública</li>
-        <li>Explicar-te cada bloc fins que sàpigues per què hi és</li>
-        <li>Ensenyar-te el cost total en euros, sempre</li>
-        <li>Deixar-te la cartera funcionant sola</li>
-        <li>Agafar el telèfon el dia que caigui</li>
-      </ul>
-    </div>
-    <div class="col no">
-      <div class="col-h">El que no faré mai</div>
-      <ul class="no">
-        <li>Dir-te on va el mercat</li>
-        <li>Cobrar comissions de cap gestora, banc o plataforma</li>
-        <li>Tocar els teus diners ni moure't la custòdia</li>
-        <li>Prometre't cap rendibilitat</li>
-        <li>Fer-te mirar la cartera cada setmana</li>
-      </ul>
-    </div>
-  </div>
-  <div class="callout">
-    <div class="callout-l">Si no ho veus, no ho pagues</div>
-    <p>Si després de la primera sessió creus que això no és per a tu, et torno els diners sense preguntes. La part difícil és confiar en algú que no coneixes, i em sembla just que el risc el corri jo.</p>
-  </div>
-</section>
-
-</div>
-
-<section class="final" id="comencar">
   <div class="wrap">
-    <div class="eyebrow" style="color:var(--or)">Comencem</div>
-    <h2>Primer el qüestionari, i després en parlem</h2>
-    <p>Vint minuts en línia. Al final tens el teu perfil d'inversor i una idea clara de quina cartera et tocaria. És gratuït i no et compromet a res: si després no vols seguir, el perfil te'l quedes igualment.</p>
-    <div class="cta-row">
-      <a class="btn or" href="client_onboarding_v3.html">Fer el qüestionari</a>
-      <a class="btn ghost" style="color:var(--paper);border-color:rgba(247,245,240,.3)" href="mailto:guillem@theboringinvestor.com?subject=Cartera%20claus%20en%20m%C3%A0">Escriure'm primer</a>
+    <div class="rv" style="max-width:780px">
+      <span class="eyebrow">El preu</span>
+      <h2>Una quota fixa en euros, mai un percentatge</h2>
     </div>
-    <p class="cta-note">O si ho prefereixes, <a href="https://wa.me/34629340892?text=Hola%20Guillem%2C%20m%27interessa%20la%20cartera%20claus%20en%20m%C3%A0" rel="noopener" style="color:var(--or);text-decoration:none;border-bottom:1px solid rgba(200,165,74,.45)">escriu-me per WhatsApp</a>.</p>
-    <p class="cta-note">Accepto un màxim de tres clients nous al mes · Guillem Puig · Manresa i en línia</p>
+
+    <div class="price rv" style="margin-top:clamp(30px,3.4vw,46px)">
+      <div class="price-top">
+        <div>
+          <div class="price-nom">Cartera claus en mà</div>
+          <div class="price-sub">Del qüestionari a la primera aportació automàtica</div>
+        </div>
+        <div class="price-v">129 €<span>Pagament únic</span></div>
+      </div>
+      <div class="price-grid">
+        <div><div class="k">Seguiment trimestral</div><div class="v">29 € · opcional</div></div>
+        <div><div class="k">Revisió anual</div><div class="v">39 €</div></div>
+        <div><div class="k">Permanència</div><div class="v">Cap</div></div>
+        <div><div class="k">Custòdia dels diners</div><div class="v">Sempre teva</div></div>
+      </div>
+    </div>
+
+    <div class="rv" style="max-width:860px">
+      <p>Els percentatges semblen petits fins que els converteixes en euros. Aquests gràfics fan servir <strong>20.000 €</strong>, que és per on comença molta gent.</p>
+    </div>
+
+    <figure class="fig rv">
+      <div class="fig-t">Què has pagat al cap de deu anys, amb 20.000 €</div>
+      <div class="fig-s">Cost acumulat de cada estructura. La meva puja de cop el primer any i després gairebé s'atura: la posada en marxa es paga una vegada.</div>
+      <div class="fig-svg"><svg viewBox="0 0 720 300" role="img" aria-label="Cost acumulat en deu anys amb 20.000 euros" style="width:100%;height:auto;display:block"><g font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#6E6B62"><line x1="56" y1="264.0" x2="570" y2="264.0" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="268.0" text-anchor="end">0</text><line x1="56" y1="191.6" x2="570" y2="191.6" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="195.6" text-anchor="end">1.000</text><line x1="56" y1="119.3" x2="570" y2="119.3" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="123.3" text-anchor="end">2.000</text><line x1="56" y1="46.9" x2="570" y2="46.9" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="50.9" text-anchor="end">3.000</text><text x="56.0" y="284" text-anchor="middle">any 0</text><text x="158.8" y="284" text-anchor="middle">any 2</text><text x="261.6" y="284" text-anchor="middle">any 4</text><text x="364.4" y="284" text-anchor="middle">any 6</text><text x="467.2" y="284" text-anchor="middle">any 8</text><text x="570.0" y="284" text-anchor="middle">any 10</text></g><path d="M 56.0 264.0 L 107.4 240.8 L 158.8 217.7 L 210.2 194.5 L 261.6 171.4 L 313.0 148.2 L 364.4 125.1 L 415.8 101.9 L 467.2 78.8 L 518.6 55.6 L 570.0 32.5" fill="none" stroke="#A82C2C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="570.0" cy="32.5" r="4.5" fill="#A82C2C" stroke="#FFF" stroke-width="2"><title>Fons del banc: 3.200 € en 10 anys</title></circle><text x="581.0" y="32.5" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#A82C2C">Fons del banc</text><text x="581.0" y="47.5" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6E6B62">3.200 €</text><path d="M 56.0 264.0 L 107.4 256.3 L 158.8 248.7 L 210.2 241.0 L 261.6 233.3 L 313.0 225.7 L 364.4 218.0 L 415.8 210.3 L 467.2 202.6 L 518.6 195.0 L 570.0 187.3" fill="none" stroke="#2E5FA3" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="570.0" cy="187.3" r="4.5" fill="#2E5FA3" stroke="#FFF" stroke-width="2"><title>Roboadvisor: 1.060 € en 10 anys</title></circle><text x="581.0" y="187.3" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#2E5FA3">Roboadvisor</text><text x="581.0" y="202.3" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6E6B62">1.060 €</text><path d="M 56.0 264.0 L 107.4 252.5 L 158.8 250.3 L 210.2 248.2 L 261.6 246.0 L 313.0 243.8 L 364.4 241.6 L 415.8 239.5 L 467.2 237.3 L 518.6 235.1 L 570.0 233.0" fill="none" stroke="#A8842E" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="570.0" cy="233.0" r="4.5" fill="#A8842E" stroke="#FFF" stroke-width="2"><title>Amb TBI: 429 € en 10 anys</title></circle><text x="581.0" y="233.0" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#A8842E">Amb TBI</text><text x="581.0" y="248.0" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6E6B62">429 €</text><line x1="158.8" y1="18" x2="158.8" y2="264" stroke="#B4B0A6" stroke-width="1" stroke-dasharray="3 4"/><text x="165.8" y="31" font-family="IBM Plex Mono,monospace" font-size="10" fill="#6E6B62">des d'aquí, TBI és el més barat</text></svg></div>
+      <figcaption><strong>Hipòtesis.</strong> Fons del banc 1,60 % anual, dins del rang habitual d'1,2–1,9 % de la banca minorista espanyola. Roboadvisor 0,53 %, cost mitjà publicat per Indexa Capital. TBI: 129 € de posada en marxa una sola vegada més 0,15 % anual de cost dels productes, sense comptar el seguiment trimestral, que és opcional. Capital constant per comparar només estructures de cost.</figcaption>
+    </figure>
+
+    <div class="rv" style="max-width:860px">
+      <p>Amb 20.000 € un roboadvisor et surt més barat <strong>el primer any</strong>, i és just dir-ho. A partir del segon ja no, perquè la meva part es paga un cop i la seva es paga cada any. Als deu anys la diferència és de <strong>429 € contra 1.060 €</strong> — i contra els 3.200 € del banc.</p>
+      <h3 style="margin-top:44px">I ara el que gairebé ningú et posa al gràfic: la inflació</h3>
+      <p>Comparar comissions està bé, però amaga el més important. <strong>No fer res també té un preu, i és l'únic que està garantit.</strong> Els diners aturats no baixen de número, però cada any compren menys coses. Per això aquest gràfic no està en euros nominals sinó en <strong>poder adquisitiu real</strong>: euros d'avui.</p>
+    </div>
+
+    <figure class="fig rv">
+      <div class="fig-t">20.000 € més 200 € al mes, a vint anys, en euros d'avui</div>
+      <div class="fig-s">Descomptada la inflació. Aportes 68.000 € de la teva butxaca; el que canvia és on acaben.</div>
+      <div class="fig-svg"><svg viewBox="0 0 720 330" role="img" aria-label="Poder adquisitiu real a vint anys amb aportacions" style="width:100%;height:auto;display:block"><g font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#6E6B62"><line x1="56" y1="276.8" x2="578" y2="276.8" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="280.8" text-anchor="end">20k</text><line x1="56" y1="207.8" x2="578" y2="207.8" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="211.8" text-anchor="end">40k</text><line x1="56" y1="138.8" x2="578" y2="138.8" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="142.8" text-anchor="end">60k</text><line x1="56" y1="69.8" x2="578" y2="69.8" stroke="#E6E2D9" stroke-width="1"/><text x="48" y="73.8" text-anchor="end">80k</text><text x="56.0" y="314" text-anchor="middle">any 0</text><text x="186.5" y="314" text-anchor="middle">any 5</text><text x="317.0" y="314" text-anchor="middle">any 10</text><text x="447.5" y="314" text-anchor="middle">any 15</text><text x="578.0" y="314" text-anchor="middle">any 20</text></g><path d="M 56.0 276.8 L 82.1 270.4 L 108.2 264.3 L 134.3 258.6 L 160.4 253.2 L 186.5 248.2 L 212.6 243.4 L 238.7 238.9 L 264.8 234.8 L 290.9 230.8 L 317.0 227.2 L 343.1 223.7 L 369.2 220.6 L 395.3 217.6 L 421.4 214.9 L 447.5 212.4 L 473.6 210.0 L 499.7 207.9 L 525.8 206.0 L 551.9 204.2 L 578.0 202.6" fill="none" stroke="#6E6B62" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5"/><circle cx="578.0" cy="202.6" r="4.5" fill="#6E6B62" stroke="#FFF" stroke-width="2"><title>Diners parats. any 20: 41.498 € d'avui</title></circle><text x="589.0" y="202.6" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#6E6B62">Diners parats</text><text x="589.0" y="217.6" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6E6B62">41.498 €</text><path d="M 56.0 276.8 L 82.1 267.4 L 108.2 258.1 L 134.3 248.7 L 160.4 239.4 L 186.5 230.2 L 212.6 220.9 L 238.7 211.6 L 264.8 202.3 L 290.9 193.0 L 317.0 183.7 L 343.1 174.4 L 369.2 165.1 L 395.3 155.7 L 421.4 146.3 L 447.5 136.9 L 473.6 127.5 L 499.7 118.0 L 525.8 108.5 L 551.9 98.9 L 578.0 89.3" fill="none" stroke="#A82C2C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="578.0" cy="89.3" r="4.5" fill="#A82C2C" stroke="#FFF" stroke-width="2"><title>Fons del banc. any 20: 74.348 € d'avui</title></circle><text x="589.0" y="89.3" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#A82C2C">Fons del banc</text><text x="589.0" y="104.3" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6E6B62">74.348 €</text><path d="M 56.0 276.8 L 82.1 266.8 L 108.2 256.8 L 134.3 246.6 L 160.4 236.3 L 186.5 225.7 L 212.6 215.1 L 238.7 204.2 L 264.8 193.1 L 290.9 181.8 L 317.0 170.4 L 343.1 158.6 L 369.2 146.7 L 395.3 134.5 L 421.4 122.0 L 447.5 109.3 L 473.6 96.3 L 499.7 83.0 L 525.8 69.4 L 551.9 55.4 L 578.0 41.2" fill="none" stroke="#A8842E" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="578.0" cy="41.2" r="4.5" fill="#A8842E" stroke="#FFF" stroke-width="2"><title>Amb TBI. any 20: 88.285 € d'avui</title></circle><text x="589.0" y="41.2" font-family="IBM Plex Sans,sans-serif" font-size="12.5" font-weight="600" fill="#A8842E">Amb TBI</text><text x="589.0" y="56.2" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6E6B62">88.285 €</text><text x="62" y="105.2" font-family="IBM Plex Mono,monospace" font-size="10" fill="#6E6B62">línia de punts = els diners quiets al compte</text></svg></div>
+      <figcaption><strong>Hipòtesis.</strong> Inflació del 2,5 % anual — entre l'objectiu del BCE (2 %) i la inflació de la zona euro de l'agost del 2026 (3,2 %). Rendiment brut dels mercats del 6 % anual, constant, del qual es resta el cost de cada estructura. Els diners parats no renden res. És una il·lustració del <em style="color:inherit;font-style:italic;font-weight:400">mecanisme</em>, no una previsió: cap any real s'assemblarà a aquesta línia.</figcaption>
+      <details class="dades"><summary>Veure les xifres</summary>
+        <div class="tw" style="margin-top:0">
+        <table><thead><tr><th>En euros d'avui</th><th class="num">Any 0</th><th class="num">Any 10</th><th class="num">Any 20</th></tr></thead>
+        <tbody>
+          <tr><td>Diners parats al compte</td><td class="num">20.000 €</td><td class="num">34.373 €</td><td class="num">41.498 €</td></tr>
+          <tr><td>Fons del banc</td><td class="num">20.000 €</td><td class="num">46.964 €</td><td class="num">74.348 €</td></tr>
+          <tr class="tbi"><td>Amb TBI</td><td class="num">20.000 €</td><td class="num">50.837 €</td><td class="num">88.285 €</td></tr>
+        </tbody></table>
+        </div>
+      </details>
+    </figure>
+
+    <div class="rv" style="max-width:860px">
+      <ul class="dots">
+        <li><strong>Tenir-ho parat costa 46.800 €</strong> de poder de compra en vint anys respecte de posar-ho a treballar bé. No es veu enlloc perquè el número del banc no baixa mai.</li>
+        <li><strong>Un compte remunerat tampoc no ho arregla.</strong> Al 2 % net també vas perdent contra la inflació, només que més a poc a poc.</li>
+        <li><strong>Entre fer-ho i fer-ho barat hi ha 14.000 € reals.</strong> Mateixos mercats, mateix risc, mateixa feina. Només el cost.</li>
+      </ul>
+      <div class="note">
+        <div class="note-l">El número que hauries de mirar si fa anys que ho vas deixant</div>
+        <p>Amb aquestes mateixes hipòtesis, <strong>començar avui en comptes d'esperar cinc anys val uns 28.700 € d'avui</strong> al cap de vint anys. No per encertar res: només pels cinc anys que els diners no han estat treballant.</p>
+        <p style="margin-top:12px">Aquesta és la raó de fons per invertir, i no és guanyar diners: és <strong>deixar de perdre'n en silenci</strong>.</p>
+      </div>
+    </div>
   </div>
 </section>
+
+<!-- ============ QUI SÓC ============ -->
+<section id="qui-soc" class="band-w">
+  <div class="wrap">
+    <div class="rv" style="max-width:820px;margin-bottom:clamp(32px,3.6vw,52px)">
+      <span class="eyebrow">Qui hi ha al darrere</span>
+      <h2>Guillem Puig</h2>
+      <p class="lead" style="max-width:64ch">Certificat EFA per EFPA España, enginyer de telecomunicacions, MBA i postgrau en gestió patrimonial. Em dedico professionalment a millorar processos industrials, i fa anys que apliquo el mateix criteri a les carteres d'inversió: mesurar, simplificar i treure el que no aporta.</p>
+    </div>
+
+    <div class="bio rv">
+      <div>
+        <img class="portrait" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwQDAwQEAwQFBAQFBgoHBgYGBg0JCggKDw0QEA8NDw4RExgUERIXEg4PFRwVFxkZGxsbEBQdHx0aHxgaGxr/2wBDAQQFBQYFBgwHBwwaEQ8RGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhr/wgARCAGQAZADASIAAhEBAxEB/8QAHAAAAgMBAQEBAAAAAAAAAAAAAwQCBQYBBwAI/8QAFgEBAQEAAAAAAAAAAAAAAAAAAAEC/9oADAMBAAIQAxAAAAH3X777F+59w+59A+H8I+DxeurcWPleq2RUmocW+WOL/LV2AhDHF4js6/4t2KchoHa98MQUyX3xCJ4dhtmuOWbFY1LYnr2B0qhoY6KZPsenfvvj7n3D6P0D4fAnQRWqaw1Qio1LDKhVCqCWCLQWogAhJiAuO8rej3Eol0zROF7b5GZuy5G6Lcle6EkH6GflxlizStF0zTtxbMVbS2BUzwxIUyfY9Oc+gcF0B8t8pXVIqE1IJ2ETgmEWAuGAorTCwBhhhWCLQCFgIA52tIPuUsy8nWFLVmlKaXU+dvm/+QbJqGrBlqjai9co3S8cpHouGattbAqZ4YkKZEfwiK0lKilJE4pFSzqnyJ1PidSVgsTDAQQIhnyvy4VeESMFuBPorlh8kQtZVD4w1W9LhilOaLRYQ56EnmrAZapmS8epHS7sKK0i3dp3Ytma1tXiqmga8l6GkVAEiRCwa0QkEJp18rJUiv1c6n0B9xfoUfYEFZEK8LAQofpC5wzDAaAcOqUZarilmxWMFtaUloHPXHLl6ndLi5zd9Fm1Xtlm5VuxZHRYUS0lQVexXIBAyFBGNcErMFCXkmdV4IiOAxqdXEcCMA4BThAc4gm0zgSDOcKBkASYwvOCCNpdLq7yNmPsVjRcuVbhbaTJ6wbaTYh9uvaLFmvYlErNYBXs19iyDCQuoZOoLzWAJOAE1mVCCxFwUxfH0SFPhdSJRJ0j90xLhYAHFXSv+lAKs2sTOiceYVOMtJnLhysbLTZ4XeBmFjjTKbEOMJGAr9XA17deKpMpUuiygCXmMAk2qKrnTBBJEVP3gwclkUo9eYxjmwbMOfRyMVHZUpQWQrIzwtEkVa7KpKUOjFlX2Jwo/i1br2i09C859GCGEUMYBYYICYuDoQNe2gLJsp0pXu15ARBioiqiqbYwHzrJWN3+jKLQ6HpQt2rxyj2eeKd2+sDJZH1akPJPSbDQnleL9xwR5gnY1x3v0glnTPDwShLE6hy49L8y9PJFjMmQcwshThIMhUBB2vF1GFBJFxQ6swYrF9IMyz+qtzD6TRWJTXVtYCmft1QGkWcFqi3WLEpjlC0/AAQ3xW5baUx+a665QEJcENnScGofRHmFDl36p5V6ud7z4JKEgkodEBSEAQdRFk20hJNpQY1FboQL5LUi2ZkicxCIGkgTJ+gfiRArt8GiikShLpDsxgKS2ojxXNbfBCkCBOuV9iG+jIaYWMaH1fyn1Yj92JOUJE5D6ICIIXQeQF1GlSuVYWNReUt6O2KL464o4FJwhDs/iPSfEOy+BxL05GfD777pwJgieW1eQPLMdpM0LrHAEMA452PRk4Dmj9U8q9FLCKPR/qZBnoZiY+hBIOKiijipWKsrGr0Ge0Y1a1toNsibJT5M5KHQnOfHe86EJDp9EnwvE/AA2FhXG7KrPz1ndpjAAmRHGF7AvtH6vbn5dZ0eULh6ptixsq6zHHlnQxxmFAsCE1XkRVNwJVKvoms0eevh+xz8DZMYspsTZa2LDiBB3lb0bJVqmmJiq09In5lbm4ng7c0aceC0CdPM/D/0p+dBIJJnPbqn0Udz+yoTzTC+i4I1Xpnn3oQP6XxHvZHO9kVozjE0LKvFFXFROrtqo1VUbLjVcVcg5TqG32/k2hPWbTEbohVaDOGby2gzplk31Dtnm5mj0mKtD0HW5HYmgPAxWfmT9Q/m0ye5xn6HLstTalrTPRPGsffURud/hd4R798fd7I5LsytEyETr7NARUeUEa6zVL+mvlTFW4rgwNNrKQWtC2hofZ/MvWAub1VIYLBexYgxe0pTnl32ktBJbf7AxPpNfdjrAiivg/vX59KX9JeGfoQ8upfT/Myy2Pm2jPHyRmb3b4/YHZRmdnwhyfZiAXl4rq+2rBBR1Ok1m4Fw2lZAidXFF3RFPaXkx/c5HXBUHFRHObAZ5wt6PWmXtuwLTid8GYMQhznAPk/rPnIl695p6WLed39uZLLep+DFKQZT0fU5bUhJxmTJEsdn2QBexVKuqu6Yr0nkBG0qr2ltFntCWcmXSoJaAKqsta4ttZltSDhCRMnxgcG+ACEmCmToCBxAQEWJ+c7nJjO3ymlKW+BEovzz6X5cNEAU9N0+b0gUgyhDDPEicMfKWaktRR6Ghsq62yrBG9z+goN7kdgaN1JwklzMDa/0zV2yD5wDQBUwSkIVVOehseXbI0EV+hBiXJKFTKWmsOEd3hXjW1tX5UZJOqshogJHr2iob8nOJomwJkmbhpSq2KpTZ7T50o6q5qLKjU5TSFBs8To625kqAkipfH3aHMntznm9ubhXEZQ9jU8Q2puoLMFDQ6nGnoV1+evXjSIuZ4vKETBnLSt+C+fXedMmsdYhYVlgMEXIe3XdTdx8cTIVgbKzNwkMKvrlTndTnzO1Ghp6zmkpNSmYSu8Iew+Z7DyutiPHBL/IlAWWv88ib+syVoP6ei4b93LGEu51c1X2drT9U55zPF5U1dmVdc9SH1TtfOSson0AFjX2IQg2Y90ukLQ6bjBJmDEsvpSGwsjitpNFU1nKfT1BltBW3dVOA9Gx6Fwuzy5VWRnarxutFS5bvipNPThGKd8Ik/0oqz1ujPKHg2J6nncYweiNZ84LIXteeoeP+4eNFHltZmBayVtIi32wPcLAThw/x5en++InieCwJwWrbZMpqvQoVlLSbhR5zXq15VYs1SBuKXemWHrZ1QuWLBV3BmAznzR9MER3P3+PPKhKoAd/ndOOBrugPRsd6qF/PP6I/NI5UHZhW2jcC1oa1X1Nn5iIn+IR+4c6Xk4lzvCAGRiSdouUTDMqp0b5UweY9MyJj9KhyzTU2ipSnTjTlsbPmq8sqXel3aI1Qfy2dEdjXsFw2AZ2vHsTV7ynv4R/PX6D8HK6xJcFfcFt5VrY1qa0/SHAyIfG4SPpc6d534jyXAYmICXT/CCtmtVNQaxE87r9RnydxRNWM1yZhe0e7VuWpqi6ztTAbz+mwZW2FPbGkpk/iz9Zp9mWjgixnfGd3kRy4XupS2XbMhZ/PlsHhI+L8Q+790+798f/xAAvEAACAgEDAwIFBAMBAQEAAAABAgADBAUREhATISIxBhQgIzIkMDNBFTRCJTUW/9oACAEBAAEFAv2CYTCYxjGMYxjGGGEwmbzebzeBtpygfadzYVtzMHTYGcJ7QGAwGAwGAwGA/vbwmEwtC0LRmhaM0ZoWhaFoWhM5TlOU5znFacpjH0dB9G09oGgaBoGgMBgP7hMJhMLQtC0LRnjPGeFoWhaM0LQvOc5TlOc5xW8bym/hO+IG3gPXebzeE7QPA0VoGgaAwH9omEwtC0ZozRmjPC0Z4XjNC0LwvC0JhM5znOU5RLJynKd4rKcqV5IM7o5dN5vHaB4rxXitFaBoDAf2CYTC0ZozRmjNGeM8Z4zwtC8Zt4TOUYwvC033hO05TeBtiLJzi2wERbSJVkcWquFnXeXNtFeK8V4rxWitFaAwH6iYTGMZozRmjNGeM8ZoWhaNZC0JhaF4zQzeEwtOUVtzy2POK88NOW0DwP4x8k0vXetom8yWivFeK8V4rxWitFMBgP0GExjGaM0ZozRmjGM8ZozRmhh2haFxGhMY7QRrJzm85bRm3CtFM32gsMV95y2geY+S1DJnM8rv5HMeK8VorRWitFaK0VopgMHUmMYxjNGaM0ZozR3jNGaFoWnKbwvOYjvC835QmE+Qem8Vui2lCLQ03nKK0DxbJ3TKMhqzfeLYrRGitFaK0Q+FMVopimA9CYTGMZozRmjNGaM0YwmGEwwtGsJm/QjcdoENDD7n33lg2AiyxZ5EDkHlA85QNA0rbyfSoaI0RorRGlZ8KYpimKYDAYTGMYx2jtHaM0Yx2hMYwmFoTC0bxGeBmaANLCRBu07cYAdN9lsgm/hW5KUgrMXeGKZygMrPquDUkNEbypitEaVn0qYpimKYDAYTGMYxzGMYxjGMYxjDGM5RiTDPCxeBhYRnPFUhYSyyNuYDLGlv5IfU0rn9mLuBxBm20DxXAFL7NnHaxWiN5UxTFMr/ABEUwGKYDAYTGMcxzGMYxjHaGExnjPDZDGM8CO6mb84dt2uJG3Kbw+STHPh35GseWG0XwzQbGMeMbwAdugM8iG02BWlZ8qYDEMr/AAEEWAxTAYTGMYxzGMYxjGMJjGGPPaMxM5bRiZ4E33jP4C8R5UQneBYRG2ErHh/eN7vFO8sbzuQQd5/amD2WVnypgMQxPxEEEBgMBhMYxzHMYxjGjGGMI3Gc0j9sxkhTaMemzPAoE47Bt9mJY8YRFB3CbiHyx97BH8yseX/JvcGDzFMQbdKopgMQ+V9hBBBBAYTCY5jmMY0aMYTDHjRoYTNoRyIbiFBMIjVlpwnbbcY0+XltHgoRGXjOPJnX02KRK13ezwze+0ET8hDKosBlZ9Q9hBBBAZvCYTHMYxo0YxjD0czbeNG67TaU1HYYpMGLEwd4mF3IcUBRTyjYzNDgbHIp2Pb2iY1r1PjmCrhL12boPJXYMY6+KjFMBlP5j2EHQdSYTHMaNGjxjN4YYfEY7ziTOOwFe847SjGaxsfF3f5YKtdBsV6i7fLhK8xe1VVT4roCQ0zMwjMfBfJyaMD5enKwzLlKNf5WEeFHU/jVFMBmN5tH1kwx40aNLI3QwxoZ7wVGJS1ppwOMrw5RiBJkKNqxxrwKCzWpsuavJa6QZ2FAasTLxO7MXTxVa1Pi/GBGdiisXLvPbptB5NZm/priwTE/nH1mGPGhjR402jTtkg1mCvlEpCRMN3lOHKsTk9WJ9zgFCsLsgVm10AWXsJw3vrqAU1T1Gzt7wV7TjLK+U1DF5LkEd1+m8qUFvYn8Ui9MHzkj9gx40MaPP7i08p2p8sWajTIuncZXhmLjRKTAgWZdhrGPjmmrtdtY69whOViDxOIn99DM1d6cur9TcOBPnojeTF/FIsE0/wA5Q/YMf2aNGjdKE7jiqJUBExxK6Z2/K1xa5tHPGdreLXtGHgJtNp5Qp12m3Rplfx5yfeyDv1T+R/MX2T2Xppf+7+wY/s0MeP0wk87Stdogi9B0MVeZ2+gzbeL4+kmMZl2bJqW0tn9mD8gQYvhRB00jznfsv7GGNHn94Y9K+6yuL77Rem02m02+j+/pMs9s78c1zLPeGLBP6i9NG/3vrPR/Yxo0eD3xfZJXEEWCD98yzzM88Zlv67fyPTfwsWDzFgE0hlqy/m6J85TPmq4MhJ3VnMTl1s9jDHjQe+L7L7VxIogg+vacem02+gwzVAeObvyY+X6DzBNL0y/UWy/hfLxahuIpiRYkWLFgghhMaGNH9mn/AFR7J7LK4sEHUfQD53+jacYVjQzKpFtesYjY5PQ9MXGsybtJ04YGE1lYnxLiLi56tK92iVvEqsiVWRani1tAhgUwwxoYxjGPP+qJXBEO0U+AZvN5vN5vN4zkENvAZynKBpv0Ms6Ebz4no40Wfl/UWprG+GdM+UquD2Dt/d+KR94LtPh9d8s/WYRGHho0Ueq73/6o9w2wbIUQ51dUTVqjBqm4o1FXnd3ndhecjBZLLQJ3ykbV0Qv8Qohr+IqrHGrpBrlIarUq3guDAnfovvr1LW4mUvCyKnI6JpArprddwPRYvF/iqsd/3Hw5/Of2X9jDDLVn9huAyM8sTkx7WM+YZCuadqc5piZpZareUHmMPFlm0ysuwTKtvK2O5LWNK7/PzQgzOD16gjzG1FimFltdBFG0zK+7Tqi7ZE+HNP8Am816VWV43F5evr+JrC+oz4eX7n7L+xhjRvNZmSCcdixPbMeoCO9Qi3KDTmopxs6tph5HJ6vIKbzLr2lw3mRatQst7s7bWQ5ISV5FcVqLJViIx0/SwqYmOuPF9plHjTqyFbq6zY2i6f8A4/Czc0YIo1Oi9RkKS49es2i7UhPh78v2DH9mhjQeS42KLvTkUqssyXMw9I7wsxg78Bzx0LtXX69OZu5jp6SnjKWZNcvo5tTii18/HFOk3JXwpx+/XiaTVbjYzc5gW3Utj21kKSelq8h8SgV3aFWX1HhyHxAhK4pNa1ZR7ubkdjT9yYJoA8D6zCI8aGNB/Jeuz0j7eSnJDgNMXNbFGo45a/5LIY1Yd1MpxLeWl0ffr8Q+1y7yykFcrTy724Dof1Ir/wAHua/h+rbG0T7ePgVUBcRUNQYAb9LDsvxEj2ZXwrSzZoE1bDXIpKtTKN2yfiW3taXBNBH2vrIhEceGhjRR93IPqx/wZOQqCNHwa7IdO2NlXbBlVTiaZV60j+ARvGSZNDkuu0DiKtTSlcdAMisQ3jdGXiLRN+lo9OqUkD4SqHd/ondNQpLnStNKn4tv5ZIgmhf6/wBA6kQiWDw0aNE/lvr3OKft8eUZZ6oRa0XCdimAEjLtNOie9nQiFN5ZjK0t06sxtNIn+Psi6bZKMRq4KgIUBhTbo81dTZPh+j5eD21LKNT4g3S9+La3d3tSEE0P/Wg6CDqRCJYPDxo8H8li7jD/AI0G8WvcGidnaduN4jzBETwGPUDpxnGdsThNup6N7Zqk5OmjhlqZZg93LVQg1LIXErZzZZFmiD9L0EEHUiMJaPS8aPF/ls8nF8StgGSAQiGWDy3mYaHZfZgeQ6ATYTboOphhn932gLlEGzAGz7QuRC5nxfmFVXoJoo/RwQQQQTaEQiXD0vGjxf5rPEqOz1qHsrghlj8ZbbuU8tjgAJ5jQ+BzMVyJZaVlWeN1uVoD03hMaEyxtle/m+Qqi/TrvuKfBEscJNXz/n9RXos0X/Q6CCCATaMIwl49Lx48U/esG8qbbIxTuUglt3EX5O5T8Kfzr/FTtCd4YF8kS0nuZCETH1Bq3pzA07k5QtGbpa3pxnDvk7I2Jjii/K1qnByG1fHFet/EYzK1/JTN4s0f/wCd0E2iwQCMIwl49FksjwfzPxl3pycQ+mox32GVkblKSZt4oba3mIhELADujc2hR82k2hq3mXgqQuQ+E+JmraofeHxHsIZT4ysk1rQ7WjMQXDEvF2R8Tktn3n0r7L+S9FmkD/zoIIBAIBAIRGEvHosEsEtgG9xSZ26tg27qp8ajndlcL705iZOZ2FGuju42pc1Ga0u1DhMvWrhP8hkWjT7ErSm5Wj2MDblKJnWIGTUHwbMDOW+v3D3b23al8scygWGlhiHLyApwNuXxA/8A6GQIPZPzXos0r/54gEAiwCAdCIRLx6LBLBLB4UfqH8TMHKjTL2V2t4JZlfM5HzfbRs/xl5zxrPVj5polOfXbMzOCCi5GJ4g4bI1OHb9t86+ZN/ItqNW91a5NPw1mGrLX8b2CPaKTQl3dss3szNSUq2l+cvV8ZsvV9Uxhjp/yn5jos0uv9AB0AgEAgHQwy4emxZYstWBfvWJMissuOzY9+oWbYVBXjbkzvEB/VOHh14qh2Lsd8Rd4mPMdG5Yqi9fnXmQWGXlbcMTJOJKi3+Sx7j2Bm12NellMqK1XGz5bIycle/pNJZ9Tdv8AK5z3MP8AhPyQeAPCCacNsHaAQCAQDoBDCJaPTYssWWpFX793Jp2/F443cPndMsXtD+68fmLMTkfkiY+ASlWjWOBoptOPojUO2mMtdeHXRF7NCfaBd8ZmsxzYLqio05UOZnZFeLiaR2rsYZQ5Y1YEyylkw07tuHjiigfc1j4iHG7+kHqUTaIsxB+l2gEAgHT3gHQyweHWOssScdrbORhTeahSFvw7TitlVP3qvS3cdF+dDkZiBasxAK87z8xxrt1BZ3Mm5hpeZcBoU/8Azi2PVpdGNXmUItWRdzOm4Jvmsat8wNKDcci1bW7j8bn+xo6Gy9xwpxeP+T+I/OTt6ax6lWKsrSY67UCAQCAQwD6HHhljrLEhr+5YpEZZqFXcS1WLW2LlilN2THCq2Fxi443TFoaDT8Ywabjqa6Ka4jLuN2gr2HjdtyMwCuZlfbu+Y409sl9OcUY3FcoWMabGXmukYqY9d/8AHZn24eo6tkpnWbeK08pXFrlVXmpft7QCAQ+IBB9DezCMsdJw+5asI5RqFZe2EttJruxx+pWv7YXefLKYKNotW57MSoCKakncAjZAZat99+I1LUK1TLte6V9xXxK97MlVpxNN3rpz8sPjaZR8zdiJtLxvNSTbPrTdeEqrldcWqU1eUHp2gE9p7wD6TCIRHWFPU6RklizOTi9lM4lG064ubFIDZjKRnsZkamytVq9orbVHLnUnslWfdYcVSE5bTUsxlrdbLDmVtWSOShAgFz5EsyZ3Gvs0rGFOPSuy3TVK9s+lIapVVK6olUpq9SjwB09yB+wRGWFfLLvDXtGSZGP3Y9PrsrlPodXFi5eD3BZhvXHxbWYY712HGZziaf3JjYqVQHaZ2Z2hkXPdZaNgbbGXece9U7Gs8N5pWIJjpP6yDxrzvuZlVcSvcV1bGuqJVKa/UB0/KAftETj5IjLGWOsy8csHTxtxGLcEm8cyyjuA6bY0xtNrMTDrSGjjLL+JyH+ZvxcU4yajYjVcp5mQClF1/cGHVZlWYeJwFCbCand2qAObVJKkiV7xK4lcqT1QnlAP3NptCIwjLHEyK+DWLP8AqzMCjveeZIrbvIl20tyDjhtTuc1v3Lcq405S5Vmbg5p4VVn1L6k+ZcDFx3ynxMYUCldgvt/XxBk+allSytZWkRIqSsbHflAPr//EABQRAQAAAAAAAAAAAAAAAAAAAJD/2gAIAQMBAT8BHH//xAAUEQEAAAAAAAAAAAAAAAAAAACQ/9oACAECAQE/ARx//8QANhAAAQMCAwcCBAYCAgMAAAAAAQACEQMhEBIxICIwQVFhcTJABBMjgUJQUnKRoTNiFMFDYLH/2gAIAQEABj8C92Nq3/r8KVb8y1wA/IteLdWwbOyPfXWq9WNtvpjdZhohlxHvL32bYW4kjTmuSgpvv7K+FuPITSPeWxsriPuoAgK+xbDtwYXXaHuLLWy6K5KuVY4Sm7M4d9gBATrtD2mmG8V6V0HZdFJXTC+JB6bHbEyv+8QUMukbQ9lfGy3lqV0RvMLK3QLexthPbEYX1UbQJO032GuN8d1b11YLK1W1wvs6IBBRh3UK6vwR7DXDebKtI8rdc0qXRhqobhIUvOzLrKynAcI4hD2nXCcIGMrRaK+NhohPPghXwOIQ9z3OGkoucLBCRrzRPRWChXC7aLwvmBsgLTCcbIYnFvlD211ZAltsLBF7dJQpN1cgA0CEXdUABAjVW1RtKl1l8tnSZQDtYupajmQ2R42Wefa2UuiFFMIcymyrIthC2UJ1V4vNvGDWhDAYBzRyhaStIRMXhRtX2Kfn2sxJQcVeybay7DB8eln/ANV/8c3W7ooUYWUFtlJwurJzuyOxfapefZQFHJH5gW6t5QNVpAVgtz1HRRzOuN+SngPHVOjrwqXn2AGGitrtd1mdrsjgORI57J2aXsJ4OY8c5bbO9bZp/lB2JO0z8oI5cIOqHKI1X+Vqs8L1LX8jlTtZaDN0auOgTqlMtqgchqr+yCHtnAq/XZbTpNzOcqdLnq4r1hB9H01RmwsJXod/C9Dv4XpK9K04QQ4nbiB3LYDWalfOqf5HKBZuHww/0wP7eOEMNVd6kH+1IvtXUytVlzAlEGICgSVeyjNPZCDdTOw4AIjCAm1PiGb7v6CyUxAGPw5m+TCpP6eNOElQLBGbLUqysSCpwGN1DVOcomThqfsvU77oZboH0PTr6IYuadE7zgHO9LLlNaOakYCFlP4GAYVT243fBpGGil7sqgEn7Yb1Oy3Ldtm6l6sICORkwoygrfCtZQKn8q79eSgYuVTMOayt1KDHD6hu4ptWpdswpZgF8Q4aZowq8YjBoPRZuaims9cyVVJ3QDZQU5qtqmCOaGBUwsz/AEre06KqaYvl6IfL5BCS1gm5KqPbXAcw7ruRRa4b06oNqy5nIocytIwuso5iVStN1ZU2dDKC1VSqTdrVJ1OFU8YYN8KIWYLI4SE6p8ODkfdWYUbXKkqnIuNgrWFuPKLC/M0iIKvVyjwhNR7z/SgksZ0ChjQB4X0xPZWpgYlF58ALkQDfDN+IKCE0DqmU+b3Y1fPGGA8K6ylFTmWoVrreUnZsFvK4VwrYDMDCmmJUbFSpUiJsF8Q/7YOnovptLl86rbsqNMaNbOL/ADxgim+F2W637qzitVvmeDcKwW6rFaq5zK1lcK2MNiM107Ncu54CkzVykhZQqhGgti793GGF+Wxp7Vgb6S5PEW5K6NV32UBVKz+QTnHmZxPnjNnrgR3QHX2+l018zl5IntsU/h2/iu7YB78ZvnCya7ps229VMqHcAlD/AFRcDq26gGRiS4w0KpUb6Jhuw3zxm+cIJ2bKXIIRsXwgKW6oNehfYtgQjGoRNt4XUt5qnSrGC9Fz6rWt8p1H4ORTPqd12afGZ5VjdM6IK+EBScIx1w1WqnCRqvqelBwMq2EYEFlzoqj6WoEKnfS6dvegJk33duj44R2Gjut26YQNDdDHPUKMLMrsLT1CBzSFZXKj4e3dTVrlfUqAn9SEFWCIc4BXOYHotyflpjmnMCMGhAPbbNEpjp0PJVAdHvlAzG6qjv16JjTybt0P28ZnnB3JBjrhSU9zjutW5uqGvRlwhSAhB8rddCiZKmNUY0nREkwOi+aH5Y0as+S0Km9rt/mEBXZbqE75BaSE74Y6OuMNPuh80B4TKbTZOo0hmg6lFriMx0AVNjvuqjRbK1UeZIvtUP28ZnlQjlaCs3Q3Tj2wAGi0EreWbkh1VleVHNbyLbnoi0nIW6oNAkD+0SBHZQVOsiFTLeblDhBAT6YvGqfTpulk5oPIJmUTup732aeSFTXonvt56r4jJMzCaPiJtptUP28ZnlWMBGXQqg1CaBctF1k0WkrMGqEOgTXMum/hlGnG6eZTv6KF95DTNzKe1v4isxgIw35ruyO5bVAkWTXvsJt2RqPdyT6rDFQnmvrNyuAhf8iZLhp2VZwCGbe6K1lWJvvFUQP07VH9vGb5V1dB8bhsn02/+TQdEfmDmrCFLRmAXoIUEEBbpC3XBT8xsqA5zz2X0ab/ALr6jwzsFvVXyhncYUUWAJxj+EWkcl9V4FJt18in/ibYBANccrTP3TWTldC+XTdlDBBT8zpdFymQDA54Vy/qqX7dql+3Zjgt8q4wk/hug6neLprsu8AiH2UKVpKuwL0LQ/yt2m1WapV1ZWUOFiOSsbckb9lGpTpEZDz5r5tJ+8E4zlYR/ah7txBred7oqqWQ4ToQqdSmI3dNkJnjjN8qTgQ68rI6wlOy6FNm6vqrqystVqruWW04bi3lJR+oGnus0If9r51R0Xiycy5ztkFVM2gVNrTvE7ybVcAaDbQVYKFW/dtBDxxhhbDMG8oV9VZFrjKssswAolbh5LWeiaQYK3iu63tcMlAZnlO/5cOvomWhsJsaoSMoGvdB1X06QnZHZabTCDabedgmt/lXRKredoIezh9oWiBCsvp64aLfauimobIRgLwnZXGB3UmpKy1HFzRpKbHJZ/S2dFP4CLYZz6kMDKqnW+032mYDTA2ut8ROO47Kr1CoufKAZCuVuvXyi2zhqq9R7ZYOaFTIGj/VNtYqkOSAZ0ugf0hBzW7gKGLnIk89oe1PQ4At5IS3VZ3O+ylik2UZoTXM1RzadFLyKbZsvpvt1TqYcGSYKqU75p1wJ6IgOnko0aoYhiKLT52xwf/EACYQAQACAgICAQUBAQEBAAAAAAEAESExEEFRYXEgMIGRobHB0fH/2gAIAQEAAT8h+lYsX7IagOPixR4GDhC7XEN1uPaahwI7hPZC9j7P/gDB+0sWP3w1EHwtOFSYQ78OSQKy8w4XBlynWILt9iq0GD9hYv2R789n1XhXuM6Y+UJYeTF47tkmAHmELV8AweBBI5fYt7Bg/UsX7w0qZIfmXTH5hvqe+412wv3E8aYe8PeHZxKB0f8AYqD+YIDuDL5KQ+zAtgwfoWL904VAMPM63Bd8TsX8TdUXzHomMjPOOsyHUsAWoVyMtUhRaiWZaOjlmMNkWXwrfaKSGDB4WL900Vh/2cauoh4QCAYXV3H3imYxe4VmEY0s3CcddSvYmSo3mXwCovYuOyvhir7cIscGDFi+5N6otsXhlG0B0VL1Md1WoniVcssTb4iPhUz3G7C7EoUgvzHyf2Kguy4W2IdGoCYYBT0QCyh7iY26vEK68Wf7L9TKDF+zLWHh+laYfKAbsj80svI+WJTbMsu2U2HMYjauImMx0SbDqD4mytQb3xtH1c9U/bDRAKX5IRhOq4cv0f40p+m0H7JNUYuGyP3PFF5lHojlaeY17ueYmgp5lNnG4/gASo0seoRvUuj5mSkoHSWa9y450n6dkDLM4YLNSidU4PdGaIEL/SYpl+oAin7mwOBUyx4sO+WxWzaMUJ/9nQJfqz6RBOkLtDyxIaIBDG/E95ermlPGZtglRXmYRMEyuWpQsgQD4iAzHuzCbu5gGVjvGF4ZefTMP1H3QvJ38srMy14LeJRMN1UYwq9yzE0D6i3miNyBJlDbF3BS689yzRXyYA0Z+JmOB4jXrHmM1ZR6ljGYf5AdrnbEefkjY6fhwdCZLbqKODHImCz3AwFg44Lvob/xx/cJyV/LHcRzFKNRIJfETvMRahPIYJSAamguvmJ1Uduoao9HcvZs1/IAbfxNpfxBISyZiXSmgz9mVs5mT67m19Q4fhlzt7JbbBxHcUvWfMDUFSnEuKOphmd9Fv8ABxcX2pYmsnKetHLLhj3jVtRqoalTy8scF7PqLwoO2X6V7j05xVOs9zrrLOHEzZalAh3MH+wy+z3H+Jc/0ymeXFrZPMwmKNxoMJjEJVipgiGF+p3Oazkx+Pg4/tUYFLgd+oMDssQ6PrDNlv4yl2VPDiJk2HVzLQxRxQfcsdRBa/bPIIDaHq5gmoYYmDG4KzmKncg6RXQQZEwHzK7VKZVUCvmC3cF0dn9mQndAoNxLXLxFnlX7iCvi5XHF9ZwTi59LqWplnuJIq2sFdGIbKeolwtEF8sqCuiGWHc9mRZhSi46CKxBn7qWmrxAOoYjjNYuAy6iLqrmBq1jFUVsVm5QtNRxuRh8ovMePKPiu+WfzfQFwH0iJxcwiZPRwKht07jlY+Y5x1M+sTEuqjNZIme8sxVanqWmDRFywPSCkQwqLnfmVA/VXE0gGoiu9HqNFBHn9Vbl/47lq8DMlbuOagYtaIjwYbCC/UqCP0AlYek/g5DgMvksEcUUXAQtzOKmdS0xhYEVmqiH5REFe2K1iyi3DdTxVEEemz8ROgwxGyVKojfLqnmS7lCcjEqh3oi1ir2QxY9DuAW8PE/XMjxcZlYJqDKGXmCNzvKO8m5iPzwZpgzxhwQIEIQYPA4sRxRxcAxMJtHYw1AVhANgjRt5Zu88RciMAKzeJcSqIDZBdmL1jd5uV3su43XBUcAZhjCPjWJT0wUqVSxMQqxSMgNdx6MvUy7jtGIXcoJ0mA/MUWY7+PBiBDgg8KOLEXM88NC/HDIBuEuiwjv1C8nVKQ4eonh5R6GHuYzA8GygF9nmKwin5YpYqmphqNJ7ruEMAksLtLsb2megzB04PwEwdp2HcpYV3BaPdcU0MVvhP5RX5TVrzFBzMB68zghwsUeIo4psy6yl3ebiAxFUDiBwHygXQbcS7YrwPUE2cnguAoL8iY4/AhNYIhMsZ9wnW2te2GKF5gUShgwMyO40VKm4Zpww5gGFolObVjJPhaxN0Cm5VjuHsxN/ojsuKLMsIkRhCEGEWKOFwccvKxfaQcATGFoa3ZCKvZA75lJiANkKQ9M9CZQB/zOxmXUhDLbGmo4ou8R4qLNx7kFE4XwOaxGoq2fmYL4hn8xKSOg6zcCKNTweIvhwOpn8nDwQg8L9CazThuERMuANTeoBZDiBFQsRcfiAjGZ8MKmoWF+YLPOpcySq4CP8AJdY5Fzbc9uo9HuFpnuGIkJuZ0XP8XfFfTcY81zPgQBX8xYQz3YYJqcZEOhDirjcDwnUJUrjaLRiV0dYjTLDL4O4tk3hA/VG2eIdCGKqaQZn8TLly4fSforRnbhzgFcKNQrPaAle+NSpXNSuE5ZeYpUrd4j+AcEy+cdfEVWydU2+YsUyxuCJ1CNistTdlPTPKoK4t+InS/UG1cGgGMfofR5OI+IeA6lxiFxfCpcPpAgB0REfEicM3meJe01Kn1vcVnpPmHCUie14NDZwX+6NqNJuZIqjLjjji5lEiszzbOBpMeEGqguhzDWpSU4WopcuXBMuJy3jlEJ2gYQViROHGlQ1THMGdQ3HeMwEwdCewzYu/MowP3vcR3LFMvRMP/RGQO/8AOee4YvU8D6A+Lqgph/aDMmiYwaQXCUkLzWNpgzOfOCQqNiWzHc+cFgWbmMHiPCpPs2V3AjvHBO5mA1S5+FrRLGMcQVLPAX+8Cw0NPcAaD9fQciBC4BMG4axh/aCW+xKajBLuzqYA7zWUGwD6mzab1AmxlFICWSqUMAbPEqWg+WUBcZpjseReYAz8axNK1awmkC6uCgGGMRguBJLfcVTpluondMBOvZcQDTEtgbfcKbJ/3AMEBftG3FSpUqVEjDBhmLMUOA+4YJRUS2jjHctFbwpjuW+WbQB8Sg+MQjfV7uDTfuWLRoxGukoNobdZcs6jxcoTfmG2teWFUSPwZ3WeLZIrFTbbM/fG7mSFvqdwb/kFk2oHRECh5SswjDvOr6J3AWoNBiViorQ7nQKQeIGJkIc1KhxUSMMHmyjpN4HdoFytJqDXTvzMLPyhjCu7/ljzPWDU136Smqkgo8SriJeZybSK6KvBLFjffzDNR2sm64wsXuPhhRf3ZXFfibJ70G2rbNFypbdtYPMwoLeDQvAE/wBKJQYGrQgpasumVE7i2eY4dij8QamHwn0VAlSomIIYEMMHtCYmAY3K6Cu0YTovxmWNy0OollkAmtJ+YZNBdywAowCVeE3RmoFqJVpAB8UZRw6nWRcQA3XZlAYV2vtncHI6qrKagrXRQJDQYwQM9RUoXFDENukvHmwsq01vT4mICpUrsRoHqFIrcxCJp9y6qqWw6n5YHKoEIEqDgGINww8T89LPPSOlkFVoeZ/5Z0C2yC9MW3wlgNBZUoyAj2FdawlPU2zPlZGagY1sF0viZFXQJdst5iubVWoFBg6MVMKt1FhH2QN8qE9cplumbj9Ag+j5JqUwwToajnnR5hYutxiviEOZ+pQhCBAgSvoKGHjdCzzl2uBW2I09OpjFFyzHwJQh7ol0tNI/cC561ALHwDbHLYX1HzFJxYOBhIMQozMYXpHn8RL1sPiVYssYdzqshGZ6MoEN4J9YyYLyhFN2WKS7+Uj2zWHMGaSEIEECB9EA8uMrgeOFDeYrNAQpgbxTxiW1LPcbtq5Uagx+eJ2VNS6CNQGrzxUB0+I4Nj8SrGCIyVYeftkds+4TRzCzvwFCo4YjJLIo26f+TKtx+Sq2mEdFSNobgvbpM0mbMfbBBCCCVA+j6N8nx8wFdNTV5KmPUoKIC4MfE8OEodTAkzxKCockuYNyppiE2heEsIMiMuKyDmOo8gYXv1Oig6Qt4Sq49fGCYJ61i+epmHWgccM154nAQQIHO5kG+ar1qSjVqfAWjrc6TQlhB7h6qFaZMTcrngJGO4agQg+MCvpNeDi0B7QUKFcrphi1eYyFREQev5uuHZHmUeY4fQBBDl2ZBh4uhji2Z3Doj8AkHMHaW4oEjyys9k2VDmNwR68EDzhMIUXYp9zUsB1w8FYnXE8bF2g2IzV0PEZxx5l3tCcsKpBa+Jrt2XR3FLzFmD9qAQOAh4DkuTDh5cjLXrcUNglAxdRYhM+IuU56gDuM/sgOpDMMUbmsf19QG71Ep9cEcaGatZiQmXcbQOoqNsy4SXuU86H2Q6IqTCTXXTKqkw9Q00LbM0DhpT4Jo4MIoa9twgQwgQcGDhzIMPDG551YxbI28w2A2/s9sygtQ/TM3tsptEygAWoVytY5ZbqRfaKGksxRfUC/KF0uLho9kHmA7IPMPuUbUdMygNMuqjcr6YHO1BH8zLfAQSsDVULnhhLjf+xSv7j8xa1FmKe2A+y0EdBMTwDDMtUO0y/0ZqA1IyOrlUjvz4isk9TDsCMpyXQTBdbS4wE3YhUclz6CALlNrMx/j1qaPO7MVBPx2QmYO1Z+VLhS2/mLqE93/sQNtJi6JUaW2X/iHhpjH7wdoUyMv4nZMyq02q9IANk5UeLjrGaOC5IoKmF8kOYcExcedMLNsqUxrqcqGiGAbGcRgrKwQkxV5ji1lBe2YoAd0QCht2QXwMqCukuqjiQOnmU2Q7tldH5p7TLFlmyzRZKMnhBbrWjH3k6LgVklzaiT4JPgpZnqIjXddzMsc7HhL2qdlkuyth9EW5OUxEWTqS97aF8bisFel+IHC7B5h3mQjuHmHMoy7MrYAmPpqtsGIZnzAzZMDHa9phGBrbAwCs31DAcyDsbtVy0Uyq0R3pvEujI8moxXBS6vD3LZWTGtWolNwzVGl/iYE7aZlfFgRTYYovCVcP8AAt+kXlLleCyO/DADVV6lLvZCZ6oy7o7HolO9rsYGZgNy5cBnMGOfkniwUHxAUG1yGMfE0TscDJFBXWH0vpwV28Q4cyYHhwM9HU53spQ6pKNzNtmYNIpB2xiPbN7hWj+BAFF33PC/cC3u6WdXx+Y/Y3tmpdNQYsy1M9JKaDbTHVcBthdrFGl/VxD/AM5KapouYoBmtQD8o4JGp7gxxi+z0S4iQMSQadRcqldyoDZqwrQsaOonJjLSCC+N80J1ykTxh9FoKIZXwJBLnMTx7o351GyQ+IN9CLdbR5i04PzIDvlA+CeIEdtTYuPzBlgXkn6YEldR2/qFLUXdzP8AA51DNE96m5DmCNPmJj5O77nyiobhya9+0VGNKqKiTXRpY95mwN1BhgnGVRsfMK+m5ABsH4iWgOoS4pqjuDsA0qJ8LWaKPoT5yUB6EH0LO2nEHCTJmKYZhZeUPVTCDB+5mSrRYOsDKWMJg/ii5XF09MLAYfBNsfKyUmVKWyfEqBWeYrKHwTWeO4Gw/EzGsQDeKgSXz7VsBTfbJmvwvD3ApCuiNzWFeyKoGm6lw2xYW53dkMm72diZl6mVKzsEU0cFdM1cSyeuXfNKA8GHOFT3xCBwwcl3Rq1agF8E6xNRxmGWApLNlzVTHhfzL7AtuEE0hadpVpGJhKfubasexMVG/JHDK/cwlbqKRLJQRDLRDozXCLXxKFQ1+EGwVu2jzBwLUfUCyLyaGGIhidW7+IOVE0vRKidKUQzWqmXU9M1YnR9yv40OLpbAVbwBA5GObws6LuX9TJULdBK2uOR7l2dkQVUncWbbVxpTMRigzcR7X+RWp/wxtbT26jZyM53FvDp9wmKuniBx+UO2Cx+7gjOr7WazNgHCBUaRj3CjtE09KOiZrWCdpGypbSAJm1+Uo+0WPVPnV5hJSCGGZJ6eHre5+k4KAtju64Ah9DE5DDrzFWZu3bPNFCH9hWW3eZ1yJcXp6l0oywtkzfDKGNPMpiBUsR+Uvd1TB9ydsMYNTGsO2J2gUQyMXVwx+KhDGhr+43NGFMdA/wDYVL3dy6YuqkrwJVQSlUwVprMUxCTGJNGOD99NEqsxbeuIIH1JE4HDw2cSpiL8zb4l9dSly0K14Co32QnCRsEoR/nmQ+dVCszWotESBus1Uaw7XhFPBsRV1FRc4P8AuXycjPqK8+XZNIqGBSwaJaIyh7mdPWvHLGt4Y2xK5SE9MrazPXPRP3swFsReuAIH2GJHKP0Jtt6mmeKZGsQsIE8pnV0xGwRUbyaJWX1P3ATUrqElYy12TYCue5DUhO0zFa6O2L+FtNkFSwqWqKm9BAD40igdiwzzuWsMFhqUQ7lSLLXCbYrfwltTTx6JZx2qtRSzrxwB9X//2gAMAwEAAgADAAAAEAHIErDjeCgFKCLEBKHoWvLnLAHPKqDMQLsKJPLDLKIPvlU7ItLIMlOhRqgECPEIACIKKNDuSwDvCqEhdnKKIBACPHCOIMADIIB/KmMIcrBJCENNDMDBOKOJGIJkEwABxOsJDEICBDNBFDFJMAHIPiZMrWlNJBKCKHNPAIOLPAIJDKEAbcNDFINFNGHJKPAJJCAPHBOFtinvLOCBOLOFKOGAHFJKMJFLAGjNDHPODIMEACJNIGCJKGLCMHJDKBLFNNPJNJCJEAKCENAILJMIFNAGBDLOMPIOEGFMLJAGBPCFMDOKPLLGHIFIJKOBEEOEGHFDNNLMCCEPAANFDDDDDAKHCLJIEOCOLOPHBHPDINDPJMDGAEPABHMCDEMBFHBDEFPEOELKNGJPLODKOJtrMBGCALKJCCDFOBBCAFHPFppfCqNADGIKINJGOBKOIFHPAMiUnXhEMEHPABJBMFBGNHIBIEifoDgeuHGMBPAANPFDJIOODEqXHEBOKHgBCDDMKBLEDNJEIGlARPIiNGHKmFOBNFADAKGCCLgITIOsFiJtOcuEIKLKHDONCLgaPLILDJDvOFhWqpMHENCJOstVhCECDELAAsLMubhHJOKNBLvWpGDunIP/xAAUEQEAAAAAAAAAAAAAAAAAAACQ/9oACAEDAQE/EBx//8QAGREAAgMBAAAAAAAAAAAAAAAAAUARYHCA/9oACAECAQE/EEy1FOPJIy3/xAAnEAEAAwEAAgICAwEBAAMBAAABABEhMUFRYXEQgZGhscEg0eHw8f/aAAgBAQABPxD8rF/IVyjzO86bMHZZcsvYGzV38ffZS9l6KyfqiHySk9wF0NyWa9eSYxlDNhcITexhanyzERUeTjN+zII83wxvTE+b8XPfwcvx3/8AgwYP/pYv5Gr8NfmdNnbZ238HzQAbYO7C0udBYbfmMebJ2lvcuJfN/MUUspYW6hChjduyCteMI4SrtuvcCAj9eYsho/EeLBN2/qP+nucdnPZz2ct/Dw/8ODB/8LF/BXKJ2nyzvs7bO2zvs+SUXC6XN2Xy5fEHhj5lFVnqXGR4J4UftgUvJhrfmVGsK+4YNgAbLqdwrhdVBlh4T1BYQl2R72cfwn4IeYADLnzTns47PmllbLalv5wYP4WL+T6SqfJO+zps67Kb2dNnfZk7O2yzzKrmjLtVNCMEQp7F7AcX0+JXmkZVwmYeo7LGOWnkxF3WUyvqT3DaSzUYpSu7yV5s1W58I2glV7Ed0Tz5CqOdhBPb+Zz2cdllbOOzhsurZZU5/nBgxfwVz5J02fNOuzps77O+ztsu8zTsp5N9ahTLPzLqQqEu2MdLgVTHuJcBaTpaR6Nr8xKxvEfML1YbNmqHxscQ3BnFCMTBBYmc+YQEfFwQOvTfYqAOg3kvGPV6J4WEtJ9hWWVs2NnPZ8k57OezhssqfP8AnB/JUT5JTezvs7bO2z5pReztsfaZ72ZtsqUIrvZ4NvzEtekpHDDfBv1FLHuv3B2rE01v1G7wOkFdxms//wAiiEL8zQHlzwFwUgQ+N5BFYo8jLXSfLCQWnJV5XziGXb2nT7lvbyVMVlaGXVs2NlnmctnDZw2X1s47MOyz/wAYUz5ZTcovZ02dNnbZ22O3UqsZ3pya9lxLZecF8s6kXq6JqyQCt50LjBFUeSopq2dfTEMy9+CGLfN+YDdyqbi9Vc1mhw9RRVV9+Za/jsVL/wDhErWnacg1u3xuKuDxKkKqtbma/wBFmR652PWUlL0hh1L+kfBRQrElTXhmAXMVM57OOyutj0N4zjssr/2q50nfZ12d9mzsdvZizwftDbshN08lb3Z1u5cVc7Ial0H036h3tu1Wxbv5pCMQjsaxUDvgmxGlXKY9vixCqJws7Kb2GrGdlY9iXZo/mHZTKjq0t78RkoCMbqJeNQ8TFFkh4vsDa15gICV9pePE9McyeI9IRiZb1jUbUxlzhsorZz2WfVLhuTlst8/g+b8fSVztO2zts7zXGfJHFTOtsvPqVK6fiIqxetmoVlyJcRB2nYiVs+Zbaql812KAdwhWeMC1zd0HAf7FYiuiqv3AgX1N9V4PUCB4JWSl49QkjnEqKgnuKCBbc3x6mgyvC3PKN5C2a32o9bbqAbV2ZLaVGoDnDBfO6t/2WZLcYa12MuN9nHZVU47Fu+JbjGRc4zlOf4PmnyTps6bOmzps07KG7FYuqlt7BEA31CeORraf0RBJXxcZA2Lm8I9y6vkFVgl/tOQVda5BIKbSrYIEQqlvZaG310PiOUBVF6scKVfmFSraV0l6Teh8jKI2TVPD8xAuByHCF16g8olfEQABavSWga1rr+palIOZj+4Ac2yU0lB4Y/0+fubqdna8TzCAo8xxbdtX3O2tzSX4lNbGzZw/BuUsC2UoM4bOWz5/ylV7O+zvO+zPvmCipfMZs2pfpj3GFXUXcCX8xxS94AUNvqKV5CzdQQut1at+4UmnjMIqQvYqE1pwqIv1lLRbFYhMb3cShD8CJoWq3BhYgMf3AdWv+A8pUiw8fEHYC2yVM3yfUaSWM9JcbpcqoTa9sPiV7YPDly2W+I2Bg7XZeNV7UqKFBXxspxoC1vyyg1yMrdZ4mBsprcnLY2zmJXU0JdXuct/Fz38PSYM7TtO0SsZo4S27ZSlX6itPPzCF6PiBDyfUEIddbg9H6Ig29m8+513EGCxoIj1cgcWI5B7I7QSni3zBlMPT/Eoa/HksagO+E972viUy9d9zd5MXcKiNqLhdxZr/AOoF/A4+IUBD2IK4L2wIlbR3SyAoU0f19Qqw23eywCsGNh7VcjM3nQ3EoViX0QEDYy6x0JX5yVUeJkE/qYqnKU1KkfwfNMWd9mbs7TvLbiWZsqw+sBKoX2w1aaDJY0P/ACUNhOZYq7jtpGp2V2LNqciXXvkRXGl2YfEqK2bTAIWdv3LkJBfqXBGxNcH/ALFW+/GXb/fzc1ksVBboaYmrso+UvCJ/pGhR0JoxEFfTPPIV2oprGxXkjFsoBfiogOw6f5CTKLvsCiolAOkcKUe7jKmjuQKO28wlq5Of3OL4nkOoTo9r/kfJRX5yrzOezpMWYs7zp+DrG8ZEwVbyypoa9bBCY+0Q4uArdn7hcEDn/RJQaQy5MCSKgS/uU1C9UZ4El6qGI0dHP5nnRXTtzGyvBXf1N7Rwf6lKD4BK+w3hUWh05RHTrqgfE13GBLuEgAr0I9h4qBJXRV+riUEPuvEaNyDT3AbA6uGploFniCylHVgagsqbAcqhJWDrOQwsu5vbUtT1Ueh8zQbyXA+R/sr/AMP8nUX5HGc50neZs6TpOsfYwxVRZ5m2wKq8dlqrV69zC0f8j3+YhHYupKHm9ES20LrXCIzIU+4YDYt3hFoGsmv6gsQ13sAtJrRZUVfgWZLMlxABqzs9gV1BSy+pm81ZzCKyql4bsr1DBJmCwCgBrD8eNYfhMVqpopgmg/7gBQ0VnxDcK4QvRbuV+1eZqfCPZvZ8kqD6/wCx/wAD/JfPxdfmKmd9neZS651ldxkdhl+ZYatViM2NHYlJbkUa/awCwtHDGo2b1XWEFjDdS6UAsI61BHjoRPQTcKYEwg28K2hUUjS12MaAqlUeP3HGjoafcEPCLDCOAusToepvbhO3Egl9EVmxdi+o6C491Chc6q2QVoi2o6Key/BFsltWDAcYMqHtWaLJaCkeMtlFxjaY4ldjB5aTL4g+W31KadQ/uH+BPD8DyL8Ri/x9PxO8wZ2lN3O0aygDzkV6aJ5F12AjgaxmBXo8ywERhm3b6JdwPD3CgF4DsARTQojwC0X4CWcdRchNriK7uxkwjR/aEhcFJQUcc7cUaXa6+fuYvqX2WwtjZ5+4HYvLz7i+2x1KJRW4QbHuGNExl0GzgeIbU8S/E3db83FRUWv2Qrl05ENmlP8AJcLgfaWtg8XF02xgf3E0RdBf+kTTM/8AFX/4k6ziudZ0nSCFEcQSmOR0TBjpgOdiEbBjCx2IC2uS6Jljdv8AEQIoXXWfMt+2N+H7lBdhD/IYKCerYEmWqNgi4WBhUuqF9Zj+4DXSqr1EwnKvFchDVR/keVPhnYKIt+JzApRTsuLwtDkAlKqq/wC5UFAwHGHMIpd7/wBhDYtCuMCC7IJ1VhMrRY4xEgt59QC5QTbj1CyKiNjeeHjKQSgXUrh9SonzgxzwQWdZZcq/eZNR4xdm36jVo2o1uYWq/M63XzBKlbFl2sWr6gPGzV+iIRyAHWIHXWM/5AeB5mZ6JvD53mewG4eVjcAoqgmpM58vv6hwCkDq9fUogqB4BDAargnWc4dD5S5cgVN2sWpLiicrkGgVK+YUht7b4gvLhWQBQBXa5MZV7gBOzdaDfmCYKtMEvag6bPEcY2v0w1LsW1MEwFkZb5amorG6z1LHoe6DN7OFxQYooP8A4g3E7VO0VpKJjeQRAF6i35OvipSpQ8RkBdVkWoAZsyMwGlc69wVZCiR7Xp4ZBtodeqgAwfEwmT5bFQa1XvRfccbhCvt8soH4MOzFqNGdlbbwfaiDXDtxwAZLGmyrPA2fUCmyhevMbKhVNNwgomxot9Y9OWsCEsCr9RC8nKl0Bs7nZi1BN+4324z51bOE8TfuANtpKCcEU4i0/Ao34tEZuKhlA1MmorzKGUwodMFgNUgchtR+clakXb4fUNR9EeKW9MrE1XqVMJVL7DcWZ7GaD/M36wDZF4ucJo5kQKIdjtRr2DDuBPgM2YMsGyx8kel0Shp2Atb8QkWLbfMNaCo/sQsD4P3Fo5SdgAZ7uIslPojlQW9hbjsdfOTxeHIuRB6PZ/NX+ohefgeIvUVks/Mo9fcWMdqdo6IaR8sv7U/qNQ8vmX1dXvxEGi4QCKuORA+ZirzCIbhdFy4mzRfEzWcn9ITo3UaeiVUWSvDTynDeItu5Dlkp6gCBa2I1eS4a1d+xKgr1G1vJrWrb+4CeI8vcIrKCy3GJSnBM94AWX6Z1G6wfc4oZ6I+Qaq+wn2D+o1bXuMGLBgwYe0ccevuOxmTMGNV9R5uGlr0/cAB5yG4dg4wFK+IDpdVCCavuJVJFbfxK3EqJouy1C7KPgiZE8iY6pUL+UGv/AGUZgyac1hVDGEnDszE1bzdROEglfMXEt0Jcj/LE1Eyv5jomjDFVuHfiWw922ELwN5UWPMsK8SlPw5/ELrce/iFtigwYMU3cvdi7OGIgsjR2tjpTMP3Oob4iED1/MRXaEXEgEE0nhiBAKUQD2YlB3sQ5ARHSWUbKPUpHkIq/cX0lRDibL1YDTzUY9pfsSC6n4byWdhklfEKBV3IqFUeRLGhgp+pzDzSuRkGqXxFlCA+2VwpElF122KYp9Mqlj3aKaPqDtL9TzT/E41/xHkeRa+55QqMseCbEnD7mI8RUVCl3DSfJKy1VGtpjAYQWj4jsW2NPE3zZdS4nNhby9hzbYAhBTdAwlgJ4qNh6lh9xthyFL6Q5nTWzv6lKJemtYzPFwOj6D3EBtaeoCS4e5gGVXbnFLO4e3/kJit28eg9jC4qCUj6ldqzkNDY2aTjAH1DsKycqmxswI7r8F2VOx6NEHcl/GSjZ6i7MH4WOpSVRCpdzvueIqvU2hVTl4XZgIXGlti5UuGxfqHtOslWGB0SmVtxL3zDnP3H7lnP4ltPiFclqFU1FNXBDcJjAL2ZxPX3FudezBuFbCdAJbopvkJYAFz7fEAL4Erdb+pX+CoHT1CbS1NC9RTtL8VK3stWMrqcIV/PlRVZ7ZKwpnyVBhbJRW/wHl+KoZVc6RFoXcsjzNfWiLOiErjo+4rZlQ1DqQQItgBUbWBAAvPUF92clweLjV8HzOdJq9jUsR/DkB0jXI8lscq4Jgp+ogA7cAPJYN2EPuW6sA/CMSGWBw9THXjs4AW/6gH3aDMyuQjYuI/Mq5W5isAjZuUvj5eVfJYM8Sxy3KX2YAj6Sq4Qv9RF8wQIHqDKHIRIQS24Fwuh7DVdjMr6MfpQbUIF/aUgS+m4ftuvSFWYUpIPdSvjuuE9XFUQ6Xdhj9GWO0+IpQv1G9Tj8w9pXlWWIL4L/AOy5uzvglBcppAiftgj2eI6CjwYRFZY5nT6jd6JZd/fiZoPbVkLhPKZYFZNspLOSgjgNMPdw8qWE/wCxCvB/2FBrcKvYmzvSIYfCwOBShypUOGRADsEuuWetRjiyDWKEC/bKGIjD8B6Q94RlB7myivxZOS5J0m0YRtZwP9wFCB1lpj0tsoRTgpahpuerMB35Lj+ZQQ3TiXIrDzMWqvC7f/5mwCTzAfUAh4igAavfMrhWicyVvLK+f4isWdpd5MpIO3YIDqu/9kFdIKV4fcSLyLn+Zion4QHllGLTbYjDAhjTxD8v3AT0v9S9oTWi/EpQDUh43kwQ/coy8q2D0+4RVy08Rv0epDU4VApNFyglAK8qXDT4X2WPrA+WU+ZVwhF5BA9QjKGbGdoMYQGMs7XnxDWPZL1CPrGuzsCqgdMqcQnUNb/xHg1avUTNI8HQhUzVq7L9whUzJY2U1g6nuUoLXZYhoTSoES9+PMcWQzxGGRojb/EtkqhewsypVQAdgbYiQrnzNIHwXH7JssNT/wCJdXbwoc9y4VqNOOeGd801uoF5GFCCSaz2PEQLjVGC/MZQ4FusA6KQbdML8hLlqGjvk9xxa8RT4gJi1u8lzmIf15gMMqe1qbe0qxO2Md5LDsF4wt+Ek/PIWPmUXKrmTMEtQCWCK2DAaruVgRvHScgWEsoT+rzvZuVjXrdo0FepdX9XZ4Ry3oPFeZeIqrMv/wDsS45D/sOnMGBoDIQFt2YeGv3Nghi6s7KYDlkDR5pa6HnxO0YTr80rxigUB9/8irposCld2pfnRZFPIkL5UHUPX1AqtMIHRKWX2KmuzsQGD4YmdnjxdEzNfgEdZjM1wl9FoPA9RBolPtmv8NNa+IB4uZrRR/cUsci2qvmWIqklXh2CJSUXC34Bc3ITTkuu5XNZHaZNw8vLUI0qobUUyg8setchyfKe3GSmcU35XFTFxF+n1EkqC12NSD2fXqU1xNrsW3Ju8YArcZGWTH6O8gJopSWXGdWryGC/l6ubRbuESot9C1YnxLvsCNJ+vUfdOqVn324VQQUFqHYnCNtNnfHqGoobRiyKdiXSowxdF3LF6Y269v8A7Bu0COKf5BNgARP2Djp7juvSB8QujAfuMyCsehbBVPubWVMGNz+oksl2CXRvErhOfPwaH5mLO0OMKj4V/qBsgPPqadTS33DTm5dSkquHiCJF4GVKSaHVEIjCTaREzX1xZUW35OI4x4fKVgK9wBrC6YVvmXBob5PBgkN2eayIOj9dIWrWtSsn7UB/iGG5wIS+OKLz3k4YIWLuVItVqKlgp7yWRe5xFI8Pj8aw4bE0ID8wX7a2UUCXfEW1mllRLCUHA2QiRCDxM/qW477lWoQI3NzTDBZ+Ly/kMWZsqf3MmDsGRFnC3sHH7WoTpecIR0Dp7gJf0A2ZtXzZyIhcUoRBrP8A89QqSGiePioXiB/cYW2Nj4jrDYQ637+IBxBRWktlH4gcIN4Sxiy8HPiPCCcMXOMHpsIdd0PEodp31+pTOn0CvqDB8jUoaQdFuPAgoqqKneKG8yolsCnqk8fCcD4RJlAaVZlQ4lrp5YFNAujzAenQcw3+4PDrHRAqOf8ACdXLC/cNtePyR+Lg5KLlKfmYQaucMt01KwsEVyG6WpFAUDzCpFemMqFdDyjYIH0gSyoebhUkvywIpquxmSgMGzn7g2mly6+JdLIDZlDauBb+PqCq99jBy6h4g/iB8orxLV8I2XHOzuRcOkNNppqXJW3ld7SLSBljHzXqC0LeLmyj+iC7AAtl21VmtigfuKAqi91uVUPJ/cyniVLwT9wPBHgXBLu/iunxzFyaclH2TKBjHjCJboD7lhOCk+IEbUYvyQAQlD3DeGBKwalLAw9FIBLzz8RnlJ68wAaCtzCNqXdnITrAiB5SlG0GIBG51FQX0IvBcdl1XxMi37MiA5GfCIpPcaieS5knowiGk6CtSrl6QYxu12CEEUL5K8sA1P1DipBnaOI5aidjZ9RFMKP8zLAwe4fxW8PxVDO98lDV5/EZH3PkEYEfHv3AsmOot5PT5jO7/ZKSl7KhviUTtfEKpF97FvQe1CJ6JYekWENONRnePiNEXOJPBGUS7wzkAVE1Bnp2w6homjkB1fzL2KOQx1/iECuMoaNRDbS3aiKUWXp8wihZ1F4a8RD6A6LIQfAX4ZdANeWB4YXwBexR9lHXg/lVyivULB81MEsRMU/uWiYQrWTlLw/NWDk+CLZ4ElaQYza+iEVPDJ469KgIqZNqkYLhXkjK+kDtAh4arl+WPwhxa6g9iq4BusHEPgt33GlpzWGgHqMUeXkuENGAA+P4iLsUnjYcWUfDV1GzTdcE22E8MARLfUDh2LKdp5iNSPNXBpa7NMEJKGqm/oPqPwAuBQ4RfI2e86JLtHrND7Y8WbXAP3sZF5a/BHgZgfm5c54hZmtdlKR0+Uv7hwDsRqcrmxU+H85qmDEBDL2P9UGMaLRiTQ2PK2a1LpxDqK2vtLFHwXcQbDcXN0Oyy5xV+PcWShb1gKb4URlRDdrHVLqsSFNjoXLoF9LKXgPJGxZXlmotdFcFQ2rsJ0alpWKeC45BxbWf8hMSxLXArGkfVQjtwQ7RX7leJTKjUVIG7WFGNRO3qvuAQFJtQLbgFepVoGDPp49X2IUKOo2pmV9m7MYbAj/WOjyYordiK0KIfFxvDfuCmoLlkMD8xgwNyXXU3s8NKBz8YClY9qhtfgFoqFUobL5liLea+YZ3ilhfZQizKztxq8X10+IXVE0nqFPfWGETWVqj17l6GoF8MUNl8riJY50Fx4g2hYr4lWMhQ0/qAD1BVO19zGoCCs9lwIVjiB8fcpnasXeeYPAFKnH49QXVYIbBePTCNHao6+z3E0jS9lx4eEVGANrNpj8diGRJrA7sv3RxhTnwQPl2VdNJUFKB2vB3+43KrWurKW6As3uz5EEWm3bksLs0u5ybLux+DjzAdH8xLpmRk45OVn4jh5Ylqidaln2z+PmUZmrSoCTaI/zCCQ4eiEgCp6c5L9ERoxSRjHgfEVCVsAMrc3UW2stLPZeSDqzK2Ff/ADOqwLAQ5Hel/QlrcpwA/UI2aaYCD7Kqvv2fE8vueqPRKItWuoLcgkQsAJ/9wa/eb5PmodQZfbd08kH8yP8Awm4ttVPevUARdtoA6H3OIoqliSMbv7oH2B7D/wDMal8gHLkLx8BDowybWrTzUvQgysUwYy+fw/D+Yzv1xlO1HVGlZ8xuHs/U8QDh8SzEJFqVXqCzbBnlKa/H8E0lb+Dk2S25cHz+LoILhviGwyv7i61VdXYNsu59exe5XF9L5+4WypoVoS6lpnwQ9EbyL5asrKppbH6RMzZy461HmtUBSnjPiEWArQ8su+PyMuuht5ICvauFjB7ou9WVSuLwPZ77+q+awWeBXh8EcTQWHzbKgvHiw5LALpr8QnSvWyq6PmK3vTu1HyfEu5rJXyhepolChqvInvnkL9v3G0tkChVOp6I/Azj5r7A3Lgutpz6lZ9oUNPqU6m6ELYh5mC26sUp4XsvH3HQhLyXpkC8Jwsnwz4ZnEOEtGFTLwnhpaOfgKWOHf3MpkasaxUMPC+wi9pgX8NyzNMuDlJ5qBj0sK+jEKi8Gz+obOtoxPdQw8gKCoKIoyrLhgUlgXl9eMlXr1NjTz/8AUsAYGuBqHjYOh3aBZ6ionspVD3YILB0DvqfM5eX9+oVcwM6MUBbVWWnz6llfcFVvJlqbTlVAIuUpVndiPiN5sVk35Q8R/RUYPmXt0cHzcPvACz1BBBA6HrnT1HWrFqsYmNaigvRDJAx/OJAsNrb42Km/U+72caMvSuS9x5h3EPP9Sp5OWVPh/CdjgQrrzz8WH5dW5TFyXmI4O0XT5nKTtGLYFtJ2JXmGaEeI66sI5b3+Jd0KgPO9ghMlVxRGjaxdXOVoXRogABRZYxNXFvqfcGjRWrvwhbosJuG006bpHtgKLYy2gFin7ZciRg4y2YwEoPUvZDWwp+WKBoq8Bxlp0RXT7uAy3ii82Lx/w2NfNeItcBOKOEOj1Uu/KJTAouu1/cBuGDA8VLJR3AX8yhMOsAqCn1+cqX8f/YlOhYR24EZOVmwWsditB5P9jA9Hf6grTKpy/D6AO/f4K50/Bd9kvWQ3jZcFfcowux/syK8K5AqnOCC5GQox9lfUsu0MVSR1lWa0fJ/MwjJnQmXXiLsZdU2uAqALBkR5tRIIvlVcC2xdMjFkryxVPuAuBJQJuwHgOEG0aefMGzVhs68bgdTrdVn9TI3+LmA5eD7eo72robL3kbCZIG7UJJlGEt/5BYQCDtO3yWARWNLvuKCdnWAZG0N2h+cl2weZLeX4fmHH5163S4PktE7a8SrVdJdQaJVU6f8AZ8SH+iaXU45PgmOd8/HX+BK5BctUtHJcOTDEJDgf7ixGly4IVg9sLizHwEiq74Uui8/Up6lA0fc1eFVfKNSyWE34hXhQAfMHYjKzkO27asc/PjxpLqxlREuq9S8CGEMC1DxCk0FKymVdkCkBRZZkocteIlVLsFAvH5iHD2C6eMWL6eioG2GIWzVnGvExAhHyvllQjZnO19xsGtF8/Bph1Ic+5eUDpPELi+4W4RYPyD/I3Ph6lVfCeZr6n65/2VGqr/CXyisjX8Z8xn1ZV/4hKlylpLxyC4TX1RagFEbsOgHzkCg178sWpiQde5fqbX+Z5IlHSdEwPcZLh/kL6l4NPBCKSy5wRVvAWV7KhSy60/D6hglldL6mvC1+U+kS1EACH1+4ApfXw7sqjyEXCqN1H2wru4FT4HojWry+j6+YPX9n39xoYKbz54oajxqeB+odaJBql4fcbZujC/cvUViut39xqgEeCZrp5Tl23p6iBVl3F+SCevWTIuNjMmD6fHzGCTg/z8IktB5ibhQ4SuVwfhIwWTOWjLByLeC4QWT6hi1nx6lRY7EbOZ43DLVpQuU01nU7E/K0VTUDuHFG6hI6xHD7i93jVrFgFqVEYX2c8ZHxbyBfCpG76m4K1h6ez5hgU1PdDkMJLiAxqWjfjSOvva8h9EOWcIWr+431sq/1exeaS0f4/uImpS21H/hLADe2bX8ozyCav29lkG4Mj9SsBv6rfMp854h6Lar4gHxEJ9EKmVUDbD5i4DJSQLM8wRE8f9gBjxKFWB2Pwo8JTUrlECB+EiSz8d5NCvMO1li2Bqi+o0cVDzg89Yd6faDxLsrlfMQVDsvr9Stw+IjoEy5sUnQjhtXaymWgWUuMXZQG1kK+FAndIwo2xaRS346tf1FeKtb5H5iJXh4odTOJG4b8Ih5O0dPbBlbg+jszAME581FUBGKdU3XgQfEo16GXG1ReTR2qm/jk3Lev2wBVBQ8oAFKGMoCxAyKs/GVaaDzMAUeErD8dECB/4SJBc7zFPdss8SwzJo0bLwdbs9xQeQtlvmO/UNdcuuEoCqV4D7jgMXxycsbLMqWIUxfb6goICLBR5NiRHT8UBhosK+xnklnHfJ7iOnihJRHbjdwHqpTWutCHc+Z49XDikpKtpvn0TdoXcDxDY8ojT8ETCthrKIR1saQD2nzAFVY7Bz5H4Hj9stCpbxOeT1INLKnOi5fHS5dseEVE5wIHuB+f/9k=" alt="Guillem Puig" width="400" height="400" decoding="async">
+        <h3>Per què aquesta barreja importa</h3>
+        <p>L'enginyeria hi posa el <strong>procés</strong>: un mètode que es pot repetir, mesurar i explicar, en comptes d'intuïcions. L'MBA hi posa entendre <strong>els incentius</strong> de qui et ven productes financers. I el postgrau hi posa la <strong>tècnica</strong>: planificació patrimonial, fiscalitat i instruments.</p>
+        <p>Vinc del món dels <strong>semiconductors</strong> —màster en micronanoelectrònica i uns quants anys treballant-hi— i allà vaig aprendre una cosa que fa servei aquí: la tecnologia avança més de pressa del que sembla, i qui no s'hi adapta es queda enrere sense adonar-se'n. Per això el procés que faig servir està automatitzat i em recolzo en eines d'intel·ligència artificial per a la part repetitiva: <strong>el temps que estalvio es converteix en preu més baix per a tu</strong>, no en més marge per a mi.</p>
+        <p>Avui treballo com a supervisor d'enginyeria industrial al sector de l'automoció, i per això accepto un nombre limitat de clients. És una limitació real i prefereixo dir-la que amagar-la: fer-ne pocs és el que em permet fer-los bé.</p>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:14px">Formació</div>
+        <div class="cv">
+          <div class="cv-i"><div class="cv-t">Certificació EFA — European Financial Advisor</div><div class="cv-a">2026</div><div class="cv-c">EFPA España</div></div>
+          <div class="cv-i"><div class="cv-t">Postgrau en Gestió Patrimonial i Assessorament Financer</div><div class="cv-a">2025</div><div class="cv-c">Inversions i títols valors · UNED</div></div>
+          <div class="cv-i"><div class="cv-t">Màster en Administració d'Empreses (MBA)</div><div class="cv-a">2020–21</div><div class="cv-c">EAE Business School</div></div>
+          <div class="cv-i"><div class="cv-t">Màster en Enginyeria (MEng), Micronanoelectrònica</div><div class="cv-a">2010–12</div><div class="cv-c">Universitat Autònoma de Barcelona</div></div>
+          <div class="cv-i"><div class="cv-t">Enginyeria de Telecomunicacions</div><div class="cv-a">2002–05</div><div class="cv-c">Universitat Politècnica de Catalunya</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LÍMITS ============ -->
+<section>
+  <div class="wrap">
+    <div class="rv" style="max-width:780px">
+      <span class="eyebrow">Els límits</span>
+      <h2>El que faré i el que no faré mai</h2>
+    </div>
+    <div class="pair rv" style="margin-top:clamp(28px,3.2vw,44px)">
+      <div class="si">
+        <div class="pair-h">El que faré</div>
+        <ul>
+          <li>Cobrar-te només a tu, una quota fixa i pública</li>
+          <li>Explicar-te cada bloc fins que sàpigues per què hi és</li>
+          <li>Ensenyar-te el cost total en euros, sempre</li>
+          <li>Deixar-te la cartera funcionant sola</li>
+          <li>Agafar el telèfon el dia que caigui</li>
+        </ul>
+      </div>
+      <div class="no">
+        <div class="pair-h">El que no faré mai</div>
+        <ul>
+          <li>Dir-te on va el mercat</li>
+          <li>Cobrar comissions de cap gestora, banc o plataforma</li>
+          <li>Tocar els teus diners ni moure't la custòdia</li>
+          <li>Prometre't cap rendibilitat</li>
+          <li>Fer-te mirar la cartera cada setmana</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note rv">
+      <div class="note-l">Si no ho veus, no ho pagues</div>
+      <p>Si després de la primera sessió creus que això no és per a tu, et torno els diners sense preguntes. La part difícil és confiar en algú que no coneixes, i em sembla just que el risc el corri jo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FINAL ============ -->
+<section class="final band-d" id="comencar">
+  <div class="wrap">
+    <span class="eyebrow">Comencem</span>
+    <h2>Primer el qüestionari, i després en parlem</h2>
+    <p class="lead" style="max-width:60ch">Vint minuts en línia. Al final tens el teu perfil d'inversor i una idea clara de quina cartera et tocaria. És gratuït i no et compromet a res: si després no vols seguir, el perfil te'l quedes igualment.</p>
+    <div class="cta-row">
+      <a class="btn or" href="client_onboarding_v3.html">Fer el qüestionari <span class="ar" aria-hidden="true">→</span></a>
+      <a class="btn line" href="mailto:guillem@theboringinvestor.com?subject=Cartera%20claus%20en%20m%C3%A0">Escriure'm primer</a>
+    </div>
+    <p class="cta-note" style="margin-left:auto;margin-right:auto">O si ho prefereixes, <a href="https://wa.me/34629340892?text=Hola%20Guillem%2C%20m%27interessa%20la%20cartera%20claus%20en%20m%C3%A0" rel="noopener">escriu-me per WhatsApp</a>.</p>
+    <p class="cta-note" style="margin-left:auto;margin-right:auto">Accepto un màxim de tres clients nous al mes · Guillem Puig · Manresa i en línia</p>
+  </div>
+</section>
+
+</main>
 
 <footer>
   <div class="wrap">
@@ -595,13 +833,48 @@ details.dades table{margin:12px 0 0;min-width:0}
       <a href="avis-legal.html">Avís legal</a>
       <a href="politica-privacitat.html">Política de privacitat</a>
     </nav>
-    <div class="legal">
-      <p style="margin-bottom:10px"><strong>Avís important.</strong> The Boring Investor presta serveis d'anàlisi i educació financera. Les xifres de cost d'aquesta pàgina són il·lustratives i parteixen de les hipòtesis indicades a cada gràfic; el cost real depèn dels productes concrets de cada persona. Els rendiments passats no garanteixen rendiments futurs i qualsevol projecció és orientativa, mai una promesa. Les decisions d'inversió i la seva execució són sempre del client.</p>
-      <p style="margin:0">Fonts: SPIVA Europe Mid-Year 2025 (S&amp;P Dow Jones Indices) · Morningstar Mind the Gap 2025 · Indexa Capital · Banc Central Europeu · Eurostat.</p>
-      <p style="margin:10px 0 0">© The Boring Investor · Guillem Puig · theboringinvestor.es</p>
-    </div>
+    <p class="small"><strong>Avís important.</strong> The Boring Investor presta serveis d'anàlisi i educació financera. Les xifres de cost d'aquesta pàgina són il·lustratives i parteixen de les hipòtesis indicades a cada gràfic; el cost real depèn dels productes concrets de cada persona. Els rendiments passats no garanteixen rendiments futurs i qualsevol projecció és orientativa, mai una promesa. Les decisions d'inversió i la seva execució són sempre del client.</p>
+    <p class="small" style="margin-top:10px">Fonts: SPIVA Europe Mid-Year 2025 (S&amp;P Dow Jones Indices) · Morningstar Mind the Gap 2025 · Indexa Capital · Banc Central Europeu · Eurostat.</p>
+    <p class="small" style="margin-top:14px">© The Boring Investor · Guillem Puig · theboringinvestor.es</p>
   </div>
 </footer>
+
+<div class="dock" id="dock">
+  <div class="dock-p">Cartera claus en mà<b>129 €</b></div>
+  <a class="btn or sm" href="#comencar">Comença</a>
+</div>
+
+<script>
+(function(){
+  var nav=document.getElementById('nav'), dock=document.getElementById('dock');
+  function onScroll(){
+    var y=window.pageYOffset||document.documentElement.scrollTop;
+    var hero=document.querySelector('.hero');
+    var lim=hero ? hero.offsetHeight-72 : 8;
+    if(nav){ y>lim ? nav.classList.add('solid') : nav.classList.remove('solid'); }
+    if(dock){ y>window.innerHeight*0.9 ? dock.classList.add('on') : dock.classList.remove('on'); }
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var els=[].slice.call(document.querySelectorAll('.rv'));
+  if(reduce || !('IntersectionObserver' in window)){
+    for(var i=0;i<els.length;i++){ els[i].classList.add('in'); }
+  } else {
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    },{rootMargin:'0px 0px -8% 0px',threshold:0.06});
+    for(var j=0;j<els.length;j++){ io.observe(els[j]); }
+  }
+
+  var accs=[].slice.call(document.querySelectorAll('.acc details'));
+  accs.forEach(function(d){
+    d.addEventListener('toggle',function(){
+      if(d.open){ accs.forEach(function(o){ if(o!==d) o.open=false; }); }
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
