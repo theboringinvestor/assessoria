@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Consola TBI · admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --tinta:#16233A; --tinta-2:#24395C; --paper:#F7F5F0; --blanc:#FFFFFF;
+  --or:#C8A54A; --or-fosc:#8F7024; --verd:#1A5C3A; --vermell:#8B1A1A;
+  --g100:#E9E6DF; --g300:#B4B0A6; --g500:#6B685F;
+  --fb:"IBM Plex Sans",system-ui,sans-serif; --fm:"IBM Plex Mono",monospace;
+  --radi:12px; --sh:0 1px 3px rgba(22,35,58,.06); --sh2:0 6px 18px rgba(22,35,58,.09);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--tinta);font-family:var(--fb);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
+header{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:2px solid var(--tinta);margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-t{font-size:14px;font-weight:600;line-height:1.2}
+.brand-s{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500)}
+h1{font-size:23px;font-weight:600;letter-spacing:-.02em;margin:0 0 3px}
+.sub{font-size:13.5px;color:var(--g500);margin:0}
+h2{font-size:16.5px;font-weight:600;letter-spacing:-.015em;margin:0}
+section{margin-bottom:30px}
+.sec-h{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:baseline;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--g100)}
+.sec-h .hint{font-size:12.5px;color:var(--g500);max-width:58ch}
+.card{background:var(--blanc);border:1px solid var(--g100);border-radius:var(--radi);box-shadow:var(--sh);overflow:hidden}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:600px}
+th,td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--g100);vertical-align:middle}
+thead th{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);font-weight:500;background:#FBFAF7;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#FBFAF7}
+tr.pausada td{opacity:.5}
+.num{text-align:right;font-family:var(--fm);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pos{color:var(--verd);font-weight:500}.neg{color:var(--vermell);font-weight:500}.dim{color:var(--g500)}
+.pill{display:inline-block;font-family:var(--fm);font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:1px solid var(--g300);color:var(--g500);white-space:nowrap}
+.pill.ok{border-color:var(--verd);color:var(--verd);background:rgba(26,92,58,.07)}
+.pill.warn{border-color:var(--or-fosc);color:var(--or-fosc);background:rgba(200,165,74,.12)}
+.pill.bad{border-color:var(--vermell);color:var(--vermell);background:rgba(139,26,26,.06)}
+.kpis{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px}
+.kpi{background:var(--blanc);border:1px solid var(--g100);border-radius:var(--radi);padding:14px 16px;box-shadow:var(--sh)}
+.kpi-l{font-family:var(--fm);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--g500);margin-bottom:5px}
+.kpi-v{font-family:var(--fm);font-size:22px;font-weight:600;line-height:1.15}
+.kpi-v.neg{color:var(--vermell)}.kpi-v.pos{color:var(--verd)}
+.kpi-d{font-size:11.5px;color:var(--g500);margin-top:4px;line-height:1.4}
+button{font-family:var(--fb);font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;border:1px solid var(--tinta);background:var(--tinta);color:var(--paper);cursor:pointer}
+button:hover{background:var(--tinta-2);border-color:var(--tinta-2)}
+button.ghost{background:transparent;color:var(--tinta);border-color:var(--g300)}
+button.ghost:hover{background:var(--g100)}
+button.gold{background:var(--or);border-color:var(--or);color:var(--tinta)}
+button.gold:hover{filter:brightness(1.06)}
+button.sm{font-size:12px;padding:5px 10px}
+button.danger{border-color:var(--vermell);color:var(--vermell);background:transparent}
+button.danger:hover{background:rgba(139,26,26,.07)}
+input,select{font-family:var(--fb);font-size:13.5px;padding:7px 10px;border:1px solid var(--g300);border-radius:8px;background:var(--blanc);color:var(--tinta);width:100%}
+input:focus,select:focus{outline:2px solid var(--or);outline-offset:1px;border-color:var(--or)}
+label{display:block;font-family:var(--fm);font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--g500);margin-bottom:4px}
+.grid{display:grid;gap:11px}
+.gauto{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.form{padding:16px 18px;background:#FBFAF7;border-top:1px solid var(--g100)}
+.form-a{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.msg{padding:11px 15px;border-radius:9px;font-size:13.5px;margin:12px 0}
+.msg.err{background:rgba(139,26,26,.07);color:var(--vermell);border:1px solid rgba(139,26,26,.2)}
+.msg.ok{background:rgba(26,92,58,.07);color:var(--verd);border:1px solid rgba(26,92,58,.2)}
+.msg.warn{background:rgba(200,165,74,.14);color:var(--or-fosc);border:1px solid rgba(200,165,74,.35)}
+.login{max-width:400px;margin:70px auto;background:var(--blanc);border:1px solid var(--g100);border-radius:var(--radi);padding:28px;box-shadow:var(--sh2)}
+.empty{padding:30px 20px;text-align:center;color:var(--g500);font-size:13.5px}
+.bar-cell{height:6px;background:var(--g100);border-radius:99px;overflow:hidden;min-width:56px}
+.bar-fill{height:100%;border-radius:99px;background:var(--tinta)}
+.hide{display:none!important}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid var(--g100);padding-bottom:0}
+.tab{font-family:var(--fb);font-size:13.5px;font-weight:500;padding:9px 16px;border:0;border-bottom:2px solid transparent;
+  background:transparent;color:var(--g500);cursor:pointer;border-radius:0}
+.tab:hover{background:transparent;color:var(--tinta);border-color:var(--g300)}
+.tab.on{color:var(--tinta);border-bottom-color:var(--or)}
+tr.clic{cursor:pointer}
+.tornar{font-size:13px;color:var(--g500);background:none;border:0;padding:0 0 10px;cursor:pointer;font-family:var(--fb)}
+.tornar:hover{color:var(--tinta);background:none}
+.pes-in{width:74px;text-align:right;font-family:var(--fm);padding:5px 8px}
+.total-pes{font-family:var(--fm);font-size:13px;padding:10px 13px;background:#FBFAF7;border-top:1px solid var(--g100);
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.nom-cli{font-size:19px;font-weight:600;letter-spacing:-.02em;margin:0}
+footer{margin-top:36px;padding-top:15px;border-top:1px solid var(--g100);font-family:var(--fm);font-size:11px;color:var(--g300)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="61" height="61" rx="15" fill="none" stroke="#16233A" stroke-width="3"/>
+      <circle cx="22" cy="24" r="4.6" fill="#16233A"/><circle cx="42" cy="24" r="4.6" fill="#16233A"/>
+      <line x1="19" y1="44.6" x2="45" y2="41.9" stroke="#16233A" stroke-width="3.4" stroke-linecap="round"/>
+    </svg>
+    <div><div class="brand-t">The Boring Investor</div><div class="brand-s">Consola d'assessor</div></div>
+  </div>
+  <div id="userBox" class="hide" style="display:flex;gap:10px;align-items:center">
+    <span class="mono" id="userEmail" style="font-family:var(--fm);font-size:12px;color:#6B685F"></span>
+    <button class="ghost sm" onclick="sortir()">Sortir</button>
+  </div>
+</header>
+
+<div id="login" class="login hide">
+  <h1>Consola TBI</h1>
+  <p class="sub" style="margin-bottom:18px">Accés restringit a l'assessor.</p>
+  <label for="em">Correu</label>
+  <input id="em" type="email" autocomplete="email" placeholder="guillem@...">
+  <div class="form-a"><button id="btnLogin" onclick="entrar()">Enviar enllaç d'accés</button></div>
+  <div id="loginMsg"></div>
+</div>
+
+<main id="app" class="hide">
+
+  <div class="tabs">
+    <button class="tab on" id="tabClients" onclick="anarA('clients')">Clients</button>
+    <button class="tab" id="tabPreus" onclick="anarA('preus')">Preus i mercat</button>
+  </div>
+
+  <div id="globalMsg"></div>
+
+  <!-- ══════ VISTA: CLIENTS ══════ -->
+  <div id="vClients">
+    <div class="sec-h">
+      <div>
+        <h2>Cartera de cada client</h2>
+        <p class="hint">Valor simulat als preus vigents. Clica una fila per configurar-hi les automatitzacions i els pesos objectiu.</p>
+      </div>
+      <button class="ghost sm" onclick="carregarResum()">Actualitzar</button>
+    </div>
+    <div class="kpis" id="kpisGlobal"></div>
+    <div class="card"><div class="tw"><table>
+      <thead><tr><th>Client</th><th class="num">Aportat</th><th class="num">Valor</th><th class="num">P&L</th>
+        <th class="num">Auto.</th><th>Model</th><th>Preus</th></tr></thead>
+      <tbody id="tbClients"><tr><td colspan="7" class="empty">Carregant…</td></tr></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- ══════ VISTA: PREUS ══════ -->
+  <div id="vPreus" class="hide">
+    <div class="sec-h">
+      <div>
+        <h2>Estat dels preus</h2>
+        <p class="hint">Els 7 blocs amb mercat es valoren amb aquests tancaments. Cap informe s'hauria de publicar amb preus de més de 30 dies.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="ghost sm" onclick="cridarPreus('verificar')">Verificar tickers</button>
+        <button class="gold sm" onclick="cridarPreus('detectar')">Actualitzar preus</button>
+      </div>
+    </div>
+    <div id="preusMsg"></div>
+    <div class="card"><div class="tw"><table>
+      <thead><tr><th>Bloc</th><th>Ticker</th><th class="num">Últim tancament</th><th class="num">Data</th>
+        <th class="num">Endarreriment</th><th class="num">Drawdown</th><th>Últim error</th></tr></thead>
+      <tbody id="tbPreus"><tr><td colspan="7" class="empty">Carregant…</td></tr></tbody>
+    </table></div></div>
+    <p class="hint" style="margin-top:12px">«Verificar» no escriu res: només comprova que Yahoo respon per a cada ticker. «Actualitzar preus» baixa els tancaments que falten i recalcula els drawdowns.</p>
+  </div>
+
+  <!-- ══════ VISTA: FITXA DE CLIENT ══════ -->
+  <div id="vClient" class="hide">
+  <button class="tornar" onclick="anarA('clients')">← Tots els clients</button>
+  <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin-bottom:16px">
+    <div><p class="nom-cli" id="nomClient">—</p><p class="sub" id="emailClient"></p></div>
+    <div style="min-width:220px">
+      <label for="selClient">Canviar de client</label>
+      <select id="selClient" onchange="carregarClient()"><option>Carregant…</option></select>
+    </div>
+  </div>
+
+  <div id="avisPreus"></div>
+  <div class="kpis" id="kpis"></div>
+
+  <section>
+    <div class="sec-h">
+      <div>
+        <h2>Automatitzacions</h2>
+        <p class="hint">Les compres recurrents. El motor les replica al preu real de cada dia per simular la cartera.</p>
+      </div>
+      <button class="gold sm" onclick="formAuto()">Afegir automatització</button>
+    </div>
+    <div class="card">
+      <div class="tw"><table>
+        <thead><tr><th>Bloc</th><th class="num">Import</th><th class="num">Dia</th><th>Freqüència</th><th>Des de</th><th>Fins a</th><th>Nota</th><th>Estat</th><th></th></tr></thead>
+        <tbody id="tbAuto"><tr><td colspan="9" class="empty">—</td></tr></tbody>
+      </table></div>
+      <div id="formAutoZone"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h">
+      <div>
+        <h2>Cartera inicial</h2>
+        <p class="hint">El punt de partida. Les files importades venen de les posicions del client i es regeneren soles.</p>
+      </div>
+      <button class="ghost sm" onclick="formInicial()">Afegir posició manual</button>
+    </div>
+    <div class="card">
+      <div class="tw"><table>
+        <thead><tr><th>Bloc</th><th class="num">Import</th><th>Data</th><th>Origen</th><th>Nota</th><th></th></tr></thead>
+        <tbody id="tbInicial"><tr><td colspan="6" class="empty">—</td></tr></tbody>
+      </table></div>
+      <div id="formInicialZone"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h">
+      <div>
+        <h2>Pesos objectiu</h2>
+        <p class="hint">La cartera model. Sense aquests pesos no hi ha desviació ni ajust recomanat, i l'informe trimestral no pot dir res.</p>
+      </div>
+      <button class="ghost sm" onclick="desarModel()">Desar pesos</button>
+    </div>
+    <div class="card">
+      <div class="tw"><table>
+        <thead><tr><th>Bloc</th><th class="num">Pes objectiu %</th><th class="num">Pes actual</th><th></th></tr></thead>
+        <tbody id="tbModel"><tr><td colspan="4" class="empty">—</td></tr></tbody>
+      </table></div>
+      <div class="total-pes"><span id="totalPes">—</span><span id="modelMsg"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-h">
+      <div>
+        <h2>Simulació i desviació</h2>
+        <p class="hint">Pes real contra objectiu, i cartera real contra el benchmark automàtic: els mateixos diners, els mateixos dies, als pesos del full de ruta.</p>
+      </div>
+    </div>
+    <div class="card"><div class="tw"><table>
+      <thead><tr><th>Bloc</th><th class="num">Invertit</th><th class="num">Valor</th><th class="num">P&L</th>
+        <th class="num">Objectiu</th><th class="num">Actual</th><th class="num">Desv.</th>
+        <th class="num">vs benchmark</th><th class="num">Ajust</th></tr></thead>
+      <tbody id="tbDesv"><tr><td colspan="9" class="empty">—</td></tr></tbody>
+    </table></div></div>
+  </section>
+
+  </div><!-- /vClient -->
+
+  <footer>TBI · consola d'assessor · els blocs sense mercat es valoren amb import declarat + rendiment teòric</footer>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+var SB_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
+var SB_KEY = 'sb_publishable_Fy-iwa-lUQOSI4QTkj9EPw_wlSiymVY';
+if (!window.supabase || !window.supabase.createClient) {
+  document.addEventListener('DOMContentLoaded', function(){
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div class="msg err" style="margin:20px">No s\'ha pogut carregar la llibreria de Supabase.</div>');
+  });
+  throw new Error('supabase-js no carregat');
+}
+var sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+var clients = [], blocs = [], actual = null, vista = 'clients';
+var st = { auto: [], inicial: [], desv: [], resum: null, model: [] };
+var resumTots = [], comptes = {};
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function eur(n){ if(n==null||n==='') return '—';
+  return Number(n).toLocaleString('ca-ES',{maximumFractionDigits:0}) + ' €'; }
+function pct(n){ if(n==null||n==='') return '—';
+  return Number(n).toLocaleString('ca-ES',{minimumFractionDigits:1,maximumFractionDigits:1}) + ' %'; }
+function sig(n){ return n==null ? '' : (Number(n) >= 0 ? 'pos' : 'neg'); }
+function msg(id,t,k){ $(id).innerHTML = t ? '<div class="msg '+k+'">'+esc(t)+'</div>' : ''; }
+function avui(){ return new Date().toISOString().slice(0,10); }
+
+function mostrarLogin(){ $('login').classList.remove('hide'); $('app').classList.add('hide'); $('userBox').classList.add('hide'); }
+function mostrarApp(email){
+  $('login').classList.add('hide'); $('app').classList.remove('hide');
+  $('userBox').classList.remove('hide'); $('userEmail').textContent = email;
+  iniciar();
+}
+function entrar(){
+  var e = ($('em').value||'').trim().toLowerCase();
+  if(!e){ msg('loginMsg','Escriu el teu correu.','err'); return; }
+  $('btnLogin').disabled = true;
+  sb.auth.signInWithOtp({ email:e, options:{ emailRedirectTo: window.location.href } }).then(function(r){
+    $('btnLogin').disabled = false;
+    if (r.error) msg('loginMsg', r.error.message, 'err');
+    else msg('loginMsg','Enllaç enviat. Revisa el correu.','ok');
+  });
+}
+function sortir(){ sb.auth.signOut().then(mostrarLogin); }
+sb.auth.getSession().then(function(r){
+  var s = r.data && r.data.session;
+  if (s && s.user) mostrarApp(s.user.email); else mostrarLogin();
+});
+sb.auth.onAuthStateChange(function(ev,s){ if (s && s.user) mostrarApp(s.user.email); else mostrarLogin(); });
+
+function iniciar(){
+  Promise.all([
+    sb.from('clients').select('id,nom,email').order('nom'),
+    sb.from('blocs').select('*').eq('actiu',true).order('ordre')
+  ]).then(function(res){
+    var err = res.filter(function(r){ return r.error; })[0];
+    if (err) { msg('globalMsg','No s\'han pogut llegir les dades: '+err.error.message+'. Comprova que aquest usuari és administrador.','err'); return; }
+    clients = res[0].data || []; blocs = res[1].data || [];
+    $('selClient').innerHTML = '<option value="">— tria un client —</option>' +
+      clients.map(function(c,i){ return '<option value="'+i+'">'+esc(c.nom||c.email)+'</option>'; }).join('');
+    carregarResum();
+  });
+}
+
+/* ══════════ navegació entre vistes ══════════ */
+function anarA(v){
+  vista = v;
+  $('vClients').classList.toggle('hide', v!=='clients');
+  $('vPreus').classList.toggle('hide', v!=='preus');
+  $('vClient').classList.toggle('hide', v!=='client');
+  $('tabClients').classList.toggle('on', v==='clients' || v==='client');
+  $('tabPreus').classList.toggle('on', v==='preus');
+  if (v==='preus') carregarPreus();
+  if (v==='clients') carregarResum();
+  window.scrollTo(0,0);
+}
+
+/* ══════════ VISTA CLIENTS ══════════ */
+function carregarResum(){
+  Promise.all([
+    sb.from('v_cartera_client').select('*'),
+    sb.from('automatitzacions').select('client_id,actiu'),
+    sb.from('cartera_model').select('client_id')
+  ]).then(function(res){
+    var err = res.filter(function(r){ return r.error; })[0];
+    if (err) { msg('globalMsg', err.error.message, 'err'); return; }
+    resumTots = res[0].data || [];
+    comptes = { auto:{}, model:{} };
+    (res[1].data||[]).forEach(function(a){ if(a.actiu) comptes.auto[a.client_id] = (comptes.auto[a.client_id]||0)+1; });
+    (res[2].data||[]).forEach(function(m){ comptes.model[m.client_id] = (comptes.model[m.client_id]||0)+1; });
+    pintarResum();
+  });
+}
+
+function pintarResum(){
+  var tot = 0, apo = 0, sm = 0, senseAuto = 0, senseModel = 0;
+  resumTots.forEach(function(r){
+    tot += Number(r.valor_actual||0); apo += Number(r.invertit||0);
+    sm  += Number(r.valor_sense_mercat||0);
+    if (!comptes.auto[r.client_id]) senseAuto++;
+    if (!comptes.model[r.client_id]) senseModel++;
+  });
+  var pnl = tot - apo;
+  $('kpisGlobal').innerHTML =
+    kpi('Patrimoni simulat', eur(tot), resumTots.length + ' clients amb cartera', '') +
+    kpi('Aportat', eur(apo), 'Suma de cartera inicial i aportacions', '') +
+    kpi('Resultat', eur(pnl), apo ? pct(100*pnl/apo) + ' des de l\'inici' : '—', sig(pnl)) +
+    kpi('Sense automatitzar', senseAuto, senseAuto ? 'clients sense cap aportació carregada' : 'tots configurats', senseAuto?'neg':'pos') +
+    kpi('Sense pesos objectiu', senseModel, senseModel ? 'no poden rebre informe' : 'tots definits', senseModel?'neg':'pos');
+
+  var files = resumTots.slice().sort(function(a,b){ return (b.valor_actual||0)-(a.valor_actual||0); });
+  if (!files.length) { $('tbClients').innerHTML = '<tr><td colspan="7" class="empty">Cap client amb cartera.</td></tr>'; return; }
+  $('tbClients').innerHTML = files.map(function(r){
+    var idx = -1;
+    for (var i=0;i<clients.length;i++) if (clients[i].id === r.client_id) idx = i;
+    var nAuto = comptes.auto[r.client_id] || 0;
+    var nMod  = comptes.model[r.client_id] || 0;
+    var e = r.estat_preus || '';
+    var pillPreus = e.indexOf('ok')===0 ? '<span class="pill ok">al dia</span>'
+      : (e.indexOf('obsolets')>=0 ? '<span class="pill bad">obsolets</span>'
+      : (e.indexOf('sense blocs')>=0 ? '<span class="pill">sense mercat</span>' : '<span class="pill warn">endarrerits</span>'));
+    var pnlc = Number(r.valor_actual||0) - Number(r.invertit||0);
+    return '<tr class="clic" onclick="obrirClient('+idx+')">'
+      + '<td><strong>'+esc(r.client_nom || r.email)+'</strong></td>'
+      + '<td class="num">'+eur(r.invertit)+'</td>'
+      + '<td class="num">'+eur(r.valor_actual)+'</td>'
+      + '<td class="num '+sig(pnlc)+'">'+eur(pnlc)+'</td>'
+      + '<td class="num">'+(nAuto ? nAuto : '<span class="pill bad">0</span>')+'</td>'
+      + '<td>'+(nMod ? '<span class="pill ok">'+nMod+' blocs</span>' : '<span class="pill bad">sense definir</span>')+'</td>'
+      + '<td>'+pillPreus+'</td>'
+    + '</tr>';
+  }).join('');
+}
+
+function obrirClient(i){
+  if (i < 0) return;
+  $('selClient').value = String(i);
+  anarA('client');
+  carregarClient();
+}
+
+/* ══════════ VISTA PREUS ══════════ */
+function carregarPreus(){
+  Promise.all([
+    sb.from('benchmarks').select('codi,nom,ticker,actiu,ultim_error').order('ordre'),
+    sb.from('benchmark_estat').select('*')
+  ]).then(function(res){
+    var err = res.filter(function(r){ return r.error; })[0];
+    if (err) { msg('preusMsg', err.error.message, 'err'); return; }
+    var bms = res[0].data || [], est = {};
+    (res[1].data||[]).forEach(function(e){ est[e.codi] = e; });
+    var avuiMs = Date.now();
+    $('tbPreus').innerHTML = bms.map(function(b){
+      var e = est[b.codi] || {};
+      var dies = e.ultim_data ? Math.round((avuiMs - new Date(e.ultim_data).getTime())/86400000) : null;
+      var cls = dies==null ? '' : (dies > 30 ? 'bad' : (dies > 7 ? 'warn' : 'ok'));
+      return '<tr>'
+        + '<td><strong>'+esc(b.nom)+'</strong></td>'
+        + '<td class="dim" style="font-family:var(--fm);font-size:12px">'+esc(b.ticker)+'</td>'
+        + '<td class="num">'+(e.ultim==null?'—':Number(e.ultim).toLocaleString('ca-ES',{maximumFractionDigits:2}))+'</td>'
+        + '<td class="num">'+esc(e.ultim_data||'—')+'</td>'
+        + '<td class="num">'+(dies==null?'—':'<span class="pill '+cls+'">'+dies+' dies</span>')+'</td>'
+        + '<td class="num '+(e.drawdown<0?'neg':'')+'">'+(e.drawdown==null?'—':pct(100*Number(e.drawdown)))+'</td>'
+        + '<td class="dim" style="font-size:12px">'+esc(b.ultim_error||'')+'</td>'
+      + '</tr>';
+    }).join('');
+  });
+}
+
+function cridarPreus(accio){
+  var etiqueta = accio==='verificar' ? 'Verificant tickers…' : 'Baixant preus… pot trigar mig minut.';
+  msg('preusMsg', etiqueta, 'warn');
+  sb.auth.getSession().then(function(r){
+    var tk = r.data && r.data.session && r.data.session.access_token;
+    if (!tk) { msg('preusMsg','Sessió caducada. Torna a entrar.','err'); return; }
+    return fetch(SB_URL + '/functions/v1/alertes-mercat-detectar', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + tk },
+      body: JSON.stringify({ accio: accio })
+    }).then(function(resp){ return resp.json(); }).then(function(j){
+      if (j.error) { msg('preusMsg', j.error, 'err'); return; }
+      var b = j.benchmarks || [];
+      var ko = b.filter(function(x){ return x.ok === false; });
+      var nAl = (j.alertes_noves||[]).length;
+      var txt = accio==='verificar'
+        ? (b.length - ko.length) + ' de ' + b.length + ' tickers responen correctament.'
+        : 'Preus actualitzats en ' + (b.length - ko.length) + ' de ' + b.length + ' blocs.'
+          + (nAl ? ' S\'han creat ' + nAl + ' alerta(es); amb la pausa global activada no s\'envien.' : ' Cap llindar nou creuat.');
+      if (ko.length) txt += ' Errors: ' + ko.map(function(x){ return x.codi + ' (' + x.error + ')'; }).join(' · ');
+      msg('preusMsg', txt, ko.length ? 'warn' : 'ok');
+      carregarPreus();
+    });
+  }).catch(function(e){ msg('preusMsg','No s\'ha pogut cridar la funció: ' + e.message, 'err'); });
+}
+
+function carregarClient(){
+  var i = $('selClient').value;
+  if (i === '') { actual = null; return; }
+  actual = clients[Number(i)];
+  $('nomClient').textContent = actual.nom || actual.email || '—';
+  $('emailClient').textContent = actual.email || '';
+  if (vista !== 'client') anarA('client');
+  msg('globalMsg','','');
+  Promise.all([
+    sb.from('automatitzacions').select('*').eq('client_id',actual.id).order('des_de'),
+    sb.from('cartera_inicial').select('*').eq('client_id',actual.id).order('data'),
+    sb.from('v_desviacio').select('*').eq('client_id',actual.id),
+    sb.from('v_cartera_client').select('*').eq('client_id',actual.id).maybeSingle(),
+    sb.from('cartera_model').select('*').eq('client_id',actual.id)
+  ]).then(function(res){
+    var err = res.filter(function(r){ return r.error; })[0];
+    if (err) { msg('globalMsg', err.error.message, 'err'); return; }
+    st.auto = res[0].data||[]; st.inicial = res[1].data||[];
+    st.desv = res[2].data||[]; st.resum = res[3].data||null;
+    st.model = res[4].data||[];
+    pintar();
+  });
+}
+
+function pintar(){ pintarKpis(); pintarAuto(); pintarInicial(); pintarModel(); pintarDesv(); }
+
+/* ══════════ data segura: evitar comptar dues vegades ══════════ */
+function dataFoto(){
+  var m = null;
+  st.inicial.forEach(function(p){ if (!m || p.data > m) m = p.data; });
+  return m;
+}
+function desDeSegur(){
+  var f = dataFoto();
+  if (!f) return avui();
+  var d = new Date(f + 'T00:00:00');
+  d.setMonth(d.getMonth() + 1);
+  return d.toISOString().slice(0,10);
+}
+
+/* ══════════ PESOS OBJECTIU (cartera model) ══════════ */
+function pintarModel(){
+  var actualPes = {};
+  st.desv.forEach(function(d){ actualPes[d.bloc] = d.pes_actual; });
+  var objectiu = {};
+  st.model.forEach(function(m){ objectiu[m.bloc] = m.pes_pct; });
+  $('tbModel').innerHTML = blocs.map(function(b){
+    var v = objectiu[b.codi];
+    return '<tr>'
+      + '<td><strong>'+esc(b.nom)+'</strong>'+(b.benchmark_codi?'':' <span class="pill">sense mercat</span>')+'</td>'
+      + '<td class="num"><input class="pes-in" type="number" min="0" max="100" step="0.5" '
+        + 'id="pm_'+esc(b.codi)+'" value="'+(v==null?'':Number(v))+'" oninput="sumarPesos()" placeholder="0"></td>'
+      + '<td class="num dim">'+(actualPes[b.codi]==null?'—':pct(actualPes[b.codi]))+'</td>'
+      + '<td class="num dim" style="font-size:12px">'+(v==null?'no definit':'')+'</td>'
+    + '</tr>';
+  }).join('');
+  sumarPesos();
+}
+function sumarPesos(){
+  var t = 0, n = 0;
+  blocs.forEach(function(b){
+    var el = $('pm_'+b.codi); if (!el) return;
+    var v = parseFloat(el.value);
+    if (!isNaN(v) && v > 0) { t += v; n++; }
+  });
+  var ok = Math.abs(t - 100) < 0.01;
+  $('totalPes').innerHTML = 'Total: <strong class="'+(ok?'pos':'neg')+'">'
+    + t.toLocaleString('ca-ES',{maximumFractionDigits:1}) + ' %</strong>'
+    + ' · ' + n + ' blocs' + (ok ? '' : ' — ha de sumar 100 per poder desar');
+}
+function desarModel(){
+  if (!actual) return;
+  var files = [], t = 0;
+  blocs.forEach(function(b){
+    var el = $('pm_'+b.codi); if (!el) return;
+    var v = parseFloat(el.value);
+    if (!isNaN(v) && v > 0) { files.push({ client_id: actual.id, bloc: b.codi, pes_pct: v, origen: 'manual' }); t += v; }
+  });
+  if (Math.abs(t - 100) > 0.01) { msg('modelMsg','Els pesos han de sumar exactament 100 %.','err'); return; }
+  msg('modelMsg','Desant…','warn');
+  sb.from('cartera_model').delete().eq('client_id', actual.id).then(function(r){
+    if (r.error) { msg('modelMsg', r.error.message, 'err'); return; }
+    return sb.from('cartera_model').insert(files).then(function(r2){
+      if (r2.error) { msg('modelMsg', r2.error.message, 'err'); return; }
+      msg('modelMsg','Pesos desats.','ok');
+      carregarClient();
+    });
+  });
+}
+
+function pintarKpis(){
+  var r = st.resum;
+  if (!r) { $('kpis').innerHTML = ''; $('avisPreus').innerHTML=''; return; }
+  var estat = r.estat_preus || '';
+  $('avisPreus').innerHTML = (estat.indexOf('ok') === 0) ? ''
+    : '<div class="msg '+(estat.indexOf('obsolets')>=0?'err':'warn')+'">'
+      + esc(estat) + (r.dies_preus_endarrerits!=null ? ' · ' + r.dies_preus_endarrerits + ' dies des de l\'últim preu' : '')
+      + '. Reactiva el job de preus abans de generar cap informe per al client.</div>';
+  $('kpis').innerHTML =
+    kpi('Invertit', eur(r.invertit), 'Aportat en total', '') +
+    kpi('Valor simulat', eur(r.valor_actual), 'Als preus vigents', '') +
+    kpi('Resultat', eur(r.pnl_eur), pct(r.pnl_pct) + ' des de l\'inici del seguiment', sig(r.pnl_eur)) +
+    kpi('Sense mercat', eur(r.valor_sense_mercat), 'Liquiditat i alternatius: valor declarat', '') +
+    kpi('Blocs', r.n_blocs, 'De l\'univers de ' + blocs.length, '');
+}
+function kpi(l,v,d,cls){
+  return '<div class="kpi"><div class="kpi-l">'+esc(l)+'</div><div class="kpi-v '+cls+'">'+esc(v)+'</div>'
+    + '<div class="kpi-d">'+esc(d)+'</div></div>';
+}
+
+function nomBloc(c){ var b = blocs.filter(function(x){ return x.codi===c; })[0]; return b ? b.nom : c; }
+
+function pintarAuto(){
+  var tb = $('tbAuto');
+  if (!st.auto.length) { tb.innerHTML = '<tr><td colspan="9" class="empty">Cap automatització. Afegeix-ne una perquè la simulació avanci sola.</td></tr>'; return; }
+  tb.innerHTML = st.auto.map(function(a){
+    return '<tr class="'+(a.actiu?'':'pausada')+'">'
+      + '<td><strong>'+esc(nomBloc(a.bloc))+'</strong></td>'
+      + '<td class="num">'+eur(a.import_eur)+'</td>'
+      + '<td class="num">'+a.dia_mes+'</td>'
+      + '<td>'+esc(a.frequencia)+'</td>'
+      + '<td class="num">'+esc(a.des_de)+'</td>'
+      + '<td class="num dim">'+esc(a.fins_a||'—')+'</td>'
+      + '<td class="dim">'+esc(a.nota||'')+'</td>'
+      + '<td>'+(a.actiu?'<span class="pill ok">Activa</span>':'<span class="pill">Pausada</span>')+'</td>'
+      + '<td class="num" style="white-space:nowrap">'
+        + '<button class="ghost sm" onclick="pausar(\''+a.id+'\','+(!a.actiu)+')">'+(a.actiu?'Pausar':'Activar')+'</button> '
+        + '<button class="danger sm" onclick="esborrarAuto(\''+a.id+'\')">Esborrar</button></td>'
+    + '</tr>';
+  }).join('');
+}
+
+function formAuto(){
+  var opts = blocs.map(function(b){ return '<option value="'+esc(b.codi)+'">'+esc(b.nom)+'</option>'; }).join('');
+  $('formAutoZone').innerHTML = '<div class="form">'
+    + '<div class="grid gauto">'
+      + '<div><label for="a_bloc">Actiu (bloc)</label><select id="a_bloc">'+opts+'</select></div>'
+      + '<div><label for="a_import">Import €</label><input id="a_import" type="number" min="1" step="10" placeholder="300"></div>'
+      + '<div><label for="a_dia">Dia del mes</label><input id="a_dia" type="number" min="1" max="31" value="5"></div>'
+      + '<div><label for="a_freq">Freqüència</label><select id="a_freq"><option value="mensual">Mensual</option><option value="trimestral">Trimestral</option></select></div>'
+      + '<div><label for="a_desde">Des de</label><input id="a_desde" type="date" value="'+desDeSegur()+'"></div>'
+      + '<div><label for="a_finsa">Fins a (opcional)</label><input id="a_finsa" type="date"></div>'
+    + '</div>'
+    + '<div style="margin-top:11px"><label for="a_nota">Nota</label><input id="a_nota" placeholder="Ordre permanent a Trade Republic"></div>'
+    + '<div class="form-a">'
+      + '<button class="gold" onclick="desarAuto()">Desar automatització</button>'
+      + '<button class="ghost" onclick="document.getElementById(\'formAutoZone\').innerHTML=\'\'">Cancel·lar</button>'
+      + '<span style="font-size:12.5px;color:var(--g500)">Si el mes és més curt, la compra s\'ajusta a l\'últim dia.</span>'
+    + '</div>'
+    + (dataFoto() ? '<div class="msg warn" style="margin:12px 0 0">La cartera inicial d\'aquest client és una foto del <strong>'+esc(dataFoto())+'</strong> i ja inclou el que havia aportat fins llavors. Si poses una data anterior, el motor comptaria aquelles compres dues vegades.</div>' : '')
+    + '<div style="display:none">'
+    + '</div><div id="autoMsg"></div></div>';
+}
+
+function desarAuto(){
+  var imp = parseFloat($('a_import').value);
+  if (!(imp > 0)) { msg('autoMsg','L\'import ha de ser més gran que zero.','err'); return; }
+  var desde = $('a_desde').value, finsa = $('a_finsa').value;
+  if (!desde) { msg('autoMsg','Cal una data d\'inici.','err'); return; }
+  if (finsa && finsa < desde) { msg('autoMsg','La data final no pot ser anterior a la d\'inici.','err'); return; }
+  var foto = dataFoto();
+  if (foto && desde <= foto) {
+    msg('autoMsg','La data d\'inici ('+desde+') és anterior o igual a la de la cartera inicial ('+foto+'). '
+      + 'Aquestes aportacions ja hi són comptades: el motor les duplicaria. Fes servir '+desDeSegur()+' o posterior.','err');
+    return;
+  }
+  sb.from('automatitzacions').insert({
+    client_id: actual.id, bloc: $('a_bloc').value, import_eur: imp,
+    dia_mes: parseInt($('a_dia').value,10) || 1, frequencia: $('a_freq').value,
+    des_de: desde, fins_a: finsa || null, nota: ($('a_nota').value||'').trim() || null
+  }).then(function(r){
+    if (r.error) msg('autoMsg', r.error.message, 'err');
+    else { $('formAutoZone').innerHTML = ''; carregarClient(); }
+  });
+}
+function pausar(id, val){
+  sb.from('automatitzacions').update({ actiu: val }).eq('id', id).then(function(r){
+    if (r.error) msg('globalMsg', r.error.message, 'err'); else carregarClient();
+  });
+}
+function esborrarAuto(id){
+  sb.from('automatitzacions').delete().eq('id', id).then(function(r){
+    if (r.error) msg('globalMsg', r.error.message, 'err'); else carregarClient();
+  });
+}
+
+function pintarInicial(){
+  var tb = $('tbInicial');
+  if (!st.inicial.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">Cap posició inicial.</td></tr>'; return; }
+  tb.innerHTML = st.inicial.map(function(p){
+    var imp = p.origen === 'import_posicions';
+    return '<tr>'
+      + '<td><strong>'+esc(nomBloc(p.bloc))+'</strong></td>'
+      + '<td class="num">'+eur(p.import_eur)+'</td>'
+      + '<td class="num">'+esc(p.data)+'</td>'
+      + '<td>'+(imp?'<span class="pill">Importada</span>':'<span class="pill warn">Manual</span>')+'</td>'
+      + '<td class="dim">'+esc(p.nota||'')+'</td>'
+      + '<td class="num">'+(imp?'<span class="dim" style="font-size:12px">es regenera sola</span>'
+          :'<button class="danger sm" onclick="esborrarInicial(\''+p.id+'\')">Esborrar</button>')+'</td>'
+    + '</tr>';
+  }).join('');
+}
+function formInicial(){
+  var opts = blocs.map(function(b){ return '<option value="'+esc(b.codi)+'">'+esc(b.nom)+'</option>'; }).join('');
+  $('formInicialZone').innerHTML = '<div class="form"><div class="grid gauto">'
+    + '<div><label for="i_bloc">Bloc</label><select id="i_bloc">'+opts+'</select></div>'
+    + '<div><label for="i_import">Import €</label><input id="i_import" type="number" min="0" step="100"></div>'
+    + '<div><label for="i_data">Data</label><input id="i_data" type="date" value="'+avui()+'"></div>'
+    + '<div><label for="i_nota">Nota</label><input id="i_nota" placeholder="Traspàs des de..."></div>'
+    + '</div><div class="form-a">'
+    + '<button class="gold" onclick="desarInicial()">Desar</button>'
+    + '<button class="ghost" onclick="document.getElementById(\'formInicialZone\').innerHTML=\'\'">Cancel·lar</button>'
+    + '</div><div id="iniMsg"></div></div>';
+}
+function desarInicial(){
+  var imp = parseFloat($('i_import').value);
+  if (!(imp >= 0)) { msg('iniMsg','Import no vàlid.','err'); return; }
+  sb.from('cartera_inicial').insert({
+    client_id: actual.id, bloc: $('i_bloc').value, import_eur: imp,
+    data: $('i_data').value || avui(), nota: ($('i_nota').value||'').trim() || null, origen: 'manual'
+  }).then(function(r){
+    if (r.error) msg('iniMsg', r.error.message, 'err');
+    else { $('formInicialZone').innerHTML=''; carregarClient(); }
+  });
+}
+function esborrarInicial(id){
+  sb.from('cartera_inicial').delete().eq('id', id).then(function(r){
+    if (r.error) msg('globalMsg', r.error.message, 'err'); else carregarClient();
+  });
+}
+
+function pintarDesv(){
+  var tb = $('tbDesv');
+  if (!st.desv.length) { tb.innerHTML = '<tr><td colspan="9" class="empty">Sense dades. Afegeix una cartera inicial o una automatització.</td></tr>'; return; }
+  var ordenat = st.desv.slice().sort(function(a,b){ return (b.valor_actual||0)-(a.valor_actual||0); });
+  tb.innerHTML = ordenat.map(function(d){
+    var rebal = d.cal_rebalancejar;
+    return '<tr>'
+      + '<td><strong>'+esc(d.bloc_nom)+'</strong>'+(d.te_mercat?'':' <span class="pill">sense mercat</span>')+'</td>'
+      + '<td class="num">'+eur(d.invertit)+'</td>'
+      + '<td class="num">'+eur(d.valor_actual)+'</td>'
+      + '<td class="num '+sig(d.vs_benchmark_eur)+'">'+eur(d.valor_actual - d.invertit)+'</td>'
+      + '<td class="num">'+(d.pes_objectiu==null?'—':pct(d.pes_objectiu))+'</td>'
+      + '<td class="num">'+pct(d.pes_actual)+'</td>'
+      + '<td class="num '+(rebal?'neg':'dim')+'">'+(d.desviacio_pp==null?'—':(d.desviacio_pp>0?'+':'')+pct(d.desviacio_pp).replace(' %',' pp'))+'</td>'
+      + '<td class="num '+sig(d.vs_benchmark_eur)+'">'+(d.valor_benchmark==null?'—':eur(d.vs_benchmark_eur))+'</td>'
+      + '<td class="num">'+(d.ajust_recomanat_eur==null?'—':(rebal?'<strong>'+eur(d.ajust_recomanat_eur)+'</strong>':'<span class="dim">'+eur(d.ajust_recomanat_eur)+'</span>'))+'</td>'
+    + '</tr>';
+  }).join('');
+}
+</script>
+</body>
+</html>
