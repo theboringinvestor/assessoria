@@ -119,6 +119,7 @@ footer{margin-top:36px;padding-top:15px;border-top:1px solid var(--g100);font-fa
 
   <div class="tabs">
     <button class="tab on" id="tabClients" onclick="anarA('clients')">Clients</button>
+    <button class="tab" id="tabInformes" onclick="anarA('informes')">Informes</button>
     <button class="tab" id="tabPreus" onclick="anarA('preus')">Preus i mercat</button>
     <a class="tab" href="tbi-actius.html" style="text-decoration:none;line-height:1.6">Catàleg d'actius ↗</a>
   </div>
@@ -140,6 +141,27 @@ footer{margin-top:36px;padding-top:15px;border-top:1px solid var(--g100);font-fa
         <th class="num">Auto.</th><th>Model</th><th>Preus</th></tr></thead>
       <tbody id="tbClients"><tr><td colspan="7" class="empty">Carregant…</td></tr></tbody>
     </table></div></div>
+  </div>
+
+  <!-- ══════ VISTA: INFORMES ══════ -->
+  <div id="vInformes" class="hide">
+    <div class="sec-h">
+      <div>
+        <h2>Informes del trimestre</h2>
+        <p class="hint">Es generen sols des del motor simulat i neixen en esborrany. El client no en veu cap fins que el publiques.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="selPeriode" onchange="carregarInformes()" style="width:auto"></select>
+        <button class="gold sm" onclick="generarTots()">Generar els que falten</button>
+      </div>
+    </div>
+    <div id="infMsg"></div>
+    <div class="card"><div class="tw"><table>
+      <thead><tr><th>Client</th><th class="num">Valor</th><th class="num">Resultat</th>
+        <th>Veredicte</th><th>Estat</th><th></th></tr></thead>
+      <tbody id="tbInformes"><tr><td colspan="6" class="empty">Carregant…</td></tr></tbody>
+    </table></div></div>
+    <div id="infDetall"></div>
   </div>
 
   <!-- ══════ VISTA: PREUS ══════ -->
@@ -319,11 +341,14 @@ function anarA(v){
   vista = v;
   $('vClients').classList.toggle('hide', v!=='clients');
   $('vPreus').classList.toggle('hide', v!=='preus');
+  $('vInformes').classList.toggle('hide', v!=='informes');
   $('vClient').classList.toggle('hide', v!=='client');
   $('tabClients').classList.toggle('on', v==='clients' || v==='client');
   $('tabPreus').classList.toggle('on', v==='preus');
+  $('tabInformes').classList.toggle('on', v==='informes');
   if (v==='preus') carregarPreus();
   if (v==='clients') carregarResum();
+  if (v==='informes') { omplirPeriodes(); carregarInformes(); }
   window.scrollTo(0,0);
 }
 
@@ -389,6 +414,141 @@ function obrirClient(i){
   $('selClient').value = String(i);
   anarA('client');
   carregarClient();
+}
+
+/* ══════════ VISTA INFORMES ══════════ */
+var informes = [];
+
+function periodeActual(){
+  var d = new Date();
+  return d.getFullYear() + '-T' + Math.ceil((d.getMonth()+1)/3);
+}
+function omplirPeriodes(){
+  var sel = $('selPeriode');
+  if (sel.options.length) return;
+  var d = new Date(), out = [];
+  for (var i=0; i<5; i++){
+    var y = d.getFullYear(), q = Math.ceil((d.getMonth()+1)/3);
+    out.push(y + '-T' + q);
+    d.setMonth(d.getMonth()-3);
+  }
+  sel.innerHTML = out.map(function(p){ return '<option value="'+p+'">'+p+'</option>'; }).join('');
+}
+
+function carregarInformes(){
+  var per = $('selPeriode').value || periodeActual();
+  sb.from('informes').select('*').eq('contingut->>periode', per)
+    .order('data_informe', { ascending:false })
+    .then(function(r){
+      if (r.error) { msg('infMsg', r.error.message, 'err'); return; }
+      informes = r.data || [];
+      pintarInformes(per);
+    });
+}
+
+function pintarInformes(per){
+  var tb = $('tbInformes');
+  var ambCartera = resumTots.length;
+  if (!informes.length){
+    tb.innerHTML = '<tr><td colspan="6" class="empty">Cap informe de '+esc(per)
+      + '. Prem «Generar els que falten» per crear-ne '+ambCartera+'.</td></tr>';
+    $('infDetall').innerHTML=''; return;
+  }
+  var ord = informes.slice().sort(function(a,b){
+    return num(b,'valor') - num(a,'valor'); });
+  tb.innerHTML = ord.map(function(i){
+    var c = i.contingut || {}, r = c.resum || {}, v = c.veredicte || {};
+    return '<tr>'
+      + '<td><strong>'+esc(r.client||'—')+'</strong></td>'
+      + '<td class="num">'+eur(r.valor)+'</td>'
+      + '<td class="num '+sig(r.pnl_eur)+'">'+eur(r.pnl_eur)+'</td>'
+      + '<td style="max-width:420px;font-size:13px">'
+        + (v.cal_actuar ? '<span class="pill warn">acció</span> ' : '<span class="pill ok">res a fer</span> ')
+        + esc(i.resum||'') + '</td>'
+      + '<td>'+(i.visible ? '<span class="pill ok">publicat</span>' : '<span class="pill">esborrany</span>')+'</td>'
+      + '<td class="num" style="white-space:nowrap">'
+        + '<button class="ghost sm" onclick="veureInforme(\''+i.id+'\')">Veure</button> '
+        + (i.visible
+            ? '<button class="danger sm" onclick="publicar(\''+i.id+'\',false)">Retirar</button>'
+            : '<button class="gold sm" onclick="publicar(\''+i.id+'\',true)">Publicar</button>')
+      + '</td></tr>';
+  }).join('');
+}
+function num(i,k){ try { return Number(i.contingut.resum[k])||0; } catch(e){ return 0; } }
+
+function generarTots(){
+  var per = $('selPeriode').value || periodeActual();
+  if (per !== periodeActual()){
+    msg('infMsg','Només es poden generar informes del trimestre en curs ('+periodeActual()+').','warn');
+    return;
+  }
+  msg('infMsg','Generant…','warn');
+  var ids = resumTots.map(function(r){ return r.client_id; });
+  if (!ids.length){ msg('infMsg','Cap client amb cartera.','warn'); return; }
+  var fets = 0, errs = [];
+  var seq = ids.reduce(function(p, id){
+    return p.then(function(){
+      return sb.rpc('tbi_generar_informe', { p_client_id: id }).then(function(r){
+        if (r.error) errs.push(nomDe(id) + ': ' + r.error.message); else fets++;
+      });
+    });
+  }, Promise.resolve());
+  seq.then(function(){
+    msg('infMsg', fets + ' informe(s) al dia.' + (errs.length ? ' Errors: ' + errs.join(' · ') : ''),
+        errs.length ? 'warn' : 'ok');
+    carregarInformes();
+  });
+}
+function nomDe(id){
+  for (var i=0;i<clients.length;i++) if (clients[i].id===id) return clients[i].nom || clients[i].email;
+  return id;
+}
+
+function publicar(id, val){
+  sb.from('informes').update({ visible: val }).eq('id', id).then(function(r){
+    if (r.error) { msg('infMsg', r.error.message, 'err'); return; }
+    msg('infMsg', val ? 'Publicat: el client ja el pot veure.' : 'Retirat: el client ja no el veu.', 'ok');
+    carregarInformes(); $('infDetall').innerHTML='';
+  });
+}
+
+function veureInforme(id){
+  var i = informes.filter(function(x){ return x.id===id; })[0];
+  if (!i) return;
+  var c = i.contingut||{}, r = c.resum||{}, v = c.veredicte||{}, px = c.preus||{};
+  var blocs = (c.blocs||[]).map(function(b){
+    var fora = b.cal_rebalancejar;
+    return '<tr>'
+      + '<td><strong>'+esc(b.nom)+'</strong>'+(b.te_mercat?'':' <span class="pill">sense mercat</span>')+'</td>'
+      + '<td class="num">'+eur(b.valor)+'</td>'
+      + '<td class="num">'+(b.pes_objectiu==null?'—':pct(b.pes_objectiu))+'</td>'
+      + '<td class="num">'+pct(b.pes_actual)+'</td>'
+      + '<td class="num '+(fora?'neg':'dim')+'">'+(b.desviacio_pp==null?'—':(b.desviacio_pp>0?'+':'')+pct(b.desviacio_pp).replace(' %',' pp'))+'</td>'
+      + '<td class="num">'+(fora?'<strong>'+eur(b.ajust_eur)+'</strong>':'<span class="dim">'+eur(b.ajust_eur)+'</span>')+'</td>'
+    + '</tr>';
+  }).join('');
+  var avisos = (c.avisos||[]).map(function(a){
+    return '<div class="msg warn" style="margin:8px 0">'+esc(a)+'</div>'; }).join('');
+
+  $('infDetall').innerHTML =
+    '<section style="margin-top:26px"><div class="sec-h"><div>'
+    + '<h2>'+esc(r.client||'')+' · '+esc(c.periode||'')+'</h2>'
+    + '<p class="hint">Preus del '+esc(px.data||'—')+' · generat el '
+      + esc(String(c.generat_at||'').slice(0,10))+' · '+(i.visible?'publicat':'esborrany')+'</p>'
+    + '</div><button class="ghost sm" onclick="document.getElementById(\'infDetall\').innerHTML=\'\'">Tancar</button></div>'
+    + '<div class="msg '+(v.cal_actuar?'warn':'ok')+'" style="font-size:15px"><strong>'+esc(i.resum||'')+'</strong></div>'
+    + '<div class="kpis">'
+      + kpi('Valor', eur(r.valor), 'Als preus del '+esc(px.data||'—'), '')
+      + kpi('Aportat', eur(r.aportat), 'Des del '+esc(r.inici_seguiment||'—'), '')
+      + kpi('Resultat', eur(r.pnl_eur), pct(r.pnl_pct), sig(r.pnl_eur))
+      + kpi('Sense mercat', (r.pct_sense_mercat==null?'—':r.pct_sense_mercat+' %'),
+            eur(r.valor_sense_mercat)+' amb rendiment teòric', '')
+    + '</div>'
+    + avisos
+    + '<div class="card"><div class="tw"><table><thead><tr><th>Bloc</th><th class="num">Valor</th>'
+      + '<th class="num">Objectiu</th><th class="num">Actual</th><th class="num">Desv.</th><th class="num">Ajust</th>'
+      + '</tr></thead><tbody>'+blocs+'</tbody></table></div></div></section>';
+  $('infDetall').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 /* ══════════ VISTA PREUS ══════════ */
