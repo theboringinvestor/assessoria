@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+/* Si la consola s'obre dins un marc (la vista "Consola TBI" de la plataforma)
+   ho marquem aquí dalt, abans que es pinti res, perquè no es vegi la
+   capçalera un instant i després desaparegui. */
+try { if (window.top !== window.self) document.documentElement.className += ' encastat'; }
+catch (e) { document.documentElement.className += ' encastat'; }
+</script>
 <title>Consola TBI · admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,6 +93,16 @@ tr.clic{cursor:pointer}
   display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .nom-cli{font-size:19px;font-weight:600;letter-spacing:-.02em;margin:0}
 footer{margin-top:36px;padding-top:15px;border-top:1px solid var(--g100);font-family:var(--fm);font-size:11px;color:var(--g300)}
+
+/* ── Mode encastat: la consola dins la plataforma ────────────────────
+   La plataforma ja posa marca, títol, usuari i sortida. Aquí només cal el
+   contingut. El formulari d'accés sí que es manté: si per qualsevol motiu la
+   sessió no hi fos, cal poder-la recuperar sense sortir de la plataforma. */
+.encastat header{display:none}
+.encastat #lnkPlataforma{display:none}
+.encastat .wrap{max-width:none;padding:16px 22px 40px}
+.encastat .login{margin-top:26px}
+@media(max-width:760px){.encastat .wrap{padding:14px 16px 32px}}
 </style>
 </head>
 <body>
@@ -121,8 +138,8 @@ footer{margin-top:36px;padding-top:15px;border-top:1px solid var(--g100);font-fa
     <button class="tab on" id="tabClients" onclick="anarA('clients')">Clients</button>
     <button class="tab" id="tabInformes" onclick="anarA('informes')">Informes</button>
     <button class="tab" id="tabPreus" onclick="anarA('preus')">Preus i mercat</button>
-    <a class="tab" href="tbi-actius.html" style="text-decoration:none;line-height:1.6">Catàleg d'actius ↗</a>
-    <a class="tab" href="platform.html" style="text-decoration:none;line-height:1.6;margin-left:auto">Plataforma ↗</a>
+    <a class="tab" href="tbi-actius.html" target="_blank" rel="noopener" style="text-decoration:none;line-height:1.6">Catàleg d'actius ↗</a>
+    <a class="tab" id="lnkPlataforma" href="platform.html" target="_top" style="text-decoration:none;line-height:1.6;margin-left:auto">Plataforma ↗</a>
   </div>
 
   <div id="globalMsg"></div>

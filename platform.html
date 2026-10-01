@@ -1276,7 +1276,7 @@ var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
 // Data i hora de creació d'aquest arxiu platform.html per Claude.
 // Format: YYYY-MM-DD · HH:MMh (Barcelona). S'actualitza a cada build.
-var TBI_VERSION = '2026-08-27 · 22:50h';
+var TBI_VERSION = '2026-09-25 · 06:26h';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
@@ -4986,6 +4986,7 @@ var ADMIN_NAV = [
   {section:'Principal'},
   {id:'hub',               icon:TBI_ICO.svg('home'), label:'Hub'},
   {id:'admin-clients',     icon:TBI_ICO.svg('users'), label:'Clients'},
+  {id:'admin-consola',     icon:TBI_ICO.svg('desktop'), label:'Consola TBI'},
   {id:'admin-informe',     icon:TBI_ICO.svg('file'), label:'Generar Informe'},
   {id:'admin-calendari',   icon:TBI_ICO.svg('calendar'), label:'Calendari'},
   {id:'admin-diagnostic',  icon:TBI_ICO.svg('search'), label:'Diagn\u00f2stic'},
@@ -5168,6 +5169,7 @@ function navigateTo(viewId) {
   var titles = {
     'hub': ['Hub de l\'assessor', 'Vista general de la plataforma'],
     'admin-clients': ['Clients', 'Llistat i gestió de clients'],
+    'admin-consola': ['Consola TBI', 'Carteres reals, preus de mercat i informes trimestrals'],
     'admin-ingressos': ['Ingressos', 'Facturació i ingressos de l\'assessoria'],
     'admin-parametres': ['Paràmetres d\'actius', 'Rendiments, volatilitats i correlacions \u2014 base de tots els anàlisis'],
     'admin-radar': ['Radar d\'Oportunitats', 'Detecció de caigudes i reforç dinàmic d\'aportacions'],
@@ -5269,6 +5271,7 @@ function renderView(viewId) {
       }
       break;
     case 'admin-clients': renderClientsList(content); break;
+    case 'admin-consola': renderAdminConsola(content); break;
     case 'admin-ingressos': renderAdminIngressos(content); break;
     case 'admin-parametres': renderAdminParametres(content); break;
     case 'admin-radar': renderAdminRadar(content); break;
@@ -22319,6 +22322,82 @@ var _AL_TH = 'font-family:var(--fm);font-size:9.5px;letter-spacing:.08em;text-tr
   + 'color:var(--g400);text-align:left;padding:10px 12px;border-bottom:1px solid var(--g200);background:var(--g50)';
 var _AL_TD = 'padding:10px 12px;border-bottom:1px solid var(--g100);font-size:12.5px';
 var _AL_CARD = 'background:#fff;border:1px solid var(--g200);border-radius:12px';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONSOLA TBI · encastada dins la plataforma
+   ───────────────────────────────────────────────────────────────────────────
+   Per què un iframe i no codi duplicat:
+
+   · tbi-admin.html viu al mateix domini, així que comparteix localStorage amb
+     la plataforma. La sessió de Supabase és la mateixa: si ja has entrat aquí,
+     la consola s'obre identificada sola.
+   · La consola llegeix taules (preus, informes, cartera_model) amb RLS. Qui no
+     passi is_tbi_admin() no hi veu res, encastada o no. El guard de sota és
+     només cortesia visual, no és la barrera de seguretat.
+   · Qualsevol canvi futur a la consola apareix aquí sense tocar aquest fitxer.
+     Mantenir dues còpies del mateix motor seria la manera segura de
+     desincronitzar-les.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+var CONSOLA_SRC = 'tbi-admin.html';
+
+function renderAdminConsola(el) {
+
+  if (APP.role !== 'admin') {
+    el.innerHTML = '<div class="content-inner fade-in">'
+      + '<div style="border:1px solid var(--g200);border-radius:12px;padding:22px 24px;background:var(--white)">'
+      + '<div style="font-weight:600;margin-bottom:4px">Acc\u00e9s restringit</div>'
+      + '<div style="font-size:13.5px;color:var(--g500)">Aquesta secci\u00f3 \u00e9s nom\u00e9s per a l\'assessor.</div>'
+      + '</div></div>';
+    return;
+  }
+
+  var css = '<style id="cons-styles">'
+    + '.cons-wrap{height:100%;min-height:560px;display:flex;flex-direction:column;background:var(--white)}'
+    + '.cons-bar{flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px;'
+    +   'padding:9px 18px;border-bottom:1px solid var(--g200);background:var(--g50)}'
+    + '.cons-bar .hint{font-size:12px;color:var(--g500);margin-right:auto;line-height:1.45}'
+    + '.cons-btn{font-family:var(--fb);font-size:12px;font-weight:500;color:var(--ink);'
+    +   'background:var(--white);border:1px solid var(--g200);border-radius:99px;padding:5px 13px;'
+    +   'cursor:pointer;text-decoration:none;display:inline-block;line-height:1.5;white-space:nowrap}'
+    + '.cons-btn:hover{background:var(--accent-l);border-color:var(--accent-m)}'
+    + '.cons-frame{flex:1 1 auto;min-height:0;width:100%;border:0;display:block;background:var(--bg)}'
+    + '.cons-fallback{padding:22px 24px;font-size:13.5px;color:var(--g500)}'
+    + '@media(max-width:760px){.cons-bar .hint{flex:1 0 100%;margin-right:0;order:2}}'
+    + '</style>';
+
+  el.innerHTML = css
+    + '<div class="cons-wrap">'
+    +   '<div class="cons-bar">'
+    +     '<span class="hint">Motor de carteres, preus i informes trimestrals. '
+    +       'Mateixa sessi\u00f3 que la plataforma \u2014 no cal tornar a identificar-se.</span>'
+    +     '<button class="cons-btn" onclick="consolaRecarregar()">Recarregar</button>'
+    +     '<a class="cons-btn" href="' + CONSOLA_SRC + '" target="_blank" rel="noopener">Obrir en una pestanya \u2197</a>'
+    +   '</div>'
+    +   '<iframe class="cons-frame" id="cons-frame" title="Consola TBI" src="' + CONSOLA_SRC + '"></iframe>'
+    + '</div>';
+
+  // Un 404 no dispara cap event d'error a l'iframe: el servidor retorna una
+  // pàgina d'error que carrega perfectament. Com que compartim domini, podem
+  // mirar-ne el títol i dir-ho clar en comptes de deixar un marc en blanc.
+  var fr = document.getElementById('cons-frame');
+  if (fr) {
+    fr.addEventListener('load', function () {
+      var titol = '';
+      try { titol = (fr.contentDocument && fr.contentDocument.title) || ''; } catch (e) { return; }
+      if (titol.indexOf('Consola') >= 0) return;
+      fr.outerHTML = '<div class="cons-fallback">No s\'ha pogut carregar <code>' + CONSOLA_SRC + '</code>.<br>'
+        + 'Comprova que el fitxer est\u00e0 pujat al mateix directori que la plataforma.</div>';
+    });
+  }
+}
+
+function consolaRecarregar() {
+  var fr = document.getElementById('cons-frame');
+  if (!fr) return;
+  fr.src = CONSOLA_SRC + '?r=' + Date.now();
+  try { toast('Consola recarregada'); } catch (e) {}
+}
 
 function renderAdminAlertes(el) {
   el.innerHTML = '<div style="max-width:1080px">'
