@@ -165,8 +165,8 @@ footer{margin-top:36px;padding-top:15px;border-top:1px solid var(--g100);font-fa
   <div id="vInformes" class="hide">
     <div class="sec-h">
       <div>
-        <h2>Informes del trimestre</h2>
-        <p class="hint">Es generen sols des del motor simulat i neixen en esborrany. El client no en veu cap fins que el publiques.</p>
+        <h2>Informes del trimestre tancat</h2>
+        <p class="hint">Es generen sols des del motor simulat i neixen en esborrany. El client no en veu cap fins que el publiques. El cron els crea l'1 de gener, abril, juliol i octubre.</p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select id="selPeriode" onchange="carregarInformes()" style="width:auto"></select>
@@ -437,24 +437,30 @@ function obrirClient(i){
 /* ══════════ VISTA INFORMES ══════════ */
 var informes = [];
 
-function periodeActual(){
+// El trimestre que ja s'ha tancat, no el que tot just comença: l'1 d'octubre
+// el que toca repassar és el T3. Ha de coincidir amb tbi_periode_tancat() de
+// la base de dades, que és qui mana quan ho genera el cron.
+function periodeTancat(){
   var d = new Date();
-  return d.getFullYear() + '-T' + Math.ceil((d.getMonth()+1)/3);
+  var y = d.getFullYear();
+  var q = Math.ceil((d.getMonth()+1)/3) - 1;
+  if (q === 0) { q = 4; y = y - 1; }
+  return y + '-T' + q;
 }
 function omplirPeriodes(){
   var sel = $('selPeriode');
   if (sel.options.length) return;
-  var d = new Date(), out = [];
+  var p = periodeTancat().split('-T');
+  var y = parseInt(p[0], 10), q = parseInt(p[1], 10), out = [];
   for (var i=0; i<5; i++){
-    var y = d.getFullYear(), q = Math.ceil((d.getMonth()+1)/3);
     out.push(y + '-T' + q);
-    d.setMonth(d.getMonth()-3);
+    q--; if (q === 0) { q = 4; y--; }
   }
   sel.innerHTML = out.map(function(p){ return '<option value="'+p+'">'+p+'</option>'; }).join('');
 }
 
 function carregarInformes(){
-  var per = $('selPeriode').value || periodeActual();
+  var per = $('selPeriode').value || periodeTancat();
   sb.from('informes').select('*').eq('contingut->>periode', per)
     .order('data_informe', { ascending:false })
     .then(function(r){
@@ -495,31 +501,30 @@ function pintarInformes(per){
 function num(i,k){ try { return Number(i.contingut.resum[k])||0; } catch(e){ return 0; } }
 
 function generarTots(){
-  var per = $('selPeriode').value || periodeActual();
-  if (per !== periodeActual()){
-    msg('infMsg','Només es poden generar informes del trimestre en curs ('+periodeActual()+').','warn');
+  var per = $('selPeriode').value || periodeTancat();
+  // Regenerar un trimestre antic el valoraria amb els preus d'avui, i això no
+  // és l'informe d'aquell trimestre: és una foto d'ara amb una etiqueta falsa.
+  if (per !== periodeTancat()){
+    msg('infMsg','Els trimestres anteriors només es poden consultar. Generar només va per a '
+      + periodeTancat() + ', que és l\'últim tancat.','warn');
     return;
   }
   msg('infMsg','Generant…','warn');
-  var ids = resumTots.map(function(r){ return r.client_id; });
-  if (!ids.length){ msg('infMsg','Cap client amb cartera.','warn'); return; }
-  var fets = 0, errs = [];
-  var seq = ids.reduce(function(p, id){
-    return p.then(function(){
-      return sb.rpc('tbi_generar_informe', { p_client_id: id }).then(function(r){
-        if (r.error) errs.push(nomDe(id) + ': ' + r.error.message); else fets++;
-      });
-    });
-  }, Promise.resolve());
-  seq.then(function(){
-    msg('infMsg', fets + ' informe(s) al dia.' + (errs.length ? ' Errors: ' + errs.join(' · ') : ''),
-        errs.length ? 'warn' : 'ok');
+  // Una sola crida: la mateixa funció que executa el cron trimestral. Si un
+  // client peta, torna la fila amb estat 'error' i la resta tira igual.
+  sb.rpc('tbi_generar_informes_tots', { p_periode: per }).then(function(r){
+    if (r.error) { msg('infMsg', r.error.message, 'err'); return; }
+    var files = r.data || [];
+    var oks = [], errs = [];
+    files.forEach(function(f){ (f.estat === 'ok' ? oks : errs).push(f); });
+    if (!files.length){ msg('infMsg','Cap client amb cartera.','warn'); return; }
+    msg('infMsg',
+      oks.length + ' informe(s) de ' + esc(per) + ' al dia.'
+      + (errs.length ? ' Amb problema: ' + errs.map(function(e){
+          return esc(e.nom) + ' (' + esc(e.detall) + ')'; }).join(' · ') : ''),
+      errs.length ? 'warn' : 'ok');
     carregarInformes();
   });
-}
-function nomDe(id){
-  for (var i=0;i<clients.length;i++) if (clients[i].id===id) return clients[i].nom || clients[i].email;
-  return id;
 }
 
 function publicar(id, val){
