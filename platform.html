@@ -1276,7 +1276,7 @@ var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
 // Data i hora de creació d'aquest arxiu platform.html per Claude.
 // Format: YYYY-MM-DD · HH:MMh (Barcelona). S'actualitza a cada build.
-var TBI_VERSION = '2026-09-25 · 06:26h';
+var TBI_VERSION = '2026-10-02 · 17:44h';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
@@ -2609,6 +2609,7 @@ async function enterApp(role, email, isDemo) {
   APP.clientData = null;
   APP.clientsList = null;
   APP.analisis = null;
+  APP.informesMotor = null;
 
   // Store session
   localStorage.setItem('tbi_session', JSON.stringify({ role: role, email: email, isDemo: isDemo }));
@@ -2669,6 +2670,11 @@ async function enterApp(role, email, isDemo) {
 
     // Load analyses
     APP.analisis = await loadAnalisisFromSupabase();
+
+    // Informes del motor trimestral (nomes els publicats)
+    if (APP.clientData && APP.clientData.email) {
+      APP.informesMotor = await loadInformesFromSupabase(APP.clientData.email);
+    }
     
     // Load weekly questions history (per al widget)
     if (role === 'client') {
@@ -2940,6 +2946,34 @@ async function loadAnalisisFromSupabase() {
   }
 }
 
+// ── Informes generats pel motor trimestral (taula `informes`) ────────────
+// Font SEPARADA dels informes manuals, que viuen a clients.informes.
+// Dues regles que no s'han de relaxar mai:
+//   1) Filtrem visible = true. Un informe generat és un esborrany fins que
+//      Guillem el publica a ma des de la consola. El cron NO publica.
+//   2) Filtrem per client_id explicitament, no confiem nomes en RLS: quan
+//      admin fa "Vista client", la seva sessio pot llegir-ho tot i el
+//      portal ensenyaria informes d'altri.
+// Resultat: la previsualitzacio d'admin mostra exactament el que veu el
+// client, esborranys inclosos (= cap).
+async function loadInformesFromSupabase(email) {
+  if (!sb || !email) return null;
+  try {
+    var rc = await sb.from('clients').select('id').eq('email', email.toLowerCase()).limit(1);
+    if (rc.error || !rc.data || !rc.data.length) return null;
+    var cid = rc.data[0].id;
+    var res = await sb.from('informes').select('*')
+      .eq('client_id', cid)
+      .eq('visible', true)
+      .order('data_informe', { ascending: false });
+    if (res.error || !res.data) return null;
+    return res.data;
+  } catch(e) {
+    console.error('Error loading informes:', e);
+    return null;
+  }
+}
+
 // Admin: switch which client is being previewed
 async function previewClient(email) {
   var content = document.getElementById('content');
@@ -2980,6 +3014,11 @@ async function previewClient(email) {
     }
     APP.clientData = cd;
   }
+
+  // En canviar de client cal rellegir-li els informes. Sense aixo el portal
+  // ensenyaria els del client anterior.
+  APP.informesMotor = APP.isDemo ? null
+    : await loadInformesFromSupabase(APP.clientData.email);
 
   APP.user.name = APP.clientData.nom || 'Client';
   document.getElementById('preview-banner').classList.remove('hidden');
@@ -11642,6 +11681,181 @@ function getInformesClient(c) {
   return Array.isArray(c && c.informes) ? c.informes : [];
 }
 
+function getInformesMotor() {
+  return Array.isArray(APP.informesMotor) ? APP.informesMotor : [];
+}
+
+// Converteix una fila de la taula `informes` en la mateixa forma de targeta
+// que fan servir els informes manuals, per no partir la llista en dues
+// branques de render. El prefix 'motor:' de l'id es el que despres decideix
+// quin visor s'obre.
+function informeMotorToCard(row) {
+  var cont = row.contingut || {};
+  var per  = cont.periode || '';
+  var pt   = per.split('-T');
+  var etq  = (pt.length === 2) ? ('T' + pt[1] + ' ' + pt[0]) : per;
+  return {
+    id: 'motor:' + row.id,
+    tipus: 'trimestral',
+    titol: 'Informe trimestral \u2014 ' + etq,
+    subtitol: row.resum || '',
+    data: String(row.data_informe || '').slice(0, 10),
+    publicat: true,
+    _motor: row
+  };
+}
+
+function infEur(n) {
+  if (n === null || n === undefined || n === '' || isNaN(Number(n))) return '\u2014';
+  return Math.round(Number(n)).toLocaleString('ca-ES') + ' \u20ac';
+}
+function infPct(n, suf) {
+  if (n === null || n === undefined || n === '' || isNaN(Number(n))) return '\u2014';
+  return Number(n).toFixed(1).replace('.', ',') + ' ' + (suf || '%');
+}
+
+// ── Visor client d'un informe del motor ──────────────────────────────────
+// A diferencia del manual, aqui no hi ha text lliure: hi ha dades. Es
+// mostren els numeros, la desviacio respecte l'objectiu, el veredicte en
+// llengua planera i — sobretot — els avisos. Els avisos son la part que
+// explica que pot sortir malament, i no s'amaguen mai.
+function veureInformeMotor(cardId) {
+  var rid = String(cardId).indexOf('motor:') === 0 ? String(cardId).slice(6) : String(cardId);
+  var row = getInformesMotor().filter(function(x){ return String(x.id) === rid; })[0];
+  if (!row) return;
+
+  var cont = row.contingut || {};
+  var r    = cont.resum || {};
+  var v    = cont.veredicte || {};
+  var px   = cont.preus || {};
+  var t    = INFORME_TIPUS.trimestral;
+  var per  = cont.periode || '';
+  var pt   = per.split('-T');
+  var etq  = (pt.length === 2) ? ('T' + pt[1] + ' ' + pt[0]) : per;
+
+  var old = document.getElementById('modal-informe-client');
+  if (old) old.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-informe-client';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto';
+
+  var panel = document.createElement('div');
+  panel.style.cssText = 'background:#fff;border-radius:16px;max-width:760px;width:100%;padding:0;overflow:hidden;margin:auto';
+
+  var html = '<div style="background:#0A0A0A;color:#fff;padding:32px 36px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+        + '<div style="font-size:20px">' + t.emoji + '</div>'
+        + '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.15);color:#fff">' + t.lbl + '</span>'
+      + '</div>'
+      + '<button onclick="document.getElementById(\'modal-informe-client\').remove()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;color:#fff;cursor:pointer;padding:7px 12px;font-size:12px;font-family:var(--fb)">\u00d7 Tancar</button>'
+    + '</div>'
+    + '<div style="font-family:var(--fd);font-size:26px;font-weight:400;margin-bottom:6px">La teva cartera \u2014 ' + etq + '</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:14px">The Boring Investor \u00b7 preus del ' + (px.data || '\u2014') + '</div>'
+  + '</div>';
+
+  html += '<div style="padding:32px 36px">';
+
+  // Veredicte, en primer lloc i en llengua planera.
+  var vBg = v.cal_actuar ? '#FEF5E7' : '#EAF3DE';
+  var vTc = v.cal_actuar ? '#7A4A00' : '#1A5C3A';
+  html += '<div style="background:' + vBg + ';border-radius:11px;padding:18px 20px;margin-bottom:26px">'
+    + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:' + vTc + ';margin-bottom:7px">'
+      + (v.cal_actuar ? 'Cal un ajust' : 'Res a fer') + '</div>'
+    + '<div style="font-size:14px;color:#0A0A0A;line-height:1.7">' + (row.resum || v.text || '') + '</div>'
+  + '</div>';
+
+  // Xifres.
+  var pnl = Number(r.pnl_eur);
+  var pnlCol = (!isNaN(pnl) && pnl < 0) ? '#A3311F' : '#1A5C3A';
+  function kpiBox(lbl, val, sub, col) {
+    return '<div style="flex:1;min-width:150px;background:#F9F8F6;border:1px solid var(--g100);border-radius:11px;padding:16px 18px">'
+      + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#9A9690;margin-bottom:6px">' + lbl + '</div>'
+      + '<div style="font-family:var(--fm);font-size:19px;color:' + (col || '#0A0A0A') + '">' + val + '</div>'
+      + '<div style="font-size:10.5px;color:var(--g500);margin-top:3px;line-height:1.5">' + sub + '</div>'
+    + '</div>';
+  }
+  html += '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">'
+    + kpiBox('Valor', infEur(r.valor), 'Als preus del ' + (px.data || '\u2014'), '')
+    + kpiBox('Has aportat', infEur(r.aportat), 'Des del ' + (r.inici_seguiment || '\u2014'), '')
+    + kpiBox('Resultat', infEur(r.pnl_eur), infPct(r.pnl_pct), pnlCol)
+  + '</div>';
+
+  // Si el seguiment va comencar despres que el trimestre, la xifra NO cobreix
+  // tres mesos encara que l'informe es digui T3. Dir-ho, perque llegir "T3" i
+  // una xifra d'un mes es entendre-ho malament.
+  var iniQ = (pt.length === 2)
+    ? (pt[0] + '-' + ('0' + ((Number(pt[1]) - 1) * 3 + 1)).slice(-2) + '-01')
+    : null;
+  var iniS = r.inici_seguiment || null;
+  if (iniQ && iniS && String(iniS) > iniQ) {
+    html += '<div style="font-size:11.5px;color:var(--g500);line-height:1.7;margin-bottom:26px;padding:11px 14px;background:#F9F8F6;border-radius:9px">'
+      + 'Aquestes xifres cobreixen del <strong>' + iniS + '</strong> al <strong>' + (px.data || '\u2014') + '</strong>, '
+      + 'no tot el trimestre: el seguiment de la teva cartera va comen\u00e7ar m\u00e9s tard. '
+      + 'El resultat d\u2019un per\u00edode curt diu molt poc \u2014 ni per b\u00e9 ni per malament.'
+    + '</div>';
+  } else {
+    html += '<div style="margin-bottom:26px"></div>';
+  }
+
+  // Avisos. La part honesta.
+  var avisos = Array.isArray(cont.avisos) ? cont.avisos : [];
+  if (avisos.length) {
+    html += '<div style="margin-bottom:26px">'
+      + '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9A9690;margin-bottom:10px">Qu\u00e8 has de tenir present</div>';
+    avisos.forEach(function(a){
+      html += '<div style="background:#FEF5E7;border-left:3px solid #D99C28;border-radius:7px;padding:13px 16px;margin-bottom:8px;font-size:12.5px;color:#0A0A0A;line-height:1.7">' + a + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Blocs: objectiu contra realitat.
+  var blocs = Array.isArray(cont.blocs) ? cont.blocs : [];
+  if (blocs.length) {
+    html += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9A9690;margin-bottom:10px">Repartiment per bloc</div>'
+      + '<div style="overflow-x:auto;margin-bottom:10px"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+      + '<thead><tr style="border-bottom:1.5px solid var(--g200)">'
+        + '<th style="text-align:left;padding:8px 6px;font-weight:600;color:var(--g500)">Bloc</th>'
+        + '<th style="text-align:right;padding:8px 6px;font-weight:600;color:var(--g500)">Valor</th>'
+        + '<th style="text-align:right;padding:8px 6px;font-weight:600;color:var(--g500)">Objectiu</th>'
+        + '<th style="text-align:right;padding:8px 6px;font-weight:600;color:var(--g500)">Actual</th>'
+        + '<th style="text-align:right;padding:8px 6px;font-weight:600;color:var(--g500)">Difer\u00e8ncia</th>'
+      + '</tr></thead><tbody>';
+    blocs.forEach(function(b){
+      var fora = !!b.cal_rebalancejar;
+      var d = b.desviacio_pp;
+      var dTxt = (d === null || d === undefined) ? '\u2014'
+        : ((Number(d) > 0 ? '+' : '') + infPct(d, 'pp'));
+      html += '<tr style="border-bottom:1px solid var(--g100)">'
+        + '<td style="padding:9px 6px;color:#0A0A0A">' + (b.nom || '')
+          + (b.te_mercat ? '' : ' <span style="font-size:9px;font-weight:600;padding:1px 6px;border-radius:99px;background:var(--g100);color:var(--g500);white-space:nowrap">sense preu de mercat</span>')
+        + '</td>'
+        + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm)">' + infEur(b.valor) + '</td>'
+        + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm);color:var(--g500)">' + infPct(b.pes_objectiu) + '</td>'
+        + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm)">' + infPct(b.pes_actual) + '</td>'
+        + '<td style="padding:9px 6px;text-align:right;font-family:var(--fm);font-weight:' + (fora ? '600' : '400') + ';color:' + (fora ? '#A3311F' : 'var(--g400)') + '">' + dTxt + '</td>'
+      + '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  // Peu: d'on surten aquests numeros i que no es aixo.
+  html += '<div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--g100);font-size:10.5px;color:var(--g500);line-height:1.75">'
+    + 'Aquest informe el calcula autom\u00e0ticament la plataforma a partir de les posicions que tens declarades i dels preus de tancament del trimestre. '
+    + 'El teu assessor l\u2019ha revisat abans de publicar-lo. '
+    + 'T\u00e9 car\u00e0cter informatiu: no \u00e9s una ordre d\u2019operar ni garanteix cap resultat. '
+    + 'Abans de moure res, parlem-ne.'
+  + '</div>';
+
+  html += '</div>';
+
+  panel.innerHTML = html;
+  modal.appendChild(panel);
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
 // ── Vista ADMIN: crear i gestionar informes ──────────────────────────────
 function renderAdminInforme(el) {
   var c = getClient();
@@ -11906,7 +12120,13 @@ async function esborrarInforme(informeId) {
 // ── Vista CLIENT: veure informes publicats ───────────────────────────────
 function renderPortalInformes(el) {
   var c = getClient();
-  var informes = getInformesClient(c).filter(function(inf){ return inf.publicat; })
+  // Dues fonts, una sola llista: els informes manuals publicats de
+  // clients.informes i els del motor trimestral ja publicats de la taula
+  // `informes`. Les dates son ISO (YYYY-MM-DD), per aixo localeCompare
+  // ordena bé.
+  var manuals = getInformesClient(c).filter(function(inf){ return inf.publicat; });
+  var motor   = getInformesMotor().map(informeMotorToCard);
+  var informes = manuals.concat(motor)
     .sort(function(a,b){ return (b.data||'').localeCompare(a.data||''); });
 
   var html = '<div class="content-inner fade-in">'
@@ -11974,6 +12194,8 @@ function renderPortalInformes(el) {
 
 // Modal per veure un informe (vista client)
 function veureinformeClient(informeId) {
+  // Els del motor porten dades estructurades, no text lliure: visor propi.
+  if (String(informeId).indexOf('motor:') === 0) { veureInformeMotor(informeId); return; }
   var c = getClient();
   var inf = getInformesClient(c).find(function(x){ return x.id === informeId; });
   if (!inf) return;
