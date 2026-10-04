@@ -538,7 +538,7 @@ function publicar(id, val){
 function veureInforme(id){
   var i = informes.filter(function(x){ return x.id===id; })[0];
   if (!i) return;
-  var c = i.contingut||{}, r = c.resum||{}, v = c.veredicte||{}, px = c.preus||{};
+  var c = i.contingut||{}, r = c.resum||{}, v = c.veredicte||{}, px = c.preus||{}, mt = c.matalas||{};
   var blocs = (c.blocs||[]).map(function(b){
     var fora = b.cal_rebalancejar;
     return '<tr>'
@@ -566,6 +566,11 @@ function veureInforme(id){
       + kpi('Resultat', eur(r.pnl_eur), pct(r.pnl_pct), sig(r.pnl_eur))
       + kpi('Sense mercat', (r.pct_sense_mercat==null?'—':r.pct_sense_mercat+' %'),
             eur(r.valor_sense_mercat)+' amb rendiment teòric', '')
+      + kpi('Matalàs', (mt.reservat_eur==null?'—':eur(mt.reservat_eur)),
+            (mt.reservat_eur==null ? 'informe antic, sense dada'
+             : (mt.complet ? 'complet, fora de la cartera'
+                           : 'en falten '+eur(mt.manca_eur)+' dels '+eur(mt.objectiu_eur))),
+            (mt.reservat_eur!=null && !mt.complet) ? 'neg' : '')
     + '</div>'
     + avisos
     + '<div class="card"><div class="tw"><table><thead><tr><th>Bloc</th><th class="num">Valor</th>'

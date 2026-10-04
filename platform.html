@@ -1276,7 +1276,7 @@ var SUPABASE_URL = 'https://nvcmwhzcskihgktltavm.supabase.co';
 // ── VERSIÓ ──────────────────────────────────────────
 // Data i hora de creació d'aquest arxiu platform.html per Claude.
 // Format: YYYY-MM-DD · HH:MMh (Barcelona). S'actualitza a cada build.
-var TBI_VERSION = '2026-10-02 · 17:44h';
+var TBI_VERSION = '2026-10-04 · 10:05h';
 // ────────────────────────────────────────────────────
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52Y213aHpjc2tpaGdrdGx0YXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNTI1NDAsImV4cCI6MjA5MDYyODU0MH0.lsA4QjCGcyo8CWxjWQxFYu3wkJ-POnnzP0Dr6n2k8tQ';
 
@@ -11799,6 +11799,32 @@ function veureInformeMotor(cardId) {
     html += '<div style="margin-bottom:26px"></div>';
   }
 
+  // El matalas. Va aqui perque explica una resta: el client te mes diners
+  // al banc que els que surten a "Valor", i ha de saber on son.
+  var mat = cont.matalas || null;
+  if (mat && Number(mat.liquiditat_total_eur) > 0) {
+    var reservat = Number(mat.reservat_eur) || 0;
+    var manca    = Number(mat.manca_eur) || 0;
+    var objectiu = Number(mat.objectiu_eur) || 0;
+    var pctPle   = objectiu > 0 ? Math.max(0, Math.min(100, (reservat / objectiu) * 100)) : 100;
+    var ple      = manca <= 0;
+    html += '<div style="background:#F9F8F6;border:1px solid var(--g100);border-radius:11px;padding:18px 20px;margin-bottom:26px">'
+      + '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">'
+        + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#9A9690">Fons d\u2019emerg\u00e8ncia</div>'
+        + '<div style="font-family:var(--fm);font-size:14px;color:#0A0A0A">' + infEur(reservat)
+          + ' <span style="color:var(--g400);font-size:12px">de ' + infEur(objectiu) + '</span></div>'
+      + '</div>'
+      + '<div style="height:6px;border-radius:99px;background:var(--g100);overflow:hidden;margin-bottom:10px">'
+        + '<div style="height:100%;width:' + pctPle.toFixed(0) + '%;background:' + (ple ? '#1A5C3A' : '#D99C28') + '"></div>'
+      + '</div>'
+      + '<div style="font-size:11.5px;color:var(--g500);line-height:1.7">'
+        + (ple
+            ? 'Aquests diners es reserven a part i no es compten com a cartera. No surten a la taula de sota i l\u2019informe mai proposa moure\u2019ls.'
+            : 'Encara en falten <strong>' + infEur(manca) + '</strong>. Aquests diners es reserven a part i no es compten com a cartera. Completar el matal\u00e0s va abans que ampliar la inversi\u00f3.')
+      + '</div>'
+    + '</div>';
+  }
+
   // Avisos. La part honesta.
   var avisos = Array.isArray(cont.avisos) ? cont.avisos : [];
   if (avisos.length) {
@@ -11843,6 +11869,7 @@ function veureInformeMotor(cardId) {
   // Peu: d'on surten aquests numeros i que no es aixo.
   html += '<div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--g100);font-size:10.5px;color:var(--g500);line-height:1.75">'
     + 'Aquest informe el calcula autom\u00e0ticament la plataforma a partir de les posicions que tens declarades i dels preus de tancament del trimestre. '
+    + ((cont.matalas && Number(cont.matalas.reservat_eur) > 0) ? 'El valor de dalt \u00e9s nom\u00e9s la cartera: no hi \u00e9s el fons d\u2019emerg\u00e8ncia. ' : '')
     + 'El teu assessor l\u2019ha revisat abans de publicar-lo. '
     + 'T\u00e9 car\u00e0cter informatiu: no \u00e9s una ordre d\u2019operar ni garanteix cap resultat. '
     + 'Abans de moure res, parlem-ne.'
